@@ -12,6 +12,7 @@ __author__ = 'Fugang Wang'
 __version__ = '0.1'
 
 import os, sys
+import os.path
 from getopt import gnu_getopt, GetoptError
 
 from IRTypes import ImgMeta
