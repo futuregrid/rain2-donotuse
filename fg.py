@@ -11,7 +11,7 @@ import getopt
 
 sys.path.append(os.getcwd())
 
-import fgCLI
+from futuregrid.shell import fgCLI
 
 def usage():
     """Prints the usage description.
