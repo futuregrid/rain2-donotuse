@@ -25,7 +25,7 @@ def usage():
         -q/--list [queryString]: get list of images that meet the criteria
         -a/--setPermission <imgId> <permissionString>: set access permission
         -g/--get <img/uri> <imgId>: get a image or only the URI by id
-        -p/--put <imgFile> <attributeString>: upload/register an image
+        -p/--put <imgFile> [attributeString]: upload/register an image
         -m/--modify <imgId> <attributeString>: update Metadata   
         -r/--remove <imgId>: remove an image from the repository
         -i/--histimg <imgId>: get usage info of an image
@@ -117,10 +117,13 @@ def main():
                 
                     
             elif o in ("-r", "--remove"):
-                if (service.remove(os.popen('whoami', 'r').read().strip(), args[0]) == "True"):
-                    print "The image with imgId=" + args[0] +" has been removed"
+                if(len(args)==1):
+                    if (service.remove(os.popen('whoami', 'r').read().strip(), args[0]) == "True"):
+                        print "The image with imgId=" + args[0] +" has been removed"
+                    else:
+                        print "The image with imgId=" + args[0] +" has NOT been removed. Please verify the imgId and if you are the image owner"
                 else:
-                    print "The image with imgId=" + args[0] +" has NOT been removed. Please verify the imgId and if you are the image owner"
+                    usage()
             elif o in ("-i", "--histimg"):
                 print "in image usage"
             elif o in ("-u", "--histuser"):

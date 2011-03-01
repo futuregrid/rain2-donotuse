@@ -18,12 +18,13 @@ from IRTypes import IRUser
 from IRTypes import IRCredential
 import string
 
+
 class IRServiceProxy(object):
     
     #Server location 
     #(Now we assume that the server is where the images are stored. We may want to change that)
     SERVICEENDP = "localhost"   #xray.futuregrid.org"    
-    FGIRDIR = "/home/javi/imagerepo/ImageRepo/"  #"/N/u/fuwang/fgir/"
+    FGIRDIR = "/home/javi/imagerepo/ImageRepo/src/futuregrid/image/repository/server/"  #"/N/u/fuwang/fgir/"
     BACKENDS = ["mongodb","mysql"]
     
     def __init__(self):
@@ -32,7 +33,6 @@ class IRServiceProxy(object):
         self._fgirimgstore = ""
         self._configfile=os.environ['HOME']+"/.IRconfig"
         self._setupBackend()
-        
         
     def _setupBackend (self):  #We can set up manually to avoid two ssh conections each time
         userId = os.popen('whoami', 'r').read().strip()        
@@ -71,8 +71,10 @@ class IRServiceProxy(object):
         return self._rExec(userId, cmdexec)
         
     def query(self, userId, queryString):
+        
         cmdexec = " '" + IRServiceProxy.FGIRDIR + \
                     "IRService.py --list \""+ queryString + "\"'"
+        
         return self._rExec(userId, cmdexec)
         
     def get(self, userId, option, imgId):
