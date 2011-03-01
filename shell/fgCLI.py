@@ -13,7 +13,8 @@ import readline
 import sys
 from futuregrid.shell.fgShellUtils import fgShellUtils
 from futuregrid.shell.fgShellRepo import fgShellRepo
-
+import logging
+from futuregrid.utils import fgLog
 
 class fgShell(cmd.Cmd, 
               fgShellUtils, 
@@ -25,7 +26,9 @@ class fgShell(cmd.Cmd,
         self._hist = [] 
         cmd.Cmd.__init__(self) 
         fgShellUtils.__init__(self)       
-        fgShellRepo.__init__(self)       
+        fgShellRepo.__init__(self)
+        
+        fgLog.setupLog("fg.log",logging.DEBUG)
         
         if not (os.path.isdir(self._fgshelldir)):
             os.system("mkdir "+self._fgshelldir) 

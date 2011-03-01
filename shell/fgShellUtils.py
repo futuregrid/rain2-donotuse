@@ -8,13 +8,13 @@ Some code has been taken from Cyberade CoG kit shell (http://cogkit.svn.sourcefo
 import os
 import cmd
 import readline
+from futuregrid.utils import fgUtil
+from futuregrid.utils import fgLog
 
 class fgShellUtils(cmd.Cmd):
     
     def __init__(self):
-        #fgShellUtils.__init__(self)
-            
-        self._fgshelldir=os.environ["HOME"]+"/.fg"    
+        self._fgshelldir=fgUtil.getShellDir()
         self.env=["repo","rain",""]
         self._use=""
         
@@ -48,10 +48,25 @@ class fgShellUtils(cmd.Cmd):
     #################################
         
     def do_get(self, args):
+        """
+        Generic get command that changes its behaviour depending on the 
+        context specified with use command.
+        """
         if(self._use=="repo"):
             self.do_repo_get(args)    
         
-        
+    ################################
+    #PUT
+    ################################
+    
+    def do_put(self,args):
+        """
+        Generic put command that changes its behaviour depending on the 
+        context specified with use command.
+        """
+        if(self._use=="repo"):
+            self.do_repo_put(args)
+       
     ##########################################################################
     # HISTORY
     ##########################################################################
