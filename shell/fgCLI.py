@@ -11,11 +11,13 @@ import os
 import cmd
 import readline
 import sys
-from fgShellUtils import fgShellUtils
-from fgShellRepo import fgShellRepo
+from futuregrid.shell.fgShellUtils import fgShellUtils
+from futuregrid.shell.fgShellRepo import fgShellRepo
 
 
-class fgShell(cmd.Cmd, fgShellUtils,fgShellRepo):
+class fgShell(cmd.Cmd, 
+              fgShellUtils, 
+              fgShellRepo):
     
     
     def __init__(self, silent=False):
@@ -36,7 +38,9 @@ class fgShell(cmd.Cmd, fgShellUtils,fgShellRepo):
             self.intro = "Welcome to the FutureGrid Shell"
         
         
-        self._hist=self.do_load("no argument needed")
+        self.do_load("no argument needed")
+        
+        
         
         #DO NOT LOAD HISTORY!!!!
         
@@ -138,7 +142,7 @@ class fgShell(cmd.Cmd, fgShellUtils,fgShellRepo):
             it has been interpreted. If you want to modifdy the input line
             before execution (for example, variable substitution) do it here.
         """
-        self._hist += [ line.strip() ]        
+        self._hist += [ line.strip() ]
         return line
 
     def postcmd(self, stop, line):

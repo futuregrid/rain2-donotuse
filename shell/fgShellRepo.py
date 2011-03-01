@@ -8,8 +8,8 @@ import os
 import cmd
 import readline
 import sys
-from fgShellUtils import fgShellUtils
-import IRServiceProxy
+from futuregrid.shell import fgShellUtils
+from futuregrid.image.repository.client import IRServiceProxy
 
 class fgShellRepo(cmd.Cmd):
     
