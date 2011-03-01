@@ -1,32 +1,61 @@
-#!/usr/bin/env python
+""" 
+Note: All of the capitalized constants below are passed to the distutils
+  setup() function you see below in the __main__ block [Python's main()].
 
-#
-# see also http://mrtopf.de/blog/en/a-small-introduction-to-python-eggs/
-#
+Everything is contained in src, which itself is not part of the package 
+structure. The only package (at present) is 'cogkit'. Others could be created
+and added to the PACKAGES variable below.
+
+This configuration file is modified and its origin is in cogkit.org and cyberaide.org
+"""
+
+NAME = 'futuregrid'
+SOURCE = 'src'
+PACKAGES=['futuregrid', 'futuregrid.config']
+VERSION = '0.1'
+DESCRIPTION = "FutureGrid (Python)"
+LONG_DESCRIPTION = """\
+futuregrid is a python library that contains the code related dynamically provisioning images on hardware ...
+
+"""
+AUTHOR = "Gregor von Laszewski"
+AUTHOR_EMAIL = 'laszewski@gmail.com'
+LICENSE = "Apache 2.0"
+PLATFORMS = "Linux"
+URL = "http://futregrid.org"
+DOWNLOAD_URL = "http://%s/download/%s-%s.tar.gz" % (URL, NAME, VERSION)
+CLASSIFIERS = [
+    "Development Status :: 1 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache 2.0",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Text Processing :: Markup"]
+KEYWORDS = "Grid, Cloud"
 
 from distutils.core import setup
 
-setup(
-    name='eventlet',
-    version='0.1',
-    description='FutureGrid library',
-    author='The FutureGrid Team',
-    author_email='laszewski@gmail.com',
-    url='https://portal.futuregrid.org/software',
-    packages=['futuregrid'])
-      long_description="""\
-      futuregrid is a python library that contains the code related dynamically provisioning images on hardware ...
-      """,
-      classifiers=[
-          "License :: OSI Approved :: Apache 2.0",
-          "Programming Language :: Python",
-          "Development Status :: 0 - Alpha ",
-          "Intended Audience :: Developers",
-          "Topic :: Cloud and Grid",
-      ],
-      keywords='cloud grid',
-      license='Apache',
-      install_requires=[
-        'setuptools',
-        'greenlet'
-      ],
+if __name__ == '__main__':
+    setup(
+        name=NAME,
+        version=VERSION,
+        description=DESCRIPTION,
+        long_description=LONG_DESCRIPTION,
+        author=AUTHOR,
+        author_email=AUTHOR_EMAIL,
+        license=LICENSE,
+        platforms=PLATFORMS,
+        url=URL,
+        download_url=DOWNLOAD_URL,
+        classifiers=CLASSIFIERS,
+        keywords=KEYWORDS,
+        package_dir={ '' : SOURCE },
+        packages=PACKAGES,
+        install_requires=[
+          'setuptools',
+          'greenlet'
+        ]        
+    )
+
+
