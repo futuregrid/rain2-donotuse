@@ -2,46 +2,41 @@ import logging
 import logging.handlers
 import os
 
-#def (self, log_file="fg.log", module="root", level=logging.DEBUG):
+class fgLog(object):
 
-loglevel=logging.DEBUG
-log_file="fg.log"
-
-log_filename = os.environ['HOME']+log_file
-logger = logging.getLogger()
-formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-
-handler = logging.FileHandler(log_filename)
-handler.setFormatter(formatter)
-
-ch = logging.StreamHandler()
-ch.setFormatter(formatter)
-
-
-def SetLogFile(log_file="fg.log"):
-    log_file=log_file
+    def __init__(log_file="fg.log", level=logging.DEBUG):
+        self.loglevel = level
+        self.log_file = log_file
     
-def SetLogLevel(level=logging.DEBUG):
-    loglevel=level
-    logger.setLevel(level)
-    ch.setLevel(logging.DEBUG)
-    handler.setLevel(level)
-    logger.addHandler(handler)
-    logger.addHandler(ch)
+        fgshelldir = os.environ['HOME'] + "/.fg/"
+        
+        log_filename = fgshelldir + log_file
     
+        if not (os.path.isdir(fgshelldir)):
+            os.system("mkdir " + fgshelldir) 
     
-def getLogFile():
-     return logFile
-     
-def debug(text):
-    log.debug(text)
-     
-def info(text):
-    log.info(text)
-     
-def warning(text):
-    log.warning(text)
-     
-def clear():
-    os.remove(logFile)
+        logger = logging.getLogger()
+        formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+        log_filename = fgshelldir + log_file
+        handler = logging.FileHandler(log_filename)
+        handler.setFormatter(formatter)
+        loglevel = level
+        logger.setLevel(level)
+        handler.setLevel(level)
+        logger.addHandler(handler)        
+        
+    def getLogFile():
+         return log_filename
+         
+    def debug(text):
+        logger.debug(text)
+         
+    def info(text):
+        logger.info(text)
+         
+    def warning(text):
+        logger.warning(text)
+         
+    def clear():
+        os.remove(log_filename)
      
