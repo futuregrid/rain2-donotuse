@@ -18,14 +18,48 @@ class fgShellRepo(cmd.Cmd):
     
     def __init__(self):
         self._service = IRServiceProxy()
+    
+    def do_repo_list(self, args):
+        
+        args=self.getArgs(args)        
+        
+        ok=False         
+        
+        if (len(args)==0):
+            imgsList = self._service.query(os.popen('whoami', 'r').read().strip(), "*")
+            ok=True
+        elif (len(values)==1):
+            imgsList = self._service.query(os.popen('whoami', 'r').read().strip(), args[0])
+            ok=True
+        else:
+            self.help_repo_get()
+        
+        if(ok):
+            try:
+                imgs = eval(imgsList[0])
+                print str(len(imgs)) + " items found"
+                for key in imgs.keys():
+                    print imgs[key]
+            except:
+                print "do_repo_list: Error:", sys.exc_info()[0]                
+                fgLog.error("do_repo_list: Error interpreting the list of images from Image Repository"+str(sys.exc_info()[0]))
+             
             
+    def help_repo_list(self):
+        print  "Image Repository list command: \n"+ \
+                "    Get list of images that meet the criteria \n"+  \
+                "    It takes one optional argument [queryString] \n"+ \
+                "    If not argument provided it get all \n"+ \
+                "    queryString can be: * ; * where field=XX, field2=YY; field1, field2; "+ \
+                "    field1,field2 where field3=XX; field4=YY \n"
+                
     def do_repo_get(self, args):
         """Get an image or only the URI by id
            <img OR uri> <imgId> 
         """
-        values=args.split(" ")                
-        if (len(values)==2):
-            print self._service.get(os.popen('whoami', 'r').read().strip(), values[0], values[1])
+        args=self.getArgs(args)                
+        if (len(args)==2):
+            print self._service.get(os.popen('whoami', 'r').read().strip(), args[0], args[1])
         else:
             self.help_repo_get()        
             
@@ -36,19 +70,19 @@ class fgShellRepo(cmd.Cmd):
         """Put new image 
            <imgId> [metadataString]
         """
-        values=args.split(" ")                
+        args=self.getArgs(args)             
         if (len(values)==2):
-            print self._service.get(os.popen('whoami', 'r').read().strip(), values[0], values[1])
+            print self._service.get(os.popen('whoami', 'r').read().strip(), args[0], args[1])
         else:
             self.help_repo_get()        
         
         status=0
         ok=False
         if (len(values)==2):                
-            status = self._service.put(os.popen('whoami', 'r').read().strip(), None, values[0], values[1])
+            status = self._service.put(os.popen('whoami', 'r').read().strip(), None, args[0], args[1])
             ok=True
         elif (len(values)==1):
-            status = self._service.put(os.popen('whoami', 'r').read().strip(), None, values[0], "")
+            status = self._service.put(os.popen('whoami', 'r').read().strip(), None, args[0], "")
             ok=True
         else:
             self.help_repo_put()
@@ -69,8 +103,18 @@ class fgShellRepo(cmd.Cmd):
         print  "The Image Repository get command has two arguments <imgId> [attributeString] \
                 \n If no atributeString provided some default values are assigned"
 
-    def do_repo_remove(self):
-        if (service.remove(os.popen('whoami', 'r').read().strip(), args[0]) == "True"):
-            print "The image with imgId=" + args[0] +" has been removed"
+    def do_repo_remove(self,args):
+        """The Image Repository remove command has two arguments <imgId>"""
+        args=self.getArgs(args)                 
+        if (len(args)==1):
+            if (self._service.remove(os.popen('whoami', 'r').read().strip(), args[0]) == "True"):
+                print "The image with imgId=" + args[0] +" has been removed"
+            else:
+                print "The image with imgId=" + args[0] +" has NOT been removed. Please verify the imgId and if you are the image owner"
         else:
-            print "The image with imgId=" + args[0] +" has NOT been removed. Please verify the imgId and if you are the image owner"
+            self.help_repo_remove() 
+            
+    def help_repo_remove(self):
+        print  "The Image Repository remove command has one arguments <imgId>"
+        
+    

@@ -17,7 +17,22 @@ class fgShellUtils(cmd.Cmd):
         self._fgshelldir=fgUtil.getShellDir()
         self.env=["repo","rain",""]
         self._use=""
-        
+    
+    def getArgs(self,args):
+        """
+        Convert the string args to a list of arguments
+        """
+        aux=args.strip()
+        argsList=[]
+                
+        if(aux!=""):        
+            values=aux.split(" ")
+            for i in values:
+                istriped=i.strip()
+                if (istriped != ""):
+                    argsList.append(istriped)            
+        return argsList  
+       
     ################################
     # USE
     ###############################
@@ -66,7 +81,31 @@ class fgShellUtils(cmd.Cmd):
         """
         if(self._use=="repo"):
             self.do_repo_put(args)
-       
+            
+    ################################
+    #REMOVE
+    ################################
+    
+    def do_remove(self,args):
+        """
+        Generic remove command that changes its behaviour depending on the 
+        context specified with use command.
+        """
+        if(self._use=="repo"):
+            self.do_repo_remove(args)
+             
+    ################################
+    #List
+    ################################
+    
+    def do_list(self,args):
+        """
+        Generic list command that changes its behaviour depending on the 
+        context specified with use command.
+        """
+        if(self._use=="repo"):
+            self.do_repo_list(args)
+            
     ##########################################################################
     # HISTORY
     ##########################################################################
