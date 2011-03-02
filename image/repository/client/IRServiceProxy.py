@@ -16,8 +16,9 @@ from IRTypes import ImgMeta
 from IRTypes import ImgEntry
 from IRTypes import IRUser
 from IRTypes import IRCredential
+import IRUtil
 import string
-
+from futuregrid.utils import fgUtil
 
 class IRServiceProxy(object):
     
@@ -37,7 +38,7 @@ class IRServiceProxy(object):
         # GVL: THIS IS NOT GOOD, we want a .futuregrid dir in which the IRconfig is placed
         # We want a util function taht manages location, creation, existence and destruction of the .futuregrid dir
         self._configfile=os.environ['HOME']+"/.IRconfig"
-        self._setupBackend()
+        #self._setupBackend()
         
     def _setupBackend (self):  #We can set up manually to avoid two ssh conections each time
         userId = os.popen('whoami', 'r').read().strip()        
@@ -100,7 +101,7 @@ class IRServiceProxy(object):
         
     def put(self, userId, uid, imgFile, attributeString):
         status=0
-        if (self.checkMeta(attributeString)):
+        if (self.checkMeta(attributeString) and os.path.isfile(imgFile)):
             cmdexec = " '" + IRServiceProxy.FGIRDIR + \
                     "IRService.py --uploadValidator " +  userId + "'"
                     
@@ -124,7 +125,7 @@ class IRServiceProxy(object):
                 os.system(cmd)
                 
                 cmdexec = " '" + IRServiceProxy.FGIRDIR + "IRService.py --put " + \
-                             uid + " " + fileLocation + " \"" + attributeString + "\"'"   ##Why do we need to send imgFile???
+                             uid + " " + fileLocation + " \"" + attributeString + "\"'"   ##Why do we need to send filelocation???
                 #print cmdexec
                 uid = self._rExec(userId, cmdexec)
                 
@@ -216,7 +217,8 @@ class IRServiceProxy(object):
         #TODO: do we want to use the .format statement from python to make code more readable?
         
         cmdssh = "ssh " + userId + "@" + IRServiceProxy.SERVICEENDP
-        tmpFile = "/tmp/"+ str(time())
+        tmpFile = "/tmp/"+ str(time())+str(IRUtil.getImgId())
+        print tmpFile
         cmdexec = cmdexec + " > " + tmpFile
         cmd = cmdssh + cmdexec
         #print cmd
