@@ -32,7 +32,7 @@ class fgShellRepo(cmd.Cmd):
             imgsList = self._service.query(os.popen('whoami', 'r').read().strip(), args[0])
             ok=True
         else:
-            self.help_repo_get()
+            self.help_repolist()
         
         if(ok):
             try:
@@ -46,25 +46,23 @@ class fgShellRepo(cmd.Cmd):
              
             
     def help_repolist(self):
-        print  "Image Repository list command: \n"+ \
-                "    Get list of images that meet the criteria \n"+  \
-                "    It takes one optional argument [queryString] \n"+ \
-                "    If not argument provided it get all \n"+ \
-                "    queryString can be: * ; * where field=XX, field2=YY; field1, field2; "+ \
-                "    field1,field2 where field3=XX; field4=YY \n"
+        print  "Image Repository list command: Get list of images that meet the criteria \n"+  \
+                "                              It takes one optional argument [queryString] \n"+ \
+                "                              If not argument provided it get all \n"+ \
+                "   queryString can be: \"*\" ; \"* where field=XX\", \"field2=YY\"; \"field1, field2\"; \n"+ \
+                "                       \"field1,field2 where field3=XX\"; \"field4=YY\" \n"
                 
     def do_repoget(self, args):
-        """Get an image or only the URI by id
-           <img OR uri> <imgId> 
-        """
+        
         args=self.getArgs(args)                
         if (len(args)==2):
             print self._service.get(os.popen('whoami', 'r').read().strip(), args[0], args[1])
         else:
-            self.help_repo_get()        
+            self.help_repoget()        
             
     def help_repoget(self):
-        print  "The Image Repository get command has two arguments <img OR uri> <imgId>"
+        print  "Image Repository get command: Get an image or only the URI by id. \n"+ \
+               "                              It has two arguments <img OR uri> <imgId>"
     
     def do_repoput(self, args):
         """Put new image 
@@ -74,7 +72,7 @@ class fgShellRepo(cmd.Cmd):
         if (len(args)==2):
             print self._service.get(os.popen('whoami', 'r').read().strip(), args[0], args[1])
         else:
-            self.help_repo_get()        
+            self.help_repoput()        
         
         status=0
         ok=False
@@ -85,7 +83,7 @@ class fgShellRepo(cmd.Cmd):
             status = self._service.put(os.popen('whoami', 'r').read().strip(), None, args[0], "")
             ok=True
         else:
-            self.help_repo_put()
+            self.help_repoput()
         #id2 = service.put(os.popen('whoami', 'r').read().strip(), None, "/home/javi/tst3.iso", "vmtype=vmware")
         #print "image has been uploaded and registered with id " + str(id1)
         #id2 = service.put(os.popen('whoami', 'r').read().strip(), None, "/home/javi/tst2.iso", "vmtype=11|imgType=0|os=UBUNTU|arch=x86_64| owner=tstuser2| description=another test| tag=tsttaga, tsttagb")
@@ -112,7 +110,7 @@ class fgShellRepo(cmd.Cmd):
             else:
                 print "The image with imgId=" + args[0] +" has NOT been removed. Please verify the imgId and if you are the image owner"
         else:
-            self.help_repo_remove() 
+            self.help_reporemove() 
             
     def help_reporemove(self):
         print  "The Image Repository remove command has one arguments <imgId>"

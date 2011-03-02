@@ -70,8 +70,9 @@ class fgShellUtils(cmd.Cmd):
         Generic get command that changes its behaviour depending on the 
         context specified with use command.
         """
-        if(self._use!=""):
+        if(self._use!=""):            
             command="self.do_"+self._use+"get(\""+args+"\")"
+            print command
             try:
                 eval(command)
             except AttributeError:
