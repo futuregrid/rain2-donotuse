@@ -190,10 +190,7 @@ class fgShellUtils(cmd.Cmd):
         try:
             readline.read_history_file(histfile)
         except IOError:
-            print "ERROROR ERROR HALLO"
-        print "--------------------"
-        print histfile
-        print "--------------------"
+            pass
 
         atexit.register(readline.write_history_file, histfile)
             
