@@ -245,8 +245,7 @@ class fgShellUtils(cmd.Cmd):
     def do_load(self, arguments):
         """Load history from the $HOME/.fg/hist.txt file
         """
-            
-        histfile = os.path.join(os.environ["HOME"], ".fg/hist.txt")
+        histfile=fgUtil.getHistFile()
         try:
             readline.read_history_file(histfile)
         except IOError:
