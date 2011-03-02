@@ -57,7 +57,7 @@ class fgShellUtils(cmd.Cmd):
                 if(args[0]=="end"):
                     print "Script is not active."
                 elif(args[0]=="force"):  ##default file force
-                    print "Script module activated"
+                    print "Script module activated "
                     self._script=True                    
                 else:    #custom file NO force
                     print "Script module activated"
