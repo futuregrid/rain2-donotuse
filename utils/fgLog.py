@@ -1,42 +1,45 @@
 import logging
 import logging.handlers
 import os
+from futuregrid.utils import fgUtil
 
-class fgLog(object):
+loglevel = logging.DEBUG
+log_file = "fg.log"
 
-    def __init__(log_file="fg.log", level=logging.DEBUG):
-        self.loglevel = level
-        self.log_file = log_file
+fgshelldir = fgUtil.getShellDir()
+log_filename = fgshelldir + log_file
+
+if not (os.path.isdir(fgshelldir)):
+    os.system("mkdir " + fgshelldir) 
+
+logger = logging.getLogger("FutureGrid")
+formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+
+
+def setupLog(log_file="fg.log", level=logging.DEBUG):
+    log_filename = fgshelldir + log_file
+    handler = logging.FileHandler(log_filename)
+    handler.setFormatter(formatter)
+    loglevel = level
+    logger.setLevel(level)
+    handler.setLevel(level)
+    logger.addHandler(handler)    
     
-        fgshelldir = os.environ['HOME'] + "/.fg/"
-        
-        log_filename = fgshelldir + log_file
-    
-        if not (os.path.isdir(fgshelldir)):
-            os.system("mkdir " + fgshelldir) 
-    
-        logger = logging.getLogger()
-        formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-        log_filename = fgshelldir + log_file
-        handler = logging.FileHandler(log_filename)
-        handler.setFormatter(formatter)
-        loglevel = level
-        logger.setLevel(level)
-        handler.setLevel(level)
-        logger.addHandler(handler)        
-        
-    def getLogFile():
-         return log_filename
-         
-    def debug(text):
-        logger.debug(text)
-         
-    def info(text):
-        logger.info(text)
-         
-    def warning(text):
-        logger.warning(text)
-         
-    def clear():
-        os.remove(log_filename)
+def getLogFile():
+     return log_filename
+     
+def debug(text):
+    logger.debug(text)
+     
+def info(text):
+    logger.info(text)
+     
+def warning(text):
+    logger.warning(text)
+
+def error(text):
+    logger.error(text)
+     
+def clear():
+    os.remove(log_filename)
      
