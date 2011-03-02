@@ -20,6 +20,10 @@ class fgShellUtils(cmd.Cmd):
         self._fgshelldir=fgUtil.getShellDir()
         self.env=["repo","rain",""]
         self._use=""
+        
+        self._script=False
+        self._scriptList=[]
+        self._scriptFile=os.environ['PWD']+"/script"
     
     def getArgs(self,args):
         """
@@ -35,7 +39,62 @@ class fgShellUtils(cmd.Cmd):
                 if (istriped != ""):
                     argsList.append(istriped)            
         return argsList  
-       
+    
+    ####################
+    #SCRIPT
+    #################
+    def do_script(self,arg):
+        args=self.getArgs(arg)
+        if not self._script:
+            self._scriptList=[]
+            if(len(args)==0):  #default file NO force
+                if not (os.path.isfile(self._scriptFile)):
+                    print "Script module activated"
+                    self._script=True                    
+                else:
+                    print "File "+self._scriptFile+" exists. Use argument force to overwrite it"
+            elif(len(args)==1):
+                if(args[0]=="end"):
+                    print "Script is not active."
+                elif(args[0]=="force"):  ##default file force
+                    print "Script module activated"
+                    self._script=True                    
+                else:    #custom file NO force
+                    print "Script module activated"
+                    self._scriptFile=os.path.expanduser(args[0])
+                    if not (os.path.isfile(self._scriptFile)):                        
+                        self._script=True                        
+                    else:
+                        print "File "+self._scriptFile+" exists. Use argument force to overwrite it"                    
+            elif(len(args)==2):  ##custom file and maybe force
+                if (args[0]=="force"):
+                    print "Script module activated"
+                    self._scriptFile=os.path.expanduser(args[1])                    
+                    self._script=True                    
+                if (args[1]=="force"):
+                    print "Script module activated"
+                    self._scriptFile=os.path.expanduser(args[0])                    
+                    self._script=True                    
+            else:
+                self.help_script()
+        elif(len(args)==1):
+            if(args[0]=="end"):
+                print "Ending Script module and storing..."
+                self._script=False
+                with open(self._scriptFile, "w") as f:
+                    for line in self._scriptList:
+                        f.write(line + "\n")
+            else:
+                print "Script is activated. To finish it use: script end"
+        else:
+            print "Script is activated. To finish it use: script end"
+            
+    def help_script(self):
+        print "When Script is active, all commands executed will be stored in a file \n" +\
+              "    To initialize this use: script <filename> or just script to use the default file (`pwd`/script) file\n" +\
+              "    To finish and store the commands use: script end"
+            
+               
     ################################
     # USE
     ###############################

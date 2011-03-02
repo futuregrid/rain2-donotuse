@@ -137,7 +137,8 @@ class fgShell(cmd.Cmd,
             it has been interpreted. If you want to modifdy the input line
             before execution (for example, variable substitution) do it here.
         """
-        
+        if(self._script and line.strip() != "script end"):
+            self._scriptList += [line.strip()]
         return line
 
     def postcmd(self, stop, line):

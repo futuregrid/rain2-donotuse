@@ -20,6 +20,7 @@ class fgShellRepo(cmd.Cmd):
     def __init__(self):
         self._service = IRServiceProxy()
     
+    
     def do_repolist(self, args):
         
         args=self.getArgs(args)        
