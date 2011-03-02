@@ -25,12 +25,17 @@ class IRServiceProxy(object):
     #(Now we assume that the server is where the images are stored. We may want to change that)
     SERVICEENDP = "localhost"   #xray.futuregrid.org"    
     FGIRDIR = "/home/javi/imagerepo/ImageRepo/src/futuregrid/image/repository/server/"  #"/N/u/fuwang/fgir/"
+    # TODO: GVL: This is not good, we want a config file where we specify this, the config is to be placed in .futuregrid
+
     BACKENDS = ["mongodb","mysql"]
+    
     
     def __init__(self):
         super(IRServiceProxy, self).__init__()
         self._backend = ""
         self._fgirimgstore = ""
+        # GVL: THIS IS NOT GOOD, we want a .futuregrid dir in which the IRconfig is placed
+        # We want a util function taht manages location, creation, existence and destruction of the .futuregrid dir
         self._configfile=os.environ['HOME']+"/.IRconfig"
         self._setupBackend()
         
@@ -63,6 +68,7 @@ class IRServiceProxy(object):
                 f.close()
             except(IOError),e:
                 print "Unable to open the file", self._configfile, "Ending program.\n", e
+ 
     def auth(self, userId):
         # to be implemented when integrating with the security framework
         cmdexec = " '" + IRServiceProxy.FGIRDIR + \
@@ -70,8 +76,7 @@ class IRServiceProxy(object):
         #print cmd
         return self._rExec(userId, cmdexec)
         
-    def query(self, userId, queryString):
-        
+    def query(self, userId, queryString):    
         cmdexec = " '" + IRServiceProxy.FGIRDIR + \
                     "IRService.py --list \""+ queryString + "\"'"
         
@@ -153,7 +158,6 @@ class IRServiceProxy(object):
         return success[0].strip()
    
     def remove(self, userId, imgId):
-
         cmdexec = " '" + IRServiceProxy.FGIRDIR + \
                     "IRService.py --remove " + " " + imgId + "'"
         #print cmd
@@ -161,7 +165,6 @@ class IRServiceProxy(object):
         deleted = self._rExec(userId, cmdexec)[0].strip()
         #print deleted
         return deleted
-    
     
     def checkMeta(self,attributeString):        
         attributes = attributeString.split("|")
@@ -203,10 +206,15 @@ class IRServiceProxy(object):
         
     def _rExec(self, userId, cmdexec):        
         """
-        could the name of the tmpFile be overwrote???
-        
+        could the name of the tmpFile be overwiten???
         I have added /tmp to the file
         """
+        #TODO:GVL: we need a util function that generates unique files in /tmp, 
+        #probably under a dir for a user, permissions have to be worked out, 
+        #just doing time may no be strong enough, you want pid also
+        
+        #TODO: do we want to use the .format statement from python to make code more readable?
+        
         cmdssh = "ssh " + userId + "@" + IRServiceProxy.SERVICEENDP
         tmpFile = "/tmp/"+ str(time())
         cmdexec = cmdexec + " > " + tmpFile
