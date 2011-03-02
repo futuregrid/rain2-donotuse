@@ -17,13 +17,13 @@ class fgShellUtils(cmd.Cmd):
     
     
     def __init__(self):
-        self._fgshelldir=fgUtil.getShellDir()
+        
         self.env=["repo","rain",""]
         self._use=""
         
         self._script=False
         self._scriptList=[]
-        self._scriptFile=os.environ['PWD']+"/script"
+        self._scriptFile=fgUtil.getScriptFile()
     
     def getArgs(self,args):
         """
@@ -90,8 +90,8 @@ class fgShellUtils(cmd.Cmd):
             print "Script is activated. To finish it use: script end"
             
     def help_script(self):
-        print "When Script is active, all commands executed will be stored in a file \n" +\
-              "    To initialize this use: script <filename> or just script to use the default file (`pwd`/script) file\n" +\
+        print "When Script is active, all commands executed are stored in a file \n" +\
+              "    Activate it by executing: script <file> or just script to use the default file (`pwd`/script)\n" +\
               "    To finish and store the commands use: script end"
             
                

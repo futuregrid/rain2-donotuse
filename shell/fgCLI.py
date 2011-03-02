@@ -15,6 +15,7 @@ from futuregrid.shell.fgShellUtils import fgShellUtils
 from futuregrid.shell.fgShellRepo import fgShellRepo
 import logging
 from futuregrid.utils import fgLog
+from futuregrid.utils import fgUtil
 
 class fgShell(cmd.Cmd, 
               fgShellUtils, 
@@ -23,16 +24,14 @@ class fgShell(cmd.Cmd,
     
     def __init__(self, silent=False):
         #DEBUG ("Loading Base Shell Commands")  ##CHANGE TO PYTHON LOGG      
+        
+      
+        fgUtil.loadConfig()
          
         cmd.Cmd.__init__(self) 
         fgShellUtils.__init__(self)       
         fgShellRepo.__init__(self)
         
-        fgLog.setupLog("fg.log",logging.DEBUG)
-        
-        if not (os.path.isdir(self._fgshelldir)):
-            os.system("mkdir "+self._fgshelldir) 
-            
         self.prompt = "fg> "
         self.silent = silent
         if self.silent:
