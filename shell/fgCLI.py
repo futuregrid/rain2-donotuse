@@ -22,8 +22,8 @@ class fgShell(cmd.Cmd,
     
     
     def __init__(self, silent=False):
-        #DEBUG ("Loading Base Shell Commands")  ##CHANGE TO PYTHON LOGG       
-        #self._hist = [] 
+        #DEBUG ("Loading Base Shell Commands")  ##CHANGE TO PYTHON LOGG      
+         
         cmd.Cmd.__init__(self) 
         fgShellUtils.__init__(self)       
         fgShellRepo.__init__(self)
@@ -39,15 +39,10 @@ class fgShell(cmd.Cmd,
             self.intro = ""
         else:
             self.intro = "Welcome to the FutureGrid Shell"
-        
-        
+                
+        ##Load History
         self.do_load("no argument needed")
         
-        
-        
-        #DO NOT LOAD HISTORY!!!!
-        
-        #print self._hist
 
     def do_help(self, args):
         """Get help on commands
@@ -100,8 +95,6 @@ class fgShell(cmd.Cmd,
         """Terminates the shell, performing various clean-up actions."""
 
         #DEBUG("Terminating the shell")  #CHANGE TO PYTHON LOGS
-
-        self.do_save(arguments)
         sys.exit(1)
 
     do_q = do_exit = do_quit
@@ -128,8 +121,7 @@ class fgShell(cmd.Cmd,
         """Initialization before prompting user for commands.
            Despite the claims in the Cmd documentaion, Cmd.preloop() is not a stub.
         """
-        cmd.Cmd.preloop(self)   ## sets up command completion
-        #self._hist    = []      ## No history yet        
+        cmd.Cmd.preloop(self)   ## sets up command completion                
         self._locals  = {}      ## Initialize execution namespace for user
         self._globals = {}        
 
@@ -145,7 +137,7 @@ class fgShell(cmd.Cmd,
             it has been interpreted. If you want to modifdy the input line
             before execution (for example, variable substitution) do it here.
         """
-        self._hist += [ line.strip() ]
+        
         return line
 
     def postcmd(self, stop, line):

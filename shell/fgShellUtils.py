@@ -20,7 +20,6 @@ class fgShellUtils(cmd.Cmd):
         self._fgshelldir=fgUtil.getShellDir()
         self.env=["repo","rain",""]
         self._use=""
-        self._hist=[]
     
     def getArgs(self,args):
         """
@@ -72,7 +71,7 @@ class fgShellUtils(cmd.Cmd):
         context specified with use command.
         """
         if(self._use=="repo"):
-            self.do_repo_get(args)    
+            self.do_repoGet(args)    
         
     ################################
     #PUT
@@ -84,7 +83,7 @@ class fgShellUtils(cmd.Cmd):
         context specified with use command.
         """
         if(self._use=="repo"):
-            self.do_repo_put(args)
+            self.do_repoPut(args)
             
     ################################
     #REMOVE
@@ -96,7 +95,7 @@ class fgShellUtils(cmd.Cmd):
         context specified with use command.
         """
         if(self._use=="repo"):
-            self.do_repo_remove(args)
+            self.do_repoRemove(args)
              
     ################################
     #List
@@ -108,7 +107,7 @@ class fgShellUtils(cmd.Cmd):
         context specified with use command.
         """
         if(self._use=="repo"):
-            self.do_repo_list(args)
+            self.do_repoList(args)
             
     ##########################################################################
     # HISTORY
@@ -116,9 +115,10 @@ class fgShellUtils(cmd.Cmd):
 
     def do_history(self, line):
         """Print a list of commands that have been entered."""
-
-        print self._hist
-
+        hist=[]
+        for i in range(readline.get_current_history_length()):
+            hist.append(readline.get_history_item(i+1))
+        print hist
     do_h = do_hist = do_history
     
     ##########################################################################
@@ -156,59 +156,21 @@ class fgShellUtils(cmd.Cmd):
     #####################################
     # IO
     #####################################
-
-    def do_save(self, arguments):
-        """Save history in the $HOME/.fg/hist.txt file 
-        """
-        #filename = os.path.join(self.FGSHELLDIR, "jobs.txt")
-        ##DEBUG("Saving tasks to %s..." % filename)
-        #self.tasks.checkpoint(filename)
-    
-        #filename = os.path.join(self._fgshelldir, "hist.txt")
-        ##DEBUG("Saving command history to %s..." % filename)
-        
-        #with open(filename, "a") as f:
-        #    for line in self._hist:
-        #        f.write(line + "\n")
-        pass
     
     def do_load(self, arguments):
         """Load history from the $HOME/.fg/hist.txt file
         """
-        #filename = os.path.join(self.FGSHELLDIR, "jobs.txt")
-        ##DEBUG("Loading tasks from %s..." % filename)
-        #if os.path.exists(filename):
-        #    self.tasks.restore(filename)
-        #else:
-            ##WARNING("Task file does not exist.  Continuing anyway...")
-        filename = os.path.join(self._fgshelldir, "hist.txt")
+            
+        histfile = os.path.join(os.environ["HOME"], ".fg/hist.txt")
+        try:
+            readline.read_history_file(histfile)
+        except IOError:
+            print "ERROROR ERROR HALLO"
+        print "--------------------"
+        print histfile
+        print "--------------------"
+
+        atexit.register(readline.write_history_file, histfile)
+            
+            
         
-        ##DEBUG("Loading command history from %s..." % filename)
-        if os.path.exists(filename):
-            with open(filename, "r") as f:
-                for line in f:
-                    line = line.strip()
-                    self._hist.append(line)
-            print "--------------------"
-            print filename
-            print "--------------------"
-#            readline.read_history_file(histfile)
-            fgLog.debug(self._hist)
-            
-
-            histfile = os.path.join(os.environ["HOME"], ".fg/hist.txt")
-            try:
-                readline.read_history_file(histfile)
-            except IOError:
-                print "ERROROR ERROR HALLO"
-            print "--------------------"
-            print histfile
-            print "--------------------"
-
-            atexit.register(readline.write_history_file, histfile)
-            
-            
-            #print "LOADING DONE"
-        else:
-            ##WARNING("History file does not exist.  Continuing anyway...")
-            pass
