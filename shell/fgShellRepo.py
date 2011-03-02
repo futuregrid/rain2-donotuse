@@ -19,7 +19,7 @@ class fgShellRepo(cmd.Cmd):
     def __init__(self):
         self._service = IRServiceProxy()
     
-    def do_repoList(self, args):
+    def do_repolist(self, args):
         
         args=self.getArgs(args)        
         
@@ -45,7 +45,7 @@ class fgShellRepo(cmd.Cmd):
                 fgLog.error("do_repo_list: Error interpreting the list of images from Image Repository"+str(sys.exc_info()[0]))
              
             
-    def help_repoList(self):
+    def help_repolist(self):
         print  "Image Repository list command: \n"+ \
                 "    Get list of images that meet the criteria \n"+  \
                 "    It takes one optional argument [queryString] \n"+ \
@@ -53,7 +53,7 @@ class fgShellRepo(cmd.Cmd):
                 "    queryString can be: * ; * where field=XX, field2=YY; field1, field2; "+ \
                 "    field1,field2 where field3=XX; field4=YY \n"
                 
-    def do_repoGet(self, args):
+    def do_repoget(self, args):
         """Get an image or only the URI by id
            <img OR uri> <imgId> 
         """
@@ -63,10 +63,10 @@ class fgShellRepo(cmd.Cmd):
         else:
             self.help_repo_get()        
             
-    def help_repoGet(self):
+    def help_repoget(self):
         print  "The Image Repository get command has two arguments <img OR uri> <imgId>"
     
-    def do_repoPut(self, args):
+    def do_repoput(self, args):
         """Put new image 
            <imgId> [metadataString]
         """
@@ -99,11 +99,11 @@ class fgShellRepo(cmd.Cmd):
                 print "image has been uploaded and registered with id " + str(status)
         
         
-    def help_repoPut(self):
+    def help_repoput(self):
         print  "The Image Repository get command has two arguments <imgId> [attributeString] \
                 \n If no atributeString provided some default values are assigned"
 
-    def do_repoRemove(self,args):
+    def do_reporemove(self,args):
         """The Image Repository remove command has two arguments <imgId>"""
         args=self.getArgs(args)                 
         if (len(args)==1):
@@ -114,7 +114,7 @@ class fgShellRepo(cmd.Cmd):
         else:
             self.help_repo_remove() 
             
-    def help_repoRemove(self):
+    def help_reporemove(self):
         print  "The Image Repository remove command has one arguments <imgId>"
         
     

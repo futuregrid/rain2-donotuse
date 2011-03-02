@@ -58,7 +58,7 @@ class fgShellUtils(cmd.Cmd):
         for i in self.env:
             print i       
                     
-    def help_show():
+    def help_show(self):
         print "Show the available context in FG Shell"        
     
     #################################
@@ -70,8 +70,12 @@ class fgShellUtils(cmd.Cmd):
         Generic get command that changes its behaviour depending on the 
         context specified with use command.
         """
-        if(self._use=="repo"):
-            self.do_repoGet(args)    
+        if(self._use!=""):
+            command="self.do_"+self._use+"get(\""+args+"\")"
+            eval(command)
+        else:
+            print "You need to provide a Context using the use command"
+        
         
     ################################
     #PUT
@@ -82,8 +86,11 @@ class fgShellUtils(cmd.Cmd):
         Generic put command that changes its behaviour depending on the 
         context specified with use command.
         """
-        if(self._use=="repo"):
-            self.do_repoPut(args)
+        if(self._use!=""):
+            command="self.do_"+self._use+"put(\""+args+"\")"
+            eval(command)
+        else:
+            print "You need to provide a Context using the use command"
             
     ################################
     #REMOVE
@@ -93,9 +100,12 @@ class fgShellUtils(cmd.Cmd):
         """
         Generic remove command that changes its behaviour depending on the 
         context specified with use command.
-        """
-        if(self._use=="repo"):
-            self.do_repoRemove(args)
+        """        
+        if(self._use!=""):
+            command="self.do_"+self._use+"remove(\""+args+"\")"
+            eval(command)
+        else:
+            print "You need to provide a Context using the use command"
              
     ################################
     #List
@@ -106,8 +116,11 @@ class fgShellUtils(cmd.Cmd):
         Generic list command that changes its behaviour depending on the 
         context specified with use command.
         """
-        if(self._use=="repo"):
-            self.do_repoList(args)
+        if(self._use!=""):
+            command="self.do_"+self._use+"list(\""+args+"\")"
+            eval(command)
+        else:
+            print "You need to provide a Context using the use command"
             
     ##########################################################################
     # HISTORY
