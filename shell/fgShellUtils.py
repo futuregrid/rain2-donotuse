@@ -72,7 +72,10 @@ class fgShellUtils(cmd.Cmd):
         """
         if(self._use!=""):
             command="self.do_"+self._use+"get(\""+args+"\")"
-            eval(command)
+            try:
+                eval(command)
+            except AttributeError:
+                print "The "+self._use+" context does not have a get method"
         else:
             print "You need to provide a Context using the use command"
         
@@ -88,7 +91,10 @@ class fgShellUtils(cmd.Cmd):
         """
         if(self._use!=""):
             command="self.do_"+self._use+"put(\""+args+"\")"
-            eval(command)
+            try:
+                eval(command)
+            except AttributeError:
+                print "The "+self._use+" context does not have a put method"
         else:
             print "You need to provide a Context using the use command"
             
@@ -103,7 +109,10 @@ class fgShellUtils(cmd.Cmd):
         """        
         if(self._use!=""):
             command="self.do_"+self._use+"remove(\""+args+"\")"
-            eval(command)
+            try:
+                eval(command)
+            except AttributeError:
+                print "The "+self._use+" context does not have a remove method"
         else:
             print "You need to provide a Context using the use command"
              
@@ -118,7 +127,10 @@ class fgShellUtils(cmd.Cmd):
         """
         if(self._use!=""):
             command="self.do_"+self._use+"list(\""+args+"\")"
-            eval(command)
+            try:
+                eval(command)
+            except AttributeError:
+                print "The "+self._use+" context does not have a list method"
         else:
             print "You need to provide a Context using the use command"
             
