@@ -214,7 +214,10 @@ class IRServiceProxy(object):
         #probably under a dir for a user, permissions have to be worked out, 
         #just doing time may no be strong enough, you want pid also
         
+        #JAVI: added a random number
+        
         #TODO: do we want to use the .format statement from python to make code more readable?
+        
         
         cmdssh = "ssh " + userId + "@" + IRServiceProxy.SERVICEENDP
         tmpFile = "/tmp/"+ str(time())+str(IRUtil.getImgId())

@@ -15,8 +15,8 @@ from futuregrid.utils import fgLog #This should the the final one
 sys.path.append("/home/javi/imagerepo/ImageRepo/src/futuregrid/") #Directory where fg.py is
 from utils import fgLog
 """
-import sys
 
+"""
 try:
     __fgpath__=os.environ['FG_PATH']
 except KeyError:
@@ -74,4 +74,5 @@ def loadConfig():
     else:
         log_level=eval("logging."+log_level)
         
-    fgLog.setupLog(__logfile__,log_level)    
+    fgLog.setupLog(__logfile__,log_level)
+"""    
