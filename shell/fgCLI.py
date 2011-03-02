@@ -23,7 +23,7 @@ class fgShell(cmd.Cmd,
     
     def __init__(self, silent=False):
         #DEBUG ("Loading Base Shell Commands")  ##CHANGE TO PYTHON LOGG       
-        self._hist = [] 
+        #self._hist = [] 
         cmd.Cmd.__init__(self) 
         fgShellUtils.__init__(self)       
         fgShellRepo.__init__(self)
@@ -129,7 +129,7 @@ class fgShell(cmd.Cmd,
            Despite the claims in the Cmd documentaion, Cmd.preloop() is not a stub.
         """
         cmd.Cmd.preloop(self)   ## sets up command completion
-        self._hist    = []      ## No history yet        
+        #self._hist    = []      ## No history yet        
         self._locals  = {}      ## Initialize execution namespace for user
         self._globals = {}        
 
