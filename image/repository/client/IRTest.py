@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+
+# TODO: GVL change this code to use now modules and to document the example better. 
+
 from IRTypes import ImgMeta
 from IRTypes import ImgEntry
 from IRTypes import IRUser
