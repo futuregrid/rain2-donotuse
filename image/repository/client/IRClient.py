@@ -17,6 +17,12 @@ from IRTypes import IRUser
 from IRTypes import IRCredential
 from IRServiceProxy import IRServiceProxy
 
+
+#TODOD: GVL we need to settle on one getopt function. argparse, getopt, .... we should just use one.
+
+# TODO can we make that a shell command and than yous write a wrapper: "fg irclient ... arguments ..."
+# This way this command could be a shell script.
+
 def usage():
     print "options:"
     print '''
