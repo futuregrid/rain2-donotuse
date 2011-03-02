@@ -38,7 +38,7 @@ class IRServiceProxy(object):
         # GVL: THIS IS NOT GOOD, we want a .futuregrid dir in which the IRconfig is placed
         # We want a util function taht manages location, creation, existence and destruction of the .futuregrid dir
         self._configfile=os.environ['HOME']+"/.IRconfig"
-        #self._setupBackend()
+        self._setupBackend()
         
     def _setupBackend (self):  #We can set up manually to avoid two ssh conections each time
         userId = os.popen('whoami', 'r').read().strip()        
