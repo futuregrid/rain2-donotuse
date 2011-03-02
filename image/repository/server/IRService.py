@@ -19,7 +19,7 @@ from IRTypes import ImgMeta
 from IRTypes import ImgEntry
 from IRTypes import IRUser
 from IRTypes import IRCredential
-from IRUtil import IRUtil
+import IRUtil
 from IRDataAccess import AbstractImgStore
 from IRDataAccess import AbstractImgMetaStore
 from IRDataAccess import AbstractIRUserStore
