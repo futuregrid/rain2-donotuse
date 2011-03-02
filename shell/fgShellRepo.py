@@ -28,7 +28,7 @@ class fgShellRepo(cmd.Cmd):
         if (len(args)==0):
             imgsList = self._service.query(os.popen('whoami', 'r').read().strip(), "*")
             ok=True
-        elif (len(values)==1):
+        elif (len(args)==1):
             imgsList = self._service.query(os.popen('whoami', 'r').read().strip(), args[0])
             ok=True
         else:
@@ -71,17 +71,17 @@ class fgShellRepo(cmd.Cmd):
            <imgId> [metadataString]
         """
         args=self.getArgs(args)             
-        if (len(values)==2):
+        if (len(args)==2):
             print self._service.get(os.popen('whoami', 'r').read().strip(), args[0], args[1])
         else:
             self.help_repo_get()        
         
         status=0
         ok=False
-        if (len(values)==2):                
+        if (len(args)==2):                
             status = self._service.put(os.popen('whoami', 'r').read().strip(), None, args[0], args[1])
             ok=True
-        elif (len(values)==1):
+        elif (len(args)==1):
             status = self._service.put(os.popen('whoami', 'r').read().strip(), None, args[0], "")
             ok=True
         else:
