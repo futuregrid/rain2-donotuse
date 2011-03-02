@@ -10,6 +10,7 @@ import readline
 import sys
 from futuregrid.shell import fgShellUtils
 from futuregrid.image.repository.client.IRServiceProxy import IRServiceProxy
+from futuregrid.image.repository.client import IRTypes
 import logging
 from futuregrid.utils import fgLog
 
@@ -68,11 +69,7 @@ class fgShellRepo(cmd.Cmd):
         """Put new image 
            <imgId> [metadataString]
         """
-        args=self.getArgs(args)             
-        if (len(args)==2):
-            print self._service.get(os.popen('whoami', 'r').read().strip(), args[0], args[1])
-        else:
-            self.help_repoput()        
+        args=self.getArgs(args)            
         
         status=0
         ok=False
@@ -89,17 +86,25 @@ class fgShellRepo(cmd.Cmd):
         #id2 = service.put(os.popen('whoami', 'r').read().strip(), None, "/home/javi/tst2.iso", "vmtype=11|imgType=0|os=UBUNTU|arch=x86_64| owner=tstuser2| description=another test| tag=tsttaga, tsttagb")
         if(ok):
             if(status==0):
-                print "the image has NOT been uploaded"
+                print "The image has NOT been uploaded. Please, verify that the file exists and the metadata string is valid"
             elif(status==-1):
-                print "the image has NOT been uploaded"
+                print "The image has NOT been uploaded"
                 print "The User does not exist"
             else:
                 print "image has been uploaded and registered with id " + str(status)
         
         
     def help_repoput(self):
-        print  "The Image Repository get command has two arguments <imgId> [attributeString] \
-                \n If no atributeString provided some default values are assigned"
+        print  "The Image Repository put command has two arguments <imgId> [attributeString] \
+                \n If no attributeString provided some default values are assigned \n"+ \
+                "Example of all values of attributeString (you do not need to provide all of them) \n" \
+                "\"vmtype=xen|imgtype=opennebula|os=linux|arch=x86_64|description=my image|tag=tag1,tag2|permission=public|imgStatus=available\" \n"+\
+                "Some attributes are controlled: \n"+ \
+                "     vmtype= "+str(IRTypes.ImgMeta.VmType)+"\n"\
+                "     imgtype= "+str(IRTypes.ImgMeta.ImgType)+"\n"\
+                "     imgStatus= "+str(IRTypes.ImgMeta.ImgStatus)+"\n"\
+                "     Permission= "+str(IRTypes.ImgMeta.Permission)
+
 
     def do_reporemove(self,args):
         """The Image Repository remove command has two arguments <imgId>"""
