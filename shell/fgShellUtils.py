@@ -8,15 +8,19 @@ Some code has been taken from Cyberade CoG kit shell (http://cogkit.svn.sourcefo
 import os
 import cmd
 import readline
+import atexit
+
 from futuregrid.utils import fgUtil
 from futuregrid.utils import fgLog
 
 class fgShellUtils(cmd.Cmd):
     
+    
     def __init__(self):
         self._fgshelldir=fgUtil.getShellDir()
         self.env=["repo","rain",""]
         self._use=""
+        self._hist=[]
     
     def getArgs(self,args):
         """
@@ -160,12 +164,13 @@ class fgShellUtils(cmd.Cmd):
         ##DEBUG("Saving tasks to %s..." % filename)
         #self.tasks.checkpoint(filename)
     
-        filename = os.path.join(self._fgshelldir, "hist.txt")
+        #filename = os.path.join(self._fgshelldir, "hist.txt")
         ##DEBUG("Saving command history to %s..." % filename)
         
-        with open(filename, "a") as f:
-            for line in self._hist:
-                f.write(line + "\n")
+        #with open(filename, "a") as f:
+        #    for line in self._hist:
+        #        f.write(line + "\n")
+        pass
     
     def do_load(self, arguments):
         """Load history from the $HOME/.fg/hist.txt file
@@ -184,8 +189,26 @@ class fgShellUtils(cmd.Cmd):
                 for line in f:
                     line = line.strip()
                     self._hist.append(line)
-        
-            ##DEBUG(self._hist)
+            print "--------------------"
+            print filename
+            print "--------------------"
+#            readline.read_history_file(histfile)
+            fgLog.debug(self._hist)
+            
+
+            histfile = os.path.join(os.environ["HOME"], ".fg/hist.txt")
+            try:
+                readline.read_history_file(histfile)
+            except IOError:
+                print "ERROROR ERROR HALLO"
+            print "--------------------"
+            print histfile
+            print "--------------------"
+
+            atexit.register(readline.write_history_file, histfile)
+            
+            
+            #print "LOADING DONE"
         else:
             ##WARNING("History file does not exist.  Continuing anyway...")
             pass
