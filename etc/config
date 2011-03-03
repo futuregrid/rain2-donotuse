@@ -1,0 +1,13 @@
+[LogHist]
+loghistdir=~/.fg/
+
+#History file to store and load the shell commands
+history=%(loghistdir)s/hist.txt
+log=%(loghistdir)s/fg.log
+log_level=debug
+#script=~/myexperiment
+
+[Repo]
+serverdir=/home/javi/imagerepo/ImageRepo/src/futuregrid/image/repository/server/
+serveraddr="localhost"
+IRconfig=%(loghisstdir)s/.IRconfig
