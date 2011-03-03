@@ -502,20 +502,33 @@ class ImgMetaStoreMysql(AbstractImgMetaStore):
                                 
         return list of dictionaries with the Metadata
         """
+        
         success=False
-                
+        where=False   
+        sql=""
+        beforewhere=""
         if (self.mysqlConnection()):
             try:
                 cursor= self._dbConnection.cursor()         
                     
                 #sql = "SELECT imgUri FROM %s WHERE imgId = '%s' "% (self._tablemeta, imgId)
                 #print sql
-                criteria=string.lower(criteria.strip())  #remove spaces before
-                segs = criteria.split("where")
+                criteria=string.lower(criteria.strip())  #remove spaces before                
+                segs = criteria.split("where")                
                 if (len(segs)==1):
-                    sql="SELECT "+segs[0]+" FROM %s" % (self._tablemeta)
-                elif (len(segs)==2):
-                    aux = segs[1].split(",")                                                
+                    if (re.search("=",segs[0])==None):
+                        sql="SELECT "+segs[0]+" FROM %s" % (self._tablemeta)
+                    else:
+                        where=True
+                if (len(segs)==2 or where):
+                    if (where):
+                        splitwhere=segs[0]
+                        beforewhere="*"
+                    else:
+                        beforewhere=segs[0]
+                        splitwhere=segs[1]
+                    aux = splitwhere.split(",")     
+                                                               
                     aux1 = [z.strip() for z in aux]
                     counter=0
                     fieldswhere="WHERE "
@@ -526,7 +539,7 @@ class ImgMetaStoreMysql(AbstractImgMetaStore):
                             counter+=1
                             if (counter<len(aux1)):
                                 fieldswhere+=" and "
-                    sql="SELECT "+segs[0]+" FROM "+self._tablemeta+" "+fieldswhere 
+                    sql="SELECT "+beforewhere+" FROM "+self._tablemeta+" "+fieldswhere 
                     #print sql
                 else:                    
                     success=False
@@ -534,14 +547,14 @@ class ImgMetaStoreMysql(AbstractImgMetaStore):
                 cursor.execute(sql)
                 results=cursor.fetchall()
                 
-                if((segs[0].strip())=="*"):
+                if((beforewhere.strip())=="*"):
                     for result in results:                        
                         tmpMeta=self.convertDicToObject(result, True)
                         self._items[tmpMeta._imgId] = tmpMeta
                 else:                    
                     for result in results:
                         dic={}                    
-                        fields=(segs[0].strip()).split(",")                   
+                        fields=(beforewhere.strip()).split(",")                   
                         
                         for z in range(len(result)):
                             dic[fields[z].strip()]=result[z]
