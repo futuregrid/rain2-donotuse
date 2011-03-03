@@ -112,11 +112,13 @@ class IRServiceProxy(object):
             if (isPermitted[0].strip()=="NoUser"):
                 status=-1            
             elif (isPermitted[0].strip()=="True"):     
-                #USE local one       
+                
+                """       
                 cmdexec = " '" + IRServiceProxy.FGIRDIR + "IRService.py --getuid'"
                 uidRet = self._rExec(userId, cmdexec)
                 uid = uidRet[0].strip()
-
+                """
+                uid=IRUtil.getImgId()
                 fileLocation = self._fgirimgstore + uid            
                 cmd = 'scp ' + imgFile + ' ' + userId +"@" + \
                         IRServiceProxy.SERVICEENDP + ":" + fileLocation
