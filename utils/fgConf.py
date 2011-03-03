@@ -17,8 +17,17 @@ class fgConf(object):
             sys.exit() 
         
         ##DEFAULT VALUES##
-        self._configfile=self._fgpath+"/etc/config"
-        self._loghistdir="" #~/.fg/"
+        
+        
+        self._loghistdir="~/.fg/"
+        
+        tempfile=os.path.expanduser(self._loghistdir)+"/config"
+        
+        if(os.path.isfile(tempfile)):            
+            self._configfile=tempfile
+        else:   
+            self._configfile=self._fgpath+"/etc/config"
+                    
         self._logfile="" #self._loghistdir__+"/fg.log"
         self._histfile="" #self._loghistdir+"/hist.txt"        
         self._scriptfile=os.environ['PWD']+"/script"
@@ -26,6 +35,9 @@ class fgConf(object):
         self._logType=["DEBUG","INFO","WARNING","ERROR"]
         
         self.loadConfig()
+        
+        
+        ###TODO ADD SSH KEY TO SSH-ADD
         
     
     def getLogHistDir(self):
