@@ -41,10 +41,10 @@ class fgShellRepo(cmd.Cmd):
                 imgs = eval(imgsList[0])
                 print str(len(imgs)) + " items found"
                 for key in imgs.keys():
-                    print imgs[key]
+                    print imgs[key]                
             except:
                 print "do_repo_list: Error:", sys.exc_info()[0]                
-                fgLog.error("do_repo_list: Error interpreting the list of images from Image Repository"+str(sys.exc_info()[0]))
+                self._fgUtilObj.error("do_repo_list: Error interpreting the list of images from Image Repository"+str(sys.exc_info()[0]))
              
             
     def help_repolist(self):
@@ -55,7 +55,7 @@ class fgShellRepo(cmd.Cmd):
                 "                       \"field1,field2 where field3=XX\"; \"field4=YY\" \n"
                 
     def do_repoget(self, args):
-        
+        self._fgUtilObj.debug("HERE")
         args=self.getArgs(args)                
         if (len(args)==2):
             print self._service.get(os.popen('whoami', 'r').read().strip(), args[0], args[1])

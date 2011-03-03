@@ -9,9 +9,7 @@ import os
 import cmd
 import readline
 import atexit
-
-from futuregrid.utils import fgUtil
-from futuregrid.utils import fgLog
+import sys
 
 class fgShellUtils(cmd.Cmd):
     
@@ -23,7 +21,7 @@ class fgShellUtils(cmd.Cmd):
         
         self._script=False
         self._scriptList=[]
-        self._scriptFile=fgUtil.getScriptFile()
+        self._scriptFile=self._fgUtilObj.getScriptFile()
     
     def getArgs(self,args):
         """
@@ -135,7 +133,8 @@ class fgShellUtils(cmd.Cmd):
             try:
                 eval(command)
             except AttributeError:
-                print "The "+self._use+" context does not have a get method"
+                print "The "+self._use+" context does not have a get method "
+                self._fgUtilObj.error(str(sys.exc_info()))
         else:
             print "You need to provide a Context using the use command"
         
@@ -155,6 +154,7 @@ class fgShellUtils(cmd.Cmd):
                 eval(command)
             except AttributeError:
                 print "The "+self._use+" context does not have a put method"
+                self._fgUtilObj.error(str(sys.exc_info()))
         else:
             print "You need to provide a Context using the use command"
             
@@ -173,6 +173,7 @@ class fgShellUtils(cmd.Cmd):
                 eval(command)
             except AttributeError:
                 print "The "+self._use+" context does not have a remove method"
+                self._fgUtilObj.error(str(sys.exc_info()))
         else:
             print "You need to provide a Context using the use command"
              
@@ -191,6 +192,7 @@ class fgShellUtils(cmd.Cmd):
                 eval(command)
             except AttributeError:
                 print "The "+self._use+" context does not have a list method"
+                self._fgUtilObj.error(str(sys.exc_info()))
         else:
             print "You need to provide a Context using the use command"
             
@@ -245,10 +247,12 @@ class fgShellUtils(cmd.Cmd):
     def do_load(self, arguments):
         """Load history from the $HOME/.fg/hist.txt file
         """
-        histfile=fgUtil.getHistFile()
+        histfile=self._fgUtilObj.getHistFile()
+        
         try:
             readline.read_history_file(histfile)
         except IOError:
+            print "error"
             pass
 
         atexit.register(readline.write_history_file, histfile)

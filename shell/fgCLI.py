@@ -14,8 +14,7 @@ import sys
 from futuregrid.shell.fgShellUtils import fgShellUtils
 from futuregrid.shell.fgShellRepo import fgShellRepo
 import logging
-from futuregrid.utils import fgLog
-from futuregrid.utils import fgUtil
+from futuregrid.utils.fgUtil import fgUtil
 
 class fgShell(cmd.Cmd, 
               fgShellUtils, 
@@ -25,9 +24,12 @@ class fgShell(cmd.Cmd,
     def __init__(self, silent=False):
         #DEBUG ("Loading Base Shell Commands")  ##CHANGE TO PYTHON LOGG      
         
-      
-        fgUtil.loadConfig()
-         
+        #Load Config
+        self._fgUtilObj=fgUtil()
+        self._fgUtilObj.loadConfig()        
+        #Setup log        
+        self._fgUtilObj.setupLog()
+        
         cmd.Cmd.__init__(self) 
         fgShellUtils.__init__(self)       
         fgShellRepo.__init__(self)
