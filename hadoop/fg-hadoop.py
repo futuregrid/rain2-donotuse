@@ -4,6 +4,7 @@ import subprocess
 import time
 import sys
 import os
+import argparse
 
 # GVL:
 # please remove the write statements and replace with text block
@@ -14,8 +15,9 @@ import os
 #
 #
 
-def generate_job_script(job_name, hadoop_command, data_input_dir, 
-                        data_output_dir, walltime, queue, num_nodes=1) :
+# TODO : Configure the conf location
+def generate_job_script(job_name, hadoop_command, data_input_dir,
+                        data_output_dir, walltime, num_nodes, queue,) :
     local_storage_dir = "/tmp/$PBS_JOBID-fg-hadoop"
     hadoop_conf_dir = "$HADOOP_HOME/conf"
     
@@ -35,15 +37,13 @@ def generate_job_script(job_name, hadoop_command, data_input_dir,
     masters_file.write("#PBS -o " + job_name + ".$PBS_JOBID.out \n \n")
     
     masters_file.write("echo Generating Configuration Scripts \n")
-    masters_file.write("python "+sys.path[0]+"/generate-xml.py $PBS_NODEFILE "
+    masters_file.write("python " + sys.path[0] + "/generate-xml.py $PBS_NODEFILE "
                         + local_storage_dir + " " + hadoop_conf_dir + " \n\n")
-    
-    subprocess.call("export FG_HADOOP_HOME=" + sys.path[0], shell=True)
     
     masters_file.write("echo Formatting HDFS  \n")
     masters_file.write("$HADOOP_HOME/bin/hadoop namenode -format   \n\n")
 
-    masters_file.write("Starting the cluster  \n")
+    masters_file.write("echo starting the cluster  \n")
     masters_file.write("$HADOOP_HOME/bin/start-dfs.sh  \n") #--config $HADOOP_CONF_DIR
     masters_file.write("$HADOOP_HOME/bin/hadoop dfsadmin -safemode wait \n\n") 
     if(data_input_dir):
@@ -64,31 +64,39 @@ def generate_job_script(job_name, hadoop_command, data_input_dir,
     
     masters_file.close()
     
-def temp(): 
-    from optparse import OptionParser
     
-    parser = OptionParser()
-    parser.add_option("-f", "--file", dest="filename",
-                      help="write report to FILE", metavar="FILE")
-    parser.add_option("-q", "--quiet",
-                      action="store_false", dest="verbose", default=True,
-                      help="don't print status messages to stdout")
+def main():        
+    parser = argparse.ArgumentParser(description='Run a Hadoop Job in FutureGrid')
     
-    (options, args) = parser.parse_args()
-    print options.filename
-    print args
-    nodes_file = open(args, "r")
-    nodes = nodes_file.readlines()
-    nodes_file.close()
+    parser.add_argument('jobname', help='Name of the job')
+    parser.add_argument('inputdir', help='Directory containing the input data for the job')
+    parser.add_argument('outputdir', help='Directory to store the output data from the job')
+    
+    #optional arguments
+    parser.add_argument('-q', '--queue', help='Queue to submit the job', default="batch")
+    # TODO: add a type to validate walltime
+    parser.add_argument('-w', '--walltime', help='Walltime for the job (00:00:00)', default='00:20:00')    
+    parser.add_argument('-n', '--nodes', help='Number of nodes for the job', default=1, type=int)    
+    
+    #hadoop command
+    parser.add_argument('hadoopcmd', nargs='+', help='''Hadoop job command to 
+        run in the cluster. Please use "input" & "output" as HDFS input & output
+        directories ''')
 
-hadoop_home = os.environ.get("HADOOP_HOME")
-if (not hadoop_home):
-    print("HADOOP_HOME is not set.")
-    sys.exit()
+    args = parser.parse_args()
     
-# setting FG_HADOOP_HOME, which will be used in the job script
-generate_job_script("test1", "jar wordcount.jar WordCount input output", 
-                    "~/input", "~/output", "0:20:00", "")
+    hadoop_home = os.environ.get("HADOOP_HOME")
+    if (not hadoop_home):
+        print("HADOOP_HOME is not set.")
+        sys.exit()
+        
+    hadoop_cmd = ' '.join(args.hadoopcmd)
+    
+    generate_job_script(args.jobname,hadoop_cmd, args.inputdir, args.outputdir
+                        ,args.walltime,args.nodes,args.queue)
 # export HADOOP_LOG_DIR=${HADOOP_HOME}/log
 # export HADOOP_HOME
 # export HADOOP_CONF_DIR 
+
+if __name__ == "__main__":
+    main()
