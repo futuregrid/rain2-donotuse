@@ -57,7 +57,11 @@ class fgShellRepo(cmd.Cmd):
     def do_repomodify(self, args):       
         args=self.getArgs(args)                
         if (len(args)==2):
-            print self._service.updateItem(os.popen('whoami', 'r').read().strip(), args[0], args[1])
+            status=self._service.updateItem(os.popen('whoami', 'r').read().strip(), args[0], args[1])
+            if(status=="True"):
+                print "The metadata of img "+args[0]+" has been updated"
+            else:
+                print "Error in the update. Please verify that you are the owner or that you introduced the correct arguments"
         else:
             self.help_repomodify()        
             
@@ -71,6 +75,22 @@ class fgShellRepo(cmd.Cmd):
                 "     imgtype= "+str(IRTypes.ImgMeta.ImgType)+"\n"\
                 "     imgStatus= "+str(IRTypes.ImgMeta.ImgStatus)+"\n"\
                 "     Permission= "+str(IRTypes.ImgMeta.Permission)
+    
+    def do_reposetpermission(self, args):       
+        args=self.getArgs(args)                
+        if (len(args)==2):            
+            status=self._service.setPermission(os.popen('whoami', 'r').read().strip(), args[0], args[1])
+            if(status=="True"):
+                print "Permission of img "+args[0]+" updated"
+            else:
+                print "The permission have not been changed. "+status
+        else:
+            self.help_reposetpermission()        
+            
+    def help_reposetpermission(self):
+        print  "Image Repository setPermission command: Change image permission. \n"+ \
+               "                              It has two arguments <imgId> <permission> \n"+ \
+               "                              Permission= "+str(IRTypes.ImgMeta.Permission)
                            
     def do_repoget(self, args):       
         args=self.getArgs(args)                

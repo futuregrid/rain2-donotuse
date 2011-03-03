@@ -157,7 +157,27 @@ class fgShellUtils(cmd.Cmd):
                 self._log.error(str(sys.exc_info()))
         else:
             print "You need to provide a Context using the use command"    
+    
+    #################################
+    #Set permission
+    #################################
         
+    def do_setpermission(self, args):
+        """
+        Generic setpermission command that changes its behaviour depending on the 
+        context specified with use command.
+        """
+        if(self._use!=""):            
+            command="self.do_"+self._use+"setpermission(\""+args+"\")"
+            print command
+            try:
+                eval(command)
+            except AttributeError:
+                print "The "+self._use+" context does not have a setpermission method "
+                self._log.error(str(sys.exc_info()))
+        else:
+            print "You need to provide a Context using the use command" 
+               
     ################################
     #PUT
     ################################
