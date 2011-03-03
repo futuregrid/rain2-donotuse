@@ -43,7 +43,7 @@ class fgShellRepo(cmd.Cmd):
                 for key in imgs.keys():
                     print imgs[key]                
             except:
-                print "do_repo_list: Error:", sys.exc_info()[0]                
+                print "do_repo_list: Error:"+str(sys.exc_info()[0])+"\n"                
                 self._log.error("do_repo_list: Error interpreting the list of images from Image Repository"+str(sys.exc_info()[0]))
              
             
