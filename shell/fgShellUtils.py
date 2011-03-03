@@ -21,7 +21,7 @@ class fgShellUtils(cmd.Cmd):
         
         self._script=False
         self._scriptList=[]
-        self._scriptFile=self._fgUtilObj.getScriptFile()
+        self._scriptFile=self._conf.getScriptFile()
     
     def getArgs(self,args):
         """
@@ -129,12 +129,12 @@ class fgShellUtils(cmd.Cmd):
         """
         if(self._use!=""):            
             command="self.do_"+self._use+"get(\""+args+"\")"
-            print command
+            #print command
             try:
                 eval(command)
             except AttributeError:
                 print "The "+self._use+" context does not have a get method "
-                self._fgUtilObj.error(str(sys.exc_info()))
+                self._log.error(str(sys.exc_info()))
         else:
             print "You need to provide a Context using the use command"
         
@@ -154,7 +154,7 @@ class fgShellUtils(cmd.Cmd):
                 eval(command)
             except AttributeError:
                 print "The "+self._use+" context does not have a put method"
-                self._fgUtilObj.error(str(sys.exc_info()))
+                self._log.error(str(sys.exc_info()))
         else:
             print "You need to provide a Context using the use command"
             
@@ -173,7 +173,7 @@ class fgShellUtils(cmd.Cmd):
                 eval(command)
             except AttributeError:
                 print "The "+self._use+" context does not have a remove method"
-                self._fgUtilObj.error(str(sys.exc_info()))
+                self._log.error(str(sys.exc_info()))
         else:
             print "You need to provide a Context using the use command"
              
@@ -192,7 +192,7 @@ class fgShellUtils(cmd.Cmd):
                 eval(command)
             except AttributeError:
                 print "The "+self._use+" context does not have a list method"
-                self._fgUtilObj.error(str(sys.exc_info()))
+                self._log.error(str(sys.exc_info()))
         else:
             print "You need to provide a Context using the use command"
             
@@ -247,7 +247,7 @@ class fgShellUtils(cmd.Cmd):
     def do_load(self, arguments):
         """Load history from the $HOME/.fg/hist.txt file
         """
-        histfile=self._fgUtilObj.getHistFile()
+        histfile=self._conf.getHistFile()
         
         try:
             readline.read_history_file(histfile)
