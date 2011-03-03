@@ -23,18 +23,18 @@ class fgShellRepo(cmd.Cmd):
     
     def do_repolist(self, args):
         
-        args=self.getArgs(args)        
+        #args=self.getArgs(args)        
         
         ok=False         
         
-        if (len(args)==0):
+        if (args.strip()==""):
             imgsList = self._service.query(os.popen('whoami', 'r').read().strip(), "*")
             ok=True
-        elif (len(args)==1):
-            imgsList = self._service.query(os.popen('whoami', 'r').read().strip(), args[0])
-            ok=True
         else:
-            self.help_repolist()
+            imgsList = self._service.query(os.popen('whoami', 'r').read().strip(), args)
+            ok=True
+        #else:
+        #    self.help_repolist()
         
         if(ok):
             try:
@@ -51,8 +51,8 @@ class fgShellRepo(cmd.Cmd):
         print  "Image Repository list command: Get list of images that meet the criteria \n"+  \
                 "                              It takes one optional argument [queryString] \n"+ \
                 "                              If not argument provided it get all \n"+ \
-                "   queryString can be: \"*\" ; \"* where field=XX\", \"field2=YY\"; \"field1, field2\"; \n"+ \
-                "                       \"field1,field2 where field3=XX\"; \"field4=YY\" \n"
+                "   queryString can be: * ; * where field=XX, field2=YY; \n"+ \
+                "                       field1,field2 where field3=XX; field4=YY \n"
                 
     def do_repoget(self, args):       
         args=self.getArgs(args)                
