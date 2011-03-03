@@ -18,7 +18,7 @@ from IRTypes import IRUser
 from IRTypes import IRCredential
 import IRUtil
 import string
-from futuregrid.utils import fgUtil
+#from futuregrid.utils import fgUtil
 
 class IRServiceProxy(object):
     
@@ -221,11 +221,11 @@ class IRServiceProxy(object):
         
         cmdssh = "ssh " + userId + "@" + IRServiceProxy.SERVICEENDP
         tmpFile = "/tmp/"+ str(time())+str(IRUtil.getImgId())
-        print tmpFile
+        #print tmpFile
         cmdexec = cmdexec + " > " + tmpFile
         cmd = cmdssh + cmdexec
         #print cmd
-        os.system(cmd)
+        print os.system(cmd)
         f = open(tmpFile, "r")
         outputs = f.readlines()
         f.close()
