@@ -12,6 +12,8 @@ import sys
 # least points to the man page in the portal
 #
 # no failsaves provided if specified dirs already exist
+#     > They are in the temp dir..So ok to override. Also we use job name
+#     > in the dir name...
 #
 # is cleanup needed?
 #
@@ -48,23 +50,23 @@ def create_hdfs_site(dfs_name_dir, dfs_data_dir):
 def create_mapred_site(master_node_ip, mapred_local_dir):
     doc, config_element = get_config_document()
     #doc, dfs_name_property =  create_property("dfs.name.dir", "/tmp/matlab/name", doc)
-    config_element.appendChild(create_property("mapred.job.tracker", master_node_ip+":53777", doc))
+    config_element.appendChild(create_property("mapred.job.tracker", master_node_ip + ":53777", doc))
     config_element.appendChild(create_property("mapred.local.dir", mapred_local_dir, doc))
     return doc
 
 def create_core_site(master_node_ip):
     doc, config_element = get_config_document()
     #doc, dfs_name_property =  create_property("dfs.name.dir", "/tmp/matlab/name", doc)
-    config_element.appendChild(create_property("fs.default.name", master_node_ip+":55450", doc))
+    config_element.appendChild(create_property("fs.default.name", master_node_ip + ":55450", doc))
     return doc
 
 def write_xmldoc_to_screen(doc):
-    prettyString  = doc.toprettyxml();
+    prettyString = doc.toprettyxml();
     print prettyString;
     
 def write_xmldoc_to_file(doc, filename):
-    prettyString  = doc.toprettyxml();
-    xml_file = open(filename,"w")
+    prettyString = doc.toxml();
+    xml_file = open(filename, "w")
     xml_file.write(prettyString)
     xml_file.close()
 
@@ -77,32 +79,32 @@ def generate_hadoop_configs(nodes, local_base_dir, conf_dir):
         
     master_node = nodes[0]
     
-    masters_file_name = conf_dir+"masters"
-    masters_file = open(masters_file_name,"w")
+    masters_file_name = conf_dir + "masters"
+    masters_file = open(masters_file_name, "w")
     masters_file.write(master_node)
     masters_file.close()
     
-    slaves_file_name = conf_dir+"slaves"
-    slaves_file = open(slaves_file_name,"w")
-    slaves_file.writelines(x+'\n' for x in nodes[1:])
+    slaves_file_name = conf_dir + "slaves"
+    slaves_file = open(slaves_file_name, "w")
+    slaves_file.writelines(x + '\n' for x in nodes[1:])
     slaves_file.close()
     
-    hdfs_site_doc = create_hdfs_site(local_base_dir+"name",local_base_dir+"data")
-    write_xmldoc_to_file(hdfs_site_doc, conf_dir+"hdfs-site.xml")
+    hdfs_site_doc = create_hdfs_site(local_base_dir + "name", local_base_dir + "data")
+    write_xmldoc_to_file(hdfs_site_doc, conf_dir + "hdfs-site.xml")
     
     core_site_doc = create_core_site(master_node)
-    write_xmldoc_to_file(core_site_doc, conf_dir+"core-site.xml")
+    write_xmldoc_to_file(core_site_doc, conf_dir + "core-site.xml")
     
-    mapred_site_doc =  create_mapred_site(master_node,local_base_dir+"local")
-    write_xmldoc_to_file(mapred_site_doc, conf_dir+"mapred-site.xml")
+    mapred_site_doc = create_mapred_site(master_node, local_base_dir + "local")
+    write_xmldoc_to_file(mapred_site_doc, conf_dir + "mapred-site.xml")
     
     return hdfs_site_doc, core_site_doc, mapred_site_doc
 
 def prepare_file_system(nodes, local_base_dir):
     for node in nodes :
-        subprocess.call("ssh "+node+" rm -rf "+local_base_dir, shell=True)
-        subprocess.call("ssh "+node+" mkdir -p "+local_base_dir, shell=True)
-        subprocess.call("ssh "+node+" mkdir "+local_base_dir+"/logs", shell=True)
+        subprocess.call("ssh " + node + " rm -rf " + local_base_dir, shell=True)
+        subprocess.call("ssh " + node + " mkdir -p " + local_base_dir, shell=True)
+        subprocess.call("ssh " + node + " mkdir " + local_base_dir + "/logs", shell=True)
         
 # unify list order preserving
 def unify(seq):  
@@ -116,7 +118,7 @@ def process_ips(nodes):
     # filter duplicates
     nodes = unify(nodes)
     for index, node in enumerate(nodes):
-        node  = node.rstrip()
+        node = node.rstrip()
         nodes[index] = node.replace("i", "172.29.200.", 1);        
     return nodes
 
@@ -126,7 +128,7 @@ parser = OptionParser()
 
 if (len(args) == 3):
     #print args
-    nodes_file = open(args[0],"r")
+    nodes_file = open(args[0], "r")
     nodes = nodes_file.readlines()
     local_base_dir = args[1]
     hadoop_conf_dir = args[2]
