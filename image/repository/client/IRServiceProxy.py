@@ -93,7 +93,7 @@ class IRServiceProxy(object):
         if not imgURI=='None':
             imgURI = IRServiceProxy.SERVICEENDP + ":" + imgURI
             if (option == "img"):
-                imgURI = self._retreiveImg(userId, imgId, imgURI)      
+                imgURI = self._retrieveImg(userId, imgId, imgURI)      
         else:            
             imgURI = None
         
@@ -121,8 +121,10 @@ class IRServiceProxy(object):
                         IRServiceProxy.SERVICEENDP + ":" + fileLocation
     
                 print "uploading file through scp:"
-                print cmd
-                os.system(cmd)
+                #print cmd
+                stat=os.system(cmd)
+                if (str(stat)!="0"):
+                    print stat
                 
                 cmdexec = " '" + IRServiceProxy.FGIRDIR + "IRService.py --put " + \
                              uid + " " + fileLocation + " \"" + attributeString + "\"'"   ##Why do we need to send filelocation???
@@ -225,7 +227,9 @@ class IRServiceProxy(object):
         cmdexec = cmdexec + " > " + tmpFile
         cmd = cmdssh + cmdexec
         #print cmd
-        print os.system(cmd)
+        stat=os.system(cmd)
+        if (str(stat)!="0"):
+            print stat
         f = open(tmpFile, "r")
         outputs = f.readlines()
         f.close()
@@ -235,16 +239,19 @@ class IRServiceProxy(object):
         #    output += line.strip()
         return outputs
 
-    def _retreiveImg(self, userId, imgId, imgURI):
+    def _retrieveImg(self, userId, imgId, imgURI):
         cmdscp = "scp " + userId + "@" + imgURI + " ./" + imgId + ".img"
         #print cmdscp
         output=""
         try:
-            if (os.system(cmdscp) == 0):
+            stat=os.system(cmdscp)
+            if (stat == 0):
                 output = "The image " + imgId + " is located in " + os.popen('pwd', 'r').read().strip() + "/" + imgId + ".img"
                 if (self._backend=="mongodb"):
                     cmdrm=" rm -rf " + (imgURI).split(":")[1]
                     self._rExec(userId, cmdrm)
+            else:
+                print "Error retrieving the image "+str(stat)
                 #remove the temporal file
         except os.error:
             print "Error, The image cannot be retieved"
