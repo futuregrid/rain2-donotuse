@@ -111,7 +111,8 @@ class IRServiceProxy(object):
             #print isPermitted[0].strip()      
             if (isPermitted[0].strip()=="NoUser"):
                 status=-1            
-            elif (isPermitted[0].strip()=="True"):            
+            elif (isPermitted[0].strip()=="True"):     
+                #USE local one       
                 cmdexec = " '" + IRServiceProxy.FGIRDIR + "IRService.py --getuid'"
                 uidRet = self._rExec(userId, cmdexec)
                 uid = uidRet[0].strip()
@@ -237,6 +238,7 @@ class IRServiceProxy(object):
         #output = ""
         #for line in outputs:
         #    output += line.strip()
+        #print outputs
         return outputs
 
     def _retrieveImg(self, userId, imgId, imgURI):

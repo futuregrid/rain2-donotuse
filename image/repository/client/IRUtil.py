@@ -9,12 +9,16 @@ import ConfigParser
 import string
 import logging
 import sys
-from futuregrid.utils import fgLog #This should the the final one
+#from futuregrid.utils import fgLog #This should the the final one
 """
 #To execute IRClient for tests
 sys.path.append("/home/javi/imagerepo/ImageRepo/src/futuregrid/") #Directory where fg.py is
 from utils import fgLog
 """
+
+def getImgId():
+    imgId = str(randrange(9999999999999))
+    return imgId
 
 """
 try:
