@@ -138,6 +138,25 @@ class fgShellUtils(cmd.Cmd):
         else:
             print "You need to provide a Context using the use command"
         
+    #################################
+    #MODIFY
+    #################################
+        
+    def do_modify(self, args):
+        """
+        Generic get command that changes its behaviour depending on the 
+        context specified with use command.
+        """
+        if(self._use!=""):            
+            command="self.do_"+self._use+"modify(\""+args+"\")"
+            print command
+            try:
+                eval(command)
+            except AttributeError:
+                print "The "+self._use+" context does not have a modify method "
+                self._log.error(str(sys.exc_info()))
+        else:
+            print "You need to provide a Context using the use command"    
         
     ################################
     #PUT

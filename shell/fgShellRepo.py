@@ -52,8 +52,26 @@ class fgShellRepo(cmd.Cmd):
                 "                              It takes one optional argument [queryString] \n"+ \
                 "                              If not argument provided it get all \n"+ \
                 "   queryString can be: * ; * where field=XX, field2=YY; \n"+ \
-                "                       field1,field2 where field3=XX; field4=YY \n"
+                "                       field1,field2 where field3=XX \n"
                 
+    def do_repomodify(self, args):       
+        args=self.getArgs(args)                
+        if (len(args)==2):
+            print self._service.updateItem(os.popen('whoami', 'r').read().strip(), args[0], args[1])
+        else:
+            self.help_repomodify()        
+            
+    def help_repomodify(self):
+        print  "Image Repository modify command: Modify image metadata. \n"+ \
+               "                              It has two arguments <imgId> <Metadata> \n"+\
+               "Example of all values of attributeString (you do not need to provide all of them) \n" \
+               "\"vmtype=xen|imgtype=opennebula|os=linux|arch=x86_64|description=my image|tag=tag1,tag2|permission=public|imgStatus=available\" \n"+\
+                "Some attributes are controlled: \n"+ \
+                "     vmtype= "+str(IRTypes.ImgMeta.VmType)+"\n"\
+                "     imgtype= "+str(IRTypes.ImgMeta.ImgType)+"\n"\
+                "     imgStatus= "+str(IRTypes.ImgMeta.ImgStatus)+"\n"\
+                "     Permission= "+str(IRTypes.ImgMeta.Permission)
+                           
     def do_repoget(self, args):       
         args=self.getArgs(args)                
         if (len(args)==2):
