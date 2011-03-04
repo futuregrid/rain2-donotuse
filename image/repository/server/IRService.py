@@ -23,48 +23,46 @@ import IRUtil
 from IRDataAccess import AbstractImgStore
 from IRDataAccess import AbstractImgMetaStore
 from IRDataAccess import AbstractIRUserStore
-from IRDataAccess import ImgStoreFS
-from IRDataAccess import ImgMetaStoreFS
-from IRDataAccess import IRUserStoreFS
-#change next lines when include mongo clases in IRDataAccess
-from IRDataAccessMongo import ImgStoreMongo
-from IRDataAccessMongo import ImgMetaStoreMongo
-from IRDataAccessMongo import IRUserStoreMongo
-from IRDataAccessMysql import ImgStoreMysql
-from IRDataAccessMysql import ImgMetaStoreMysql
-from IRDataAccessMysql import IRUserStoreMysql
+
+if(IRUtil.getBackend()=="mongodb"):
+    from IRDataAccessMongo import ImgStoreMongo
+    from IRDataAccessMongo import ImgMetaStoreMongo
+    from IRDataAccessMongo import IRUserStoreMongo
+elif(IRUtil.getBackend()=="mysql"):
+    from IRDataAccessMysql import ImgStoreMysql
+    from IRDataAccessMysql import ImgMetaStoreMysql
+    from IRDataAccessMysql import IRUserStoreMysql
+else:
+    from IRDataAccess import ImgStoreFS
+    from IRDataAccess import ImgMetaStoreFS
+    from IRDataAccess import IRUserStoreFS
+
 import string
 
 class IRService(object):
 
-    FGIRDIR="/home/javi/imagerepo/ImageRepo/"
-    #FGIRDIR = "/N/u/fuwang/fgir/"
-    #MONGOADDR = "localhost:23000"
-
-    
-
-    def __init__(self, backend, address):
+    def __init__(self):
         super(IRService, self).__init__()
-        self._backend=backend
-        self._address=address
         
-        if (backend == "mongodb"): 
-            self.metaStore = ImgMetaStoreMongo(self._address,self.FGIRDIR)
-            self.imgStore = ImgStoreMongo(self._address,self.FGIRDIR)
-            self._fgirimgstore = "/tmp/"
-            self.userStore = IRUserStoreMongo(self._address,self.FGIRDIR)
-        elif(backend == "mysql"):
-            self.metaStore = ImgMetaStoreMysql(self._address,self.FGIRDIR)
-            self.imgStore = ImgStoreMysql(self._address,self.FGIRDIR)
-            self._fgirimgstore = "/srv/irstore/"
-            self.userStore = IRUserStoreMysql(self._address,self.FGIRDIR)
+        self._backend=IRUtil.getBackend()
+        self._address=IRUtil.getAddress()        
+        self._fgirimgstore=IRUtil.getFgirimgstore()
+        self._fgserverdir=IRUtil.getFgserverdir()
+        
+        if (self._backend == "mongodb"): 
+            self.metaStore = ImgMetaStoreMongo(self._address,self._fgserverdir)
+            self.imgStore = ImgStoreMongo(self._address,self._fgserverdir)            
+            self.userStore = IRUserStoreMongo(self._address,self._fgserverdir)
+        elif(self._backend == "mysql"):
+            self.metaStore = ImgMetaStoreMysql(self._address,self._fgserverdir)
+            self.imgStore = ImgStoreMysql(self._address,self._fgserverdir)            
+            self.userStore = IRUserStoreMysql(self._address,self._fgserverdir)
         else:
             self.metaStore = ImgMetaStoreFS()
-            self.imgStore = ImgStoreFS()
-            self._fgirimgstore = "/N/u/fuwang/irstore/"
+            self.imgStore = ImgStoreFS()            
             self.userStore = IRUserStoreFS()    
         
-
+    
     def auth(self, userId):
         # to be implemented when integrating with the security framework
         return IRUtil.auth(userId, None)
@@ -198,15 +196,7 @@ def usage():
           '''
           
 def main():
-    
-    """
-    #MongoDB config
-    BACKEND = "mongodb"
-    ADDRESS = "localhost:23000"  
-    """
-    #Mysql config
-    BACKEND = "mysql"
-    ADDRESS = "localhost"
+
     
     try:
         opts, args = gnu_getopt(sys.argv[1:],
@@ -230,7 +220,7 @@ def main():
         print "%s" % err
         sys.exit(2)
 
-    service = IRService(BACKEND, ADDRESS)
+    service = IRService()
                
     if(len(opts)==0):
         usage()
@@ -272,7 +262,7 @@ def main():
         elif o in ("--getuid"):
             print IRUtil.getImgId()
         elif o in ("--getBackend"):
-            print BACKEND
+            print service._backend
             print service._fgirimgstore
         elif o in ("-m", "--modify"):
             print service.updateItem(os.popen('whoami', 'r').read().strip(), args[0], args[1])

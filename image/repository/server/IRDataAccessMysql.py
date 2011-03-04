@@ -26,6 +26,7 @@ import os
 import re
 import MySQLdb
 import string
+import IRUtil
 
 class ImgStoreMysql(AbstractImgStore):
 
@@ -44,7 +45,9 @@ class ImgStoreMysql(AbstractImgStore):
         self._dbName="images"
         self._tabledata="data"
         self._tablemeta="meta"
-        self._mysqlcfg=fgirdir+".mysql.cnf"
+        self._mysqlcfg=IRUtil.getMysqlcfg()
+        self._iradminsuer=IRUtil.getMysqluser()
+        
         self._dbConnection=None
         if (address != ""):
             self._mysqlAddress=address
@@ -356,7 +359,7 @@ class ImgStoreMysql(AbstractImgStore):
             self._dbConnection = MySQLdb.connect(host=self._mysqlAddress,                                                                                  
                                            db=self._dbName,
                                            read_default_file=self._mysqlcfg,
-                                           user="IRUser")
+                                           user=self._iradminsuer)
             connected = True
             
         except MySQLdb.Error, e:
@@ -387,7 +390,8 @@ class ImgMetaStoreMysql(AbstractImgMetaStore):
         self._dbName="images"
         self._tabledata="data"
         self._tablemeta="meta"
-        self._mysqlcfg=fgirdir+".mysql.cnf"
+        self._mysqlcfg=IRUtil.getMysqlcfg()
+        self._iradminsuer=IRUtil.getMysqluser()
         self._dbConnection=None
         if (address != ""):
             self._mysqlAddress=address
@@ -502,7 +506,7 @@ class ImgMetaStoreMysql(AbstractImgMetaStore):
                                 
         return list of dictionaries with the Metadata
         """
-        
+        print criteria
         success=False
         where=False   
         sql=""
@@ -518,6 +522,7 @@ class ImgMetaStoreMysql(AbstractImgMetaStore):
                 if (len(segs)==1):
                     if (re.search("=",segs[0])==None):
                         sql="SELECT "+segs[0]+" FROM %s" % (self._tablemeta)
+                        beforewhere=segs[0]
                     else:
                         where=True
                 if (len(segs)==2 or where):
@@ -729,7 +734,7 @@ class ImgMetaStoreMysql(AbstractImgMetaStore):
             self._dbConnection = MySQLdb.connect(host=self._mysqlAddress,                                                                                  
                                            db=self._dbName,
                                            read_default_file=self._mysqlcfg,
-                                           user="IRUser")
+                                           user=self._iradminsuer)
             connected = True
             
         except MySQLdb.Error, e:
@@ -751,7 +756,8 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
         #self._items = []        
         self._dbName="images"
         self._tabledata="users"        
-        self._mysqlcfg=fgirdir+".mysql.cnf"
+        self._mysqlcfg=IRUtil.getMysqlcfg()
+        self._iradminsuer=IRUtil.getMysqluser()
         self._dbConnection = None
         if (address != ""):
             self._mysqlAddress=address
