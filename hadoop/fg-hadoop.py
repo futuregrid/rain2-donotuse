@@ -1,4 +1,4 @@
-#! /usr/bin/python
+#!/usr/bin/env python
 """
 A shell command to dynamically deploy an Apache Hadoop environments on FG.
 

@@ -1,4 +1,5 @@
-#! /usr/bin/env python
+#!/usr/bin/env python
+
 """
 Hadoop configuration file generation utility script.
 This will be used internally by the job scripts 
