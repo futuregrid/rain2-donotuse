@@ -93,7 +93,7 @@ def main():
     parser.add_argument('-q', '--queue', help='Queue to submit the job', default="batch")
     # TODO: add a type function to validate walltime
     parser.add_argument('-w', '--walltime', help='Walltime for the job (hh:mm:ss)', default='00:20:00')    
-    parser.add_argument('-n', '--nodes', help='Number of nodes for the job', default=1, type=int)    
+    parser.add_argument('-n', '--nodes', help='Number of nodes for the job', default=2, type=int)    
     
     #hadoop command
     parser.add_argument('hadoopcmd', nargs='+', help='''Hadoop job command to 
