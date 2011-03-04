@@ -22,18 +22,16 @@ It follows the architecture design document that has been developed in the FG wi
 The code has two portions: server and client.
 
 Server configuration:
-We need to configure BACKEND and ADDRESS. We can also change the images directory used in the variable IRService._fgirimgstore. This variable is unique for each backend (in the case of MongoDB is only a temporal dir, the images are not stored there)
--FileSystem (no DBs)
-    BACKEND="file" ADDRESS=""
+All the configuration in the server side is done in the file IRUtil.py. We can configure the backend or the image directory used. In MongoDB we use __fgirimgstoremongo__ as a temporal dir, the images are not stored there. Meawhile in MySQL the dir __fgirimgstoremysql__ is where the images are stored.
+-FileSystem (no DBs) #There is no new develpments
     Files with name 'IRMetaStore' and 'IRImgStore' should be created to store the image data.
-    A directory with name 'irstore' should be created to store the real image files.
 -MongoDB
-    Config example: BACKEND="mongodb" ADDRESS="localhost:23000"
-    ADDRESS indicates the MongoDB connection, it could be the address of the mongod process in a simple installation or the address of the mongos process in a distributed deployment (we recommend have mongos in the same machine that the IR server)
+    Config example: __backend__="mongodb" __address__="localhost:23000"
+    __backend__ indicates the MongoDB connection, it could be the address of the mongod process in a simple installation or the address of the mongos process in a distributed deployment (we recommend have mongos in the same machine that the IR server)
 -MySQL 
-   Config example: BACKEND="mysql" ADDRESS="localhost"
-   A directory with name 'irstore' should be created to store the real image files.
-   Create user IRUser and store the password in a file $HOME/.mysql.cnf. The format is:
+   Config example: __backend__="mysql" __address__="localhost"
+   A directory with name specified in __fgirimgstoremysql__ must be created to store the real image files.
+   Create user IRUser and store the password in the file specified in __mysqlcfg__. The format is:
    [client]
    password=yourpass
 
