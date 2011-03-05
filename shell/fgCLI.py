@@ -5,6 +5,8 @@ FutureGrid Command Line Interface
 A great portion of this code has been taken from Cyberaide CoG kit shell 
 (http://cogkit.svn.sourceforge.net/viewvc/cogkit/trunk)
 cyberaide.org, cogkit.org
+
+We have also use source code from the python library cmd 
 """
 
 import os
@@ -66,8 +68,7 @@ class fgShell(cmd.Cmd,
             if (arg=="repo"):
                 requirements=["Repo"]
             #elif (arg=="rain"):
-            #    requirements=["Repo","Gene","Rain"] #rain context requires initialize repo and generation 
-            
+            #    requirements=["Repo","Gene","Rain"] #rain context requires initialize repo and generation             
             
             for i in requirements:
                 try:
@@ -97,6 +98,9 @@ class fgShell(cmd.Cmd,
     def help_show(self):
         print "Show the available context in FG Shell"        
     
+    ###########################
+    #HELP 
+    ###########################
     def complete_help(self, *args):
         #pass        
         listcmd=set(i for i in self._docHelp if i.startswith(args[0]))        

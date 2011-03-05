@@ -191,7 +191,10 @@ class fgShellUtils(cmd.Cmd):
         else:
             print "You need to provide a Context executing the use <context> \n"+ \
                   "You can see the available Contexts by executing show "
-             
+    
+    def do_prueba(self,args):
+        """Prueba Help"""
+        pass         
     ################################
     #List
     ################################

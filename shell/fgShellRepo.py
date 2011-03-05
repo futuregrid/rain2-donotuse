@@ -21,7 +21,7 @@ class fgShellRepo(cmd.Cmd):
         self._service = IRServiceProxy()
     
     def do_repotest(self,args):
-        """Test"""
+        """Test Help"""
         print "This is a test"
        
     def do_repolist(self, args):
