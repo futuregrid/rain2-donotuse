@@ -122,9 +122,9 @@ class IRServiceProxy(object):
                 fileLocation = self._fgirimgstore + uid            
                 cmd = 'scp ' + imgFile + ' ' + userId +"@" + \
                         IRServiceProxy.SERVICEENDP + ":" + fileLocation
-    
+                
                 print "uploading file through scp:"
-                #print cmd
+                print cmd
                 stat=os.system(cmd)
                 if (str(stat)!="0"):
                     print stat
