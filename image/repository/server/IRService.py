@@ -96,7 +96,7 @@ class IRService(object):
             status=self.imgStore.addItem(aImg)
             #print status
             #put metadata into the image meta store
-            if not isinstance(self.metaStore, ImgMetaStoreMongo): 
+            if(IRUtil.getBackend()!="mongodb"):                
                 #with MongoDB I put the metadata with the ImgEntry            
                 status=self.metaStore.addItem(aMeta)
             #print status
@@ -248,7 +248,7 @@ def main():
             print service.put(os.popen('whoami', 'r').read().strip(), args[0], args[1], args[2])
             
             #print service.put(os.popen('whoami', 'r').read().strip(), "id536785449", "/home/jav/tst3.iso","vmtype=kvm|imgtype=Nimbus|os=RHEL5|arch=i386|owner=tstuser1|description=this is a test description|tag=tsttag1, tsttag2|permission=private" )
-            #service.put(os.popen('whoami', 'r').read().strip(), "whateverId", "ttylinux1.img", "vmType=1|imgType=10|os=UBUNTU|arch=x86_64| owner=tstuser2| description='another test'| tag='tsttaga, tsttagb'")
+            #print service.put(os.popen('whoami', 'r').read().strip(), "id536785449", "ttylinux1.img", "vmType=kvm|imgType=opennebula|os=UBUNTU|arch=x86_64| owner=tstuser2| description=another test| tag=tsttaga, tsttagb")
         elif o in ("-r", "--remove"):
             print service.remove(os.popen('whoami', 'r').read().strip(),args[0])
             #print service.remove(os.popen('whoami', 'r').read().strip(), "4d4b0b8a577d700d2b000000")
