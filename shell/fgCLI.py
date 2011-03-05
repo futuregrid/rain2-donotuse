@@ -21,7 +21,6 @@ class fgShell(cmd.Cmd,
               fgShellUtils, 
               fgShellRepo):
     
-    
     def __init__(self, silent=False):
         #DEBUG ("Loading Base Shell Commands")  ##CHANGE TO PYTHON LOGG      
         
@@ -31,8 +30,16 @@ class fgShell(cmd.Cmd,
         self._log=fgLog(self._conf.getLogFile(),self._conf.getLogLevel())
         
         cmd.Cmd.__init__(self) 
-        fgShellUtils.__init__(self)       
-        fgShellRepo.__init__(self)
+        fgShellUtils.__init__(self)
+        
+        #Context        
+        self.env=["repo","rain",""]
+        self._use=""
+        
+        #Help
+        self._docHelp=[]
+        self._undocHelp=[]
+        self.getDocUndoc("")
         
         self.prompt = "fg> "
         self.silent = silent
@@ -42,19 +49,200 @@ class fgShell(cmd.Cmd,
             self.intro = "Welcome to the FutureGrid Shell"
                 
         ##Load History
-        self.do_load("no argument needed")
+        self.loadhist("no argument needed")
         
-
+    ################################
+    # USE
+    ###############################
+    def do_use(self,arg):
+        
+        if (arg in self.env and self._use!=arg):
+            
+            requirements=[]
+            self._use=arg
+                            
+            self.getDocUndoc(arg)
+            
+            if (arg=="repo"):
+                requirements=["Repo"]
+            #elif (arg=="rain"):
+            #    requirements=["Repo","Gene","Rain"] #rain context requires initialize repo and generation 
+            
+            
+            for i in requirements:
+                try:
+                    eval("fgShell"+i+".__init__(self)")
+                except AttributeError:
+                    print "The "+self._use+" context may not be initialized correctly"
+                    self._log.error(str(sys.exc_info()))
+            
+            temp="" 
+            if not (arg==""):
+                temp="-"                       
+            self.prompt = "fg"+temp+""+arg+">"
+            
+    def help_use(self):
+        print "Change Context to a particular FG component"
+        print "To see the available contexts use the show command"
+    
+    ############################
+    #SHOW
+    ############################
+    def do_show(self,argument):        
+        print "FG Contexts:"
+        print "-------------"           
+        for i in self.env:
+            print i       
+                    
+    def help_show(self):
+        print "Show the available context in FG Shell"        
+    
+    def complete_help(self, *args):
+        #pass        
+        listcmd=set(i for i in self._docHelp if i.startswith(args[0]))        
+        return list(listcmd)
+    
+    def getDocUndoc(self,args):
+        base_cmds=['EOF','exec','exit','help','hist','history','q','quit','use','show','script']
+        final_doc=[]
+        final_undoc=[]
+        names=dir(self.__class__)
+        help = {}
+        cmds_doc=[]
+        cmds_undoc=[]
+        use_doc=[]
+        use_undoc=[]
+        for name in names:
+            if name[:5] == 'help_':
+                help[name[5:]]=1
+        names.sort()
+        prevname = ''
+        for name in names:
+            if name[:3] == 'do_':
+                if name == prevname:
+                    continue
+                prevname = name
+                com=name[3:]
+                if (args==""):
+                    showit=True                    
+                    for i in self.env:
+                        if(i!="" and com.startswith(i)):
+                            showit=False
+                    if (showit):
+                        if com in help:
+                            cmds_doc.append(com)
+                            del help[com]
+                        elif getattr(self, name).__doc__:
+                            cmds_doc.append(com)
+                        else:
+                            cmds_undoc.append(com)
+                else:
+                    if(com.startswith(self._use)):
+                        if com in help:
+                            use_doc.append(com)
+                            del help[com]
+                        elif getattr(self, name).__doc__:
+                            use_doc.append(com)
+                        else:
+                            use_undoc.append(com)
+                    else:    
+                        if com in help:
+                            cmds_doc.append(com)
+                            del help[com]
+                        elif getattr(self, name).__doc__:
+                            cmds_doc.append(com)
+                        else:
+                            cmds_undoc.append(com)
+        if (args==""):
+            self._docHelp=cmds_doc
+            self._undocHelp=cmds_undoc
+        else:            
+            for i in base_cmds:            
+                if (i in cmds_doc):
+                    final_doc.append(i)
+                elif (i in cmds_undoc):
+                    final_undoc.append(i)
+                                
+            for i in use_doc:               
+                if i[len(self._use):] in cmds_doc:
+                    final_doc.append(i[len(self._use):])
+                elif i[len(self._use):] in cmds_undoc:
+                    final_undoc.append(i[len(self._use):])
+                else:
+                    final_doc.append(i)
+                    
+            for i in use_undoc:
+                if i[len(self._use):] in cmds_undoc:
+                    final_undoc.append(i[len(self._use):])
+                else:
+                    final_undoc.append(i)              
+            self._docHelp=final_doc
+            self._undocHelp=final_undoc
+    
     def do_help(self, args):
         """Get help on commands
         'help' or '?' with no arguments prints a list of commands for which help is available
         'help <command>' or '? <command>' gives help on <command>
         """
         ## The only reason to define this method is for the help text in the doc string
-        cmd.Cmd.do_help(self, args)
-    
-       
-
+        if (self._use==""):
+            #cmd.Cmd.do_help(self, args)
+            self.customHelpNoContext(args)
+        else:
+            self.customHelp(args)
+            
+    def customHelpNoContext(self,args):
+        if args:
+            try:
+                func = getattr(self, 'help_'+self._use + args)
+            except AttributeError:
+                try:
+                    doc=getattr(self, 'do_'+self._use + args).__doc__
+                    if doc:
+                        self.stdout.write("%s\n"%str(doc))
+                        return
+                except AttributeError:
+                    pass
+                self.stdout.write("%s\n"%str(self.nohelp % (args,)))
+                return
+            func()  
+        else:
+            self.getDocUndoc("")
+                        
+            doc_header="Generic Documented commands (type help <topic>):"
+            undoc_header="Generic Undocumented commands (type help <topic>):"
+            
+            cmd.Cmd.print_topics(self, doc_header, self._docHelp, 15, 80)
+            #cmd.Cmd.print_topics(self,cmd.Cmd.misc_header, help.keys(), 15,80)
+            cmd.Cmd.print_topics(self, undoc_header, self._undocHelp, 15, 80)
+            
+            print "Please select a context by executing use <context>\n"+\
+                  "You can see the available Contexts by executing show " 
+            
+    def customHelp(self,args):
+        if args:
+            try:
+                func = getattr(self, 'help_'+self._use + args)
+            except AttributeError:
+                try:
+                    doc=getattr(self, 'do_'+self._use + args).__doc__
+                    if doc:
+                        self.stdout.write("%s\n"%str(doc))
+                        return
+                except AttributeError:
+                    pass
+                self.stdout.write("%s\n"%str(self.nohelp % (args,)))
+                return
+            func()  
+        else:      
+            self.getDocUndoc(self._use)
+            
+            doc_header="Documented commands in the "+self._use+" context (type help <topic>):"
+            undoc_header="Undocumented commands in the "+self._use+" context (type help <topic>):"
+            
+            cmd.Cmd.print_topics(self, doc_header, self._docHelp, 15, 80)
+            #cmd.Cmd.print_topics(self,cmd.Cmd.misc_header, help.keys(), 15,80)
+            cmd.Cmd.print_topics(self, undoc_header, self._undocHelp, 15, 80)
         
     ##########################################################################
     # PYTHON AND SHELL EXECUTION

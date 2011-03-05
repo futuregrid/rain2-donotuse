@@ -20,11 +20,10 @@ class fgShellRepo(cmd.Cmd):
     def __init__(self):
         self._service = IRServiceProxy()
     
-    def do_repohelp(self, args):
-        """TESTS..."""
-        print dir(self.__class__)
-        
-        
+    def do_repotest(self,args):
+        """Test"""
+        print "This is a test"
+       
     def do_repolist(self, args):
         
         #args=self.getArgs(args)        
@@ -96,10 +95,11 @@ class fgShellRepo(cmd.Cmd):
                "                              It has two arguments <imgId> <permission> \n"+ \
                "                              Permission= "+str(IRTypes.ImgMeta.Permission)
                            
-    def do_repoget(self, args):       
+    def do_repoget(self, args): 
         args=self.getArgs(args)                
         if (len(args)==2):
             print self._service.get(os.popen('whoami', 'r').read().strip(), args[0], args[1])
+            
         else:
             self.help_repoget()        
             
@@ -108,15 +108,17 @@ class fgShellRepo(cmd.Cmd):
                "                              It has two arguments <img OR uri> <imgId>"
     
     def do_repoput(self, args):
-        """Put new image 
-           <imgId> [metadataString]
-        """
         args=self.getArgs(args)            
-        
+        print args
+        second=""
+        if(len(args)>1):
+            for i in range(1,len(args)):
+                second+=args[i]+" "
+                    
         status=0
         ok=False
-        if (len(args)==2):                
-            status = self._service.put(os.popen('whoami', 'r').read().strip(), None, args[0], args[1])
+        if (len(args)>1):                
+            status = self._service.put(os.popen('whoami', 'r').read().strip(), None, args[0], second)
             ok=True
         elif (len(args)==1):
             status = self._service.put(os.popen('whoami', 'r').read().strip(), None, args[0], "")

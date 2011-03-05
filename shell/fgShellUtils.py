@@ -16,9 +16,6 @@ class fgShellUtils(cmd.Cmd):
     
     def __init__(self):
         
-        self.env=["repo","rain",""]
-        self._use=""
-        
         self._script=False
         self._scriptList=[]
         self._scriptFile=self._conf.getScriptFile()
@@ -92,52 +89,27 @@ class fgShellUtils(cmd.Cmd):
               "    Activate it by executing: script <file> or just script to use the default file (`pwd`/script)\n" +\
               "    To finish and store the commands use: script end"
             
-               
-    ################################
-    # USE
-    ###############################
-    def do_use(self,arg):
-        
-        if (arg in self.env):
-            self._use=arg
-            temp="" 
-            if not (arg==""):
-                temp="-"                       
-            self.prompt = "fg"+temp+""+arg+">"
-            
-    def help_use(self):
-        print "Change Context to a particular FG component"
-        print "To see the available contexts use the show command"
-    
-    def do_show(self,argument):        
-        print "FG Contexts:"
-        print "-------------"           
-        for i in self.env:
-            print i       
-                    
-    def help_show(self):
-        print "Show the available context in FG Shell"        
-    
     #################################
     #GET
     #################################
         
-    def do_get(self, args):
+    def do_get(self, args):    
         """
         Generic get command that changes its behaviour depending on the 
-        context specified with use command.
-        """
+        context specified with the use command.
+        """    
         if(self._use!=""):            
             command="self.do_"+self._use+"get(\""+args+"\")"
-            #print command
+            print command
             try:
                 eval(command)
             except AttributeError:
                 print "The "+self._use+" context does not have a get method "
                 self._log.error(str(sys.exc_info()))
         else:
-            print "You need to provide a Context using the use command"
-        
+            print "You need to provide a Context executing the use <context> \n"+ \
+                  "You can see the available Contexts by executing show "
+    
     #################################
     #MODIFY
     #################################
@@ -145,7 +117,7 @@ class fgShellUtils(cmd.Cmd):
     def do_modify(self, args):
         """
         Generic get command that changes its behaviour depending on the 
-        context specified with use command.
+        context specified with the use command.
         """
         if(self._use!=""):            
             command="self.do_"+self._use+"modify(\""+args+"\")"
@@ -156,7 +128,8 @@ class fgShellUtils(cmd.Cmd):
                 print "The "+self._use+" context does not have a modify method "
                 self._log.error(str(sys.exc_info()))
         else:
-            print "You need to provide a Context using the use command"    
+            print "You need to provide a Context executing the use <context> \n"+ \
+                  "You can see the available Contexts by executing show " 
     
     #################################
     #Set permission
@@ -165,7 +138,7 @@ class fgShellUtils(cmd.Cmd):
     def do_setpermission(self, args):
         """
         Generic setpermission command that changes its behaviour depending on the 
-        context specified with use command.
+        context specified with the use command.
         """
         if(self._use!=""):            
             command="self.do_"+self._use+"setpermission(\""+args+"\")"
@@ -176,7 +149,8 @@ class fgShellUtils(cmd.Cmd):
                 print "The "+self._use+" context does not have a setpermission method "
                 self._log.error(str(sys.exc_info()))
         else:
-            print "You need to provide a Context using the use command" 
+            print "You need to provide a Context executing the use <context> \n"+ \
+                  "You can see the available Contexts by executing show "
                
     ################################
     #PUT
@@ -185,7 +159,7 @@ class fgShellUtils(cmd.Cmd):
     def do_put(self,args):
         """
         Generic put command that changes its behaviour depending on the 
-        context specified with use command.
+        context specified with the use command.
         """
         if(self._use!=""):
             command="self.do_"+self._use+"put(\""+args+"\")"
@@ -195,7 +169,8 @@ class fgShellUtils(cmd.Cmd):
                 print "The "+self._use+" context does not have a put method"
                 self._log.error(str(sys.exc_info()))
         else:
-            print "You need to provide a Context using the use command"
+            print "You need to provide a Context executing the use <context> \n"+ \
+                  "You can see the available Contexts by executing show "
             
     ################################
     #REMOVE
@@ -204,7 +179,7 @@ class fgShellUtils(cmd.Cmd):
     def do_remove(self,args):
         """
         Generic remove command that changes its behaviour depending on the 
-        context specified with use command.
+        context specified with the use command.
         """        
         if(self._use!=""):
             command="self.do_"+self._use+"remove(\""+args+"\")"
@@ -214,7 +189,8 @@ class fgShellUtils(cmd.Cmd):
                 print "The "+self._use+" context does not have a remove method"
                 self._log.error(str(sys.exc_info()))
         else:
-            print "You need to provide a Context using the use command"
+            print "You need to provide a Context executing the use <context> \n"+ \
+                  "You can see the available Contexts by executing show "
              
     ################################
     #List
@@ -223,7 +199,7 @@ class fgShellUtils(cmd.Cmd):
     def do_list(self,args):
         """
         Generic list command that changes its behaviour depending on the 
-        context specified with use command.
+        context specified with the use command.
         """
         if(self._use!=""):
             command="self.do_"+self._use+"list(\""+args+"\")"
@@ -233,7 +209,8 @@ class fgShellUtils(cmd.Cmd):
                 print "The "+self._use+" context does not have a list method"
                 self._log.error(str(sys.exc_info()))
         else:
-            print "You need to provide a Context using the use command"
+            print "You need to provide a Context executing the use <context> \n"+ \
+                  "You can see the available Contexts by executing show "
             
     ##########################################################################
     # HISTORY
@@ -245,7 +222,7 @@ class fgShellUtils(cmd.Cmd):
         for i in range(readline.get_current_history_length()):
             hist.append(readline.get_history_item(i+1))
         print hist
-    do_h = do_hist = do_history
+    do_hist = do_history
     
     ##########################################################################
     # LOAD
@@ -283,7 +260,7 @@ class fgShellUtils(cmd.Cmd):
     # IO
     #####################################
     
-    def do_load(self, arguments):
+    def loadhist(self, arguments):
         """Load history from the $HOME/.fg/hist.txt file
         """
         histfile=self._conf.getHistFile()
