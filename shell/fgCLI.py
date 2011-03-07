@@ -18,9 +18,10 @@ from futuregrid.shell.fgShellRepo import fgShellRepo
 import logging
 from futuregrid.utils.fgConf import fgConf
 from futuregrid.utils.fgLog import fgLog
+from cmd2 import Cmd
 
-class fgShell(cmd.Cmd, 
-              fgShellUtils, 
+class fgShell(fgShellUtils,
+              Cmd,               
               fgShellRepo):
     
     def __init__(self, silent=False):
@@ -31,8 +32,9 @@ class fgShell(cmd.Cmd,
         #Setup log        
         self._log=fgLog(self._conf.getLogFile(),self._conf.getLogLevel())
         
-        cmd.Cmd.__init__(self) 
+        Cmd.__init__(self) 
         fgShellUtils.__init__(self)
+        
         
         #Context        
         self.env=["repo","rain",""]
@@ -53,7 +55,7 @@ class fgShell(cmd.Cmd,
                 
         ##Load History
         self.loadhist("no argument needed")
-        
+    
     ################################
     # USE
     ###############################
@@ -63,7 +65,18 @@ class fgShell(cmd.Cmd,
             
             requirements=[]
             self._use=arg
-                            
+            
+            if self._use == "":
+                welcomestr="Changing to default context"
+            else:
+                welcomestr="Changing to "+self._use+" context"
+                
+            print welcomestr
+            dashstr=""
+            for i in range(len(welcomestr)):
+                dashstr+="-"
+            print dashstr
+                               
             self.getDocUndoc(arg)
             
             if (arg=="repo"):
@@ -82,7 +95,7 @@ class fgShell(cmd.Cmd,
             
             temp="" 
             if not (arg==""):
-                temp="-"                       
+                temp="-"                             
             self.prompt = "fg"+temp+""+arg+">"
             
     def help_use(self):
@@ -99,7 +112,19 @@ class fgShell(cmd.Cmd,
             print i       
                     
     def help_show(self):
-        print "Show the available context in FG Shell"        
+        print "Show the available context in FG Shell"
+               
+    ##########################################################################
+    # HISTORY
+    ##########################################################################
+
+    def do_history(self, line):
+        """Print a list of commands that have been entered."""
+        hist=[]
+        for i in range(readline.get_current_history_length()):
+            hist.append(readline.get_history_item(i+1))
+        print hist
+    do_hi=do_hist = do_history
     
     ###########################
     #HELP 
@@ -110,7 +135,9 @@ class fgShell(cmd.Cmd,
         return list(listcmd)
     
     def getDocUndoc(self,args):
-        base_cmds=['EOF','exec','exit','help','hist','history','q','quit','use','show','script']
+        base_cmds=['EOF','exec','exit','help','hi','hist','history','q','quit','use','show','script']
+        base_cmd2=['cmdenvironment','ed','edit','l','li','load', 'pause','py','r', 'run','save','shell', 'shortcuts']
+        base_cmds+=base_cmd2
         final_doc=[]
         final_undoc=[]
         names=dir(self.__class__)
@@ -224,7 +251,7 @@ class fgShell(cmd.Cmd,
             cmd.Cmd.print_topics(self, undoc_header, self._undocHelp, 15, 80)
             
             print "Please select a context by executing use <context>\n"+\
-                  "You can see the available Contexts by executing show " 
+                  "You can see the available Contexts by executing show \n" 
             
     def customHelp(self,args):
         if args:
@@ -250,7 +277,15 @@ class fgShell(cmd.Cmd,
             cmd.Cmd.print_topics(self, doc_header, self._docHelp, 15, 80)
             #cmd.Cmd.print_topics(self,cmd.Cmd.misc_header, help.keys(), 15,80)
             cmd.Cmd.print_topics(self, undoc_header, self._undocHelp, 15, 80)
-        
+    
+    ###########################
+    #Command Completion
+    ###########################
+    def completenames(self, *args):
+        listcmd=set(i for i in self._docHelp if i.startswith(args[0]))
+        listcmd1=set(i for i in self._undocHelp if i.startswith(args[0]))
+        return list(listcmd|listcmd1)
+    
     ##########################################################################
     # PYTHON AND SHELL EXECUTION
     ##########################################################################
@@ -306,8 +341,7 @@ class fgShell(cmd.Cmd,
         """Documentation for the quit command."""
 
         print "The quit command terminates the application."
-    
-
+        
     ##############################
     #PRE and POST commands
     ##############################
@@ -332,9 +366,10 @@ class fgShell(cmd.Cmd,
         """ This method is called after the line has been input but before
             it has been interpreted. If you want to modifdy the input line
             before execution (for example, variable substitution) do it here.
-        """
-        if(self._script and line.strip() != "script end"):
-            self._scriptList += [line.strip()]
+        """ 
+        lastcmd=readline.get_history_item(readline.get_current_history_length())
+        if(self._script and lastcmd.strip() != "script end"):
+            self._scriptList += [lastcmd.strip()]
         return line
 
     def postcmd(self, stop, line):

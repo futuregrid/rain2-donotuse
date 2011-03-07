@@ -6,12 +6,13 @@ Some code has been taken from Cyberade CoG kit shell (http://cogkit.svn.sourcefo
 """
 
 import os
-import cmd
+#import cmd
 import readline
 import atexit
 import sys
+from cmd2 import Cmd
 
-class fgShellUtils(cmd.Cmd):
+class fgShellUtils(Cmd):
     
     
     def __init__(self):
@@ -215,17 +216,7 @@ class fgShellUtils(cmd.Cmd):
             print "You need to provide a Context executing the use <context> \n"+ \
                   "You can see the available Contexts by executing show "
             
-    ##########################################################################
-    # HISTORY
-    ##########################################################################
-
-    def do_history(self, line):
-        """Print a list of commands that have been entered."""
-        hist=[]
-        for i in range(readline.get_current_history_length()):
-            hist.append(readline.get_history_item(i+1))
-        print hist
-    do_hist = do_history
+   
     
     ##########################################################################
     # LOAD

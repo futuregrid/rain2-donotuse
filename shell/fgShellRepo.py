@@ -5,7 +5,7 @@ FutureGrid Command Line Interface
 Image Repository
 """
 import os
-import cmd
+#import cmd
 import readline
 import sys
 from futuregrid.shell import fgShellUtils
@@ -13,21 +13,26 @@ from futuregrid.image.repository.client.IRServiceProxy import IRServiceProxy
 from futuregrid.image.repository.client import IRTypes
 import logging
 from futuregrid.utils import fgLog
+from cmd2 import Cmd
+from cmd2 import options
+from cmd2 import make_option
 
 
-class fgShellRepo(cmd.Cmd):
+class fgShellRepo(Cmd):
     
     def __init__(self):
         self._service = IRServiceProxy()
-    
-    def do_repotest(self,args):
+   
+    @options([make_option('-q','--quick', help='Make things fast'),
+              make_option('-s','--slow', type=int, help='Make things slow')]) 
+    def do_repotest(self, args, opts):
         """Test Help"""
-        print "This is a test"
-       
-    def do_repolist(self, args):
-        
-        #args=self.getArgs(args)        
-        
+        arg = ''.join(args)      
+        print opts.quick
+        print opts.slow
+
+    def do_repolist(self, args):        
+        #args=self.getArgs(args)      
         ok=False         
         
         if (args.strip()==""):
@@ -46,8 +51,8 @@ class fgShellRepo(cmd.Cmd):
                 for key in imgs.keys():
                     print imgs[key]                
             except:
-                print "do_repo_list: Error:"+str(sys.exc_info()[0])+"\n"                
-                self._log.error("do_repo_list: Error interpreting the list of images from Image Repository"+str(sys.exc_info()[0]))
+                print "do_repolist: Error:"+str(sys.exc_info()[0])+"\n"                
+                self._log.error("do_repolist: Error interpreting the list of images from Image Repository"+str(sys.exc_info()[0]))
              
             
     def help_repolist(self):
