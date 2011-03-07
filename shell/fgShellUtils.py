@@ -100,7 +100,7 @@ class fgShellUtils(cmd.Cmd):
         """    
         if(self._use!=""):            
             command="self.do_"+self._use+"get(\""+args+"\")"
-            print command
+            #print command
             try:
                 eval(command)
             except AttributeError:

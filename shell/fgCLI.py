@@ -37,6 +37,7 @@ class fgShell(cmd.Cmd,
         #Context        
         self.env=["repo","rain",""]
         self._use=""
+        self._contextOn=[] # initialized contexts
         
         #Help
         self._docHelp=[]
@@ -71,11 +72,13 @@ class fgShell(cmd.Cmd,
             #    requirements=["Repo","Gene","Rain"] #rain context requires initialize repo and generation             
             
             for i in requirements:
-                try:
-                    eval("fgShell"+i+".__init__(self)")
-                except AttributeError:
-                    print "The "+self._use+" context may not be initialized correctly"
-                    self._log.error(str(sys.exc_info()))
+                if not i in self._contextOn: 
+                    try:
+                        eval("fgShell"+i+".__init__(self)")
+                        self._contextOn.append(i)
+                    except AttributeError:
+                        print "The "+self._use+" context may not be initialized correctly"
+                        self._log.error(str(sys.exc_info()))
             
             temp="" 
             if not (arg==""):
