@@ -506,7 +506,7 @@ class ImgMetaStoreMysql(AbstractImgMetaStore):
                                 
         return list of dictionaries with the Metadata
         """
-        print criteria
+        #print criteria
         success=False
         where=False   
         sql=""
