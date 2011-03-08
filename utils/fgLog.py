@@ -2,7 +2,7 @@ import logging
 import logging.handlers
 
 class fgLog():
-    def __init__(self, logfile, loglevel, whois):
+    def __init__(self, logfile, loglevel, whois, verbose):
         self._logger = logging.getLogger(whois)
         self._formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
                 
@@ -12,11 +12,12 @@ class fgLog():
         handler.setLevel(loglevel)
         self._logger.addHandler(handler)
         
-        ###This will be removed in final version
-        ch = logging.StreamHandler()
-        ch.setLevel(loglevel)
-        ch.setFormatter(self._formatter)
-        self._logger.addHandler(ch)
+        #This is to print in the stout the same that in the log
+        if(verbose):
+            ch = logging.StreamHandler()
+            ch.setLevel(loglevel)
+            ch.setFormatter(self._formatter)
+            self._logger.addHandler(ch)
 
 
         
