@@ -3,7 +3,7 @@ utility class for static methods
 """
 
 from random import randrange
-
+import logging
 
 ################
 #BACKEND CONFIG
@@ -32,6 +32,14 @@ __fgserverdir__="/home/javi/imagerepo/ImageRepo/"
 __mysqlcfg__=__fgserverdir__+".mysql.cnf"
 __iradmin__="IRUser"
 
+########################
+#Log Options
+########################
+##At the end, it should be in /var/log or a var directory in the Futuregrid software
+__logfile__=__fgserverdir__+"/reposerver.log"  
+__logLevel__=logging.DEBUG
+
+
 def getFgserverdir():
     return __fgserverdir__
 
@@ -46,7 +54,11 @@ def getFgirimgstore():
         return __fgirimgstoremongo__
     elif (__backend__=="mysql"):
         return __fgirimgstoremysql__
-      
+
+def getLogFile():
+    return __logfile__
+def getLogLevel():
+    return __logLevel__
 
 def getBackend():
     return __backend__

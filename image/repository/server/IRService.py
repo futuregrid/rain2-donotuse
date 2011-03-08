@@ -39,30 +39,42 @@ else:
 
 import string
 
+try:
+    from futuregrid.utils import fgLog #This should the the final one
+#To execute IRClient for tests
+except:
+    sys.path.append("/home/javi/imagerepo/ImageRepo/src/futuregrid/") #Directory where fg.py is
+    from utils import fgLog
+
+
 class IRService(object):
 
     def __init__(self):
         super(IRService, self).__init__()
         
+        #Config in IRUtil
         self._backend=IRUtil.getBackend()
         self._address=IRUtil.getAddress()        
         self._fgirimgstore=IRUtil.getFgirimgstore()
         self._fgserverdir=IRUtil.getFgserverdir()
         
+        #Setup log        
+        self._log=fgLog.fgLog(IRUtil.getLogFile(),IRUtil.getLogLevel(),"Img Repo Server",False)
+        
         if (self._backend == "mongodb"): 
-            self.metaStore = ImgMetaStoreMongo(self._address,self._fgserverdir)
-            self.imgStore = ImgStoreMongo(self._address,self._fgserverdir)            
-            self.userStore = IRUserStoreMongo(self._address,self._fgserverdir)
+            self.metaStore = ImgMetaStoreMongo(self._address,self._fgserverdir,self._log)
+            self.imgStore = ImgStoreMongo(self._address,self._fgserverdir,self._log)            
+            self.userStore = IRUserStoreMongo(self._address,self._fgserverdir,self._log)
         elif(self._backend == "mysql"):
-            self.metaStore = ImgMetaStoreMysql(self._address,self._fgserverdir)
-            self.imgStore = ImgStoreMysql(self._address,self._fgserverdir)            
-            self.userStore = IRUserStoreMysql(self._address,self._fgserverdir)
+            self.metaStore = ImgMetaStoreMysql(self._address,self._fgserverdir,self._log)
+            self.imgStore = ImgStoreMysql(self._address,self._fgserverdir,self._log)            
+            self.userStore = IRUserStoreMysql(self._address,self._fgserverdir,self._log)
         else:
             self.metaStore = ImgMetaStoreFS()
             self.imgStore = ImgStoreFS()            
             self.userStore = IRUserStoreFS()    
         
-    
+
     def auth(self, userId):
         # to be implemented when integrating with the security framework
         return IRUtil.auth(userId, None)
@@ -84,7 +96,7 @@ class IRService(object):
         """  
         status=False      
         fileLocation = self._fgirimgstore + imgId
-        if(True):#os.path.isfile(fileLocation)):
+        if(os.path.isfile(fileLocation)):
             #parse attribute string and construct image metadata
             aMeta = self._createImgMeta(userId, imgId, attributeString,False)
 
@@ -116,8 +128,9 @@ class IRService(object):
                 all - update Image file and Metadata
         """
         success=False
-       
+        self._log.debug(str(attributeString))
         aMeta = self._createImgMeta(userId, imgId, attributeString,True)
+        self._log.debug(str(aMeta))
         success=self.metaStore.updateItem(userId, imgId,aMeta)
                 
         return success

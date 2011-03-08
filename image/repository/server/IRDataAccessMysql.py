@@ -30,7 +30,7 @@ import IRUtil
 
 class ImgStoreMysql(AbstractImgStore):
 
-    def __init__(self, address,fgirdir):
+    def __init__(self, address,fgirdir, log):
         """
         Initialize object
         
@@ -47,6 +47,8 @@ class ImgStoreMysql(AbstractImgStore):
         self._tablemeta="meta"
         self._mysqlcfg=IRUtil.getMysqlcfg()
         self._iradminsuer=IRUtil.getMysqluser()
+        
+        self._log=log
         
         self._dbConnection=None
         if (address != ""):
@@ -165,7 +167,7 @@ class ImgStoreMysql(AbstractImgStore):
                     
                     if(results!=None):
                         imgLinks.append(results[0])
-                        accessCount=results[1]+1
+                        accessCount=int(results[1])+1
                         
                         update="UPDATE %s SET lastAccess='%s', accessCount='%d' WHERE imgId='%s'" \
                                        % (self._tabledata,datetime.utcnow(),accessCount, imgId)
@@ -176,17 +178,17 @@ class ImgStoreMysql(AbstractImgStore):
                         itemsFound+=1                      
                     
             except MySQLdb.Error, e:
-                print "Error %d: %s" % (e.args[0], e.args[1])
+                self._log.error("Error %d: %s" % (e.args[0], e.args[1]))                
                 self._dbConnection.rollback()                           
             except IOError as (errno, strerror):
-                print "I/O error({0}): {1}".format(errno, strerror)
-                print "No such file or directory. Image details: "+item.__str__()+"\n"                
+                self._log.error("I/O error({0}): {1}".format(errno, strerror))
+                self._log.error("No such file or directory. Image details: "+item.__str__())                
             except TypeError as detail:
-                print "TypeError in ImgMetaStoreMysql - queryToStore: "+format(detail)
+                self._log.error("TypeError in ImgMetaStoreMysql - queryToStore: "+format(detail))
             finally:
                 self._dbConnection.close()                      
         else:
-            print "Could not get access to the database. Query failed"
+            self._log.error("Could not get access to the database. Query failed")
        
         if (itemsFound == len(imgIds)):
             return True
@@ -220,17 +222,17 @@ class ImgStoreMysql(AbstractImgStore):
                                       
                     
             except MySQLdb.Error, e:
-                print "Error %d: %s" % (e.args[0], e.args[1])
+                self._log.error("Error %d: %s" % (e.args[0], e.args[1]))
                 self._dbConnection.rollback()                           
             except IOError as (errno, strerror):
-                print "I/O error({0}): {1}".format(errno, strerror)
-                print "No such file or directory. Image details: "+item.__str__()+"\n"                 
+                self._log.error("I/O error({0}): {1}".format(errno, strerror))
+                self._log.error("No such file or directory. Image details: "+item.__str__())                 
             except TypeError as detail:
-                print "TypeError in ImgMetaStoreMongo - persistToStore "+format(detail)
+                self._log.error("TypeError in ImgMetaStoreMongo - persistToStore "+format(detail))
             finally:
                 self._dbConnection.close()                      
         else:
-            print "Could not get access to the database. The file has not been stored"
+            self._log.error("Could not get access to the database. The file has not been stored")
        
         if (imgStored == len(items)):
             return True
@@ -279,20 +281,20 @@ class ImgStoreMysql(AbstractImgStore):
                     removed=True
                     
                 except MySQLdb.Error, e:
-                    print "Error %d: %s" % (e.args[0], e.args[1])
+                    self._log.error("Error %d: %s" % (e.args[0], e.args[1]))
                     con.rollback()                           
                 except IOError as (errno, strerror):
-                    print "I/O error({0}): {1}".format(errno, strerror)
-                    print "No such file or directory. Image details: "+item.__str__()+"\n"                 
+                    self._log.error("I/O error({0}): {1}".format(errno, strerror))
+                    self._log.error("No such file or directory. Image details: "+item.__str__())                 
                 except TypeError as detail:
-                    print "TypeError in ImgStoreMongo - removeItem "+format(detail)
+                    self._log.error("TypeError in ImgStoreMongo - removeItem "+format(detail))
                 finally:
                     con.close()
             else:
                 con.close()
-                print "The Image does not exist or the user is not the owner"
+                self._log.error("The Image does not exist or the user is not the owner")
         else:
-            print "Could not get access to the database. The file has not been removed"
+            self._log.error("Could not get access to the database. The file has not been removed")
             
         return removed
              
@@ -331,12 +333,12 @@ class ImgStoreMysql(AbstractImgStore):
                 owner=True                      
                     
         except MySQLdb.Error, e:
-            print "Error %d: %s" % (e.args[0], e.args[1])                                           
+            self._log.error("Error %d: %s" % (e.args[0], e.args[1]))                                           
         except IOError as (errno, strerror):
-            print "I/O error({0}): {1}".format(errno, strerror)
-            print "No such file or directory. Image details: "+item.__str__()+"\n"                
+            self._log.error("I/O error({0}): {1}".format(errno, strerror))
+            self._log.error("No such file or directory. Image details: "+item.__str__())                
         except TypeError as detail:
-            print "TypeError in ImgStoreMysql - existAndOwner: "+format(detail) 
+            self._log.error("TypeError in ImgStoreMysql - existAndOwner: "+format(detail)) 
        
         if (exists and owner):
             return True
@@ -363,9 +365,9 @@ class ImgStoreMysql(AbstractImgStore):
             connected = True
             
         except MySQLdb.Error, e:
-            print "Error %d: %s" % (e.args[0], e.args[1])
+            self._log.error("Error %d: %s" % (e.args[0], e.args[1]))
         except TypeError as detail:  
-            print "TypeError in ImgStoreMysql - mysqlConnection "+format(detail)
+            self._log.error("TypeError in ImgStoreMysql - mysqlConnection "+format(detail))
 
         return connected 
   
@@ -377,7 +379,7 @@ class ImgStoreMysql(AbstractImgStore):
 
 class ImgMetaStoreMysql(AbstractImgMetaStore):
     
-    def __init__(self, address,fgirdir):        
+    def __init__(self, address,fgirdir, log):        
         """
         Initialize object
         
@@ -392,6 +394,7 @@ class ImgMetaStoreMysql(AbstractImgMetaStore):
         self._tablemeta="meta"
         self._mysqlcfg=IRUtil.getMysqlcfg()
         self._iradminsuer=IRUtil.getMysqluser()
+        self._log=log
         self._dbConnection=None
         if (address != ""):
             self._mysqlAddress=address
@@ -405,7 +408,7 @@ class ImgMetaStoreMysql(AbstractImgMetaStore):
         return "192.168.1.1:23000,192.168.1.8:23000"
     
     def getItem(self, imgId):
-        criteria = "* where id="+imgId
+        criteria = "* where imgid="+imgId
         return queryStore (criteria)
         
     def addItem(self, imgMeta):
@@ -445,11 +448,35 @@ class ImgMetaStoreMysql(AbstractImgMetaStore):
                     
                     temp=imgMeta1.__repr__()
                     temp = temp.replace('\"','')
-                    #print temp
+                    
+                    self._log.debug(str(temp))
+                    
                     attributes = temp.split(',')
-                    for item in attributes:
+                    #self._log.debug(str(attributes))
+                    
+                    #control tag
+                    tagstr=""
+                    newattr=[]
+                    i=0
+                    while (i < len(attributes)):                        
+                        if attributes[i].strip().startswith('tag='):
+                            tagstr+=attributes[i]                             
+                            more=True                            
+                            while(more):
+                                if(attributes[i+1].strip().startswith('vmType=')):
+                                    more=False
+                                else:
+                                     tagstr+=","+attributes[i+1]
+                                     i+=1
+                            newattr.append(tagstr)
+                        else:
+                            newattr.append(attributes[i])
+                        i+=1
+                                        
+                    for item in newattr:
                         attribute = item.strip()
                         #print attribute
+                        #self._log.debug(str(attribute))
                         tmp = attribute.split("=")
                         key = tmp[0].strip()            
                         value = tmp[1].strip()
@@ -459,29 +486,29 @@ class ImgMetaStoreMysql(AbstractImgMetaStore):
                     sql=sql[:-2]
                     
                     sql+=" WHERE imgId=\'"+imgId+"\'"
-                    #print sql                 
+                    #print sql                
+                     
                     cursor.execute(sql)
                     self._dbConnection.commit()
                                                             
                     success=True                                      
                   
                 except MySQLdb.Error, e:
-                    print "Error %d: %s" % (e.args[0], e.args[1])
+                    self._log.error("Error %d: %s" % (e.args[0], e.args[1]))
                     self._dbConnection.rollback()
                 except IOError as (errno, strerror):
-                    print "I/O error({0}): {1}".format(errno, strerror)
-                    print "No such file or directory. Image details: "+imgMeta1.__str__()+"\n"                 
+                    self._log.error("I/O error({0}): {1}".format(errno, strerror))
+                    self._log.error("No such file or directory. Image details: "+imgMeta1.__str__())                 
                 except TypeError as detail:
-                    print "TypeError in ImgMetaStoreMongo - updateItem "+format(detail)                         
+                    self._log.error("TypeError in ImgMetaStoreMongo - updateItem "+format(detail))                         
                 finally:
                     self._dbConnection.close()
                                   
             else:
-                print "The Image does not exist or the user is not the owner"
+                self._log.error("The Image does not exist or the user is not the owner")
                 self._dbConnection.close()   
-        else:
-            
-            print "Could not get access to the database. The file has not been updated"
+        else:            
+            self._log.error("Could not get access to the database. The file has not been updated")
         
         return success
     
@@ -570,16 +597,16 @@ class ImgMetaStoreMysql(AbstractImgMetaStore):
                 success=True
                     
             except MySQLdb.Error, e:
-                print "Error %d: %s" % (e.args[0], e.args[1])                                           
+                self._log.error("Error %d: %s" % (e.args[0], e.args[1]))                                           
             except IOError as (errno, strerror):
-                print "I/O error({0}): {1}".format(errno, strerror)
-                print "No such file or directory. Image details: "+item.__str__()+"\n"                
+                self._log.error("I/O error({0}): {1}".format(errno, strerror))
+                self._log.error("No such file or directory. Image details: "+item.__str__())                
             except TypeError as detail:
-                print "TypeError in ImgMetaStoreMysql - querytostore: "+format(detail)
+                self._log.error("TypeError in ImgMetaStoreMysql - querytostore: "+format(detail))
             finally:
                 self._dbConnection.close()                      
         else:
-            print "Could not get access to the database in ImgMetaStoreMysql. Query failed"
+            self._log.error("Could not get access to the database in ImgMetaStoreMysql. Query failed")
        
         return success
     
@@ -651,18 +678,18 @@ class ImgMetaStoreMysql(AbstractImgMetaStore):
                     imgStored+=1                                      
                   
             except MySQLdb.Error, e:
-                print "Error %d: %s" % (e.args[0], e.args[1])
+                self._log.error("Error %d: %s" % (e.args[0], e.args[1]))
                 self._dbConnection.rollback()
             except IOError as (errno, strerror):
-                print "I/O error({0}): {1}".format(errno, strerror)
-                print "No such file or directory. Image details: "+item.__str__()+"\n"                 
+                self._log.error("I/O error({0}): {1}".format(errno, strerror))
+                self._log.error("No such file or directory. Image details: "+item.__str__())
             except TypeError as detail:
-                print "TypeError in ImgMetaStoreMongo - persistToStore "+format(detail)                         
+                self._log.error("TypeError in ImgMetaStoreMongo - persistToStore "+format(detail))                         
             finally:
                 self._dbConnection.close()
                                   
         else:
-            print "Could not get access to the database. The file has not been stored"
+            self._log.error("Could not get access to the database. The file has not been stored")
        
         if (imgStored == len(items)):
             return True
@@ -670,7 +697,7 @@ class ImgMetaStoreMysql(AbstractImgMetaStore):
             return False
     
     def removeItem (self, imdId):
-        print "Data has not been deleted. Please, use the ImgStoreMysql to delete items "
+        self._log.error("Data has not been deleted. Please, use the ImgStoreMysql to delete items ")
         
     def existAndOwner(self, imgId, ownerId):
         """
@@ -706,12 +733,12 @@ class ImgMetaStoreMysql(AbstractImgMetaStore):
                 owner=True                      
                  
         except MySQLdb.Error, e:
-               print "Error %d: %s" % (e.args[0], e.args[1])                                           
+            self._log.error("Error %d: %s" % (e.args[0], e.args[1]))                                           
         except IOError as (errno, strerror):
-            print "I/O error({0}): {1}".format(errno, strerror)
-            print "No such file or directory. Image details: "+item.__str__()+"\n"                
+            self._log.error("I/O error({0}): {1}".format(errno, strerror))
+            self._log.error("No such file or directory. Image details: "+item.__str__())                
         except TypeError as detail:
-            print "TypeError in ImgStoreMysql - existAndOwner: "+format(detail)   
+            self._log.error("TypeError in ImgStoreMysql - existAndOwner: "+format(detail))   
        
         if (exists and owner):
             return True
@@ -738,9 +765,9 @@ class ImgMetaStoreMysql(AbstractImgMetaStore):
             connected = True
             
         except MySQLdb.Error, e:
-            print "Error %d: %s" % (e.args[0], e.args[1])
+            self._log.error("Error %d: %s" % (e.args[0], e.args[1]))
         except TypeError as detail:  
-            print "TypeError in ImgStoreMysql - mysqlConnection "+format(detail)
+            self._log.error("TypeError in ImgStoreMysql - mysqlConnection "+format(detail))
 
         return connected 
         
@@ -751,13 +778,15 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
     If we got a huge number of user ^^ try to create an index to accelerate searchs
          collection.ensure_index("userId")
     '''
-    def __init__(self, address,fgirdir):  #TODO: CHANGE TO MYSQL STUFFS
+    def __init__(self, address,fgirdir, log):  
         super(IRUserStoreMysql, self).__init__()        
         #self._items = []        
         self._dbName="images"
         self._tabledata="users"        
         self._mysqlcfg=IRUtil.getMysqlcfg()
         self._iradminsuer=IRUtil.getMysqluser()
+        self._log=log
+        
         self._dbConnection = None
         if (address != ""):
             self._mysqlAddress=address

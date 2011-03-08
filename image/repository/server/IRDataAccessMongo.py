@@ -37,10 +37,11 @@ from IRTypes import IRUser
 from datetime import datetime
 import os
 import re
+import sys
 
 class ImgStoreMongo(AbstractImgStore):
 
-    def __init__(self, address,fgirdir):
+    def __init__(self, address,fgirdir, log):
         """
         Initialize object
         
@@ -54,6 +55,8 @@ class ImgStoreMongo(AbstractImgStore):
         #self._items={}
         self._dbName="images"
         self._dbConnection=None
+        self._log=log
+        
         if (address != ""):
             self._mongoAddress=address
         else:
@@ -226,20 +229,22 @@ class ImgStoreMongo(AbstractImgStore):
                                   {"$set": {"lastAccess": datetime.utcnow()},}, safe=True)
                     #print "here"                                         
                     itemsFound +=1    
-            except pymongo.errors.AutoReconnect:
-                print "Autoreconnected in ImgStoreMongo - queryStore \n" 
-            except pymongo.errors.ConnectionFailure:
-                print "Connection failure: the query cannot be performed \n"  
+            except pymongo.errors.AutoReconnect:                
+                self._log.warning("Autoreconnected in ImgStoreMongo - queryStore.") 
+            except pymongo.errors.ConnectionFailure:                
+                self._log.error("Connection failure: the query cannot be performed.")  
             except TypeError as detail:
-                print "TypeError in ImgStoreMongo - queryStore"
+                self._log.error("TypeError in ImgStoreMongo - queryStore")
             except bson.errors.InvalidId:
-                print "Error, there is no Image with such Id. (ImgStoreMongo - queryStore)"
+                self._log.error("There is no Image with such Id. (ImgStoreMongo - queryStore)")
             except gridfs.errors.NoFile:
-                print "File not found"
+                self._log.error("File not found")
+            #except:
+            #    self._log.error(str(sys.exc_info()))
             finally:
                 self._dbConnection.disconnect()    
         else:
-            print "Could not get access to the database. The file has not been stored"
+            self._log.error("Could not get access to the database. The file has not been stored")
             
         if (itemsFound == len(imgIds)):
             return True
@@ -304,21 +309,22 @@ class ImgStoreMongo(AbstractImgStore):
                     imgStored+=1
                                       
                     
-            except pymongo.errors.AutoReconnect:  #TODO: Study what happens with that. store or not store the file
-                print "Autoreconnected."                 
+            except pymongo.errors.AutoReconnect:
+                self._log.warning("Autoreconnected.")                 
             except pymongo.errors.ConnectionFailure:
-                print "Connection failure. The file has not been stored. Image details: "+item.__str__()+"\n"                                           
+                self._log.error("Connection failure. The file has not been stored. Image details: "+item.__str__()+"\n")                                           
             except IOError as (errno, strerror):
-                print "I/O error({0}): {1}".format(errno, strerror)
-                print "No such file or directory. Image details: "+item.__str__()+"\n"                 
+                errorstr="I/O error({0}): {1}".format(errno, strerror)
+                self._log.error(errorstr)
+                self._log.error("No such file or directory. Image details: "+item.__str__())                 
             except TypeError as detail:
-                print "TypeError in ImgStoreMongo - persistToStore"
+                self._log.error("TypeError in ImgStoreMongo - persistToStore")
             except pymongo.errors.OperationFailure:
-                print "Operation Failure in ImgStoreMongo - persistenToStore"              
+                self._log.error("Operation Failure in ImgStoreMongo - persistenToStore")             
             finally:
                 self._dbConnection.disconnect()                      
         else:
-            print "Could not get access to the database. The file has not been stored"
+            self._log.error("Could not get access to the database. The file has not been stored")
 
         if (re.search('^/tmp/', item._imgURI)):
             cmd="rm -rf "+ item._imgURI         
@@ -358,22 +364,22 @@ class ImgStoreMongo(AbstractImgStore):
                     collectionMeta.remove({"_id": imgId}, safe=True)
                     removed=True
                 except pymongo.errors.AutoReconnect:  #TODO: Study what happens with that. store or not store the file
-                    print "Autoreconnected."                 
+                    self._log.warning("Autoreconnected.")                 
                 except pymongo.errors.ConnectionFailure:
-                    print "Connection failure. The file has not been updated"                                           
+                    self._log.error("Connection failure. The file has not been updated")                                           
                 except IOError as (errno, strerror):
-                    print "I/O error({0}): {1}".format(errno, strerror)
-                    print "No such file or directory. Image details: "+imgEntry1.__str__()+"\n"                 
+                    self._log.error("I/O error({0}): {1}".format(errno, strerror))
+                    self._log.error("No such file or directory. Image details: "+imgEntry1.__str__())                 
                 except TypeError as detail:
-                    print "TypeError in ImgStoreMongo - RemoveItem"                
+                    self._log.error("TypeError in ImgStoreMongo - RemoveItem")                
                 except pymongo.errors.OperationFailure:
-                    print "Operation Failure in ImgStoreMongo - RemoveItem"
+                    self._log.error("Operation Failure in ImgStoreMongo - RemoveItem")
                 finally:
                     self._dbConnection.disconnect()
             else:
-                print "The Image does not exist or the user is not the owner"
+                self._log.error("The Image does not exist or the user is not the owner")
         else:
-            print "Could not get access to the database. The file has not been removed"
+            self._log.error("Could not get access to the database. The file has not been removed")
             
         return removed
     
@@ -406,15 +412,15 @@ class ImgStoreMongo(AbstractImgStore):
                 isOwner = True
             #print isOwner                 
         except pymongo.errors.AutoReconnect:  #TODO: Study what happens with that. store or not store the file
-            print "Autoreconnected."                 
+            self._log.warning("Autoreconnected.")                 
         except pymongo.errors.ConnectionFailure:
-            print "Connection failure" 
+            self._log.error("Connection failure") 
         except TypeError as detail:
-            print "TypeError in ImgStoreMongo - existAndOwner"
+            self._log.error("TypeError in ImgStoreMongo - existAndOwner")
         except bson.errors.InvalidId:
-            print "Error, not a valid ObjectId in ImgStoreMongo - existAndOwner"
+            self._log.error("Error, not a valid ObjectId in ImgStoreMongo - existAndOwner")
         except gridfs.errors.NoFile:
-            print "File not found"
+            self._log.error("File not found")
                 
         if (exists and isOwner):
             return True
@@ -434,9 +440,9 @@ class ImgStoreMongo(AbstractImgStore):
             connected = True
 
         except pymongo.errors.ConnectionFailure as detail:
-            print "Connection failed for "+self._mongoAddress
+            self._log.error("Connection failed for "+self._mongoAddress)
         except TypeError:  
-            print "TypeError in ImgStoreMongo - mongoConnection"
+            self._log.error("TypeError in ImgStoreMongo - mongoConnection")
 
         return connected
 
@@ -444,7 +450,7 @@ class ImgStoreMongo(AbstractImgStore):
 
 class ImgMetaStoreMongo(AbstractImgMetaStore):
     
-    def __init__(self, address,fgirdir):        
+    def __init__(self, address,fgirdir, log):        
         """
         Initialize object
         
@@ -456,6 +462,7 @@ class ImgMetaStoreMongo(AbstractImgMetaStore):
         #self._items={}
         self._dbName="images"
         self._dbConnection=None
+        self._log=log
         if (address != ""):
             self._mongoAddress=address
         else:
@@ -472,7 +479,7 @@ class ImgMetaStoreMongo(AbstractImgMetaStore):
         return queryStore (criteria)
         
     def addItem(self, imgMeta):
-        print "Please, use the ImgStoreMongo to add new items"            
+        self._log.error("Please, use the ImgStoreMongo to add new items")            
                     
         return False
     
@@ -504,15 +511,15 @@ class ImgMetaStoreMongo(AbstractImgMetaStore):
             #print imgId
             #print ownerId               
         except pymongo.errors.AutoReconnect:  #TODO: Study what happens with that. store or not store the file
-            print "Autoreconnected."                 
+            self._log.warning("Autoreconnected.")                 
         except pymongo.errors.ConnectionFailure:
-            print "Connection failure" 
+            self._log.error("Connection failure") 
         except TypeError as detail:
-            print "TypeError in ImgStoreMongo - existAndOwner"
+            self._log.error("TypeError in ImgStoreMongo - existAndOwner")
         except bson.errors.InvalidId:
-            print "Error, not a valid ObjectId in ImgStoreMongo - existAndOwner"
+            self._log.error("Error, not a valid ObjectId in ImgStoreMongo - existAndOwner")
         except gridfs.errors.NoFile:
-            print "File not found"
+            self._log.error("File not found")
         
         if (exists and isOwner):
             return True
@@ -548,10 +555,31 @@ class ImgMetaStoreMongo(AbstractImgMetaStore):
                     
                     dic={}
                     temp=imgMeta1.__repr__()
+                    
                     temp = temp.replace('\"','')
                     #print temp
                     attributes = temp.split(',')
-                    for item in attributes:
+                    
+                    #Control tag
+                    tagstr=""
+                    newattr=[]
+                    i=0
+                    while (i < len(attributes)):                        
+                        if attributes[i].strip().startswith('tag='):
+                            tagstr+=attributes[i]                             
+                            more=True                            
+                            while(more):
+                                if(attributes[i+1].strip().startswith('vmType=')):
+                                    more=False
+                                else:
+                                     tagstr+=","+attributes[i+1]
+                                     i+=1
+                            newattr.append(tagstr)
+                        else:
+                            newattr.append(attributes[i])
+                        i+=1
+                    
+                    for item in newattr:
                         attribute = item.strip()
                         #print attribute
                         tmp = attribute.split("=")
@@ -567,22 +595,23 @@ class ImgMetaStoreMongo(AbstractImgMetaStore):
                     imgUpdated=True
                     
                 except pymongo.errors.AutoReconnect:  #TODO: Study what happens with that. store or not store the file
-                    print "Autoreconnected."                 
+                    self._log.warning("Autoreconnected.")                 
                 except pymongo.errors.ConnectionFailure:
-                    print "Connection failure. The file has not been updated"                                           
+                    self._log.error("Connection failure. The file has not been updated")                                           
                 except IOError as (errno, strerror):
-                    print "I/O error({0}): {1}".format(errno, strerror)
-                    print "No such file or directory. Image details: "+imgEntry1.__str__()+"\n"                 
+                    errorstr="I/O error({0}): {1}".format(errno, strerror)
+                    self._log.error(errorstr)
+                    self._log.error("No such file or directory. Image details: "+imgEntry1.__str__())                 
                 except TypeError as detail:
-                    print "TypeError in ImgMetaStoreMongo - UpdateImage"                
+                    self._log.error("TypeError in ImgMetaStoreMongo - UpdateImage")                
                 except pymongo.errors.OperationFailure:
-                    print "Operation Failure in ImgMetaStoreMongo - UpdateImage"
+                    self._log.error("Operation Failure in ImgMetaStoreMongo - UpdateImage")
                 finally:
                     self._dbConnection.disconnect()
             else:
-                print "The Information has not been updated. The imgId is wrong or the User is not the owner"          
+                self._log.error("The Information has not been updated. The imgId is wrong or the User is not the owner")          
         else:            
-            print "Could not get access to the database. The Information has not been updated"   
+            self._log.error("Could not get access to the database. The Information has not been updated")
                     
         return imgUpdated  
     
@@ -676,15 +705,15 @@ class ImgMetaStoreMongo(AbstractImgMetaStore):
                 success=True
                     
             except pymongo.errors.AutoReconnect:
-                print "Autoreconnected in ImgMetaStoreMongo - queryStore \n" 
+                self._log.warning("Autoreconnected in ImgMetaStoreMongo - queryStore") 
             except pymongo.errors.ConnectionFailure:
-                print "Connection failure: the query cannot be performed \n"  
+                self._log.error("Connection failure: the query cannot be performed")  
             except TypeError as detail:
-                print "TypeError in ImgMetaStoreMongo - queryStore"
+                self._log.error("TypeError in ImgMetaStoreMongo - queryStore")
             finally:
                 self._dbConnection.disconnect()    
         else:
-            print "Could not get access to the database. Query failed"
+            self._log.error("Could not get access to the database. Query failed")
         
         return success
     
@@ -733,11 +762,11 @@ class ImgMetaStoreMongo(AbstractImgMetaStore):
                                   
     def persistToStore(self, items):
         #this method is used only in ImgStoreMongo
-        print "Data has not been stored. Please, use the ImgStoreMongo to add new items"
+        self._log.error("Data has not been stored. Please, use the ImgStoreMongo to add new items")
     
     def removeItem (self, imdId):
         #this method is used only in ImgStoreMongo
-        print "Data has not been deleted. Please, use the ImgStoreMongo to delete items "
+        self._log.error("Data has not been deleted. Please, use the ImgStoreMongo to delete items ")
         
     def mongoConnection(self):
         """connect with the mongos available
@@ -753,24 +782,25 @@ class ImgMetaStoreMongo(AbstractImgMetaStore):
             connected = True
 
         except pymongo.errors.ConnectionFailure as detail:
-            print "Connection failed for "+self._mongoAddress
+            self._log.error("Connection failed for "+self._mongoAddress)
         except TypeError:  
-            print "TypeError in ImgStoreMongo - mongoConnection"
+            self._log.error("TypeError in ImgStoreMongo - mongoConnection")
 
         return connected
         
-class IRUserStoreMongo(AbstractIRUserStore):  # TODO
+class IRUserStoreMongo(AbstractIRUserStore):  
     '''
     User store existing as a file or db
     
     If we got a huge number of user ^^ try to create an index to accelerate searchs
          collection.ensure_index("userId")
     '''
-    def __init__(self, address,fgirdir):
+    def __init__(self, address,fgirdir, log):
         super(IRUserStoreMongo, self).__init__()        
         #self._items = []
         self._dbName = "users"   #file location for users
         self._dbConnection=None
+        self._log=log
         if (address != ""):
             self._mongoAddress=address
         else:
@@ -807,19 +837,20 @@ class IRUserStoreMongo(AbstractIRUserStore):  # TODO
                     found = True
                                                       
             except pymongo.errors.AutoReconnect: 
-                print "Autoreconnected in IRUserStoreMongo - getUser"                 
+                self._log.warning("Autoreconnected in IRUserStoreMongo - getUser")                 
             except pymongo.errors.ConnectionFailure:
-                print "Connection failure in IRUserStoreMongo - getUser"                                           
+                self._log.error("Connection failure in IRUserStoreMongo - getUser")                                           
             except IOError as (errno, strerror):
-                print "I/O error({0}): {1}".format(errno, strerror)
-                print "IOError in IRUserStoreMongo - getUser"                 
+                errostr="I/O error({0}): {1}".format(errno, strerror)
+                self._log.error(errorstr)
+                self._log.error("IOError in IRUserStoreMongo - getUser")                 
             
             except pymongo.errors.OperationFailure:
-                print "Operation Failure in IRUserStoreMongo - getUser"
+                self._log.error("Operation Failure in IRUserStoreMongo - getUser")
             finally:
                 self._dbConnection.disconnect()    
         else:
-            print "Could not get access to the database. The file has not been stored"
+            self._log.error("Could not get access to the database. The file has not been stored")
         
         
         if (found):
@@ -852,15 +883,15 @@ class IRUserStoreMongo(AbstractIRUserStore):  # TODO
                                   {"$set": {"fsUsed" : totalSize,}
                                             }, safe=True)
             except pymongo.errors.AutoReconnect:
-                print "Autoreconnected in IRUserStoreMongo - updateDiskUsed \n" 
+                self._log.warning("Autoreconnected in IRUserStoreMongo - updateDiskUsed") 
             except pymongo.errors.ConnectionFailure:
-                print "Connection failure: the query cannot be performed \n"  
+                self._log.error("Connection failure: the query cannot be performed ")  
             except TypeError as detail:
-                print "TypeError in IRUserStoreMongo - updateDiskUsed"
+                self._log.error("TypeError in IRUserStoreMongo - updateDiskUsed")
             finally:
                 self._dbConnection.disconnect()    
         else:
-            print "Could not get access to the database. The disk usage has not been updated"
+            self._log.error("Could not get access to the database. The disk usage has not been updated")
         
         return success
     
@@ -907,24 +938,25 @@ class IRUserStoreMongo(AbstractIRUserStore):  # TODO
                         collection.insert(meta, safe=True)                                                        
                         userStored+=1
                     else:
-                        print "The userId "+user._userId+" exits in the database"
+                        self._log.error("The userId "+user._userId+" exits in the database")
                                                  
                     
             except pymongo.errors.AutoReconnect:  #TODO: Study what happens with that. store or not store the file
-                print "Autoreconnected."                 
+                self._log.warning("Autoreconnected.")                 
             except pymongo.errors.ConnectionFailure:
-                print "Connection failure. The user has not been stored."                                           
+                self._log.error("Connection failure. The user has not been stored.")                                           
             except IOError as (errno, strerror):
-                print "I/O error({0}): {1}".format(errno, strerror)
-                print "No such file or directory."                 
+                errorstr="I/O error({0}): {1}".format(errno, strerror)
+                self._log.error(errorsrt)
+                self._log.error("No such file or directory.")                 
             except TypeError as detail:
-                print "TypeError in IRUserStoreMongo - addUser"
+                self._log.error("TypeError in IRUserStoreMongo - addUser")
             except pymongo.errors.OperationFailure:
-                print "Operation Failure in IRUserStoreMongo - addUser"
+                self._log.error("Operation Failure in IRUserStoreMongo - addUser")
             finally:
                 self._dbConnection.disconnect()    
         else:
-            print "Could not get access to the database. The user has not been stored"
+            self._log.error("Could not get access to the database. The user has not been stored")
         
         if (userStored == len(users)):
             return True
@@ -955,8 +987,8 @@ class IRUserStoreMongo(AbstractIRUserStore):  # TODO
             connected = True
 
         except pymongo.errors.ConnectionFailure as detail:
-            print "Connection failed for "+self._mongoAddress
+            self._log.error("Connection failed for "+self._mongoAddress)
         except TypeError:  
-            print "TypeError in IRUserStoreMongo - mongoConnection"
+            self._log.error("TypeError in IRUserStoreMongo - mongoConnection")
 
         return connected
