@@ -37,15 +37,13 @@ class fgShellRepo(Cmd):
         ok=False         
         
         if (args.strip()==""):
-            imgsList = self._service.query(os.popen('whoami', 'r').read().strip(), "*")
-            ok=True
+            imgsList = self._service.query(os.popen('whoami', 'r').read().strip(), "*")            
         else:
             imgsList = self._service.query(os.popen('whoami', 'r').read().strip(), args)
-            ok=True
         #else:
         #    self.help_repolist()
         
-        if(ok):
+        if(imgsList[0].strip()!="None"):
             try:
                 imgs = eval(imgsList[0])
                 print str(len(imgs)) + " items found"
@@ -54,7 +52,8 @@ class fgShellRepo(Cmd):
             except:
                 print "do_repolist: Error:"+str(sys.exc_info()[0])+"\n"                
                 self._log.error("do_repolist: Error interpreting the list of images from Image Repository"+str(sys.exc_info()[0]))
-             
+        else:
+            print "No list of images returned"   
             
     def help_repolist(self):
         print  "Image Repository list command: Get list of images that meet the criteria \n"+  \
@@ -64,9 +63,15 @@ class fgShellRepo(Cmd):
                 "                       field1,field2 where field3=XX \n"
                 
     def do_repomodify(self, args):       
-        args=self.getArgs(args)                
-        if (len(args)==2):
-            status=self._service.updateItem(os.popen('whoami', 'r').read().strip(), args[0], args[1])
+        args=self.getArgs(args)
+        second=""
+        if(len(args)>1):
+            for i in range(1,len(args)):
+                second+=args[i]+" "
+        second=second.replace("&","|")
+                  
+        if (len(args)>=2):
+            status=self._service.updateItem(os.popen('whoami', 'r').read().strip(), args[0], second)
             if(status=="True"):
                 print "The metadata of img "+args[0]+" has been updated"
             else:
@@ -78,7 +83,7 @@ class fgShellRepo(Cmd):
         print  "Image Repository modify command: Modify image metadata. \n"+ \
                "                              It has two arguments <imgId> <Metadata> \n"+\
                "Example of all values of attributeString (you do not need to provide all of them) \n" \
-               "\"vmtype=xen|imgtype=opennebula|os=linux|arch=x86_64|description=my image|tag=tag1,tag2|permission=public|imgStatus=available\" \n"+\
+               "vmtype=xen & imgtype=opennebula & os=linux & arch=x86_64 & description=my image & tag=tag1,tag2 & permission=public & imgStatus=available \n"+\
                 "Some attributes are controlled: \n"+ \
                 "     vmtype= "+str(IRTypes.ImgMeta.VmType)+"\n"\
                 "     imgtype= "+str(IRTypes.ImgMeta.ImgType)+"\n"\
@@ -102,9 +107,11 @@ class fgShellRepo(Cmd):
                "                              Permission= "+str(IRTypes.ImgMeta.Permission)
                            
     def do_repoget(self, args): 
-        args=self.getArgs(args)                
+        args=self.getArgs(args)   
+                     
         if (len(args)==2):
             imgstatus=self._service.get(os.popen('whoami', 'r').read().strip(), args[0], args[1])
+            
             if imgstatus:
                 print imgstatus
             else:
@@ -116,14 +123,17 @@ class fgShellRepo(Cmd):
         print  "Image Repository get command: Get an image or only the URI by id. \n"+ \
                "                              It has two arguments <img OR uri> <imgId>"
     
-    def do_repoput(self, args):
+    def do_repoput(self, args):       
+        
         args=self.getArgs(args)            
-        print args
+        
         second=""
         if(len(args)>1):
             for i in range(1,len(args)):
                 second+=args[i]+" "
-                    
+        
+        second=second.replace("&","|")          
+            
         status=0
         ok=False
         if (len(args)>1):                
@@ -151,7 +161,7 @@ class fgShellRepo(Cmd):
         print  "The Image Repository put command has two arguments <imgId> [attributeString] \
                 \n If no attributeString provided some default values are assigned \n"+ \
                 "Example of all values of attributeString (you do not need to provide all of them) \n" \
-                "\"vmtype=xen|imgtype=opennebula|os=linux|arch=x86_64|description=my image|tag=tag1,tag2|permission=public|imgStatus=available\" \n"+\
+                "vmtype=xen & imgtype=opennebula & os=linux & arch=x86_64 & description=my image & tag=tag1,tag2 & permission=public & imgStatus=available \n"+\
                 "Some attributes are controlled: \n"+ \
                 "     vmtype= "+str(IRTypes.ImgMeta.VmType)+"\n"\
                 "     imgtype= "+str(IRTypes.ImgMeta.ImgType)+"\n"\

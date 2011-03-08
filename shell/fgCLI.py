@@ -26,12 +26,11 @@ class fgShell(fgShellUtils,
               fgShellRepo):
     
     def __init__(self, silent=False):
-        #DEBUG ("Loading Base Shell Commands")  ##CHANGE TO PYTHON LOGG      
         
         #Load Config
         self._conf=fgShellConf()                
-        #Setup log        
-        self._log=fgLog(self._conf.getLogFile(),self._conf.getLogLevel(),"FGShell")
+        #Setup log  
+        self._log=fgLog(self._conf.getLogFile(),self._conf.getLogLevel(),"FGShell", True)
         
         Cmd.__init__(self) 
         fgShellUtils.__init__(self)
