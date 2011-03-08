@@ -2,8 +2,8 @@ import logging
 import logging.handlers
 
 class fgLog():
-    def __init__(self, logfile, loglevel):
-        self._logger = logging.getLogger("FutureGrid")
+    def __init__(self, logfile, loglevel, whois):
+        self._logger = logging.getLogger(whois)
         self._formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
                 
         handler = logging.FileHandler(logfile)        
