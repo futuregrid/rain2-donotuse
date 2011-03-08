@@ -15,8 +15,9 @@ import readline
 import sys
 from futuregrid.shell.fgShellUtils import fgShellUtils
 from futuregrid.shell.fgShellRepo import fgShellRepo
+from futuregrid.shell.fgShellConf import fgShellConf
 import logging
-from futuregrid.utils.fgConf import fgConf
+
 from futuregrid.utils.fgLog import fgLog
 from cmd2 import Cmd
 
@@ -28,9 +29,9 @@ class fgShell(fgShellUtils,
         #DEBUG ("Loading Base Shell Commands")  ##CHANGE TO PYTHON LOGG      
         
         #Load Config
-        self._conf=fgConf()                
+        self._conf=fgShellConf()                
         #Setup log        
-        self._log=fgLog(self._conf.getLogFile(),self._conf.getLogLevel())
+        self._log=fgLog(self._conf.getLogFile(),self._conf.getLogLevel(),"FGShell")
         
         Cmd.__init__(self) 
         fgShellUtils.__init__(self)
@@ -51,7 +52,8 @@ class fgShell(fgShellUtils,
         if self.silent:
             self.intro = ""
         else:
-            self.intro = "Welcome to the FutureGrid Shell"
+            self.intro = "\nWelcome to the FutureGrid Shell\n" +\
+                         "-------------------------------\n"
                 
         ##Load History
         self.loadhist("no argument needed")
@@ -67,9 +69,9 @@ class fgShell(fgShellUtils,
             self._use=arg
             
             if self._use == "":
-                welcomestr="Changing to default context"
+                welcomestr="\nChanging to default context"
             else:
-                welcomestr="Changing to "+self._use+" context"
+                welcomestr="\nChanging to "+self._use+" context"
                 
             print welcomestr
             dashstr=""
@@ -126,6 +128,12 @@ class fgShell(fgShellUtils,
         print hist
     do_hi=do_hist = do_history
     
+    def do_historysession(self, line):
+        """Print a list of commands that have been entered in the current session"""
+        Cmd.do_history(self,line)
+    
+    do_his=do_hists = do_historysession
+    
     ###########################
     #HELP 
     ###########################
@@ -136,7 +144,8 @@ class fgShell(fgShellUtils,
     
     def getDocUndoc(self,args):
         base_cmds=['EOF','exec','exit','help','hi','hist','history','q','quit','use','show','script']
-        base_cmd2=['cmdenvironment','ed','edit','l','li','load', 'pause','py','r', 'run','save','shell', 'shortcuts']
+        base_cmd2=['cmdenvironment','ed','edit','l','li','load', 'pause','py','r', 'run','save','shell', 'shortcuts',
+                   'his', 'hists', 'historysession']
         base_cmds+=base_cmd2
         final_doc=[]
         final_undoc=[]

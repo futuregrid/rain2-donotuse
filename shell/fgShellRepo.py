@@ -30,6 +30,7 @@ class fgShellRepo(Cmd):
         arg = ''.join(args)      
         print opts.quick
         print opts.slow
+        self._log.error("SHElll test in fgshell repo")
 
     def do_repolist(self, args):        
         #args=self.getArgs(args)      
@@ -103,8 +104,11 @@ class fgShellRepo(Cmd):
     def do_repoget(self, args): 
         args=self.getArgs(args)                
         if (len(args)==2):
-            print self._service.get(os.popen('whoami', 'r').read().strip(), args[0], args[1])
-            
+            imgstatus=self._service.get(os.popen('whoami', 'r').read().strip(), args[0], args[1])
+            if imgstatus:
+                print imgstatus
+            else:
+                print "The image with imgId = " + args[1] +" has not been found"
         else:
             self.help_repoget()        
             
