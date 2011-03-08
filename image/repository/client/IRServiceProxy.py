@@ -17,81 +17,56 @@ from IRTypes import ImgEntry
 from IRTypes import IRUser
 from IRTypes import IRCredential
 import IRUtil
+from IRClientConf import IRClientConf
 import string
-#from futuregrid.utils import fgUtil
+import sys
+
+try:
+    from futuregrid.utils import fgLog #This should the the final one
+#To execute IRClient for tests
+except:
+    sys.path.append("/home/javi/imagerepo/ImageRepo/src/futuregrid/") #Directory where fg.py is
+    from utils import fgLog
+
 
 class IRServiceProxy(object):
     
-    #Server location 
-    #(Now we assume that the server is where the images are stored. We may want to change that)
-    SERVICEENDP = "localhost"   #xray.futuregrid.org"    
-    FGIRDIR = "/home/javi/imagerepo/ImageRepo/src/futuregrid/image/repository/server/"  #"/N/u/fuwang/fgir/"
-    # TODO: GVL: This is not good, we want a config file where we specify this, the config is to be placed in .futuregrid
-
-    BACKENDS = ["mongodb","mysql"]
-    
-    
+    #(Now we assume that the server is where the images are stored. We may want to change that)    
     def __init__(self):
         super(IRServiceProxy, self).__init__()
-        self._backend = ""
-        self._fgirimgstore = ""
-        # GVL: THIS IS NOT GOOD, we want a .futuregrid dir in which the IRconfig is placed
-        # We want a util function taht manages location, creation, existence and destruction of the .futuregrid dir
-        self._configfile=os.environ['HOME']+"/.IRconfig"
-        self._setupBackend()
         
-    def _setupBackend (self):  #We can set up manually to avoid two ssh conections each time
-        userId = os.popen('whoami', 'r').read().strip()        
-        if not os.path.isfile(self._configfile):
-            cmdexec = " '" + IRServiceProxy.FGIRDIR + \
-                    "IRService.py --getBackend " "'"
-        
-            print "Requesting Server Config"
-            aux=self._rExec(userId, cmdexec)            
-            self._backend=aux[0].strip()
-            self._fgirimgstore=aux[1].strip()
-            try:
-                f = open(self._configfile, "w")
-                f.write(self._backend+'\n')
-                f.write(self._fgirimgstore)
-                f.close()
-            except(IOError),e:
-                print "Unable to open the file", self._configfile, "Ending program.\n", e
-        else:
-            print "Reading Server Config from "+self._configfile
-            try:
-                f = open(self._configfile, "r")
-                self._backend=f.readline()
-                if not (self._backend.strip() in self.BACKENDS):
-                    print "Error in local config. Please remove file: "+os.environ['HOME']+"/.IRconfig"
-                    exit(0)
-                self._fgirimgstore=f.readline()
-                f.close()
-            except(IOError),e:
-                print "Unable to open the file", self._configfile, "Ending program.\n", e
+        #Load Config
+        self._conf=IRClientConf()
+        self._backend = self._conf.getBackend()
+        self._fgirimgstore = self._conf.getFgirimgstore()
+        self._serverdir=self._conf.getServerdir()
+        self._serveraddr=self._conf.getServeraddr()
+
+        #Setup log        
+        self._log=fgLog.fgLog(self._conf.getLogFile(),self._conf.getLogLevel(),"Img Repo Client", True)
  
     def auth(self, userId):
         # to be implemented when integrating with the security framework
-        cmdexec = " '" + IRServiceProxy.FGIRDIR + \
+        cmdexec = " '" + self._serverdir + \
                     "IRService.py --auth " + userId + "'"
         #print cmd
         return self._rExec(userId, cmdexec)
         
-    def query(self, userId, queryString):    
-        cmdexec = " '" + IRServiceProxy.FGIRDIR + \
+    def query(self, userId, queryString):  
+        cmdexec = " '" + self._serverdir + \
                     "IRService.py --list \""+ queryString + "\"'"
         
         return self._rExec(userId, cmdexec)
         
     def get(self, userId, option, imgId):
-        cmdexec = " '" + IRServiceProxy.FGIRDIR + \
+        cmdexec = " '" + self._serverdir + \
                     "IRService.py --get " + option + " " + imgId + "'"
-        #print cmd
+        #print cmdexec
         
         imgURI = self._rExec(userId, cmdexec)[0].strip()
         #print imgURI        
         if not imgURI=='None':
-            imgURI = IRServiceProxy.SERVICEENDP + ":" + imgURI
+            imgURI = self._serveraddr + ":" + imgURI
             if (option == "img"):
                 imgURI = self._retrieveImg(userId, imgId, imgURI)      
         else:            
@@ -102,7 +77,8 @@ class IRServiceProxy(object):
     def put(self, userId, uid, imgFile, attributeString):
         status=0
         if (self.checkMeta(attributeString) and os.path.isfile(imgFile)):
-            cmdexec = " '" + IRServiceProxy.FGIRDIR + \
+            self._log.debug("Checking quota")
+            cmdexec = " '" + self._serverdir + \
                     "IRService.py --uploadValidator " +  userId + "'"
                     
                     #TODO ADD size of the image
@@ -114,14 +90,16 @@ class IRServiceProxy(object):
             elif (isPermitted[0].strip()=="True"):     
                 
                 """       
-                cmdexec = " '" + IRServiceProxy.FGIRDIR + "IRService.py --getuid'"
+                cmdexec = " '" + self._serverdir + "IRService.py --getuid'"
                 uidRet = self._rExec(userId, cmdexec)
                 uid = uidRet[0].strip()
                 """
                 uid=IRUtil.getImgId()
-                fileLocation = self._fgirimgstore + uid            
+                                                
+                fileLocation = self._fgirimgstore + uid
+                            
                 cmd = 'scp ' + imgFile + ' ' + userId +"@" + \
-                        IRServiceProxy.SERVICEENDP + ":" + fileLocation
+                        self._serveraddr + ":" + fileLocation
                 
                 print "uploading file through scp:"
                 print cmd
@@ -129,8 +107,8 @@ class IRServiceProxy(object):
                 if (str(stat)!="0"):
                     print stat
                 
-                cmdexec = " '" + IRServiceProxy.FGIRDIR + "IRService.py --put " + \
-                             uid + " " + fileLocation + " \"" + attributeString + "\"'"   ##Why do we need to send filelocation???
+                cmdexec = " '" + self._serverdir + "IRService.py --put " + \
+                             uid + " " + fileLocation + " \"" + attributeString + "\"'"
                 #print cmdexec
                 uid = self._rExec(userId, cmdexec)
                 
@@ -142,7 +120,7 @@ class IRServiceProxy(object):
     def updateItem(self, userId, imgId, attributeString):  
         success="False"  #A string because _rExec return a string ;)
         if (self.checkMeta(attributeString)):
-            cmdexec = " '" + IRServiceProxy.FGIRDIR + "IRService.py --modify " +\
+            cmdexec = " '" + self._serverdir + "IRService.py --modify " +\
                          imgId + " \"" + attributeString + "\"'"
             #print cmdexec
             success = self._rExec(userId, cmdexec)
@@ -153,7 +131,7 @@ class IRServiceProxy(object):
     def setPermission(self, userId, imgId, permission):
         success=["False"]
         if(permission in ImgMeta.Permission):
-            cmdexec = " '" + IRServiceProxy.FGIRDIR + "IRService.py --modify "+\
+            cmdexec = " '" + self._serverdir + "IRService.py --modify "+\
                          imgId + " \"permission=" + permission + "\"'"
             #print cmdexec
             success = self._rExec(userId, cmdexec)
@@ -164,7 +142,7 @@ class IRServiceProxy(object):
         return success[0].strip()
    
     def remove(self, userId, imgId):
-        cmdexec = " '" + IRServiceProxy.FGIRDIR + \
+        cmdexec = " '" + self._serverdir + \
                     "IRService.py --remove " + " " + imgId + "'"
         #print cmd
         
@@ -211,20 +189,10 @@ class IRServiceProxy(object):
         return correct
         
     def _rExec(self, userId, cmdexec):        
-        """
-        could the name of the tmpFile be overwiten???
-        I have added /tmp to the file
-        """
-        #TODO:GVL: we need a util function that generates unique files in /tmp, 
-        #probably under a dir for a user, permissions have to be worked out, 
-        #just doing time may no be strong enough, you want pid also
-        
-        #JAVI: added a random number
-        
+                
         #TODO: do we want to use the .format statement from python to make code more readable?
-        
-        
-        cmdssh = "ssh " + userId + "@" + IRServiceProxy.SERVICEENDP
+                
+        cmdssh = "ssh " + userId + "@" + self._serveraddr
         tmpFile = "/tmp/"+ str(time())+str(IRUtil.getImgId())
         #print tmpFile
         cmdexec = cmdexec + " > " + tmpFile
@@ -255,10 +223,10 @@ class IRServiceProxy(object):
                     cmdrm=" rm -rf " + (imgURI).split(":")[1]
                     self._rExec(userId, cmdrm)
             else:
-                print "Error retrieving the image "+str(stat)
+                self._log.error("Error retrieving the image. Exit status "+str(stat))
                 #remove the temporal file
         except os.error:
-            print "Error, The image cannot be retieved"
+            self._log("Error, The image cannot be retieved"+str(sys.exc_info()))
             output = None
         
         return output
