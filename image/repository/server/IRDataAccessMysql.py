@@ -217,9 +217,9 @@ class ImgStoreMysql(AbstractImgStore):
                 cursor= self._dbConnection.cursor()         
                 for item in items:
                     
-                    sql = "INSERT INTO %s (imgId, imgMetaData, imgUri, createDate, lastAccess, accessCount) \
-       VALUES ('%s', '%s', '%s', '%s', '%s', '%d' )" % \
-       (self._tabledata, item._imgId, item._imgId, item._imgURI, datetime.utcnow(), datetime.utcnow(), 0)
+                    sql = "INSERT INTO %s (imgId, imgMetaData, imgUri, createDate, lastAccess, accessCount, size) \
+       VALUES ('%s', '%s', '%s', '%s', '%s', '%d', '%d' )" % \
+       (self._tabledata, item._imgId, item._imgId, item._imgURI, datetime.utcnow(), datetime.utcnow(), 0, item._size)
                     
                     cursor.execute(sql)
                     self._dbConnection.commit()

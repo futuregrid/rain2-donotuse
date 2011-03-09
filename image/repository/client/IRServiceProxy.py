@@ -75,21 +75,29 @@ class IRServiceProxy(object):
         return imgURI
         
     def put(self, userId, uid, imgFile, attributeString):
+        """
+        0 is general error
+        -1 user doesn't exist
+        -2 user is not active
+        -3 file exceed the quota 
+        """
         status="0"
         if (self.checkMeta(attributeString) and os.path.isfile(imgFile)):
             
-            #os.path.getsize(imgFile)
+            size=os.path.getsize(imgFile)
             
             self._log.debug("Checking quota")
             cmdexec = " '" + self._serverdir + \
-                    "IRService.py --uploadValidator " +  userId + "'"
+                    "IRService.py --uploadValidator " +str(size)+"'"
+                   
                     
-                    #TODO ADD size of the image
                    
             isPermitted = self._rExec(userId, cmdexec)
             #print isPermitted[0].strip()      
             if (isPermitted[0].strip()=="NoUser"):
-                status="-1"            
+                status="-1"
+            elif (isPermitted[0].strip()=="NoUser"):
+                status="-2"
             elif (isPermitted[0].strip()=="True"):     
                 
                 """       
@@ -111,12 +119,14 @@ class IRServiceProxy(object):
                     print stat
                 print "Registering the Image"
                 cmdexec = " '" + self._serverdir + "IRService.py --put " + \
-                             uid + " " + fileLocation + " \"" + attributeString + "\"'"
+                             uid + " " + fileLocation + " \"" + attributeString + "\" "+str(size)+"'"
                 #print cmdexec
                 uid = self._rExec(userId, cmdexec)
                 
                 status=uid[0].strip()
-                #print status            
+                #print status
+            else:
+                status="-3"        
             
         return status
     

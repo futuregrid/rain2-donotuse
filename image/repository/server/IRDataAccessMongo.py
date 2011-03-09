@@ -311,6 +311,7 @@ class ImgStoreMongo(AbstractImgStore):
                             "createdDate" : datetime.utcnow(), 
                             "lastAccess" : datetime.utcnow(),
                             "accessCount" : 0,
+                            "size" : item._size,
                             }
                     
                     collectionMeta.insert(meta, safe=True)
@@ -345,7 +346,7 @@ class ImgStoreMongo(AbstractImgStore):
         else:
             return False
         
-    def removeItem (self, userId, imgId):
+    def removeItem (self, userId, imgId, size):
         #what are we going to do with concurrency?
         """
         Remove the Image file and Metainfo if imgId exists and your are the owner.
@@ -357,6 +358,7 @@ class ImgStoreMongo(AbstractImgStore):
         keywords:
         imgId : identifies the image (I think that we can remove this)
         imgEntry : new info to update. It HAS TO include the owner in _imgMeta
+        size: Size of the img deleted.
         
         Return boolean
         """   
@@ -368,7 +370,10 @@ class ImgStoreMongo(AbstractImgStore):
                     collection = dbLink["data"]
                     collectionMeta = dbLink["meta"]
                     gridfsLink=gridfs.GridFS(dbLink)
-                       
+                    
+                    aux=collection.find_one({"_id": imgId})
+                    size[0]=aux['size']
+                    
                     gridfsLink.delete(ObjectId(imgId))
                     collection.remove({"_id": imgId}, safe=True) #Wait for replication? w=3 option
                     collectionMeta.remove({"_id": imgId}, safe=True)
@@ -871,6 +876,7 @@ class IRUserStoreMongo(AbstractIRUserStore):
                 
         return: IRUser object
         """
+        
         found=False
         tmpUser=IRUser("")
                 
@@ -883,7 +889,7 @@ class IRUserStoreMongo(AbstractIRUserStore):
                 
                 if not dic == None:
                     
-                    tmpUser = IRUser(dic['userId'], dic['cred'], dic['fsUsed'],dic['fsCap'],dic['lastLogin'], 
+                    tmpUser = IRUser(dic['userId'], dic['cred'], dic['fsCap'], dic['fsUsed'],dic['lastLogin'], 
                                           dic["status"], dic["role"])
                     found = True
                                                       
@@ -910,7 +916,7 @@ class IRUserStoreMongo(AbstractIRUserStore):
             return None
         
     
-    def updateDiskUsed (self, userId, size): #TODO verify this. Decide if size will be a string or a int    
+    def updateDiskUsed (self, userId, size):     
         """
         Update the disk usage of a user when it add a new Image
         
@@ -933,6 +939,7 @@ class IRUserStoreMongo(AbstractIRUserStore):
                 collection.update({"userId": userId}, 
                                   {"$set": {"fsUsed" : totalSize,}
                                             }, safe=True)
+                success=True
             except pymongo.errors.AutoReconnect:
                 self._log.warning("Autoreconnected in IRUserStoreMongo - updateDiskUsed") 
             except pymongo.errors.ConnectionFailure:
@@ -946,22 +953,146 @@ class IRUserStoreMongo(AbstractIRUserStore):
         
         return success
     
-        
-    def addUser(self, user):
+    def setRole(self, userId, userIdtoModify, role):
         """
-        Add user to the database
-        
-        keywords:
-        user: IRUser object
+        Modify the role of a user. Only admins can do it
         
         return boolean
         """
-        return self.persistToStore([user])
+        success = False
+        
+        if (self.mongoConnection()):
+            try:
+                if(self.isAdmin(userId)):
+                    dbLink = self._dbConnection[self._dbName]
+                    collection = dbLink["data"]     
+                    
+                    collection.update({"userId": userIdtoModify}, 
+                                      {"$set": {"role" : role}
+                                                }, safe=True)
+                    success=True
+            except pymongo.errors.AutoReconnect:
+                self._log.warning("Autoreconnected in IRUserStoreMongo - setRole") 
+            except pymongo.errors.ConnectionFailure:
+                self._log.error("Connection failure: the query cannot be performed ")  
+            except TypeError as detail:
+                self._log.error("TypeError in IRUserStoreMongo - setRole")
+            finally:
+                self._dbConnection.disconnect()    
+        else:
+            self._log.error("Could not get access to the database.  The role has not been changed")
+        
+        return success
+    
+    def setQuota(self, userId, userIdtoModify, quota):
+        """
+        Modify the quota of a user. Only admins can do it
+        
+        return boolean
+        """
+        success = False
+        
+        if (self.mongoConnection()):
+            try:
+                if(self.isAdmin(userId)):
+                    dbLink = self._dbConnection[self._dbName]
+                    collection = dbLink["data"]     
+                    
+                    collection.update({"userId": userIdtoModify}, 
+                                      {"$set": {"fsCap" : quota}
+                                                }, safe=True)
+                    success=True
+            except pymongo.errors.AutoReconnect:
+                self._log.warning("Autoreconnected in IRUserStoreMongo - setRole") 
+            except pymongo.errors.ConnectionFailure:
+                self._log.error("Connection failure: the query cannot be performed ")  
+            except TypeError as detail:
+                self._log.error("TypeError in IRUserStoreMongo - setRole")
+            finally:
+                self._dbConnection.disconnect()    
+        else:
+            self._log.error("Could not get access to the database. The quota has not been changed")
+        
+        return success
+    
+    def setUserStatus(self, userId, userIdtoModify, status):
+        """
+        Modify the status of a user. Only admins can do it
+        
+        return boolean
+        """
+        success = False
+        
+        if (self.mongoConnection()):
+            try:
+                if(self.isAdmin(userId)):
+                    dbLink = self._dbConnection[self._dbName]
+                    collection = dbLink["data"]     
+                    
+                    collection.update({"userId": userIdtoModify}, 
+                                      {"$set": {"status" : status}
+                                                }, safe=True)
+                    success=True
+            except pymongo.errors.AutoReconnect:
+                self._log.warning("Autoreconnected in IRUserStoreMongo - setUserStatus") 
+            except pymongo.errors.ConnectionFailure:
+                self._log.error("Connection failure: the query cannot be performed ")  
+            except TypeError as detail:
+                self._log.error("TypeError in IRUserStoreMongo - setUserStatus")
+            finally:
+                self._dbConnection.disconnect()    
+        else:
+            self._log.error("Could not get access to the database.  The status has not been changed")
+        
+        return success
+    
+    def userDel(self, userId, userIdtoDel):
+        """
+        Modify the quota of a user. Only admins can do it
+        
+        return boolean
+        """
+        success = False
+        
+        if (self.mongoConnection()):
+            try:
+                if(self.isAdmin(userId)):
+                    dbLink = self._dbConnection[self._dbName]
+                    collection = dbLink["data"]     
+                    
+                    collection.remove({"userId": userIdtoDel}, safe=True)
+                    
+                    success=True
+                    
+            except pymongo.errors.AutoReconnect:
+                self._log.warning("Autoreconnected in IRUserStoreMongo - userDel") 
+            except pymongo.errors.ConnectionFailure:
+                self._log.error("Connection failure: the query cannot be performed ")  
+            except TypeError as detail:
+                self._log.error("TypeError in IRUserStoreMongo - userDel")
+            finally:
+                self._dbConnection.disconnect()    
+        else:
+            self._log.error("Could not get access to the database. The user has not been deleted")
+        
+        return success
+         
+    def userAdd(self, userId, user):
+        """
+        Add user to the database. Only admins can do it
+        
+        keywords:
+        user: IRUser object to be created
+        userId: Id of the user that is executing this
+        
+        return boolean
+        """
+        return self.persistToStore(userId, [user])
     
         
-    def persistToStore(self, users):
+    def persistToStore(self, userId, users):
         """
-        Add user to the database
+        Add user to the database. Only admins can do it
         
         keywords:
         users: list of IRUser object
@@ -969,28 +1100,39 @@ class IRUserStoreMongo(AbstractIRUserStore):
         return boolean. True only if all users where added correctly to the db
         """
         userStored=0
-                
-        if (self.mongoConnection()):
+        authorized=False
+        if (self.mongoConnection()):            
             try:
                 dbLink = self._dbConnection[self._dbName]
                 collection = dbLink["data"]
+                output=collection.find_one()
                 
-                for user in users:
-                    meta = {"userId": user._userId,
-                            "cred" : user._cred,
-                            "fsUsed" : user._fsUsed,
-                            "fsCap"  : user._fsCap,
-                            "lastLogin" : user._lastLogin,
-                            "status" : user._status,
-                            "role" : user._role,                                                  
-                            }            
-                    
-                    if (collection.find_one({"userId": user._userId}) == None):
-                        collection.insert(meta, safe=True)                                                        
-                        userStored+=1
-                    else:
-                        self._log.error("The userId "+user._userId+" exits in the database")
-                                                 
+                if (output==None):                    
+                    self._log.warning("First User inserted is "+ users[0]._userId+". He is admin")
+                    users[0]._status="active"
+                    users[0]._role="admin"                    
+                    authorized=True                   
+                else:
+                    if(self.isAdmin(userId)):
+                        authorized=True
+                        
+                if (authorized):    
+                    for user in users:
+                        meta = {"userId": user._userId,
+                                "cred" : user._cred,
+                                "fsUsed" : user._fsUsed,
+                                "fsCap"  : user._fsCap,
+                                "lastLogin" : user._lastLogin,
+                                "status" : user._status,
+                                "role" : user._role,                                                  
+                                }            
+
+                        if (collection.find_one({"userId": user._userId}) == None):
+                            collection.insert(meta, safe=True)                                                        
+                            userStored+=1
+                        else:
+                            self._log.error("The userId "+user._userId+" exits in the database")
+                                                     
                     
             except pymongo.errors.AutoReconnect:  #TODO: Study what happens with that. store or not store the file
                 self._log.warning("Autoreconnected.")                 
@@ -1013,16 +1155,47 @@ class IRUserStoreMongo(AbstractIRUserStore):
             return True
         else:
             return False
+    
+    def isAdmin(self, userId):
+        """
+        Verify if a user is admin
+        """
+        admin=False
+           
+        try:
+            dbLink = self._dbConnection[self._dbName]
+            collection = dbLink["data"]
+                             
+            aux=collection.find_one({"userId": userId})
+            if (aux!=None):
+                if (aux['role']=="admin"):
+                    admin=True
+            #print admin   
+        except pymongo.errors.AutoReconnect:  
+            self._log.warning("Autoreconnected.")                 
+        except pymongo.errors.ConnectionFailure:
+            self._log.error("Connection failure") 
+        except TypeError as detail:
+            self._log.error("TypeError in IRUserStoreMongo - isAdmin"+str(sys.exc_info()))
+        except bson.errors.InvalidId:
+            self._log.error("Error, not a valid ObjectId in IRUserStoreMongo - isAdmin")
+        
+        return admin
             
     def uploadValidator(self, userId, imgSize):
-        user = self.getUser([userId])
+        user = self.getUser(userId)
         ret = False
-        if (user!=None):            
-            if imgSize + user._fsUsed <= user._fsCap:
-                ret = True
+        if (user!=None):
+            if (user._status=="active"):
+                #self._log.debug(user._fsCap)                   
+                if imgSize + user._fsUsed <= user._fsCap:                    
+                    ret = True
+            else:
+                ret="NoActive"
         else:
             ret="NoUser"
-        return True       ###MODIFY THIS TO ENABLE QUOTE
+        
+        return ret      
     
     def mongoConnection(self):
         """connect with the mongos available

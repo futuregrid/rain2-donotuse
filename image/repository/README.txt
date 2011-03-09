@@ -23,17 +23,30 @@ The code has two portions: server and client.
 
 Server configuration:
 All the configuration in the server side is done in the file IRUtil.py. We can configure the backend or the image directory used. In MongoDB we use __fgirimgstoremongo__ as a temporal dir, the images are not stored there. Meawhile in MySQL the dir __fgirimgstoremysql__ is where the images are stored.
+
 -FileSystem (no DBs) #There is no new develpments
     Files with name 'IRMetaStore' and 'IRImgStore' should be created to store the image data.
+
 -MongoDB
     Config example: __backend__="mongodb" __address__="localhost:23000"
     __backend__ indicates the MongoDB connection, it could be the address of the mongod process in a simple installation or the address of the mongos process in a distributed deployment (we recommend have mongos in the same machine that the IR server)
+    Quotas and user managment Enabled. Commands only implemented in server side. First user added will be admin automatically. Users MUST be equals to the system user.
+
 -MySQL 
    Config example: __backend__="mysql" __address__="localhost"
    A directory with name specified in __fgirimgstoremysql__ must be created to store the real image files.
    Create user IRUser and store the password in the file specified in __mysqlcfg__. The format is:
    [client]
    password=yourpass
+
+   #Creating DB and user
+   mysql -u root -p
+   CREATE USER 'IRUser'@'localhost' IDENTIFIED BY 'yourpass';
+   create database images;
+   use images;
+   create table meta ( imgId varchar(100) primary key, os varchar(100), arch varchar(100), owner varchar(100), description varchar(200), tag varchar(200), vmType  varchar(100), imgType varchar(100), permission varchar(100), imgStatus varchar(100) );
+   create table data ( imgId varchar(100) primary key, imgMetaData varchar(100), imgUri varchar(200), createDate datetime, lastAccess datetime, accessCount long, FOREIGN KEY (imgMetaData) REFERENCES meta(imgId) ON UPDATE CASCADE ON DELETE CASCADE );
+   GRANT ALL PRIVILEGES ON images.* TO 'IRUser' IDENTIFIED BY 'yourpass';  
 
 The client side is to be distributed to user environment from where user can access the Image Repository.
 

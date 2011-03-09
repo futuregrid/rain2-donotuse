@@ -16,18 +16,13 @@ class IRCredential(object):
         self._cred = cred
         
 class IRUser(object):
-       
-    class Status:
-        PENDING=0
-        ACTIVE=1
-        INACTIVE=2
     
-    class Role:
-        USER=0
-        VOADMIN=1
-        
-    def __init__(self, userId, cred=None, fsCap=4096, fsUsed=0, 
-                 lastLogin=None, status=Status.PENDING, role=Role.USER):
+    Status=["pending","active","inactive"]
+    Role=["user","admin"]
+    
+    #fsCap in bytes. 4G by default
+    def __init__(self, userId, cred=None, fsCap=4294967296, fsUsed=0, 
+                 lastLogin=None, status=Status[0], role=Role[0]):
         super(IRUser, self).__init__()
         self._userId = userId
         self._cred = cred
@@ -79,8 +74,8 @@ class ImgMeta(object):
     Permission=["public","private"]
     
     argsDefault = ['', '', '', '', '', '',
-                   VmType[1], ImgType[0],
-                   Permission[0], ImgStatus[0]]
+                   VmType[0], ImgType[0],
+                   Permission[1], ImgStatus[0]]
          
     def __init__(self,
                  imgId,
@@ -122,25 +117,27 @@ class ImgEntry(object):
     def __init__(self,
                  imgId,
                  imgMeta,
-                 imgURI
+                 imgURI,
+                 size
                  ):
         super(ImgEntry, self).__init__()
         self._imgId = imgId
         self._imgMeta = imgMeta
         self._imgURI = imgURI
         self._createdDate = datetime.utcnow()
-        self._lastAccess = None
+        self._lastAccess = datetime.utcnow()
         self._accessCount = 0
+        self._size = size
     
     def __repr__(self):
-        return "\"imgId=%s, imgURI=%s, createdDate=%s, lastAccess=%s, accessCount=%s\"" % \
+        return "\"imgId=%s, imgURI=%s, createdDate=%s, lastAccess=%s, accessCount=%d, size=%d\"" % \
                 (self._imgId, self._URI, self._createdDate, self._lastAccess, \
-                 self._accessCount)
+                 self._accessCount, self._size)
     
     def __str__(self):
-        return "\"%s, %s, %s, %s, %s\"" % \
+        return "\"%s, %s, %s, %s, %d, %d\"" % \
                 (self._imgId, self._imgURI, self._createdDate, self._lastAccess, \
-                 self._accessCount)
+                 self._accessCount, self._size)
                      
     def get(self, userId, imgId):
         pass

@@ -4,7 +4,7 @@ utility class for static methods
 
 from random import randrange
 import logging
-
+import sys, os
 ################
 #BACKEND CONFIG
 ################
@@ -20,7 +20,7 @@ __address__= "localhost"
 __fgirimgstoremysql__="/srv/irstore/"
 """
 ############################################
-#DIR WHERE THE SERVER SOFTWARE IS INSTALLED
+#DIR WHERE THE SERVER SOFTWARE IS INSTALLED (Only used to store the log and in Mysql to keep the pass)
 ############################################
 __fgserverdir__="/home/javi/imagerepo/ImageRepo/"
 #__fgserverdir__="/N/u/fuwang/fgir/"

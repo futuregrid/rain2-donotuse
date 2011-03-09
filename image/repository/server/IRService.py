@@ -45,7 +45,7 @@ try:
     from futuregrid.utils import fgLog #This should the the final one
 #To execute IRClient for tests
 except:
-    sys.path.append("/home/javi/imagerepo/ImageRepo/src/futuregrid/") #Directory where fg.py is
+    sys.path.append(os.path.dirname(__file__)+"/../../../") #Directory where fg.py is
     from utils import fgLog
 
 
@@ -59,7 +59,6 @@ class IRService(object):
         self._address=IRUtil.getAddress()        
         self._fgirimgstore=IRUtil.getFgirimgstore()
         self._fgserverdir=IRUtil.getFgserverdir()
-        
         #Setup log        
         self._log=fgLog.fgLog(IRUtil.getLogFile(),IRUtil.getLogLevel(),"Img Repo Server",False)
         
@@ -76,7 +75,35 @@ class IRService(object):
             self.imgStore = ImgStoreFS()            
             self.userStore = IRUserStoreFS()    
         
-
+    def uploadValidator(self, userId, size):
+        return self.userStore.uploadValidator(userId, size)
+    
+    def userAdd(self, userId, username):
+        user=IRUser(username)
+        return self.userStore.userAdd(userId, user)
+    
+    def userDel(self, userId, userIdtoDel):
+        return self.userStore.userDel(userId, userIdtoDel)
+    
+    def setUserRole(self, userId, userIdtoModify, role):
+        if (role in IRUser.Role):
+            return self.userStore.setRole(userId, userIdtoModify, role)
+        else:
+            self._log.error("Role "+role+" is not valid")
+            print "Role not valid. Valid roles are "+str(IRUser.Role)
+            return False
+          
+    def setUserQuota(self, userId, userIdtoModify, quota):        
+        return self.userStore.setQuota(userId, userIdtoModify, quota)
+        
+    def setUserStatus(self, userId, userIdtoModify, status):
+        if (status in IRUser.Status):
+            return self.userStore.setUserStatus(userId, userIdtoModify, status)
+        else:
+            self._log.error("Status "+status+" is not valid")
+            print "Status not valid. Status available: "+str(IRUser.Status)
+            return False
+    
     def auth(self, userId):
         # to be implemented when integrating with the security framework
         return IRUtil.auth(userId, None)
@@ -90,30 +117,37 @@ class IRService(object):
         elif (option == "uri"):
             return self.imgStore.getItemUri(imgId, userId)
 
-    def put(self, userId, imgId, imgFile, attributeString):
+    def put(self, userId, imgId, imgFile, attributeString, size):
         """
         Register the file in the database
         
         return imgId or 0 if something fails
         """  
+        
         status=False      
         fileLocation = self._fgirimgstore + imgId
         if(os.path.isfile(fileLocation)):
-            #parse attribute string and construct image metadata
-            aMeta = self._createImgMeta(userId, imgId, attributeString,False)
-
-            #print "meta data created:"
-            #print aMeta        
-                            
-            #put image item in the image store        
-            aImg = ImgEntry(imgId, aMeta, fileLocation)
-            status=self.imgStore.addItem(aImg)
-            #print status
-            #put metadata into the image meta store
-            if(IRUtil.getBackend()!="mongodb"):                
-                #with MongoDB I put the metadata with the ImgEntry            
-                status=self.metaStore.addItem(aMeta)
-            #print status
+            if (size > 0 ):
+                #parse attribute string and construct image metadata
+                aMeta = self._createImgMeta(userId, imgId, attributeString,False)
+    
+                #print "meta data created:"
+                #print aMeta        
+                                
+                #put image item in the image store        
+                aImg = ImgEntry(imgId, aMeta, fileLocation, size)                
+                status=self.imgStore.addItem(aImg)
+                                
+                #put metadata into the image meta store
+                if(IRUtil.getBackend()!="mongodb"):                
+                    #with MongoDB I put the metadata with the ImgEntry            
+                    status=self.metaStore.addItem(aMeta)
+                
+                #Add size to user
+                status=self.userStore.updateDiskUsed(userId,size)
+                
+            else:
+                self._log.error("File size must be higher than 0")
             
         if(status):
             return aImg._imgId
@@ -138,10 +172,12 @@ class IRService(object):
         return success
         
     def remove(self, userId, imgId):
-        return self.imgStore.removeItem(userId, imgId)
+        size=[0] #Size is output parameter in the first call. 
+        status=self.imgStore.removeItem(userId, imgId, size) 
+        if(status):
+            status=self.userStore.updateDiskUsed(userId, -(size[0]))
+        return status
     
-    def uploadValidator(self, userId, size):
-        return self.userStore.uploadValidator(userId, size)
     
     def _createImgMeta(self, userId, imgId, attributeString, update):  ##We assume that values are check in client side
         """
@@ -203,11 +239,16 @@ def usage():
         -a/--setPermission imgId permissionString: set access permission
         -g/--get img/uri imgId: get a image or only the URI by id
         -p/--put imgFile attributeString: upload/register an image
-        -m/--modify img/meta/all imgId attributeString: update information and/or image
+        -m/--modify imgId attributeString: update information
         -r/--remove imgId: remove an image from the repository
         -i/--histimg imgId: get usage info of an image
         -u/--histuser userId: get usage info of a user
         --getBackend: provide the back-end configuration in the server side
+        --useradd <userId> : add user 
+        --userdel <userId> : remove user
+        --setquota <userId> <quota> :modify user quota
+        --setrole  <userId> <role> : modify user role
+        --setUserStatus <userId> <status> :modify user status
           '''
           
 def main():
@@ -228,7 +269,12 @@ def main():
                                  "uploadValidator",
                                  "getuid",
                                  "getBackend",
-                                 "modify"
+                                 "modify",
+                                 "useradd",
+                                 "userdel",
+                                 "setUserQuota",
+                                 "setUserRole",
+                                 "setUserStatus"
                                  ])
 
     except GetoptError, err:
@@ -236,7 +282,7 @@ def main():
         sys.exit(2)
 
     service = IRService()
-               
+             
     if(len(opts)==0):
         usage()
     
@@ -260,7 +306,7 @@ def main():
             print service.get(os.popen('whoami', 'r').read().strip(), args[0], args[1])
             #print service.get(os.popen('whoami', 'r').read().strip(), "img", "4d4c2e6e577d70102a000000")
         elif o in ("-p", "--put"):
-            print service.put(os.popen('whoami', 'r').read().strip(), args[0], args[1], args[2])
+            print service.put(os.popen('whoami', 'r').read().strip(), args[0], args[1], args[2], int(args[3]))
             
             #print service.put(os.popen('whoami', 'r').read().strip(), "id536785449", "/home/jav/tst3.iso","vmtype=kvm|imgtype=Nimbus|os=RHEL5|arch=i386|owner=tstuser1|description=this is a test description|tag=tsttag1, tsttag2|permission=private" )
             #print service.put(os.popen('whoami', 'r').read().strip(), "id536785449", "ttylinux1.img", "vmType=kvm|imgType=opennebula|os=UBUNTU|arch=x86_64| owner=tstuser2| description=another test| tag=tsttaga, tsttagb")
@@ -272,8 +318,8 @@ def main():
         elif o in ("-u", "--histuser"):
             print "in user usage"
         elif o in ("--uploadValidator"):
-            #print service.uploadValidator(os.popen('whoami', 'r').read().strip(), args[0], args[1])
-            print service.uploadValidator("javi", 0)
+            print service.uploadValidator(os.popen('whoami', 'r').read().strip(), int(args[0]))
+            #print service.uploadValidator("javi", 0)
         elif o in ("--getuid"):
             print IRUtil.getImgId()
         elif o in ("--getBackend"):
@@ -283,6 +329,38 @@ def main():
             print service.updateItem(os.popen('whoami', 'r').read().strip(), args[0], args[1])
             #print service.updateItem(os.popen('whoami', 'r').read().strip(), "4d681d65577d703439000000", "vmtype=vmware|os=windows")
             
+#This commands only can be used by users with AdminRole.
+#The first user is added during the setup.
+        elif o in ("--useradd"):  #args[0] is the username. It MUST be the same that the system user
+            status=service.userAdd(os.popen('whoami', 'r').read().strip(), args[0])
+            if(status):
+                print "User created successfully."
+            else:
+                print "The user has not been created"
+        elif o in ("--userdel"):
+            status=service.userDel(os.popen('whoami', 'r').read().strip(), args[0])
+            if(status):
+                print "User deleted successfully."
+            else:
+                print "The user has not been deleted"
+        elif o in ("--setUserQuota"):
+            status=service.setUserQuota(os.popen('whoami', 'r').read().strip(), args[0], int(args[1]))
+            if(status):
+                print "Quota changed successfully."
+            else:
+                print "The quota has not been changed"
+        elif o in ("--setUserRole"):
+            status=service.setUserRole(os.popen('whoami', 'r').read().strip(), args[0], args[1])
+            if(status):
+                print "Role changed successfully."
+            else:
+                print "The role has not been changed"
+        elif o in ("--setUserStatus"):
+            status=service.setUserStatus(os.popen('whoami', 'r').read().strip(), args[0], args[1])
+            if(status):
+                print "Status changed successfully."
+            else:
+                print "The status has not been changed"
         else:
             assert False, "unhandled option"
 
