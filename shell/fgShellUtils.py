@@ -122,7 +122,7 @@ class fgShellUtils(Cmd):
         """
         if(self._use!=""):            
             command="self.do_"+self._use+"modify(\""+args+"\")"
-            print command
+            #print command
             try:
                 eval(command)
             except AttributeError:
@@ -143,7 +143,7 @@ class fgShellUtils(Cmd):
         """
         if(self._use!=""):            
             command="self.do_"+self._use+"setpermission(\""+args+"\")"
-            print command
+            #print command
             try:
                 eval(command)
             except AttributeError:
