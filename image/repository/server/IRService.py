@@ -39,6 +39,8 @@ else:
 
 import string
 
+sys.path.append(os.getcwd())
+
 try:
     from futuregrid.utils import fgLog #This should the the final one
 #To execute IRClient for tests
@@ -84,9 +86,9 @@ class IRService(object):
 
     def get(self, userId, option, imgId):
         if (option == "img"):
-            return self.imgStore.getItem(imgId)
+            return self.imgStore.getItem(imgId, userId)
         elif (option == "uri"):
-            return self.imgStore.getItemUri(imgId)
+            return self.imgStore.getItemUri(imgId, userId)
 
     def put(self, userId, imgId, imgFile, attributeString):
         """

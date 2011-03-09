@@ -22,13 +22,13 @@ class AbstractImgStore(object):
             
     def getItemUri(self, imgId):
         pass                    
-    def getItem(self, imgId):
+    def getItem(self, imgId, userId):
         pass
     def addItem(self, imgEntry):
         pass
     def updateItem(self, imgId, imgEntry):
         pass
-    def queryStore(self, imgIds):
+    def queryStore(self, imgIds, userId):
         pass
     def persistToStore(self, items):
         pass

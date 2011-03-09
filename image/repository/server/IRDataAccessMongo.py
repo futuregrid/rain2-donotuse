@@ -68,10 +68,10 @@ class ImgStoreMongo(AbstractImgStore):
         """
         return "192.168.1.1:23000,192.168.1.8:23000"
     
-    def getItemUri(self, imgId):
+    def getItemUri(self, imgId, userId):
         return "MongoDB cannot provide an image URI, try to retrieve the image."
         
-    def getItem(self, imgId):
+    def getItem(self, imgId, userId):
         """
         Get Image file identified by the imgId
         
@@ -82,7 +82,7 @@ class ImgStoreMongo(AbstractImgStore):
         """
                         
         imgLinks=[]  
-        result = self.queryStore([imgId], imgLinks)
+        result = self.queryStore([imgId], imgLinks, userId)
         
         if (result):
             filename="/tmp/"+imgId+".img"
@@ -203,7 +203,7 @@ class ImgStoreMongo(AbstractImgStore):
             
         return imgUpdated  
     """                
-    def queryStore(self, imgIds, imgLinks):
+    def queryStore(self, imgIds, imgLinks, userId):
         """        
         Query the DB and provide the GridOut of the Images to create them with read method.    
         
@@ -214,21 +214,31 @@ class ImgStoreMongo(AbstractImgStore):
         """
         del imgLinks[:]
         itemsFound = 0
-                    
+                  
         if (self.mongoConnection()):
             try:
+                
                 dbLink = self._dbConnection[self._dbName]
                 collection = dbLink["data"]
                 gridfsLink=gridfs.GridFS(dbLink)                
                 for imgId in imgIds:
-                    imgLinks.append(gridfsLink.get(ObjectId(imgId)))
                     
-                    collection.update({"_id": imgId}, 
-                                  {"$inc": {"accessCount": 1},}, safe=True)
-                    collection.update({"_id": imgId}, 
-                                  {"$set": {"lastAccess": datetime.utcnow()},}, safe=True)
-                    #print "here"                                         
-                    itemsFound +=1    
+                    access=False
+                    if(self.existAndOwner(imgId, userId)):
+                        access=True
+                        #self._log.debug("ifowner "+str(access))
+                    elif(self.isPublic(imgId)):
+                        access=True
+                        #self._log.debug("ifpublic "+str(access))
+                    if (access):
+                        imgLinks.append(gridfsLink.get(ObjectId(imgId)))
+                        
+                        collection.update({"_id": imgId}, 
+                                      {"$inc": {"accessCount": 1},}, safe=True)
+                        collection.update({"_id": imgId}, 
+                                      {"$set": {"lastAccess": datetime.utcnow()},}, safe=True)
+                        #print "here"                                         
+                        itemsFound +=1    
             except pymongo.errors.AutoReconnect:                
                 self._log.warning("Autoreconnected in ImgStoreMongo - queryStore.") 
             except pymongo.errors.ConnectionFailure:                
@@ -246,7 +256,7 @@ class ImgStoreMongo(AbstractImgStore):
         else:
             self._log.error("Could not get access to the database. The file has not been stored")
             
-        if (itemsFound == len(imgIds)):
+        if (itemsFound >= 1):
             return True
         else:
             return False
@@ -426,6 +436,40 @@ class ImgStoreMongo(AbstractImgStore):
             return True
         else:
             return False
+    
+    def isPublic(self, imgId):
+        """
+        To verify if the file is public
+        
+        keywords:
+        imgId: The id of the image        
+        
+        Return: boolean
+        """
+        
+        public=False
+               
+        try:
+            dbLink = self._dbConnection[self._dbName]
+            collection = dbLink["meta"]
+            
+            aux=collection.find_one({"_id": imgId})
+            
+            if(aux['permission']=="public"):
+                public=True
+                            
+        except pymongo.errors.AutoReconnect:  #TODO: Study what happens with that. store or not store the file
+            self._log.warning("Autoreconnected.")                 
+        except pymongo.errors.ConnectionFailure:
+            self._log.error("Connection failure") 
+        except TypeError as detail:
+            self._log.error("TypeError in ImgStoreMongo - isPublic")
+        except bson.errors.InvalidId:
+            self._log.error("Error, not a valid ObjectId in ImgStoreMongo - isPublic")
+        except gridfs.errors.NoFile:
+            self._log.error("File not found")
+                
+        return public
                       
     def mongoConnection(self):
         """connect with the mongos available
@@ -564,6 +608,8 @@ class ImgMetaStoreMongo(AbstractImgMetaStore):
                     tagstr=""
                     newattr=[]
                     i=0
+                    
+                    
                     while (i < len(attributes)):                        
                         if attributes[i].strip().startswith('tag='):
                             tagstr+=attributes[i]                             
@@ -587,7 +633,12 @@ class ImgMetaStoreMongo(AbstractImgMetaStore):
                         value = tmp[1].strip()
                         if not (value=='' or key=="imgId" or key=="owner"):            
                             #print key +"  "+value
-                            dic[key]=value
+                            if (key=="tag"):
+                                tags=value.split(",")
+                                tags_list = [x.strip() for x in tags]
+                                dic[key]=tags_list
+                            else:
+                                dic[key]=value
                                                                
                     collectionMeta.update({"_id": imgId}, 
                                       {"$set": dic }, safe=True)

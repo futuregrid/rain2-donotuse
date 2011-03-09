@@ -62,10 +62,10 @@ class ImgStoreMysql(AbstractImgStore):
         """
         return "192.168.1.1"
     
-    def getItemUri(self, imgId):
-        return self.getItem(imgId)
+    def getItemUri(self, imgId, userId):
+        return self.getItem(imgId, userId)
         
-    def getItem(self, imgId):
+    def getItem(self, imgId, userId):
         """
         Get Image file identified by the imgId
         
@@ -75,7 +75,7 @@ class ImgStoreMysql(AbstractImgStore):
         return the Image file as a str
         """
         imgLinks=[]  
-        result = self.queryStore([imgId], imgLinks)
+        result = self.queryStore([imgId], imgLinks, userId)
         
         if (result):     
             return imgLinks[0]
@@ -142,40 +142,46 @@ class ImgStoreMysql(AbstractImgStore):
             
         return updated   
     """         
-    def queryStore(self, imgIds, imgLinks):
+    def queryStore(self, imgIds, imgLinks, userId):
         """        
-        Query the DB and provide the GridOut of the Images to create them with read method.    
+        Query the DB and provide the uri.    
         
         keywords:
         imgIds: this is the list of images that I need
-        imgEntries: This is an output parameter. Return the list of GridOut objects
-                      To read the file it is needed to use the read() method    
+        imgLinks: This is an output parameter. Return the list URIs
         """
         
         itemsFound=0
                 
         if (self.mysqlConnection()):
             try:
-                cursor= self._dbConnection.cursor()         
+                cursor= self._dbConnection.cursor()
+                       
                 for imgId in imgIds:
+                    access=False
+                    if(self.existAndOwner(imgId, userId)):
+                        access=True
+                    elif(self.isPublic(imgId)):
+                        access=True
                     
-                    sql = "SELECT imgUri, accessCount FROM %s WHERE imgId = '%s' "% (self._tabledata, imgId)
-                    #print sql
-                    cursor.execute(sql)
-                    results=cursor.fetchone()
-                    #print results
-                    
-                    if(results!=None):
-                        imgLinks.append(results[0])
-                        accessCount=int(results[1])+1
+                    if (access):                    
+                        sql = "SELECT imgUri, accessCount FROM %s WHERE imgId = '%s' "% (self._tabledata, imgId)
+                        #print sql
+                        cursor.execute(sql)
+                        results=cursor.fetchone()
+                        #print results
                         
-                        update="UPDATE %s SET lastAccess='%s', accessCount='%d' WHERE imgId='%s'" \
-                                       % (self._tabledata,datetime.utcnow(),accessCount, imgId)
-                        #print update
-                        cursor.execute(update)
-                        self._dbConnection.commit()
-                                                        
-                        itemsFound+=1                      
+                        if(results!=None):
+                            imgLinks.append(results[0])
+                            accessCount=int(results[1])+1
+                            
+                            update="UPDATE %s SET lastAccess='%s', accessCount='%d' WHERE imgId='%s'" \
+                                           % (self._tabledata,datetime.utcnow(),accessCount, imgId)
+                            #print update
+                            cursor.execute(update)
+                            self._dbConnection.commit()
+                                                            
+                            itemsFound+=1                    
                     
             except MySQLdb.Error, e:
                 self._log.error("Error %d: %s" % (e.args[0], e.args[1]))                
@@ -190,7 +196,7 @@ class ImgStoreMysql(AbstractImgStore):
         else:
             self._log.error("Could not get access to the database. Query failed")
        
-        if (itemsFound == len(imgIds)):
+        if (itemsFound >= 1):
             return True
         else:
             return False
@@ -320,9 +326,10 @@ class ImgStoreMysql(AbstractImgStore):
             #print sql
             cursor.execute(sql)
             results=cursor.fetchone()
-            #print results
-            if(results!=None):                  
-                exists=True
+           
+            if(results!=None):
+                if (os.path.isfile(results[0])):               
+                    exists=True
                      
             sql = "SELECT owner FROM %s WHERE imgId='%s' and owner='%s'"% (self._tablemeta, imgId, ownerId)
             #print sql
@@ -344,7 +351,40 @@ class ImgStoreMysql(AbstractImgStore):
             return True
         else:
             return False
-                      
+    
+    def isPublic(self, imgId):
+        """
+        To verify if the file is public
+        
+        keywords:
+        imgId: The id of the image        
+        
+        Return: boolean
+        """
+       
+        public=False
+        
+        try:
+            cursor= self._dbConnection.cursor()      
+                     
+            sql = "SELECT permission FROM %s WHERE imgId='%s'"% (self._tablemeta, imgId)
+            #print sql
+            cursor.execute(sql)
+            results=cursor.fetchone()
+            #self._log.debug(results)
+            if (results!=None):
+                if(results[0]=="public"):                                      
+                    public=True                       
+        except MySQLdb.Error, e:
+            self._log.error("Error %d: %s" % (e.args[0], e.args[1]))                                           
+        except IOError as (errno, strerror):
+            self._log.error("I/O error({0}): {1}".format(errno, strerror))
+            self._log.error("No such file or directory. Image details: "+item.__str__())                
+        except TypeError as detail:
+            self._log.error("TypeError in ImgStoreMysql - isPublic: "+format(detail)) 
+       
+        return public
+                     
     def mysqlConnection(self):  ##WHY IT DOES CONNECT HERE. in python command line works
         """connect with the mongos available
         
@@ -449,7 +489,7 @@ class ImgMetaStoreMysql(AbstractImgMetaStore):
                     temp=imgMeta1.__repr__()
                     temp = temp.replace('\"','')
                     
-                    self._log.debug(str(temp))
+                    #self._log.debug(str(temp))
                     
                     attributes = temp.split(',')
                     #self._log.debug(str(attributes))
@@ -721,8 +761,9 @@ class ImgMetaStoreMysql(AbstractImgMetaStore):
             cursor.execute(sql)
             results=cursor.fetchone()
             #print results
-            if(results!=None):                  
-                exists=True
+            if(results!=None):
+                if (os.path.isfile(results[0])):               
+                    exists=True
                        
             sql = "SELECT owner FROM %s WHERE imgId='%s' and owner='%s'"% (self._tablemeta, imgId, ownerId)
             #print sql
