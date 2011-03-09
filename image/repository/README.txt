@@ -30,7 +30,7 @@ All the configuration in the server side is done in the file IRUtil.py. We can c
 -MongoDB
     Config example: __backend__="mongodb" __address__="localhost:23000"
     __backend__ indicates the MongoDB connection, it could be the address of the mongod process in a simple installation or the address of the mongos process in a distributed deployment (we recommend have mongos in the same machine that the IR server)
-    Quotas and user managment Enabled. Commands only implemented in server side. First user added will be admin automatically. Users MUST be equals to the system user.
+    Quotas and user managment Enabled. Commands only implemented in server side. First user added will be admin automatically. Users MUST be equals to the system user. Users MUST be activated with setUserStatus
 
 -MySQL 
    Config example: __backend__="mysql" __address__="localhost"
