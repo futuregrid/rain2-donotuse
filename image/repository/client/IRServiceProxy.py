@@ -75,8 +75,11 @@ class IRServiceProxy(object):
         return imgURI
         
     def put(self, userId, uid, imgFile, attributeString):
-        status=0
+        status="0"
         if (self.checkMeta(attributeString) and os.path.isfile(imgFile)):
+            
+            #os.path.getsize(imgFile)
+            
             self._log.debug("Checking quota")
             cmdexec = " '" + self._serverdir + \
                     "IRService.py --uploadValidator " +  userId + "'"
@@ -86,7 +89,7 @@ class IRServiceProxy(object):
             isPermitted = self._rExec(userId, cmdexec)
             #print isPermitted[0].strip()      
             if (isPermitted[0].strip()=="NoUser"):
-                status=-1            
+                status="-1"            
             elif (isPermitted[0].strip()=="True"):     
                 
                 """       
@@ -102,11 +105,11 @@ class IRServiceProxy(object):
                         self._serveraddr + ":" + fileLocation
                 
                 print "uploading file through scp:"
-                print cmd
+                #print cmd
                 stat=os.system(cmd)
                 if (str(stat)!="0"):
                     print stat
-                
+                print "Registering the Image"
                 cmdexec = " '" + self._serverdir + "IRService.py --put " + \
                              uid + " " + fileLocation + " \"" + attributeString + "\"'"
                 #print cmdexec
@@ -216,11 +219,13 @@ class IRServiceProxy(object):
         #print cmdscp
         output=""
         try:
+            print "Retrieving the image"
             stat=os.system(cmdscp)
             if (stat == 0):
                 output = "The image " + imgId + " is located in " + os.popen('pwd', 'r').read().strip() + "/" + imgId + ".img"
                 if (self._backend=="mongodb"):
                     cmdrm=" rm -rf " + (imgURI).split(":")[1]
+                    print "Post processing"
                     self._rExec(userId, cmdrm)
             else:
                 self._log.error("Error retrieving the image. Exit status "+str(stat))
