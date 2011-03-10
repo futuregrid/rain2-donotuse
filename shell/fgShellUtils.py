@@ -152,7 +152,7 @@ class fgShellUtils(Cmd):
         else:
             print "You need to provide a Context executing the use <context> \n"+ \
                   "You can see the available Contexts by executing show "
-               
+                       
     ################################
     #PUT
     ################################
@@ -216,8 +216,111 @@ class fgShellUtils(Cmd):
             print "You need to provide a Context executing the use <context> \n"+ \
                   "You can see the available Contexts by executing show "
             
-   
+    #################################
+    #User Add
+    #################################
+        
+    def do_useradd(self, args):
+        """
+        Generic useradd command that changes its behaviour depending on the 
+        context specified with the use command.
+        """
+        if(self._use!=""):            
+            command="self.do_"+self._use+"useradd(\""+args+"\")"
+            #print command
+            try:
+                eval(command)
+            except AttributeError:
+                print "The "+self._use+" context does not have a useradd method "
+                self._log.error(str(sys.exc_info()))
+        else:
+            print "You need to provide a Context executing the use <context> \n"+ \
+                  "You can see the available Contexts by executing show "
     
+    #################################
+    #User Del
+    #################################
+        
+    def do_userdel(self, args):
+        """
+        Generic userdel command that changes its behaviour depending on the 
+        context specified with the use command.
+        """
+        if(self._use!=""):            
+            command="self.do_"+self._use+"userdel(\""+args+"\")"
+            #print command
+            try:
+                eval(command)
+            except AttributeError:
+                print "The "+self._use+" context does not have a userdel method "
+                self._log.error(str(sys.exc_info()))
+        else:
+            print "You need to provide a Context executing the use <context> \n"+ \
+                  "You can see the available Contexts by executing show "                
+    
+    #################################
+    #Set User Quota
+    #################################
+        
+    def do_setuserquota(self, args):
+        """
+        Generic setuserquota command that changes its behaviour depending on the 
+        context specified with the use command.
+        """
+        if(self._use!=""):            
+            command="self.do_"+self._use+"setuserquota(\""+args+"\")"
+            #print command
+            try:
+                eval(command)
+            except AttributeError:
+                print "The "+self._use+" context does not have a setuserquota method "
+                self._log.error(str(sys.exc_info()))
+        else:
+            print "You need to provide a Context executing the use <context> \n"+ \
+                  "You can see the available Contexts by executing show "
+                  
+    #################################
+    #Set User Role
+    #################################
+        
+    def do_setuserrole(self, args):
+        """
+        Generic setuserquota command that changes its behaviour depending on the 
+        context specified with the use command.
+        """
+        if(self._use!=""):            
+            command="self.do_"+self._use+"setuserrole(\""+args+"\")"
+            #print command
+            try:
+                eval(command)
+            except AttributeError:
+                print "The "+self._use+" context does not have a setuserrole method "
+                self._log.error(str(sys.exc_info()))
+        else:
+            print "You need to provide a Context executing the use <context> \n"+ \
+                  "You can see the available Contexts by executing show "
+    
+    #################################
+    #Set User Status
+    #################################
+        
+    def do_setuserstatus(self, args):
+        """
+        Generic setuserstatus command that changes its behaviour depending on the 
+        context specified with the use command.
+        """
+        if(self._use!=""):            
+            command="self.do_"+self._use+"setuserstatus(\""+args+"\")"
+            #print command
+            try:
+                eval(command)
+            except AttributeError:
+                print "The "+self._use+" context does not have a setuserstatus method "
+                self._log.error(str(sys.exc_info()))
+        else:
+            print "You need to provide a Context executing the use <context> \n"+ \
+                  "You can see the available Contexts by executing show "
+                                
     ##########################################################################
     # LOAD
     ##########################################################################
