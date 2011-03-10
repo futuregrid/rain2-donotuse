@@ -34,7 +34,17 @@ class IRUser(object):
         
     def setCred(self,cred):
         self._cred = cred
-            
+    
+    def __repr__(self):
+        return "\"userId=%s, cred=%s, fsCap=%s, fsUsed=%s, lastLogin=%s, status=%s, role=%s\"" % \
+                (self._userId, self._cred, self._fsCap, self._fsUsed, \
+                 self._lastLogin, self._status, self._role)
+    
+    def __str__(self):
+        return "\"%s, %s, %d, %d, %s, %s, %s\"" % \
+                (self._userId, self._cred, self._fsCap, self._fsUsed, \
+                 self._lastLogin, self._status, self._role)
+          
 class ImgMeta(object):
     
     """
@@ -130,12 +140,12 @@ class ImgEntry(object):
         self._size = size
     
     def __repr__(self):
-        return "\"imgId=%s, imgURI=%s, createdDate=%s, lastAccess=%s, accessCount=%d, size=%d\"" % \
+        return "\"imgId=%s, imgURI=%s, createdDate=%s, lastAccess=%s, accessCount=%s, size=%s\"" % \
                 (self._imgId, self._URI, self._createdDate, self._lastAccess, \
                  self._accessCount, self._size)
     
     def __str__(self):
-        return "\"%s, %s, %s, %s, %d, %d\"" % \
+        return "\"%s, %s, %s, %s, %s, %s\"" % \
                 (self._imgId, self._imgURI, self._createdDate, self._lastAccess, \
                  self._accessCount, self._size)
                      

@@ -61,7 +61,6 @@ class IRService(object):
         self._fgserverdir=IRUtil.getFgserverdir()
         #Setup log        
         self._log=fgLog.fgLog(IRUtil.getLogFile(),IRUtil.getLogLevel(),"Img Repo Server",False)
-        
         if (self._backend == "mongodb"): 
             self.metaStore = ImgMetaStoreMongo(self._address,self._fgserverdir,self._log)
             self.imgStore = ImgStoreMongo(self._address,self._fgserverdir,self._log)            
@@ -329,38 +328,22 @@ def main():
             print service.updateItem(os.popen('whoami', 'r').read().strip(), args[0], args[1])
             #print service.updateItem(os.popen('whoami', 'r').read().strip(), "4d681d65577d703439000000", "vmtype=vmware|os=windows")
             
-#This commands only can be used by users with AdminRole.
-#The first user is added during the setup.
+#This commands only can be used by users with Admin Role.
         elif o in ("--useradd"):  #args[0] is the username. It MUST be the same that the system user
-            status=service.userAdd(os.popen('whoami', 'r').read().strip(), args[0])
-            if(status):
-                print "User created successfully."
-            else:
-                print "The user has not been created"
+            print service.userAdd(os.popen('whoami', 'r').read().strip(), args[0])
+            
         elif o in ("--userdel"):
-            status=service.userDel(os.popen('whoami', 'r').read().strip(), args[0])
-            if(status):
-                print "User deleted successfully."
-            else:
-                print "The user has not been deleted"
+            print service.userDel(os.popen('whoami', 'r').read().strip(), args[0])
+            
         elif o in ("--setUserQuota"):
-            status=service.setUserQuota(os.popen('whoami', 'r').read().strip(), args[0], int(args[1]))
-            if(status):
-                print "Quota changed successfully."
-            else:
-                print "The quota has not been changed"
+            print service.setUserQuota(os.popen('whoami', 'r').read().strip(), args[0], int(args[1]))
+            
         elif o in ("--setUserRole"):
-            status=service.setUserRole(os.popen('whoami', 'r').read().strip(), args[0], args[1])
-            if(status):
-                print "Role changed successfully."
-            else:
-                print "The role has not been changed"
+            print service.setUserRole(os.popen('whoami', 'r').read().strip(), args[0], args[1])
+            
         elif o in ("--setUserStatus"):
-            status=service.setUserStatus(os.popen('whoami', 'r').read().strip(), args[0], args[1])
-            if(status):
-                print "Status changed successfully."
-            else:
-                print "The status has not been changed"
+            print service.setUserStatus(os.popen('whoami', 'r').read().strip(), args[0], args[1])
+            
         else:
             assert False, "unhandled option"
 

@@ -245,7 +245,7 @@ class ImgStoreMysql(AbstractImgStore):
         else:
             return False
         
-    def removeItem (self, userId, imgId):
+    def removeItem (self, userId, imgId, size):
         #what are we going to do with concurrency?
         """
         Remove the Image file and Metainfo if imgId exists and your are the owner.
@@ -274,7 +274,13 @@ class ImgStoreMysql(AbstractImgStore):
                 try:
                     cursor= con.cursor()
                     
-                    uri=self.getItem(imgId)
+                    sql = "SELECT size FROM %s WHERE imgId = '%s' "% (self._tabledata, imgId)
+                    #print sql
+                    cursor.execute(sql)
+                    results=cursor.fetchone()
+                    size[0]=int(results[0])
+                    
+                    uri=self.getItem(imgId, userId)
                     os.system("rm -rf "+uri)
                     
                     sql="DELETE FROM %s WHERE imgId='%s'" % (self._tabledata,imgId)                    
@@ -787,7 +793,7 @@ class ImgMetaStoreMysql(AbstractImgMetaStore):
             return False
         
     def mysqlConnection(self):
-        """connect with the mongos available
+        """connect with the mysql db
         
         .mysql.cnf contains:
                 [client]
@@ -848,7 +854,39 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
                 
         return: IRUser object
         """               
-        pass
+        found=False
+        tmpUser=IRUser("")
+        if (self.mysqlConnection()):
+            try:
+                
+                cursor= self._dbConnection.cursor()
+                
+                sql = "SELECT * FROM %s WHERE userId = '%s' "% (self._tabledata, userId)
+                cursor.execute(sql)
+                results=cursor.fetchone()                    
+                
+                if (results != None):
+                    tmpUser=IRUser(results[0],results[1],int(results[2]),int(results[3]),results[4],results[5],results[6])
+                    self._log.debug("GetUSers  "+str(tmpUser))
+                                                
+                    found=True                 
+                    
+            except MySQLdb.Error, e:
+                self._log.error("Error %d: %s" % (e.args[0], e.args[1]))                
+                self._dbConnection.rollback()                           
+            except IOError as (errno, strerror):
+                self._log.error("I/O error({0}): {1}".format(errno, strerror))                                
+            except TypeError as detail:
+                self._log.error("TypeError in IRUserStoreMongo - getUser: "+format(detail))
+            finally:
+                self._dbConnection.close()                      
+        else:
+            self._log.error("Could not get access to the database.")
+       
+        if (found):
+            return tmpUser
+        else:
+            return None
         
     
     def updateDiskUsed (self, userId, size): #TODO verify this. Decide if size will be a string or a int    
@@ -861,10 +899,178 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
         
         return: boolean
         """
-        pass
+        success=False
+        if (self.mysqlConnection()):
+            try:
+                if(self.isAdmin(userId)):
+                    cursor= self._dbConnection.cursor()
+                    
+                    sql = "SELECT fsUsed FROM %s WHERE userId = '%s' "% (self._tabledata, userId)
+                    cursor.execute(sql)
+                    results=cursor.fetchone()                    
+                    currentSize=results[0]
+                    
+                    totalSize=int(currentSize)+int(size)
+                    
+                    update="UPDATE %s SET fsUsed='%d'WHERE userId='%s'" \
+                                   % (self._tabledata, totalSize, userId)
+                    
+                    cursor.execute(update)
+                    self._dbConnection.commit()
+                                                    
+                    success=True                 
+                    
+            except MySQLdb.Error, e:
+                self._log.error("Error %d: %s" % (e.args[0], e.args[1]))                
+                self._dbConnection.rollback()                           
+            except IOError as (errno, strerror):
+                self._log.error("I/O error({0}): {1}".format(errno, strerror))                                
+            except TypeError as detail:
+                self._log.error("TypeError in IRUserStoreMongo - updateDiskUsed: "+format(detail))
+            finally:
+                self._dbConnection.close()                      
+        else:
+            self._log.error("Could not get access to the database. The disk usage has not been changed")
+       
+        return success
     
+    def setRole(self, userId, userIdtoModify, role):
+        """
+        Modify the role of a user. Only admins can do it
         
-    def addUser(self, user):
+        return boolean
+        """
+        success=False
+        if (self.mysqlConnection()):
+            try:
+                if(self.isAdmin(userId)):
+                    cursor= self._dbConnection.cursor()
+                                
+                    update="UPDATE %s SET role='%s'WHERE userId='%s'" \
+                                   % (self._tabledata, role, userIdtoModify)
+                    #print update
+                    cursor.execute(update)
+                    self._dbConnection.commit()
+                                                    
+                    success=True                 
+                    
+            except MySQLdb.Error, e:
+                self._log.error("Error %d: %s" % (e.args[0], e.args[1]))                
+                self._dbConnection.rollback()                           
+            except IOError as (errno, strerror):
+                self._log.error("I/O error({0}): {1}".format(errno, strerror))                                
+            except TypeError as detail:
+                self._log.error("TypeError in IRUserStoreMongo - setRole: "+format(detail))
+            finally:
+                self._dbConnection.close()                      
+        else:
+            self._log.error("Could not get access to the database. The role has not been changed")
+       
+        return success
+    
+    def setQuota(self, userId, userIdtoModify, quota):
+        """
+        Modify the quota of a user. Only admins can do it
+        
+        return boolean
+        """
+        success=False
+        if (self.mysqlConnection()):
+            try:
+                if(self.isAdmin(userId)):
+                    cursor= self._dbConnection.cursor()
+                                
+                    update="UPDATE %s SET fsCap='%d'WHERE userId='%s'" \
+                                   % (self._tabledata, quota, userIdtoModify)
+                    #print update
+                    cursor.execute(update)
+                    self._dbConnection.commit()
+                                                    
+                    success=True                 
+                    
+            except MySQLdb.Error, e:
+                self._log.error("Error %d: %s" % (e.args[0], e.args[1]))                
+                self._dbConnection.rollback()                           
+            except IOError as (errno, strerror):
+                self._log.error("I/O error({0}): {1}".format(errno, strerror))                                
+            except TypeError as detail:
+                self._log.error("TypeError in IRUserStoreMongo - setQuota: "+format(detail))
+            finally:
+                self._dbConnection.close()                      
+        else:
+            self._log.error("Could not get access to the database. The quota has not been changed")
+       
+        return success
+    
+    def setUserStatus(self, userId, userIdtoModify, status):
+        """
+        Modify the status of a user. Only admins can do it
+        
+        return boolean
+        """
+        success=False
+        if (self.mysqlConnection()):
+            try:
+                if(self.isAdmin(userId)):
+                    cursor= self._dbConnection.cursor()
+                                
+                    update="UPDATE %s SET status='%s'WHERE userId='%s'" \
+                                   % (self._tabledata, status, userIdtoModify)
+                    #print update
+                    cursor.execute(update)
+                    self._dbConnection.commit()
+                                                    
+                    success=True                 
+                    
+            except MySQLdb.Error, e:
+                self._log.error("Error %d: %s" % (e.args[0], e.args[1]))                
+                self._dbConnection.rollback()                           
+            except IOError as (errno, strerror):
+                self._log.error("I/O error({0}): {1}".format(errno, strerror))               
+            except TypeError as detail:
+                self._log.error("TypeError in IRUserStoreMongo - setUserStatus: "+format(detail))
+            finally:
+                self._dbConnection.close()                      
+        else:
+            self._log.error("Could not get access to the database. The user status has not been changed")
+       
+        return success
+    
+    def userDel(self, userId, userIdtoDel):
+        """
+        Modify the quota of a user. Only admins can do it
+        
+        return boolean
+        """
+        removed=False     
+        
+        if (self.mysqlConnection()):             
+            try:
+                if(self.isAdmin(userId)):
+                    cursor= self._dbConnection.cursor()
+                    
+                    sql="DELETE FROM %s WHERE userId='%s'" % (self._tabledata,userIdtoDel)                    
+                                        
+                    cursor.execute(sql)
+                    self._dbConnection.commit()
+                    
+                    removed=True
+                
+            except MySQLdb.Error, e:
+                self._log.error("Error %d: %s" % (e.args[0], e.args[1]))                        
+                self._dbConnection.rollback()
+            except IOError as (errno, strerror):
+                self._log.error("I/O error({0}): {1}".format(errno, strerror))                
+            except TypeError as detail:
+                self._log.error("TypeError in IRUserStoreMongo - removeItem "+format(detail))
+            finally:
+                self._dbConnection.close()            
+        else:
+            self._log.error("Could not get access to the database. The file has not been removed")
+            
+        return removed
+        
+    def userAdd(self, userId, user):
         """
         Add user to the database
         
@@ -873,10 +1079,10 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
         
         return boolean
         """
-        return self.persistToStore([user])
+        return self.persistToStore(userId, [user])
     
         
-    def persistToStore(self, users):
+    def persistToStore(self, userId, users):
         """
         Add user to the database
         
@@ -885,24 +1091,124 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
         
         return boolean. True only if all users where added correctly to the db
         """
-        pass
+        userStored=0
+        authorized=False
+        if (self.mysqlConnection()):
+            try:
+                cursor= self._dbConnection.cursor()      
+                
+                sql = "select * from %s " % (self._tabledata)
+                                
+                cursor.execute(sql)
+                output=cursor.fetchone()
+                
+                if (output==None):                    
+                    self._log.warning("First User inserted is "+ users[0]._userId+". He is admin")
+                    users[0]._status="active"
+                    users[0]._role="admin"                    
+                    authorized=True                   
+                else:
+                    if(self.isAdmin(userId)):
+                        authorized=True
+                
+                if (authorized):
+                   
+                    for user in users:  
+                        user._lastLogin=datetime.fromordinal(1) #creates time 0001-01-01 00:00:00
+                                          
+                        sql = "INSERT INTO %s (userId, cred, fsUsed, fsCap, \
+                        lastLogin, status, role) \
+           VALUES ('%s', '%s', '%d', '%d', '%s', '%s', '%s')" % \
+           (self._tabledata, user._userId,user._cred, user._fsUsed,user._fsCap, user._lastLogin,
+                user._status, user._role,)
+                           
+                        cursor.execute(sql)
+                        self._dbConnection.commit()
+                                                                
+                        userStored+=1                                      
+                  
+            except MySQLdb.Error, e:
+                self._log.error("Error %d: %s" % (e.args[0], e.args[1]))
+                self._dbConnection.rollback()
+            except IOError as (errno, strerror):
+                self._log.error("I/O error({0}): {1}".format(errno, strerror))
+            except TypeError as detail:
+                self._log.error("TypeError in ImgMetaStoreMongo - persistToStore "+format(detail))                         
+            finally:
+                self._dbConnection.close()
+                                  
+        else:
+            self._log.error("Could not get access to the database. The file has not been stored")
+       
+        if (userStored >= 1):
+            return True
+        else:
+            return False
+    
+    def isAdmin(self, userId):
+        """
+        Verify if a user is admin
+        """
+        admin=False
+                
+        try:
+            cursor= self._dbConnection.cursor()         
+                 
+            sql = "SELECT role FROM %s WHERE userId = '%s' "% (self._tabledata, userId)
+            #print sql
+            cursor.execute(sql)
+            results=cursor.fetchone()
+            #print results
+            if(results!=None):
+                if (results[0]=="admin"):               
+                    admin=True
+                 
+        except MySQLdb.Error, e:
+            self._log.error("Error %d: %s" % (e.args[0], e.args[1]))                                           
+        except IOError as (errno, strerror):
+            self._log.error("I/O error({0}): {1}".format(errno, strerror))               
+        except TypeError as detail:
+            self._log.error("TypeError in IRUSerStoreMysql - isAdmin: "+format(detail))   
+       
+        return admin
             
     def uploadValidator(self, userId, imgSize):
-        """
-        user = self.getUser([userId])
+        user = self.getUser(userId)
         ret = False
-        if (user!=None):            
-            if imgSize + user._fsUsed <= user._fsCap:
-                ret = True
+        if (user!=None):
+            if (user._status=="active"):
+                #self._log.debug(user._fsCap)                   
+                if imgSize + user._fsUsed <= user._fsCap:                    
+                    ret = True
+            else:
+                ret="NoActive"
         else:
             ret="NoUser"
-        """
-        return True       ###MODIFY THIS TO ENABLE QUOTE
+        
+        return ret      
     
-    def mysqlConnection(self):
-        """connect with the mongos available
+    def mysqlConnection(self):         
+        """connect with the mysql db
+        
+        .mysql.cnf contains:
+                [client]
+                passwd="complicatedpass"
         
         return: Connection object if succeed or False in other case
         
         """        
-        pass
+        #TODO: change to a global connection??                
+        connected = False 
+        try:
+            self._dbConnection = MySQLdb.connect(host=self._mysqlAddress,                                                                                  
+                                           db=self._dbName,
+                                           read_default_file=self._mysqlcfg,
+                                           user=self._iradminsuer)
+            connected = True
+            
+        except MySQLdb.Error, e:
+            self._log.error("Error %d: %s" % (e.args[0], e.args[1]))
+        except TypeError as detail:  
+            self._log.error("TypeError in UserStoreMysql - mysqlConnection "+format(detail))
+
+        return connected 

@@ -8,7 +8,7 @@ import sys, os
 ################
 #BACKEND CONFIG
 ################
-
+"""
 #MongoDB config
 __backend__="mongodb"
 __address__="localhost:23000"
@@ -18,25 +18,25 @@ __fgirimgstoremongo__="/tmp/"
 __backend__= "mysql"
 __address__= "localhost"
 __fgirimgstoremysql__="/srv/irstore/"
-"""
+
 ############################################
 #DIR WHERE THE SERVER SOFTWARE IS INSTALLED (Only used to store the log and in Mysql to keep the pass)
 ############################################
-__fgserverdir__="/home/javi/imagerepo/ImageRepo/"
+__fgserverdir__="/opt/futuregrid/futuregrid/"
 #__fgserverdir__="/N/u/fuwang/fgir/"
 
 ##############################
 #Mysql CONFIG
 ##############################
 #File with the MySQL password
-__mysqlcfg__=__fgserverdir__+".mysql.cnf"
+__mysqlcfg__=__fgserverdir__+"/var/.mysql.cnf"
 __iradmin__="IRUser"
 
 ########################
 #Log Options
 ########################
 ##At the end, it should be in /var/log or a var directory in the Futuregrid software
-__logfile__=__fgserverdir__+"/reposerver.log"  
+__logfile__=__fgserverdir__+"/var/reposerver.log"  
 __logLevel__=logging.DEBUG
 
 

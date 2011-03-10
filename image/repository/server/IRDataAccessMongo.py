@@ -907,7 +907,7 @@ class IRUserStoreMongo(AbstractIRUserStore):
             finally:
                 self._dbConnection.disconnect()    
         else:
-            self._log.error("Could not get access to the database. The file has not been stored")
+            self._log.error("Could not get access to the database.")
         
         
         if (found):
@@ -1151,7 +1151,7 @@ class IRUserStoreMongo(AbstractIRUserStore):
         else:
             self._log.error("Could not get access to the database. The user has not been stored")
         
-        if (userStored == len(users)):
+        if (userStored >= 1):
             return True
         else:
             return False

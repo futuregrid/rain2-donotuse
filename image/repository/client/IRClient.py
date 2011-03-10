@@ -33,7 +33,12 @@ def usage():
         -g/--get <img/uri> <imgId>: get a image or only the URI by id
         -p/--put <imgFile> [attributeString]: upload/register an image
         -m/--modify <imgId> <attributeString>: update Metadata   
-        -r/--remove <imgId>: remove an image from the repository
+        -r/--remove <imgId>: remove an image from the repository        
+        --useradd <userId> : add user 
+        --userdel <userId> : remove user
+        --setquota <userId> <quota> :modify user quota
+        --setrole  <userId> <role> : modify user role
+        --setUserStatus <userId> <status> :modify user status
         -i/--histimg <imgId>: get usage info of an image
         -u/--histuser <userId>: get usage info of a user
           '''
@@ -51,7 +56,12 @@ def main():
                                  "remove",
                                  "histimg",
                                  "histuser",
-                                 "modify"
+                                 "modify",
+                                 "useradd",
+                                 "userdel",
+                                 "setUserQuota",
+                                 "setUserRole",
+                                 "setUserStatus"
                                  ])
 
     except GetoptError, err:
@@ -145,6 +155,37 @@ def main():
                         print "Error in the update. Please verify that you are the owner or that you introduced the correct arguments"
                 else:
                     usage()
+            #This commands only can be used by users with Admin Role.
+            elif o in ("--useradd"):  #args[0] is the username. It MUST be the same that the system user
+                status=service.userAdd(os.popen('whoami', 'r').read().strip(), args[0])                
+                if(status=="True"):
+                    print "User created successfully."
+                else:
+                    print "The user has not been created"
+            elif o in ("--userdel"):
+                status=service.userDel(os.popen('whoami', 'r').read().strip(), args[0])
+                if(status=="True"):
+                    print "User deleted successfully."
+                else:
+                    print "The user has not been deleted"
+            elif o in ("--setUserQuota"):
+                status=service.setUserQuota(os.popen('whoami', 'r').read().strip(), args[0], args[1])
+                if(status=="True"):
+                    print "Quota changed successfully."
+                else:
+                    print "The quota has not been changed"
+            elif o in ("--setUserRole"):
+                status=service.setUserRole(os.popen('whoami', 'r').read().strip(), args[0], args[1])
+                if(status=="True"):
+                    print "Role changed successfully."
+                else:
+                    print "The role has not been changed"
+            elif o in ("--setUserStatus"):
+                status=service.setUserStatus(os.popen('whoami', 'r').read().strip(), args[0], args[1])
+                if(status=="True"):
+                    print "Status changed successfully."
+                else:
+                    print "The status has not been changed"
             else:
                 assert False, "unhandled option"
 

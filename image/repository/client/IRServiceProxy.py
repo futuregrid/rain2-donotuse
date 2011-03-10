@@ -25,7 +25,7 @@ try:
     from futuregrid.utils import fgLog #This should the the final one
 #To execute IRClient for tests
 except:
-    sys.path.append("/home/javi/imagerepo/ImageRepo/src/futuregrid/") #Directory where fg.py is
+    sys.path.append(os.path.dirname(__file__)+"/../../../") #Directory where fg.py is
     from utils import fgLog
 
 
@@ -51,7 +51,50 @@ class IRServiceProxy(object):
                     "IRService.py --auth " + userId + "'"
         #print cmd
         return self._rExec(userId, cmdexec)
+    
+    def userAdd(self, userId, userIdtoAdd):  
+        cmdexec = " '" + self._serverdir + \
+                    "IRService.py --useradd "+ userIdtoAdd + "'"
         
+        return self._rExec(userId, cmdexec)[0].strip()
+    
+    def userDel(self, userId, userIdtoDel):  
+        cmdexec = " '" + self._serverdir + \
+                    "IRService.py --userdel "+ userIdtoDel + "'"
+        
+        return self._rExec(userId, cmdexec)[0].strip()
+    
+    def setUserQuota(self, userId, userIdtoModify, quota):  
+        cmdexec = " '" + self._serverdir + \
+                    "IRService.py --setUserQuota "+ userIdtoModify +" "+str(eval(quota))+"'"
+        
+        return self._rExec(userId, cmdexec)[0].strip()
+    
+    def setUserRole(self, userId, userIdtoModify, role):  
+        success=["False"]
+        if(role in IRUser.Role):
+            cmdexec = " '" + self._serverdir + \
+                        "IRService.py --setUserRole "+ userIdtoModify +" "+role+"'"
+            
+            success=self._rExec(userId, cmdexec)
+        else:
+            success=["Available options: "+str(IRUser.Role)]
+             
+        return success[0].strip()
+    
+    
+    def setUserStatus(self, userId, userIdtoModify, status):
+        success=["False"]
+        if(status in IRUser.Status):  
+            cmdexec = " '" + self._serverdir + \
+                        "IRService.py --setUserStatus "+ userIdtoModify +" "+status+"'"
+            
+            success=self._rExec(userId, cmdexec)
+        else:
+            success=["Available options: "+str(IRUser.Status)]
+             
+        return success[0].strip()
+    
     def query(self, userId, queryString):  
         cmdexec = " '" + self._serverdir + \
                     "IRService.py --list \""+ queryString + "\"'"
