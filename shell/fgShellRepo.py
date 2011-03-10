@@ -31,7 +31,91 @@ class fgShellRepo(Cmd):
         print opts.quick
         print opts.slow
         self._log.error("SHElll test in fgshell repo")
-
+    
+    def do_repouseradd(self, args):
+        args=self.getArgs(args)                
+        if (len(args)==1):
+            status=self._service.userAdd(os.popen('whoami', 'r').read().strip(), args[0])                
+            if(status=="True"):
+                print "User created successfully."
+                print "Remember that you still need to activate this user (see setuserstatus command)\n"
+            else:
+                print "The user has not been created. \n"+\
+                      "Please verify that you are admin and that the username does not exist \n"
+        else:
+            self.help_repouseadd()
+            
+    def help_repouseradd(self):
+        print  "Image Repository useradd command: Add new user (only Admin user can execut it) \n "+ \
+               "                                  It has one arguments <userId> (userId must be the username in the system.)\n"
+               
+    
+    def do_repouserdel(self, args):
+        args=self.getArgs(args)         
+        if (len(args)==1):
+            status=self._service.userDel(os.popen('whoami', 'r').read().strip(), args[0])                
+            if(status=="True"):
+                print "User deleted successfully."                
+            else:
+                print "The user has not been deleted. \n"+\
+                      "Please verify that you are admin and that the username exists \n"
+        else:
+            self.help_repousedel()
+    
+    def help_repouserdel(self):
+        print  "Image Repository userdel command: Remove a user (only Admin user can execut it) \n"+ \
+               "                                  It has one arguments <userId> \n"
+    
+    def do_reposetuserquota(self, args):
+        args=self.getArgs(args)         
+        if (len(args)==2):
+            status=self._service.setUserQuota(os.popen('whoami', 'r').read().strip(), args[0], args[1])                
+            if(status=="True"):
+                print "User quota changed successfully."                
+            else:
+                print "The user quota has not been changed. \n"+\
+                      "Please verify that you are admin and that the username exists \n"
+        else:
+            self.help_reposetuserquota()
+    
+    def help_reposetuserquota(self):
+        print  "Image Repository setuserquota command: Establish disk space available for users (this is given in bytes) \n"+ \
+               "                                  It has one arguments <userId> <quota in bytes> (Math expressions like 4*1024 also works)\n"
+    
+    def do_reposetuserrole(self, args):
+        args=self.getArgs(args)         
+        if (len(args)==2):
+            status=self._service.setUserRole(os.popen('whoami', 'r').read().strip(), args[0], args[1])                
+            if(status=="True"):
+                print "User role has been changed successfully."                
+            else:
+                print "The user role has not been changed. "+status +"\n"\
+                      "Please verify that you are admin and that the username exists \n"
+        else:
+            self.help_reposetuserrole()
+    
+    def help_reposetuserrole(self):
+        print  "Image Repository setuserrole command: Change role of a particular user \n"+ \
+               "                                  It has one arguments <userId> <role>\n" +\
+               "                                  Available roles: "+str(IRTypes.IRUser.Role)+"\n"
+    
+    def do_reposetuserstatus(self, args):
+        args=self.getArgs(args)         
+        if (len(args)==2):
+            status=self._service.setUserStatus(os.popen('whoami', 'r').read().strip(), args[0], args[1])                
+            if(status=="True"):
+                print "User role has been changed successfully."                
+            else:
+                print "The user status has not been changed. "+status +"\n"\
+                      "Please verify that you are admin and that the username exists \n"
+        else:
+            self.help_reposetuserstatus()
+    
+    def help_reposetuserstatus(self):
+        print  "Image Repository setuserstatus command: Change status of a particular user \n"+ \
+               "                                  It has one arguments <userId> <status>\n" +\
+               "                                  Available status: "+str(IRTypes.IRUser.Status)+"\n"
+            
     def do_repolist(self, args):        
         #args=self.getArgs(args)      
         ok=False         
