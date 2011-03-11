@@ -390,6 +390,19 @@ class fgShellUtils(Cmd):
             pass
 
         atexit.register(readline.write_history_file, histfile)
+    
+    def loadBanner(self, bannerfile):
+        """Load banner from a file"""
+        banner=""
+        try:
+            f = open(bannerfile, "r")
+            output = f.readlines()            
+            f.close()
+            for i in output:
+                banner+=i
             
-            
+        except:
+            banner="\nWelcome to the FutureGrid Shell\n" +\
+                     "-------------------------------\n"
+        return banner      
         

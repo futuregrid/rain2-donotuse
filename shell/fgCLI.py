@@ -51,9 +51,9 @@ class fgShell(fgShellUtils,
         if self.silent:
             self.intro = ""
         else:
-            self.intro = "\nWelcome to the FutureGrid Shell\n" +\
-                         "-------------------------------\n"
-                
+            #self.intro = "\nWelcome to the FutureGrid Shell\n" +\
+            #             "-------------------------------\n"
+            self.intro=self.loadBanner(self._conf.getBanner())    
         ##Load History
         self.loadhist("no argument needed")
     

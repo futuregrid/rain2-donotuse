@@ -33,6 +33,8 @@ class fgShellConf(object):
         self._logLevel="DEBUG"  
         self._logType=["DEBUG","INFO","WARNING","ERROR"]
         
+        self._banner=""
+        
         self.loadConfig()
         
         
@@ -51,6 +53,8 @@ class fgShellConf(object):
         return self._scriptfile
     def getLogLevel(self):
         return self._logLevel 
+    def getBanner(self):
+        return self._banner
     
     def loadConfig(self):
         
@@ -63,6 +67,12 @@ class fgShellConf(object):
             
         try:
             self._loghistdir=os.path.expanduser(config.get('DEFAULT', 'loghistdir', 0))        
+        except ConfigParser.NoOptionError:
+            print "Error: No option loghistdir in section LogHist"
+            sys.exit(0)
+        
+        try:
+            self._banner=self._fgpath+"/"+config.get('DEFAULT', 'banner', 0)        
         except ConfigParser.NoOptionError:
             print "Error: No option loghistdir in section LogHist"
             sys.exit(0)
