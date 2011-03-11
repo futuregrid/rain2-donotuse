@@ -23,6 +23,7 @@ The code has two portions: server and client.
 
 SERVER configuration:
 All the configuration in the server side is done in the file IRUtil.py. We can configure the backend or the image directory used. In MongoDB we use __fgirimgstoremongo__ as a temporal dir, the images are not stored there. Meawhile in MySQL the dir __fgirimgstoremysql__ is where the images are stored.
+We need to create an empty file to put the logs and allow everyone to modify this file. This file is identified by __logfile__ in IRUtil.py
 
 -FileSystem (no DBs) #There is no new develpments
     Files with name 'IRMetaStore' and 'IRImgStore' should be created to store the image data.
