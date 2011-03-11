@@ -66,6 +66,29 @@ class fgShellRepo(Cmd):
         print  "Image Repository userdel command: Remove a user (only Admin user can execut it) \n"+ \
                "                                  It has one arguments <userId> \n"
     
+    def do_repouserlist(self, args):        
+        #args=self.getArgs(args)      
+        ok=False         
+        
+        userList=self._service.userList(os.popen('whoami', 'r').read().strip())
+      
+        if(userList[0].strip()!="None"):
+            try:
+                imgs = eval(userList[0])
+                print str(len(imgs)) + " users found"
+                for key in imgs.keys():
+                    print imgs[key]               
+            except:
+                print "do_repouserlist: Error:"+str(sys.exc_info()[0])+"\n"                
+                self._log.error("do_repouserlist: Error interpreting the list of users from Image Repository"+str(sys.exc_info()[0]))
+        else:
+            print "No list of images returned. \n" +\
+                  "Please verify that you are admin \n"  
+            
+    def help_repouserlist(self):
+        print  "Image Repository userlist command: Get list of users \n"
+                
+    
     def do_reposetuserquota(self, args):
         args=self.getArgs(args)         
         if (len(args)==2):
