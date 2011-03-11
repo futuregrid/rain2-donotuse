@@ -84,6 +84,9 @@ class IRService(object):
     def userDel(self, userId, userIdtoDel):
         return self.userStore.userDel(userId, userIdtoDel)
     
+    def userList(self, userId):
+        return self.userStore.queryStore(userId, None)
+    
     def setUserRole(self, userId, userIdtoModify, role):
         if (role in IRUser.Role):
             return self.userStore.setRole(userId, userIdtoModify, role)
@@ -245,6 +248,7 @@ def usage():
         --getBackend: provide the back-end configuration in the server side
         --useradd <userId> : add user 
         --userdel <userId> : remove user
+        --userlist : list of users
         --setquota <userId> <quota> :modify user quota
         --setrole  <userId> <role> : modify user role
         --setUserStatus <userId> <status> :modify user status
@@ -271,6 +275,7 @@ def main():
                                  "modify",
                                  "useradd",
                                  "userdel",
+                                 "userlist",
                                  "setUserQuota",
                                  "setUserRole",
                                  "setUserStatus"
@@ -335,6 +340,9 @@ def main():
         elif o in ("--userdel"):
             print service.userDel(os.popen('whoami', 'r').read().strip(), args[0])
             
+        elif o in ("--userlist"):
+            print service.userList(os.popen('whoami', 'r').read().strip())
+           
         elif o in ("--setUserQuota"):
             print service.setUserQuota(os.popen('whoami', 'r').read().strip(), args[0], int(args[1]))
             

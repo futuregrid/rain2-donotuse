@@ -8,7 +8,7 @@ import sys, os
 ################
 #BACKEND CONFIG
 ################
-"""
+
 #MongoDB config
 __backend__="mongodb"
 __address__="localhost:23000"
@@ -18,7 +18,7 @@ __fgirimgstoremongo__="/tmp/"
 __backend__= "mysql"
 __address__= "localhost"
 __fgirimgstoremysql__="/srv/irstore/"
-
+"""
 ############################################
 #DIR WHERE THE SERVER SOFTWARE IS INSTALLED (Only used to store the log and in Mysql to keep the pass)
 ############################################

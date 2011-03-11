@@ -868,7 +868,7 @@ class IRUserStoreMongo(AbstractIRUserStore):
         """
         return "192.168.1.1:23000,192.168.1.8:23000"
            
-    def getUser(self, userId):
+    def queryStore(self, userId, userIdtoSearch):
         """Get user from the store by Id'''
                 
         Keyword arguments:
@@ -878,32 +878,42 @@ class IRUserStoreMongo(AbstractIRUserStore):
         """
         
         found=False
-        tmpUser=IRUser("")
+        tmpUser={}
                 
         if (self.mongoConnection()):
             try:
                 dbLink = self._dbConnection[self._dbName]
-                collection = dbLink["data"]                
+                collection = dbLink["data"]
                                 
-                dic=collection.find_one({"userId": userId})
-                
-                if not dic == None:
+                if(userIdtoSearch!=None):
+                                   
+                    dic=collection.find_one({"userId": userId})
                     
-                    tmpUser = IRUser(dic['userId'], dic['cred'], dic['fsCap'], dic['fsUsed'],dic['lastLogin'], 
-                                          dic["status"], dic["role"])
-                    found = True
-                                                      
+                    if not dic == None:
+                        
+                        tmpUser[dic['userId']] = IRUser(dic['userId'], dic['cred'], dic['fsCap'], dic['fsUsed'],dic['lastLogin'], 
+                                              dic["status"], dic["role"])
+                        found = True
+                elif (self.isAdmin(userId)):
+                    dicList=collection.find()
+                    
+                    for dic in dicList:
+                        
+                        tmpUser[dic['userId']] = IRUser(dic['userId'], dic['cred'], dic['fsCap'], dic['fsUsed'],dic['lastLogin'], 
+                                              dic["status"], dic["role"])
+                        found = True
+                                                  
             except pymongo.errors.AutoReconnect: 
-                self._log.warning("Autoreconnected in IRUserStoreMongo - getUser")                 
+                self._log.warning("Autoreconnected in IRUserStoreMongo - queryStore")                 
             except pymongo.errors.ConnectionFailure:
-                self._log.error("Connection failure in IRUserStoreMongo - getUser")                                           
+                self._log.error("Connection failure in IRUserStoreMongo - queryStore")                                           
             except IOError as (errno, strerror):
                 errostr="I/O error({0}): {1}".format(errno, strerror)
                 self._log.error(errorstr)
-                self._log.error("IOError in IRUserStoreMongo - getUser")                 
+                self._log.error("IOError in IRUserStoreMongo - queryStore")                 
             
             except pymongo.errors.OperationFailure:
-                self._log.error("Operation Failure in IRUserStoreMongo - getUser")
+                self._log.error("Operation Failure in IRUserStoreMongo - queryStore")
             finally:
                 self._dbConnection.disconnect()    
         else:
@@ -915,6 +925,16 @@ class IRUserStoreMongo(AbstractIRUserStore):
         else:
             return None
         
+    def _getUser(self, userId):
+        """Get user from the store by Id'''
+                
+        Keyword arguments:
+        userId = the username (it is the same that in the system)
+                
+        return: IRUser object
+        """
+    
+        return self.queryStore(userId,userId)[userId]
     
     def updateDiskUsed (self, userId, size):     
         """
@@ -1183,7 +1203,7 @@ class IRUserStoreMongo(AbstractIRUserStore):
         return admin
             
     def uploadValidator(self, userId, imgSize):
-        user = self.getUser(userId)
+        user = self._getUser(userId)
         ret = False
         if (user!=None):
             if (user._status=="active"):

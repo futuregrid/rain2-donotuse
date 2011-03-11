@@ -455,7 +455,7 @@ class ImgMetaStoreMysql(AbstractImgMetaStore):
     
     def getItem(self, imgId):
         criteria = "* where imgid="+imgId
-        return queryStore (criteria)
+        return self.queryStore (criteria)
         
     def addItem(self, imgMeta):
         """
@@ -845,31 +845,49 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
         separated by commas)
         """
         return "192.168.1.1:23000,192.168.1.8:23000"
-           
-    def getUser(self, userId):
-        """Get user from the store by Id'''
+    
+    def queryStore(self, userId, userIdtoSearch):
+        """
+        Query the db and store the documents in self._items
+        
+        keyword:
+           criteria:
+                *      
+                * where field=XX, field2=YY
+                field1, field2    
+                field1,field2 where field3=XX, field4=YY               
                 
-        Keyword arguments:
-        userId = the username (it is the same that in the system)
-                
-        return: IRUser object
-        """               
+        TODO:  after the where, the two parts of the equal must be together with no white spaces.                
+                                
+        return list of dictionaries with the Metadata
+        """
         found=False
-        tmpUser=IRUser("")
+        tmpUser={}
         if (self.mysqlConnection()):
-            try:
-                
+            try:                
                 cursor= self._dbConnection.cursor()
                 
-                sql = "SELECT * FROM %s WHERE userId = '%s' "% (self._tabledata, userId)
-                cursor.execute(sql)
-                results=cursor.fetchone()                    
+                if(userIdtoSearch!=None):
                 
-                if (results != None):
-                    tmpUser=IRUser(results[0],results[1],int(results[2]),int(results[3]),results[4],results[5],results[6])
-                    self._log.debug("GetUSers  "+str(tmpUser))
-                                                
+                    sql = "SELECT * FROM %s WHERE userId = '%s' "% (self._tabledata, userId)
+                    cursor.execute(sql)
+                    results=cursor.fetchone()                    
+                    
+                    if (results != None):
+                        tmpUser[results[0]]=IRUser(results[0],results[1],int(results[2]),int(results[3]),
+                                              results[4],results[5],results[6])
+                        #self._log.debug("queryStore  "+str(tmpUser))                                                                        
                     found=True                 
+                elif (self.isAdmin(userId)):
+                    sql = "SELECT * FROM %s"% (self._tabledata)
+                    cursor.execute(sql)
+                    results=cursor.fetchall()                    
+                    
+                    for result in results:
+                        tmpUser[result[0]]=IRUser(result[0],result[1],int(result[2]),int(result[3]),
+                                              result[4],result[5],result[6])
+                        #self._log.debug("queryStore  "+str(tmpUser))                                                                      
+                    found=True      
                     
             except MySQLdb.Error, e:
                 self._log.error("Error %d: %s" % (e.args[0], e.args[1]))                
@@ -877,7 +895,7 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
             except IOError as (errno, strerror):
                 self._log.error("I/O error({0}): {1}".format(errno, strerror))                                
             except TypeError as detail:
-                self._log.error("TypeError in IRUserStoreMongo - getUser: "+format(detail))
+                self._log.error("TypeError in IRUserStoreMongo - queryStore: "+format(detail))
             finally:
                 self._dbConnection.close()                      
         else:
@@ -887,7 +905,18 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
             return tmpUser
         else:
             return None
-        
+           
+    def _getUser(self, userId):
+        """Get user from the store by Id'''
+                
+        Keyword arguments:
+        userId = the username (it is the same that in the system)
+                
+        return: IRUser object
+        """
+    
+        return self.queryStore(userId,userId)[userId]
+
     
     def updateDiskUsed (self, userId, size): #TODO verify this. Decide if size will be a string or a int    
         """
@@ -1173,7 +1202,7 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
         return admin
             
     def uploadValidator(self, userId, imgSize):
-        user = self.getUser(userId)
+        user = self._getUser(userId)
         ret = False
         if (user!=None):
             if (user._status=="active"):
