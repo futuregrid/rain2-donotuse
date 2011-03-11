@@ -26,21 +26,24 @@ from IRServiceProxy import IRServiceProxy
 def usage():
     print "options:"
     print '''
-        -h/--help: get help information
-        -l/--auth: login/authentication
-        -q/--list [queryString]: get list of images that meet the criteria
-        -a/--setPermission <imgId> <permissionString>: set access permission
-        -g/--get <img/uri> <imgId>: get a image or only the URI by id
-        -p/--put <imgFile> [attributeString]: upload/register an image
-        -m/--modify <imgId> <attributeString>: update Metadata   
-        -r/--remove <imgId>: remove an image from the repository        
-        --useradd <userId> : add user 
-        --userdel <userId> : remove user
-        --setquota <userId> <quota> :modify user quota
-        --setrole  <userId> <role> : modify user role
-        --setUserStatus <userId> <status> :modify user status
-        -i/--histimg <imgId>: get usage info of an image
-        -u/--histuser <userId>: get usage info of a user
+         Command                                       Description
+         -------                                       -----------
+        -h/--help                                      get help information
+        -l/--auth                                      login/authentication
+        -q/--list [queryString]                        get list of images that meet the criteria
+        -a/--setPermission <imgId> <permissionString>  set access permission
+        -g/--get <img/uri> <imgId>                     get a image or only the URI by id
+        -p/--put <imgFile> [attributeString]           upload/register an image
+        -m/--modify <imgId> <attributeString>          update Metadata   
+        -r/--remove <imgId>                            remove an image from the repository        
+        --useradd <userId>                             add user 
+        --userdel <userId>                             remove user
+        --userlist                                     list of users
+        --setUserquota <userId> <quota>                modify user quota
+        --setUserRole  <userId> <role>                 modify user role
+        --setUserStatus <userId> <status>              modify user status
+        -i/--histimg <imgId>                           get usage info of an image
+        -u/--histuser <userId>                         get usage info of a user
           '''
 
 def main():
@@ -59,6 +62,7 @@ def main():
                                  "modify",
                                  "useradd",
                                  "userdel",
+                                 "userlist",
                                  "setUserQuota",
                                  "setUserRole",
                                  "setUserStatus"
@@ -168,6 +172,14 @@ def main():
                     print "User deleted successfully."
                 else:
                     print "The user has not been deleted"
+            elif o in ("--userlist"):
+                userList=service.userList(os.popen('whoami', 'r').read().strip())
+                #print userList
+                imgs = eval(userList[0])
+                print str(len(imgs)) + " users found"
+                for key in imgs.keys():
+                    print imgs[key]
+                    
             elif o in ("--setUserQuota"):
                 status=service.setUserQuota(os.popen('whoami', 'r').read().strip(), args[0], args[1])
                 if(status=="True"):

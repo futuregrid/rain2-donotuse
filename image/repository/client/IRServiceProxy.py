@@ -64,6 +64,12 @@ class IRServiceProxy(object):
         
         return self._rExec(userId, cmdexec)[0].strip()
     
+    def userList(self, userId):
+        cmdexec = " '" + self._serverdir + \
+                    "IRService.py --userlist "+ userId + "'"
+        
+        return self._rExec(userId, cmdexec)
+    
     def setUserQuota(self, userId, userIdtoModify, quota):  
         cmdexec = " '" + self._serverdir + \
                     "IRService.py --setUserQuota "+ userIdtoModify +" "+str(eval(quota))+"'"
@@ -139,7 +145,7 @@ class IRServiceProxy(object):
             #print isPermitted[0].strip()      
             if (isPermitted[0].strip()=="NoUser"):
                 status="-1"
-            elif (isPermitted[0].strip()=="NoUser"):
+            elif (isPermitted[0].strip()=="NoActive"):
                 status="-2"
             elif (isPermitted[0].strip()=="True"):     
                 
