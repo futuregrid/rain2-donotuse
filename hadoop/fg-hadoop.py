@@ -21,12 +21,10 @@ import os
 import argparse
 
 # GVL:
-# please remove the write statements and replace with text block
-#
+
 # code does not take into account if jobname already exists?
 #
 # no documentation provided
-#
 #
 
 # TODO : Configure the conf location
@@ -36,49 +34,50 @@ def generate_job_script(job_name, hadoop_command, data_input_dir,
     local_storage_dir = "/tmp/$PBS_JOBID-fg-hadoop"
     hadoop_conf_dir = "$HADOOP_HOME/conf"
     
-    masters_file_name = job_name + "-fg-hadoop.job"
-    masters_file = open(masters_file_name, "w")
-    masters_file.write("#!/bin/bash \n")
+    job_script = "#!/bin/bash \n"
 
-    masters_file.write("#PBS -l nodes=" + str(num_nodes) + ":ppn=8 \n")
+    job_script +="#PBS -l nodes=" + str(num_nodes) + ":ppn=8 \n"
     if(walltime):
-        masters_file.write("#PBS -l walltime=" + walltime + " \n")
+        job_script +="#PBS -l walltime=" + walltime + " \n"
         
-    masters_file.write("#PBS -N " + job_name + " \n")
+    job_script +="#PBS -N " + job_name + " \n"
     if(queue):
-        masters_file.write("#PBS -q " + queue + " \n")
+        job_script +="#PBS -q " + queue + " \n"
     
-    masters_file.write("#PBS -V \n")
-    masters_file.write("#PBS -o " + job_name + ".$PBS_JOBID.out \n \n")
+    job_script +="#PBS -V \n"
+    job_script +="#PBS -o " + job_name + ".$PBS_JOBID.out \n \n"
     
-    masters_file.write("echo Generating Configuration Scripts \n")
-    masters_file.write("python " + sys.path[0] + "/generate-xml.py $PBS_NODEFILE "
-                        + local_storage_dir + " " + hadoop_conf_dir + " \n\n")
+    job_script +="echo Generating Configuration Scripts \n"
+    job_script +="python " + sys.path[0] + "/generate-xml.py $PBS_NODEFILE " 
+    job_script += local_storage_dir + " " + hadoop_conf_dir + " \n\n"
     
-    masters_file.write("echo Formatting HDFS  \n")
-    masters_file.write("$HADOOP_HOME/bin/hadoop namenode -format   \n\n")
+    job_script +="echo Formatting HDFS  \n"
+    job_script +="$HADOOP_HOME/bin/hadoop namenode -format   \n\n"
 
-    masters_file.write("echo starting the cluster  \n")
-    masters_file.write("$HADOOP_HOME/bin/start-dfs.sh  \n") #--config $HADOOP_CONF_DIR
-    masters_file.write("$HADOOP_HOME/bin/hadoop dfsadmin -safemode wait \n") 
-    masters_file.write("sleep 30 \n") # safemode wait seems to be still buggy
+    job_script +="echo starting the cluster  \n"
+    job_script +="$HADOOP_HOME/bin/start-dfs.sh  \n" #--config $HADOOP_CONF_DIR
+    job_script +="$HADOOP_HOME/bin/hadoop dfsadmin -safemode wait \n"
+    job_script +="sleep 30 \n" # safemode wait seems to be still buggy
     
     if(data_input_dir):
-        masters_file.write("$HADOOP_HOME/bin/hadoop fs -put " 
-                           + data_input_dir + " input \n") 
+        job_script +="$HADOOP_HOME/bin/hadoop fs -put "
+        job_script += data_input_dir + " input \n" 
         
-    masters_file.write("$HADOOP_HOME/bin/start-mapred.sh  \n \n")
+    job_script +="$HADOOP_HOME/bin/start-mapred.sh  \n \n"
     
-    masters_file.write("echo Running the hadoop job  \n")    
-    masters_file.write("$HADOOP_HOME/bin/hadoop " + hadoop_command + "\n \n")
+    job_script +="echo Running the hadoop job  \n"    
+    job_script +="$HADOOP_HOME/bin/hadoop " + hadoop_command + "\n \n"
     
     if(data_output_dir):
-        masters_file.write("$HADOOP_HOME/bin/hadoop fs -get output " 
-                           + data_output_dir + " \n") 
+        job_script +="$HADOOP_HOME/bin/hadoop fs -get output " 
+        job_script += data_output_dir + " \n"
     
-    masters_file.write("$HADOOP_HOME/bin/stop-mapred.sh" + "\n")
-    masters_file.write("$HADOOP_HOME/bin/stop-dfs.sh" + "\n")
+    job_script +="$HADOOP_HOME/bin/stop-mapred.sh" + "\n"
+    job_script +="$HADOOP_HOME/bin/stop-dfs.sh" + "\n"
     
+    masters_file_name = job_name + "-fg-hadoop.job"
+    masters_file = open(masters_file_name, "w")
+    masters_file.write(job_script)
     masters_file.close()
     return masters_file_name
     

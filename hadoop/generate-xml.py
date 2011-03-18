@@ -136,29 +136,24 @@ def process_ips(nodes):
         nodes[index] = node.replace("i", "172.29.200.", 1);        
     return nodes
 
-from optparse import OptionParser
-parser = OptionParser()
-(options, args) = parser.parse_args()
-
-if (len(args) == 3):
-    #print args
-    nodes_file = open(args[0], "r")
-    nodes = nodes_file.readlines()
-    local_base_dir = args[1]
-    hadoop_conf_dir = args[2]
+def main():
+    from optparse import OptionParser
+    parser = OptionParser()
+    (options, args) = parser.parse_args()
     
-    nodes = process_ips(nodes)
-    generate_hadoop_configs(nodes, local_base_dir, hadoop_conf_dir)
-    prepare_file_system(nodes, local_base_dir)
-    
-else :
-    print "Invalid Arguments"
+    if (len(args) == 3):
+        #print args
+        nodes_file = open(args[0], "r")
+        nodes = nodes_file.readlines()
+        local_base_dir = args[1]
+        hadoop_conf_dir = args[2]
+        
+        nodes = process_ips(nodes)
+        generate_hadoop_configs(nodes, local_base_dir, hadoop_conf_dir)
+        prepare_file_system(nodes, local_base_dir)
+        
+    else :
+        print "Invalid Arguments"
 
-#nodes = nodes_file.readlines()
-#odes = process_ips(nodes)
-#print nodes
-
-
-#nodes = ["129.1.1.1","129.1.1.2","129.1.1.3","129.1.1.4"]
-#generate_hadoop_configs(nodes, "/tmp/test1", "temp")
-#write_xmldoc_to_screen(hdfs_site_doc)
+if __name__ == "__main__":
+    main()
