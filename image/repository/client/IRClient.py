@@ -26,24 +26,24 @@ from IRServiceProxy import IRServiceProxy
 def usage():
     print "options:"
     print '''
-         Command                                       Description
-         -------                                       -----------
-        -h/--help                                      get help information
-        -l/--auth                                      login/authentication
-        -q/--list [queryString]                        get list of images that meet the criteria
-        -a/--setPermission <imgId> <permissionString>  set access permission
-        -g/--get <img/uri> <imgId>                     get a image or only the URI by id
-        -p/--put <imgFile> [attributeString]           upload/register an image
-        -m/--modify <imgId> <attributeString>          update Metadata   
-        -r/--remove <imgId>                            remove an image from the repository        
-        --useradd <userId>                             add user 
-        --userdel <userId>                             remove user
-        --userlist                                     list of users
-        --setUserquota <userId> <quota>                modify user quota
-        --setUserRole  <userId> <role>                 modify user role
-        --setUserStatus <userId> <status>              modify user status
-        -i/--histimg <imgId>                           get usage info of an image
-        -u/--histuser <userId>                         get usage info of a user
+ Command                                       Description
+ -------                                       -----------
+-h/--help                                      get help information
+-l/--auth                                      login/authentication
+-q/--list [queryString]                        get list of images that meet the criteria
+-a/--setPermission <imgId> <permissionString>  set access permission
+-g/--get <img/uri> <imgId>                     get an image or only the URI
+-p/--put <imgFile> [attributeString]           upload/register an image
+-m/--modify <imgId> <attributeString>          update Metadata   
+-r/--remove <imgId>                            remove an image        
+--useradd <userId>                             add user 
+--userdel <userId>                             remove user
+--userlist                                     list of users
+--setUserquota <userId> <quota>                modify user quota
+--setUserRole  <userId> <role>                 modify user role
+--setUserStatus <userId> <status>              modify user status
+-i/--histimg <imgId>                           get usage info of an image
+-u/--histuser <userId>                         get usage info of a user
           '''
 
 def main():
@@ -53,7 +53,7 @@ def main():
                                 ["help",        
                                  "auth",
                                  "list",
-                                 "setPermission",
+                                 "setpermission",
                                  "get",
                                  "put",
                                  "remove",
@@ -63,9 +63,9 @@ def main():
                                  "useradd",
                                  "userdel",
                                  "userlist",
-                                 "setUserQuota",
-                                 "setUserRole",
-                                 "setUserStatus"
+                                 "setuserquota",
+                                 "setuserrole",
+                                 "setuserstatus"
                                  ])
 
     except GetoptError, err:
@@ -98,7 +98,7 @@ def main():
                 for key in imgs.keys():
                     print imgs[key]
                 #service.query("tstuser2", "imgId=fakeid4950877")
-            elif o in ("-a", "--setPermission"):
+            elif o in ("-a", "--setpermission"):
                 status=service.setPermission(os.popen('whoami', 'r').read().strip(), args[0], args[1])
                 if(status=="True"):
                     print "Permission of img "+args[0]+" updated"
@@ -145,7 +145,21 @@ def main():
                 else:
                     usage()
             elif o in ("-i", "--histimg"):
-                print "in image usage"
+                if(len(args)==1):
+                    imgsList=service.histImg(os.popen('whoami', 'r').read().strip(), args[0])
+                else:
+                    imgsList=service.histImg(os.popen('whoami', 'r').read().strip(), "None")
+                
+                imgs = eval(imgsList[0])
+                
+                print imgs['head']
+                for key in imgs.keys():
+                    if key != 'head':
+                        print imgs[key]
+                
+               
+                
+                
             elif o in ("-u", "--histuser"):
                 print "in user usage"
             elif o in ("-m", "--modify"): 
@@ -180,19 +194,19 @@ def main():
                 for key in imgs.keys():
                     print imgs[key]
                     
-            elif o in ("--setUserQuota"):
+            elif o in ("--setuserquota"):
                 status=service.setUserQuota(os.popen('whoami', 'r').read().strip(), args[0], args[1])
                 if(status=="True"):
                     print "Quota changed successfully."
                 else:
                     print "The quota has not been changed"
-            elif o in ("--setUserRole"):
+            elif o in ("--setuserrole"):
                 status=service.setUserRole(os.popen('whoami', 'r').read().strip(), args[0], args[1])
                 if(status=="True"):
                     print "Role changed successfully."
                 else:
                     print "The role has not been changed"
-            elif o in ("--setUserStatus"):
+            elif o in ("--setuserstatus"):
                 status=service.setUserStatus(os.popen('whoami', 'r').read().strip(), args[0], args[1])
                 if(status=="True"):
                     print "Status changed successfully."

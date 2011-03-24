@@ -8,6 +8,11 @@ maintain the proposed deployed code structure. In the later phase this will
 be replaced by a WS implementation
 """
 
+"""
+TODO: move isAdmin,isPublic,ExistsandOwner control from IRDataAccess... to here
+
+"""
+
 __author__ = 'Fugang Wang'
 __version__ = '0.1'
 
@@ -180,6 +185,24 @@ class IRService(object):
             status=self.userStore.updateDiskUsed(userId, -(size[0]))
         return status
     
+    def histImg(self,userId, imgId):
+        return self.imgStore.histImg(imgId)
+    
+    def printHistImg(self,imgs):
+        output={}
+        output ['head'] = "    Image Id \t\t     Created Date \t Last Access \t    #Access \n"
+        output ['head']=string.expandtabs(output ['head'],8)
+        stradd=""
+        for i in range(len(output['head'])):
+            stradd+="-"    
+        output ['head']+=stradd
+                
+        if(imgs!=None):
+            for key in imgs.keys():
+                output[key]=imgs[key]._imgId+"  "+str(imgs[key]._createdDate)+"  "+ \
+                        str(imgs[key]._lastAccess)+"    "+str(imgs[key]._accessCount)+"\n"
+        
+        return output
     
     def _createImgMeta(self, userId, imgId, attributeString, update):  ##We assume that values are check in client side
         """
@@ -318,7 +341,10 @@ def main():
             print service.remove(os.popen('whoami', 'r').read().strip(),args[0])
             #print service.remove(os.popen('whoami', 'r').read().strip(), "4d4b0b8a577d700d2b000000")
         elif o in ("-i", "--histimg"):
-            print "in image usage"
+            imgs=service.histImg(os.popen('whoami', 'r').read().strip(),args[0])                 
+                                   
+            print service.printHistImg(imgs)
+
         elif o in ("-u", "--histuser"):
             print "in user usage"
         elif o in ("--uploadValidator"):

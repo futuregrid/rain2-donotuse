@@ -117,7 +117,7 @@ class ImgStoreMysql(AbstractImgStore):
             if(self.existAndOwner(imgId, userId)):            
                 try:
                     cursor= self._dbConnection.cursor()   
-                    update="UPDATE %s SET createDate='%s', lastAccess='%s', accessCount='%d' WHERE imgId='%s'" \
+                    update="UPDATE %s SET createdDate='%s', lastAccess='%s', accessCount='%d' WHERE imgId='%s'" \
                                        % (self._tabledata,datetime.utcnow(),datetime.utcnow(),0, imgId)
                         #print update
                     cursor.execute(update)
@@ -141,7 +141,55 @@ class ImgStoreMysql(AbstractImgStore):
             print "Could not get access to the database. The file has not been updated"
             
         return updated   
-    """         
+    """  
+    
+    def histImg (self,imgId):
+        """
+        Query DB to provide history information about the image Usage
+        
+        keyworks
+        imgId: if you want to get info of only one image
+        
+        return list of imgEntry or None
+        
+        """
+        success=False             
+        if (self.mysqlConnection()):
+            try:
+                cursor= self._dbConnection.cursor()
+                
+                if (imgId.strip()=="None"):
+                    sql = "SELECT imgId, createdDate,lastAccess,accessCount FROM "+self._tabledata
+                else:
+                    sql = "SELECT imgId, createdDate,lastAccess,accessCount FROM %s WHERE imgId = '%s' "% (self._tabledata, imgId)
+                
+                cursor.execute(sql)
+                results=cursor.fetchall()
+                
+                self._log.debug(str(results))
+                                             
+                for dic in results:               
+                    tmpEntry=ImgEntry(dic[0],"","",0,str(dic[1]).split(".")[0],str(dic[2]).split(".")[0],dic[3])                    
+                    self._items[tmpEntry._imgId] = tmpEntry
+                    
+                success=True    
+            except MySQLdb.Error, e:
+                self._log.error("Error %d: %s" % (e.args[0], e.args[1]))                                           
+            except IOError as (errno, strerror):
+                self._log.error("I/O error({0}): {1}".format(errno, strerror))
+                self._log.error("No such file or directory. Image details: "+item.__str__())                
+            except TypeError as detail:
+                self._log.error("TypeError in ImgStoreMysql - histimg: "+format(detail))
+            finally:
+                self._dbConnection.close()                      
+        else:
+            self._log.error("Could not get access to the database in ImgStoreMysql. Query failed")
+    
+        if success:
+            return self._items
+        else:
+            return None
+           
     def queryStore(self, imgIds, imgLinks, userId):
         """        
         Query the DB and provide the uri.    
@@ -217,7 +265,7 @@ class ImgStoreMysql(AbstractImgStore):
                 cursor= self._dbConnection.cursor()         
                 for item in items:
                     
-                    sql = "INSERT INTO %s (imgId, imgMetaData, imgUri, createDate, lastAccess, accessCount, size) \
+                    sql = "INSERT INTO %s (imgId, imgMetaData, imgUri, createdDate, lastAccess, accessCount, size) \
        VALUES ('%s', '%s', '%s', '%s', '%s', '%d', '%d' )" % \
        (self._tabledata, item._imgId, item._imgId, item._imgURI, datetime.utcnow(), datetime.utcnow(), 0, item._size)
                     

@@ -212,6 +212,13 @@ class IRServiceProxy(object):
         #print deleted
         return deleted
     
+    def histImg(self,userId, imgId):
+        cmdexec = " '" + self._serverdir + \
+                    "IRService.py --histimg " + " " + imgId + "'"
+                
+        return self._rExec(userId, cmdexec)
+        
+    
     def checkMeta(self,attributeString):        
         attributes = attributeString.split("|")
         correct=True

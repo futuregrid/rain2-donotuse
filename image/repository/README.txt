@@ -7,6 +7,8 @@ The code tree structure:
 |   |-- IRClient.py
 |   |-- IRServiceProxy.py
 |   |-- IRTest.py
+|   |-- IRUtil.py
+|   |-- IRClientConf.py
 |   `-- IRTypes.py
 |-- README.txt
 `-- server
@@ -48,7 +50,7 @@ We need to create an empty file to put the logs and allow everyone to modify thi
    create database images;
    use images;
    create table meta ( imgId varchar(100) primary key, os varchar(100), arch varchar(100), owner varchar(100), description varchar(200), tag varchar(200), vmType  varchar(100), imgType varchar(100), permission varchar(100), imgStatus varchar(100) );
-   create table data ( imgId varchar(100) primary key, imgMetaData varchar(100), imgUri varchar(200), createDate datetime, lastAccess datetime, accessCount long, FOREIGN KEY (imgMetaData) REFERENCES meta(imgId) ON UPDATE CASCADE ON DELETE CASCADE );
+   create table data ( imgId varchar(100) primary key, imgMetaData varchar(100), imgUri varchar(200), createdDate datetime, lastAccess datetime, accessCount long, FOREIGN KEY (imgMetaData) REFERENCES meta(imgId) ON UPDATE CASCADE ON DELETE CASCADE );
    create table users (userId varchar(100) primary key, cred varchar(200), fsCap long, fsUsed long,
 lastLogin datetime, status varchar(100), role carchar(100));
    GRANT ALL PRIVILEGES ON images.* TO 'IRUser' IDENTIFIED BY 'yourpass';  

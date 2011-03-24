@@ -12,5 +12,5 @@ import sys
 
 
 def getImgId():
-    imgId = str(randrange(9999999999999))
+    imgId = str(randrange(999999999999999999999999))
     return imgId

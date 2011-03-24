@@ -128,20 +128,24 @@ class ImgEntry(object):
                  imgId,
                  imgMeta,
                  imgURI,
-                 size
+                 size,
+                 createdDate = datetime.utcnow(),
+                 lastAccess = datetime.utcnow(),
+                 accessCount = 0                 
                  ):
         super(ImgEntry, self).__init__()
         self._imgId = imgId
         self._imgMeta = imgMeta
         self._imgURI = imgURI
-        self._createdDate = datetime.utcnow()
-        self._lastAccess = datetime.utcnow()
-        self._accessCount = 0
+        self._createdDate = createdDate
+        self._lastAccess = lastAccess
+        self._accessCount = accessCount
         self._size = size
+    
     
     def __repr__(self):
         return "\"imgId=%s, imgURI=%s, createdDate=%s, lastAccess=%s, accessCount=%s, size=%s\"" % \
-                (self._imgId, self._URI, self._createdDate, self._lastAccess, \
+                (self._imgId, self._imgURI, self._createdDate, self._lastAccess, \
                  self._accessCount, self._size)
     
     def __str__(self):

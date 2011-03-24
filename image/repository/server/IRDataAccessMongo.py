@@ -19,7 +19,17 @@ MongoDB Databases Info:
 
 REMEBER: imgId will be _id (String) in the data collection, which is also _id (ObjectId) in fs.files. 
                In the first case it is an String and in the second one is an ObjectId
+               
 """
+
+
+#We get an AutoReconnect exception. This means that the driver was not able to connect to the old 
+#primary (which makes sense, as we killed the server), but that it will attempt to automatically 
+#reconnect on subsequent operations. When this exception is raised our application code needs to 
+#decide whether to retry the operation or to simply continue, accepting the fact that the operation 
+#might have failed.
+#With authentication, it has to reauthenticate if this exception is raised
+
 __author__ = 'Javier Diaz'
 __version__ = '0.1'
 
@@ -52,10 +62,12 @@ class ImgStoreMongo(AbstractImgStore):
         
         """                
         super(ImgStoreMongo, self).__init__()
-        #self._items={}
+        
         self._dbName="images"
+        self._datacollection="data"
+        self._metacollection="meta"
         self._dbConnection=None
-        self._log=log
+        self._log=log 
         
         if (address != ""):
             self._mongoAddress=address
@@ -202,7 +214,56 @@ class ImgStoreMongo(AbstractImgStore):
             os.system(cmd)
             
         return imgUpdated  
-    """                
+    """  
+    
+    def histImg (self,imgId):
+        """
+        Query DB to provide history information about the image Usage
+        
+        keyworks
+        imgId: if you want to get info of only one image
+        
+        return list of imgEntry or None
+        
+        """
+        success=False             
+        if (self.mongoConnection()):
+            try:
+                dbLink = self._dbConnection[self._dbName]
+                collection = dbLink[self._datacollection]   
+                
+                
+                if (imgId.strip()=="None"):
+                    results=collection.find({},['_id','createdDate','lastAccess', 'accessCount'])
+                else:
+                    results=collection.find({'_id':imgId},['_id','createdDate','lastAccess', 'accessCount'])
+                             
+                for dic in results:               
+                    tmpEntry=ImgEntry(dic['_id'],"","",0,str(dic['createdDate']).split(".")[0],str(dic['lastAccess']).split(".")[0],dic['accessCount'])                    
+                    self._items[tmpEntry._imgId] = tmpEntry
+                    
+                success=True    
+            except pymongo.errors.AutoReconnect:                
+                self._log.warning("Autoreconnected in ImgStoreMongo - histImg.") 
+            except pymongo.errors.ConnectionFailure:                
+                self._log.error("Connection failure: the query cannot be performed.")  
+            except TypeError as detail:
+                self._log.error("TypeError in ImgStoreMongo - histImg")
+            except bson.errors.InvalidId:
+                self._log.error("There is no Image with such Id. (ImgStoreMongo - histImg)")
+            #except:
+            #    self._log.error(str(sys.exc_info()))
+            finally:
+                self._dbConnection.disconnect()    
+        else:
+            self._log.error("Could not get access to the database.")
+    
+        if success:
+            return self._items
+        else:
+            return None
+         
+                        
     def queryStore(self, imgIds, imgLinks, userId):
         """        
         Query the DB and provide the GridOut of the Images to create them with read method.    
@@ -219,7 +280,7 @@ class ImgStoreMongo(AbstractImgStore):
             try:
                 
                 dbLink = self._dbConnection[self._dbName]
-                collection = dbLink["data"]
+                collection = dbLink[self._datacollection]
                 gridfsLink=gridfs.GridFS(dbLink)                
                 for imgId in imgIds:
                     
@@ -275,8 +336,8 @@ class ImgStoreMongo(AbstractImgStore):
         if (self.mongoConnection()):
             try:
                 dbLink = self._dbConnection[self._dbName]
-                collection = dbLink["data"]
-                collectionMeta = dbLink["meta"]
+                collection = dbLink[self._datacollection]
+                collectionMeta = dbLink[self._metacollection]
                 gridfsLink=gridfs.GridFS(dbLink)
                 for item in items:
                     #each imgType is stored in a different DB
@@ -367,8 +428,8 @@ class ImgStoreMongo(AbstractImgStore):
             if(self.existAndOwner(imgId, userId)):    
                 try:
                     dbLink = self._dbConnection[self._dbName]
-                    collection = dbLink["data"]
-                    collectionMeta = dbLink["meta"]
+                    collection = dbLink[self._datacollection]
+                    collectionMeta = dbLink[self._metacollection]
                     gridfsLink=gridfs.GridFS(dbLink)
                     
                     aux=collection.find_one({"_id": imgId})
@@ -414,7 +475,7 @@ class ImgStoreMongo(AbstractImgStore):
         
         try:
             dbLink = self._dbConnection[self._dbName]
-            collection = dbLink["meta"]
+            collection = dbLink[self._metacollection]
             gridfsLink=gridfs.GridFS(dbLink)
                 
             exists=gridfsLink.exists(ObjectId(imgId))            
@@ -456,7 +517,7 @@ class ImgStoreMongo(AbstractImgStore):
                
         try:
             dbLink = self._dbConnection[self._dbName]
-            collection = dbLink["meta"]
+            collection = dbLink[self._metacollection]
             
             aux=collection.find_one({"_id": imgId})
             
@@ -508,10 +569,13 @@ class ImgMetaStoreMongo(AbstractImgMetaStore):
         
         """           
         super(ImgMetaStoreMongo, self).__init__()     
-        #self._items={}
+
         self._dbName="images"
+        self._datacollection="data"
+        self._metacollection="meta"
         self._dbConnection=None
-        self._log=log
+        self._log=log 
+
         if (address != ""):
             self._mongoAddress=address
         else:
@@ -547,7 +611,7 @@ class ImgMetaStoreMongo(AbstractImgMetaStore):
            
         try:
             dbLink = self._dbConnection[self._dbName]
-            collection = dbLink["meta"]
+            collection = dbLink[self._metacollection]
             gridfsLink=gridfs.GridFS(dbLink)
               
             exists=gridfsLink.exists(ObjectId(imgId))            
@@ -596,8 +660,8 @@ class ImgMetaStoreMongo(AbstractImgMetaStore):
             if(self.existAndOwner(imgId, userId)):
                 try:
                     dbLink = self._dbConnection[self._dbName]
-                    #collection = dbLink["data"]
-                    collectionMeta = dbLink["meta"]
+                    #collection = dbLink[self._datacollection]
+                    collectionMeta = dbLink[self._metacollection]
                     
                     tags=imgMeta1._tag.split(",")
                     tags_list = [x.strip() for x in tags]
@@ -696,7 +760,7 @@ class ImgMetaStoreMongo(AbstractImgMetaStore):
         if (self.mongoConnection()):
             try:
                 dbLink = self._dbConnection[self._dbName]
-                collection = dbLink["meta"]                
+                collection = dbLink[self._metacollection]                
                 
                 criteria=criteria.strip()  #remove spaces before
                 segs = criteria.split(" ")  #splits in parts                
@@ -853,10 +917,12 @@ class IRUserStoreMongo(AbstractIRUserStore):
     '''
     def __init__(self, address,fgirdir, log):
         super(IRUserStoreMongo, self).__init__()        
-        #self._items = []
+
         self._dbName = "users"   #file location for users
+        self._usercollection="data"
         self._dbConnection=None
         self._log=log
+
         if (address != ""):
             self._mongoAddress=address
         else:
@@ -883,7 +949,7 @@ class IRUserStoreMongo(AbstractIRUserStore):
         if (self.mongoConnection()):
             try:
                 dbLink = self._dbConnection[self._dbName]
-                collection = dbLink["data"]
+                collection = dbLink[self._usercollection]
                                 
                 if(userIdtoSearch!=None):
                                    
@@ -951,7 +1017,7 @@ class IRUserStoreMongo(AbstractIRUserStore):
         if (self.mongoConnection()):
             try:
                 dbLink = self._dbConnection[self._dbName]
-                collection = dbLink["data"]     
+                collection = dbLink[self._usercollection]     
                 
                 currentSize=collection.find_one({"userId": userId})
                 
@@ -985,7 +1051,7 @@ class IRUserStoreMongo(AbstractIRUserStore):
             try:
                 if(self.isAdmin(userId)):
                     dbLink = self._dbConnection[self._dbName]
-                    collection = dbLink["data"]     
+                    collection = dbLink[self._usercollection]     
                     
                     collection.update({"userId": userIdtoModify}, 
                                       {"$set": {"role" : role}
@@ -1016,7 +1082,7 @@ class IRUserStoreMongo(AbstractIRUserStore):
             try:
                 if(self.isAdmin(userId)):
                     dbLink = self._dbConnection[self._dbName]
-                    collection = dbLink["data"]     
+                    collection = dbLink[self._usercollection]     
                     
                     collection.update({"userId": userIdtoModify}, 
                                       {"$set": {"fsCap" : quota}
@@ -1047,7 +1113,7 @@ class IRUserStoreMongo(AbstractIRUserStore):
             try:
                 if(self.isAdmin(userId)):
                     dbLink = self._dbConnection[self._dbName]
-                    collection = dbLink["data"]     
+                    collection = dbLink[self._usercollection]     
                     
                     collection.update({"userId": userIdtoModify}, 
                                       {"$set": {"status" : status}
@@ -1078,7 +1144,7 @@ class IRUserStoreMongo(AbstractIRUserStore):
             try:
                 if(self.isAdmin(userId)):
                     dbLink = self._dbConnection[self._dbName]
-                    collection = dbLink["data"]     
+                    collection = dbLink[self._usercollection]     
                     
                     collection.remove({"userId": userIdtoDel}, safe=True)
                     
@@ -1124,7 +1190,7 @@ class IRUserStoreMongo(AbstractIRUserStore):
         if (self.mongoConnection()):            
             try:
                 dbLink = self._dbConnection[self._dbName]
-                collection = dbLink["data"]
+                collection = dbLink[self._usercollection]
                 output=collection.find_one()
                 
                 if (output==None):                    
@@ -1184,7 +1250,7 @@ class IRUserStoreMongo(AbstractIRUserStore):
            
         try:
             dbLink = self._dbConnection[self._dbName]
-            collection = dbLink["data"]
+            collection = dbLink[self._usercollection]
                              
             aux=collection.find_one({"userId": userId})
             if (aux!=None):
