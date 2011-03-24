@@ -196,10 +196,16 @@ class IRService(object):
         for i in range(len(output['head'])):
             stradd+="-"    
         output ['head']+=stradd
-                
+
         if(imgs!=None):
             for key in imgs.keys():
-                output[key]=imgs[key]._imgId+"  "+str(imgs[key]._createdDate)+"  "+ \
+                spaces=""
+                num=24-len(imgs[key]._imgId)
+                if (num>0):                                                  
+                    for i in range(num):
+                        spaces+=" "
+                        
+                output[key]=imgs[key]._imgId+spaces+"  "+str(imgs[key]._createdDate)+"  "+ \
                         str(imgs[key]._lastAccess)+"    "+str(imgs[key]._accessCount)+"\n"
         
         return output
