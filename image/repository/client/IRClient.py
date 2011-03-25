@@ -42,7 +42,7 @@ def usage():
 --setUserquota <userId> <quota>                modify user quota
 --setUserRole  <userId> <role>                 modify user role
 --setUserStatus <userId> <status>              modify user status
--i/--histimg <imgId>                           get usage info of an image
+-i/--histimg [imgId]                           get usage info of an image
 -u/--histuser <userId>                         get usage info of a user
           '''
 
@@ -156,9 +156,6 @@ def main():
                 for key in imgs.keys():
                     if key != 'head':
                         print imgs[key]
-                
-               
-                
                 
             elif o in ("-u", "--histuser"):
                 print "in user usage"
