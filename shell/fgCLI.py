@@ -45,6 +45,7 @@ class fgShell(fgShellUtils,
         #Help
         self._docHelp=[]
         self._undocHelp=[]
+        self._specdocHelp=[]
         self.getDocUndoc("")
         
         self.prompt = "fg> "
@@ -151,6 +152,7 @@ class fgShell(fgShellUtils,
         base_cmds+=base_cmd2
         final_doc=[]
         final_undoc=[]
+        spec_doc=[]
         names=dir(self.__class__)
         help = {}
         cmds_doc=[]
@@ -207,14 +209,19 @@ class fgShell(fgShellUtils,
                     final_doc.append(i)
                 elif (i in cmds_undoc):
                     final_undoc.append(i)
-                                
-            for i in use_doc:               
+            
+            final_doc.sort()
+            final_undoc.sort()
+                               
+            for i in use_doc:
                 if i[len(self._use):] in cmds_doc:
-                    final_doc.append(i[len(self._use):])
+                    #final_doc.append(i[len(self._use):])
+                    spec_doc.append(i[len(self._use):])
                 elif i[len(self._use):] in cmds_undoc:
                     final_undoc.append(i[len(self._use):])
                 else:
-                    final_doc.append(i)
+                    #final_doc.append(i)
+                    spec_doc.append(i)
                     
             for i in use_undoc:
                 if i[len(self._use):] in cmds_undoc:
@@ -223,6 +230,7 @@ class fgShell(fgShellUtils,
                     final_undoc.append(i)              
             self._docHelp=final_doc
             self._undocHelp=final_undoc
+            self._specdocHelp=spec_doc
     
     def do_help(self, args):
         """Get help on commands
@@ -239,7 +247,7 @@ class fgShell(fgShellUtils,
     def customHelpNoContext(self,args):
         if args:
             try:
-                func = getattr(self, 'help_'+self._use + args)
+                func = getattr(self, 'help_'+self._use + args)                
             except AttributeError:
                 try:
                     doc=getattr(self, 'do_'+self._use + args).__doc__
@@ -265,10 +273,12 @@ class fgShell(fgShellUtils,
                   "You can see the available Contexts by executing show \n" 
             
     def customHelp(self,args):
-        if args:
+        if args:            
+            if (args.strip().startswith(self._use)):
+                args=args[len(self._use):]
             try:
                 func = getattr(self, 'help_'+self._use + args)
-            except AttributeError:
+            except AttributeError:                
                 try:
                     doc=getattr(self, 'do_'+self._use + args).__doc__
                     if doc:
@@ -282,10 +292,12 @@ class fgShell(fgShellUtils,
         else:      
             self.getDocUndoc(self._use)
             
-            doc_header="Documented commands in the "+self._use+" context (type help <topic>):"
+            doc_header="General documented commands in the "+self._use+" context (type help <topic>):"
             undoc_header="Undocumented commands in the "+self._use+" context (type help <topic>):"
+            specdoc_header="Specific documented commands in the "+self._use+" context (type help <topic>):"
             
             cmd.Cmd.print_topics(self, doc_header, self._docHelp, 15, 80)
+            cmd.Cmd.print_topics(self, specdoc_header, self._specdocHelp, 15, 80)
             #cmd.Cmd.print_topics(self,cmd.Cmd.misc_header, help.keys(), 15,80)
             cmd.Cmd.print_topics(self, undoc_header, self._undocHelp, 15, 80)
     
@@ -337,6 +349,7 @@ class fgShell(fgShellUtils,
         """Terminates the shell, performing various clean-up actions."""
 
         #DEBUG("Terminating the shell")  #CHANGE TO PYTHON LOGS
+        print "\nExiting...\n"
         sys.exit(1)
 
     do_q = do_exit = do_quit
@@ -371,7 +384,7 @@ class fgShell(fgShellUtils,
            Despite the claims in the Cmd documentaion, Cmd.postloop() is not a stub.
         """
         cmd.Cmd.postloop(self)   ## Clean up command completion
-        print "Exiting..."
+        print "\nExiting..."
 
     def precmd(self, line):
         """ This method is called after the line has been input but before

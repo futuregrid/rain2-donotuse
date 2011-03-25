@@ -341,6 +341,27 @@ class fgShellUtils(Cmd):
         else:
             print "You need to provide a Context executing the use <context> \n"+ \
                   "You can see the available Contexts by executing show "
+    
+    #################################
+    #Hist img
+    #################################
+        
+    def do_histimg(self, args):
+        """
+        Generic histimg command that changes its behaviour depending on the 
+        context specified with the use command.
+        """
+        if(self._use!=""):            
+            command="self.do_"+self._use+"histimg(\""+args+"\")"
+            #print command
+            try:
+                eval(command)
+            except AttributeError:
+                print "The "+self._use+" context does not have a histimg method "
+                self._log.error(str(sys.exc_info()))
+        else:
+            print "You need to provide a Context executing the use <context> \n"+ \
+                  "You can see the available Contexts by executing show "
                                 
     ##########################################################################
     # LOAD

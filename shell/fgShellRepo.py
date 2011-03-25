@@ -32,6 +32,28 @@ class fgShellRepo(Cmd):
         print opts.slow
         self._log.error("SHElll test in fgshell repo")
     
+    def do_repohistimg(self, args):        
+        args=self.getArgs(args)
+        
+        if(len(args)==1):
+            imgsList=self._service.histImg(os.popen('whoami', 'r').read().strip(), args[0])
+        else:
+            imgsList=self._service.histImg(os.popen('whoami', 'r').read().strip(), "None")
+        
+        try:
+            imgs = eval(imgsList[0])            
+            print imgs['head']
+            for key in imgs.keys():
+                if key != 'head':
+                    print imgs[key]     
+        except:
+            print "do_repohistimg: Error:"+str(sys.exc_info()[0])+"\n"                
+            self._log.error("do_repouserlist: Error interpreting the list of images from Image Repository"+str(sys.exc_info()[0]))
+       
+    def help_repohistimg(self):
+        print  "Image Repository histimg command: Return information about the image historical usage. \n "+ \
+               "                                  It has one optional argument [imgId]\n"
+    
     def do_repouseradd(self, args):
         args=self.getArgs(args)                
         if (len(args)==1):
