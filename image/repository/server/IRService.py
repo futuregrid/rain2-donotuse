@@ -210,6 +210,21 @@ class IRService(object):
         
         return output
     
+    def histuser(self,userId,userIdtoSearch):        
+        output={}
+        output ['head'] = "    User Id \t\t     Last Login \t   #Owned Images \n"
+        output ['head']=string.expandtabs(output ['head'],8)
+        stradd=""
+        for i in range(len(output['head'])):
+            stradd+="-"    
+        output ['head']+=stradd
+        
+        user=self.userStore.queryStore(userIdtoSearch)                
+                                
+        
+        
+        
+    
     def _createImgMeta(self, userId, imgId, attributeString, update):  ##We assume that values are check in client side
         """
         Create a ImgMeta object from a list of attributes

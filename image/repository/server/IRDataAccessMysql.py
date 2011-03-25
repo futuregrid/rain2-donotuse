@@ -606,6 +606,37 @@ class ImgMetaStoreMysql(AbstractImgMetaStore):
         
         return success
     
+    def getNumOwnedImgs(self, userId):
+        """
+        Query the DB and provides the number of images owned by a particular user
+        
+        return int        
+        """
+        num=0
+        if (self.mysqlConnection()):
+            try:
+                
+                sql="select imgId from "+self._tablemeta+" where owner="+userId
+                
+                cursor.execute(sql)
+                results=cursor.fetchall()
+                
+                num=len(results)
+                
+            except MySQLdb.Error, e:
+                self._log.error("Error %d: %s" % (e.args[0], e.args[1]))                                           
+            except IOError as (errno, strerror):
+                self._log.error("I/O error({0}): {1}".format(errno, strerror))
+                self._log.error("No such file or directory. Image details: "+item.__str__())                
+            except TypeError as detail:
+                self._log.error("TypeError in ImgMetaStoreMysql - getNumOwnedImgs: "+format(detail))
+            finally:
+                self._dbConnection.close()                      
+        else:
+            self._log.error("Could not get access to the database in ImgMetaStoreMysql. Query failed")
+       
+        return num
+    
     def getItems(self, criteria):
         if self.queryStore(criteria):
             return self._items
