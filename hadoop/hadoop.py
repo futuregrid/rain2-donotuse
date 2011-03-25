@@ -30,6 +30,9 @@ class hadoop:
       
     def command (self, argument):
         print "interprete a hadop command here"
+    
+    def runJob(self):
+        print "Run a hadoop job"
         
 #
 #

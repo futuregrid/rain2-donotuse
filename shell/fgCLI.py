@@ -15,6 +15,7 @@ import readline
 import sys
 from futuregrid.shell.fgShellUtils import fgShellUtils
 from futuregrid.shell.fgShellRepo import fgShellRepo
+from futuregrid.shell.fgShellHadoop import fgShellHadoop
 from futuregrid.shell.fgShellConf import fgShellConf
 import logging
 
@@ -23,7 +24,7 @@ from cmd2 import Cmd
 
 class fgShell(fgShellUtils,
               Cmd,               
-              fgShellRepo):
+              fgShellRepo, fgShellHadoop):
     
     def __init__(self, silent=False):
         
@@ -37,7 +38,7 @@ class fgShell(fgShellUtils,
         
         
         #Context        
-        self.env=["repo","rain",""]
+        self.env=["repo","rain","hadoop",""]
         self._use=""
         self._contextOn=[] # initialized contexts
         
@@ -82,6 +83,8 @@ class fgShell(fgShellUtils,
             
             if (arg=="repo"):
                 requirements=["Repo"]
+            elif (arg=="hadoop"):
+                requirements=["Hadoop"]
             #elif (arg=="rain"):
             #    requirements=["Repo","Gene","Rain"] #rain context requires initialize repo and generation             
             
