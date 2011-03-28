@@ -19,7 +19,7 @@ __version__ = '0.1'
 import os, sys
 import os.path
 from getopt import gnu_getopt, GetoptError
-
+from datetime import datetime
 from IRTypes import ImgMeta
 from IRTypes import ImgEntry
 from IRTypes import IRUser
@@ -150,8 +150,9 @@ class IRService(object):
                     #with MongoDB I put the metadata with the ImgEntry            
                     status=self.metaStore.addItem(aMeta)
                 
-                #Add size to user
-                status=self.userStore.updateDiskUsed(userId,size)
+                #Add size and #imgs to user
+                status=self.userStore.updateAccounting(userId,size,1)
+                
                 
             else:
                 self._log.error("File size must be higher than 0")
@@ -182,7 +183,7 @@ class IRService(object):
         size=[0] #Size is output parameter in the first call. 
         status=self.imgStore.removeItem(userId, imgId, size) 
         if(status):
-            status=self.userStore.updateDiskUsed(userId, -(size[0]))
+            status=self.userStore.updateAccounting(userId, -(size[0]), -1)
         return status
     
     def histImg(self,userId, imgId):
@@ -210,18 +211,33 @@ class IRService(object):
         
         return output
     
-    def histuser(self,userId,userIdtoSearch):        
+    def histUser(self,userId,userIdtoSearch):        
         output={}
-        output ['head'] = "    User Id \t\t     Last Login \t   #Owned Images \n"
+        output ['head'] = "User Id  Used Disk \t\t  Last Login  \t\t #Owned Images \n"
         output ['head']=string.expandtabs(output ['head'],8)
         stradd=""
         for i in range(len(output['head'])):
             stradd+="-"    
         output ['head']+=stradd
         
-        user=self.userStore.queryStore(userIdtoSearch)                
-                                
+        if (userIdtoSearch=="None"):
+            userIdtoSearch=None
         
+        users=self.userStore.queryStore(userId, userIdtoSearch)      
+                                
+        if(users!=None):
+            for key in users.keys():
+                spaces=""
+                num=8-len(users[key]._userId)
+                if (num>0):                                                  
+                    for i in range(num):
+                        spaces+=" "
+                
+                                        
+                output[key]=users[key]._userId+spaces+"   "+str(users[key]._fsUsed).split(".")[0]+" \t\t "+ \
+                        str(users[key]._lastLogin)+"   \t "+str(users[key]._ownedImgs).split(".")[0]+"\n"
+        
+        return output
         
         
     
@@ -367,7 +383,8 @@ def main():
             print service.printHistImg(imgs)
 
         elif o in ("-u", "--histuser"):
-            print "in user usage"
+            print service.histUser(os.popen('whoami', 'r').read().strip(),args[0])            
+            
         elif o in ("--uploadValidator"):
             print service.uploadValidator(os.popen('whoami', 'r').read().strip(), int(args[0]))
             #print service.uploadValidator("javi", 0)

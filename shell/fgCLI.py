@@ -307,7 +307,8 @@ class fgShell(fgShellUtils,
     def completenames(self, *args):
         listcmd=set(i for i in self._docHelp if i.startswith(args[0]))
         listcmd1=set(i for i in self._undocHelp if i.startswith(args[0]))
-        return list(listcmd|listcmd1)
+        listcmd2=set(i for i in self._specdocHelp if i.startswith(args[0]))
+        return list(listcmd|listcmd1|listcmd2)
     
     ##########################################################################
     # PYTHON AND SHELL EXECUTION

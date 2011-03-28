@@ -48,11 +48,33 @@ class fgShellRepo(Cmd):
                     print imgs[key]     
         except:
             print "do_repohistimg: Error:"+str(sys.exc_info()[0])+"\n"                
-            self._log.error("do_repouserlist: Error interpreting the list of images from Image Repository"+str(sys.exc_info()[0]))
+            self._log.error("do_repohistimg: Error interpreting the list of images from Image Repository"+str(sys.exc_info()[0]))
        
     def help_repohistimg(self):
         print  "Image Repository histimg command: Return information about the image historical usage. \n "+ \
                "                                  It has one optional argument [imgId]\n"
+    
+    def do_repohistuser(self, args):        
+        args=self.getArgs(args)
+        
+        if(len(args)==1):
+            userList=self._service.histUser(os.popen('whoami', 'r').read().strip(), args[0])
+        else:
+            userList=self._service.histUser(os.popen('whoami', 'r').read().strip(), "None")
+        
+        try:
+            users = eval(userList[0])            
+            print users['head']
+            for key in users.keys():
+                if key != 'head':
+                    print users[key]     
+        except:
+            print "do_repohistimg: Error:"+str(sys.exc_info()[0])+"\n"                
+            self._log.error("do_repohistuser: Error interpreting the list of users from Image Repository"+str(sys.exc_info()[0]))
+       
+    def help_repohistuser(self):
+        print  "Image Repository histuser command: Return information about the user historical usage. \n "+ \
+               "                                  It has one optional argument [userId]\n"
     
     def do_repouseradd(self, args):
         args=self.getArgs(args)                

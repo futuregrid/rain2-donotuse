@@ -158,7 +158,18 @@ def main():
                         print imgs[key]
                 
             elif o in ("-u", "--histuser"):
-                print "in user usage"
+                if(len(args)==1):
+                    imgsList=service.histUser(os.popen('whoami', 'r').read().strip(), args[0])
+                else:
+                    imgsList=service.histUser(os.popen('whoami', 'r').read().strip(), "None")
+                
+                
+                imgs = eval(imgsList[0])
+                
+                print imgs['head']
+                for key in imgs.keys():
+                    if key != 'head':
+                        print imgs[key]
             elif o in ("-m", "--modify"): 
                 if (len(args)==2):
                     success=service.updateItem(os.popen('whoami', 'r').read().strip(), args[0], args[1])

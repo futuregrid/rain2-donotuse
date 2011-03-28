@@ -217,7 +217,12 @@ class IRServiceProxy(object):
                     "IRService.py --histimg " + " " + imgId + "'"
                 
         return self._rExec(userId, cmdexec)
-        
+    
+    def histUser(self,userId, userIdtoSearch):
+        cmdexec = " '" + self._serverdir + \
+                    "IRService.py --histuser " + " " + userIdtoSearch + "'"
+                
+        return self._rExec(userId, cmdexec)    
     
     def checkMeta(self,attributeString):        
         attributes = attributeString.split("|")

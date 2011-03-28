@@ -958,7 +958,7 @@ class IRUserStoreMongo(AbstractIRUserStore):
                     if not dic == None:
                         
                         tmpUser[dic['userId']] = IRUser(dic['userId'], dic['cred'], dic['fsCap'], dic['fsUsed'],dic['lastLogin'], 
-                                              dic["status"], dic["role"])
+                                              dic["status"], dic["role"],dic["ownedImgs"])
                         found = True
                 elif (self.isAdmin(userId)):
                     dicList=collection.find()
@@ -966,7 +966,7 @@ class IRUserStoreMongo(AbstractIRUserStore):
                     for dic in dicList:
                         
                         tmpUser[dic['userId']] = IRUser(dic['userId'], dic['cred'], dic['fsCap'], dic['fsUsed'],dic['lastLogin'], 
-                                              dic["status"], dic["role"])
+                                              dic["status"], dic["role"],dic["ownedImgs"])
                         found = True
                                                   
             except pymongo.errors.AutoReconnect: 
@@ -1002,7 +1002,7 @@ class IRUserStoreMongo(AbstractIRUserStore):
     
         return self.queryStore(userId,userId)[userId]
     
-    def updateDiskUsed (self, userId, size):     
+    def updateAccounting (self, userId, size, num):     
         """
         Update the disk usage of a user when it add a new Image
         
@@ -1019,19 +1019,20 @@ class IRUserStoreMongo(AbstractIRUserStore):
                 dbLink = self._dbConnection[self._dbName]
                 collection = dbLink[self._usercollection]     
                 
-                currentSize=collection.find_one({"userId": userId})
+                user=collection.find_one({"userId": userId})                               
                 
-                totalSize= int(currentSize['fsUsed']) + int(size)
+                totalSize= int(user['fsUsed']) + int(size)
+                total=int(user['ownedImgs'])+int(num)
                 collection.update({"userId": userId}, 
-                                  {"$set": {"fsUsed" : totalSize,}
+                                  {"$set": {"fsUsed" : totalSize, "ownedImgs":total}
                                             }, safe=True)
                 success=True
             except pymongo.errors.AutoReconnect:
-                self._log.warning("Autoreconnected in IRUserStoreMongo - updateDiskUsed") 
+                self._log.warning("Autoreconnected in IRUserStoreMongo - updateAccounting") 
             except pymongo.errors.ConnectionFailure:
                 self._log.error("Connection failure: the query cannot be performed ")  
             except TypeError as detail:
-                self._log.error("TypeError in IRUserStoreMongo - updateDiskUsed")
+                self._log.error("TypeError in IRUserStoreMongo - updateAccounting")
             finally:
                 self._dbConnection.disconnect()    
         else:
@@ -1210,7 +1211,8 @@ class IRUserStoreMongo(AbstractIRUserStore):
                                 "fsCap"  : user._fsCap,
                                 "lastLogin" : user._lastLogin,
                                 "status" : user._status,
-                                "role" : user._role,                                                  
+                                "role" : user._role,
+                                "ownedImgs" : user._ownedImgs                                              
                                 }            
 
                         if (collection.find_one({"userId": user._userId}) == None):

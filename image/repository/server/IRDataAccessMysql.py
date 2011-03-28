@@ -166,7 +166,7 @@ class ImgStoreMysql(AbstractImgStore):
                 cursor.execute(sql)
                 results=cursor.fetchall()
                 
-                self._log.debug(str(results))
+                #self._log.debug(str(results))
                                              
                 for dic in results:               
                     tmpEntry=ImgEntry(dic[0],"","",0,str(dic[1]).split(".")[0],str(dic[2]).split(".")[0],dic[3])                    
@@ -606,36 +606,6 @@ class ImgMetaStoreMysql(AbstractImgMetaStore):
         
         return success
     
-    def getNumOwnedImgs(self, userId):
-        """
-        Query the DB and provides the number of images owned by a particular user
-        
-        return int        
-        """
-        num=0
-        if (self.mysqlConnection()):
-            try:
-                
-                sql="select imgId from "+self._tablemeta+" where owner="+userId
-                
-                cursor.execute(sql)
-                results=cursor.fetchall()
-                
-                num=len(results)
-                
-            except MySQLdb.Error, e:
-                self._log.error("Error %d: %s" % (e.args[0], e.args[1]))                                           
-            except IOError as (errno, strerror):
-                self._log.error("I/O error({0}): {1}".format(errno, strerror))
-                self._log.error("No such file or directory. Image details: "+item.__str__())                
-            except TypeError as detail:
-                self._log.error("TypeError in ImgMetaStoreMysql - getNumOwnedImgs: "+format(detail))
-            finally:
-                self._dbConnection.close()                      
-        else:
-            self._log.error("Could not get access to the database in ImgMetaStoreMysql. Query failed")
-       
-        return num
     
     def getItems(self, criteria):
         if self.queryStore(criteria):
@@ -924,6 +894,7 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
         separated by commas)
         """
         return "192.168.1.1:23000,192.168.1.8:23000"
+        
     
     def queryStore(self, userId, userIdtoSearch):
         """
@@ -947,16 +918,16 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
                 cursor= self._dbConnection.cursor()
                 
                 if(userIdtoSearch!=None):
-                
-                    sql = "SELECT * FROM %s WHERE userId = '%s' "% (self._tabledata, userId)
-                    cursor.execute(sql)
-                    results=cursor.fetchone()                    
-                    
-                    if (results != None):
-                        tmpUser[results[0]]=IRUser(results[0],results[1],int(results[2]),int(results[3]),
-                                              results[4],results[5],results[6])
-                        #self._log.debug("queryStore  "+str(tmpUser))                                                                        
-                    found=True                 
+                    if(userIdtoSearch==userId or self.isAdmin(userId)):
+                        sql = "SELECT * FROM %s WHERE userId = '%s' "% (self._tabledata, userIdtoSearch)
+                        cursor.execute(sql)
+                        results=cursor.fetchone()                  
+                        
+                        if (results != None):
+                            tmpUser[results[0]]=IRUser(results[0],results[1],int(results[2]),int(results[3]),
+                                                  results[4],results[5],results[6])
+                            #self._log.debug("queryStore  "+str(tmpUser))                                                                        
+                        found=True                 
                 elif (self.isAdmin(userId)):
                     sql = "SELECT * FROM %s"% (self._tabledata)
                     cursor.execute(sql)
@@ -997,9 +968,9 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
         return self.queryStore(userId,userId)[userId]
 
     
-    def updateDiskUsed (self, userId, size): #TODO verify this. Decide if size will be a string or a int    
+    def updateAccounting (self, userId, size, num):     
         """
-        Update the disk usage of a user when it add a new Image
+        Update the disk usage and number of owned images of a user when it add a new Image
         
         keywords:
         userId
@@ -1013,15 +984,17 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
                 if(self.isAdmin(userId)):
                     cursor= self._dbConnection.cursor()
                     
-                    sql = "SELECT fsUsed FROM %s WHERE userId = '%s' "% (self._tabledata, userId)
+                    sql = "SELECT fsUsed, ownedImgs FROM %s WHERE userId = '%s' "% (self._tabledata, userId)
                     cursor.execute(sql)
                     results=cursor.fetchone()                    
                     currentSize=results[0]
+                    currentNum=results[1]
                     
                     totalSize=int(currentSize)+int(size)
+                    total=int(currentNum)+int(num)
                     
-                    update="UPDATE %s SET fsUsed='%d'WHERE userId='%s'" \
-                                   % (self._tabledata, totalSize, userId)
+                    update="UPDATE %s SET fsUsed='%d',ownedImgs='%d' WHERE userId='%s'" \
+                                   % (self._tabledata, totalSize, total, userId)
                     
                     cursor.execute(update)
                     self._dbConnection.commit()
@@ -1034,13 +1007,14 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
             except IOError as (errno, strerror):
                 self._log.error("I/O error({0}): {1}".format(errno, strerror))                                
             except TypeError as detail:
-                self._log.error("TypeError in IRUserStoreMongo - updateDiskUsed: "+format(detail))
+                self._log.error("TypeError in IRUserStoreMongo - updateAccounting: "+format(detail))
             finally:
                 self._dbConnection.close()                      
         else:
             self._log.error("Could not get access to the database. The disk usage has not been changed")
        
         return success
+    
     
     def setRole(self, userId, userIdtoModify, role):
         """
@@ -1225,10 +1199,10 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
                         user._lastLogin=datetime.fromordinal(1) #creates time 0001-01-01 00:00:00
                                           
                         sql = "INSERT INTO %s (userId, cred, fsUsed, fsCap, \
-                        lastLogin, status, role) \
-           VALUES ('%s', '%s', '%d', '%d', '%s', '%s', '%s')" % \
+                        lastLogin, status, role, ownedImgs) \
+           VALUES ('%s', '%s', '%d', '%d', '%s', '%s', '%s', %d)" % \
            (self._tabledata, user._userId,user._cred, user._fsUsed,user._fsCap, user._lastLogin,
-                user._status, user._role,)
+                user._status, user._role, user._ownedImgs)
                            
                         cursor.execute(sql)
                         self._dbConnection.commit()

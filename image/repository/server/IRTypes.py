@@ -22,7 +22,7 @@ class IRUser(object):
     
     #fsCap in bytes. 4G by default
     def __init__(self, userId, cred=None, fsCap=4294967296, fsUsed=0, 
-                 lastLogin=None, status=Status[0], role=Role[0]):
+                 lastLogin=None, status=Status[0], role=Role[0], ownedImgs=0):
         super(IRUser, self).__init__()
         self._userId = userId
         self._cred = cred
@@ -31,19 +31,20 @@ class IRUser(object):
         self._lastLogin = None
         self._status = status
         self._role = role
+        self._ownedImgs=ownedImgs
         
     def setCred(self,cred):
         self._cred = cred
     
     def __repr__(self):
-        return "\"userId=%s, cred=%s, fsCap=%s, fsUsed=%s, lastLogin=%s, status=%s, role=%s\"" % \
+        return "\"userId=%s, cred=%s, fsCap=%s, fsUsed=%s, lastLogin=%s, status=%s, role=%s, ownedImgs=%s \"" % \
                 (self._userId, self._cred, self._fsCap, self._fsUsed, \
-                 self._lastLogin, self._status, self._role)
+                 self._lastLogin, self._status, self._role, self._ownedImgs)
     
     def __str__(self):
-        return "\"%s, %s, %d, %d, %s, %s, %s\"" % \
+        return "\"%s, %s, %d, %d, %s, %s, %s, %s\"" % \
                 (self._userId, self._cred, self._fsCap, self._fsUsed, \
-                 self._lastLogin, self._status, self._role)
+                 self._lastLogin, self._status, self._role, self._ownedImgs)
           
 class ImgMeta(object):
     
