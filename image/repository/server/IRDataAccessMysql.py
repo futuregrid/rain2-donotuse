@@ -238,7 +238,7 @@ class ImgStoreMysql(AbstractImgStore):
                 self._log.error("I/O error({0}): {1}".format(errno, strerror))
                 self._log.error("No such file or directory. Image details: "+item.__str__())                
             except TypeError as detail:
-                self._log.error("TypeError in ImgMetaStoreMysql - queryToStore: "+format(detail))
+                self._log.error("TypeError in ImgStoreMysql - queryToStore: "+format(detail))
             finally:
                 self._dbConnection.close()                      
         else:
@@ -282,7 +282,7 @@ class ImgStoreMysql(AbstractImgStore):
                 self._log.error("I/O error({0}): {1}".format(errno, strerror))
                 self._log.error("No such file or directory. Image details: "+item.__str__())                 
             except TypeError as detail:
-                self._log.error("TypeError in ImgMetaStoreMongo - persistToStore "+format(detail))
+                self._log.error("TypeError in ImgStoreMysql - persistToStore "+format(detail))
             finally:
                 self._dbConnection.close()                      
         else:
@@ -317,7 +317,7 @@ class ImgStoreMysql(AbstractImgStore):
             con= MySQLdb.connect(host=self._mysqlAddress,                                                                                  
                                            db=self._dbName,
                                            read_default_file=self._mysqlcfg,
-                                           user="IRUser")
+                                           user=self._iradminsuer)
             if(self.existAndOwner(imgId, userId)):            
                 try:
                     cursor= con.cursor()
@@ -439,7 +439,7 @@ class ImgStoreMysql(AbstractImgStore):
        
         return public
                      
-    def mysqlConnection(self):  ##WHY IT DOES CONNECT HERE. in python command line works
+    def mysqlConnection(self):  
         """connect with the mongos available
         
         .mysql.cnf contains:
@@ -465,7 +465,7 @@ class ImgStoreMysql(AbstractImgStore):
 
         return connected 
   
-#MIND THE CONNECTION (I have to close the connection)
+
 
 
 
@@ -899,15 +899,7 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
     def queryStore(self, userId, userIdtoSearch):
         """
         Query the db and store the documents in self._items
-        
-        keyword:
-           criteria:
-                *      
-                * where field=XX, field2=YY
-                field1, field2    
-                field1,field2 where field3=XX, field4=YY               
-                
-        TODO:  after the where, the two parts of the equal must be together with no white spaces.                
+                      
                                 
         return list of dictionaries with the Metadata
         """
@@ -917,17 +909,17 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
             try:                
                 cursor= self._dbConnection.cursor()
                 
-                if(userIdtoSearch!=None):
-                    if(userIdtoSearch==userId or self.isAdmin(userId)):
+                if(userIdtoSearch!=None):                    
+                    if(userIdtoSearch==userId or self.isAdmin(userId)):                        
                         sql = "SELECT * FROM %s WHERE userId = '%s' "% (self._tabledata, userIdtoSearch)
                         cursor.execute(sql)
                         results=cursor.fetchone()                  
                         
                         if (results != None):
                             tmpUser[results[0]]=IRUser(results[0],results[1],int(results[2]),int(results[3]),
-                                                  results[4],results[5],results[6])
-                            #self._log.debug("queryStore  "+str(tmpUser))                                                                        
-                        found=True                 
+                                                  results[4],results[5],results[6],results[7])
+                            self._log.debug("queryStore  "+str(tmpUser))                                                                        
+                            found=True                 
                 elif (self.isAdmin(userId)):
                     sql = "SELECT * FROM %s"% (self._tabledata)
                     cursor.execute(sql)
@@ -935,9 +927,9 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
                     
                     for result in results:
                         tmpUser[result[0]]=IRUser(result[0],result[1],int(result[2]),int(result[3]),
-                                              result[4],result[5],result[6])
+                                              result[4],result[5],result[6],result[7])
                         #self._log.debug("queryStore  "+str(tmpUser))                                                                      
-                    found=True      
+                        found=True      
                     
             except MySQLdb.Error, e:
                 self._log.error("Error %d: %s" % (e.args[0], e.args[1]))                
@@ -965,7 +957,11 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
         return: IRUser object
         """
     
-        return self.queryStore(userId,userId)[userId]
+        user=self.queryStore(userId,userId)
+        if(user!=None):
+            return user[userId]
+        else:
+            return None
 
     
     def updateAccounting (self, userId, size, num):     
@@ -992,6 +988,11 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
                     
                     totalSize=int(currentSize)+int(size)
                     total=int(currentNum)+int(num)
+                    
+                    if(totalSize<0):
+                        totalSize=0
+                    if(total<0):
+                        total=0
                     
                     update="UPDATE %s SET fsUsed='%d',ownedImgs='%d' WHERE userId='%s'" \
                                    % (self._tabledata, totalSize, total, userId)

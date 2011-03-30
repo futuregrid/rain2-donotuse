@@ -294,8 +294,8 @@ class IRServiceProxy(object):
             stat=os.system(cmdscp)
             if (stat == 0):
                 output = "The image " + imgId + " is located in " + os.popen('pwd', 'r').read().strip() + "/" + imgId + ".img"
-                if (self._backend=="mongodb"):
-                    cmdrm=" rm -rf " + (imgURI).split(":")[1]
+                if (self._backend=="mongodb" or self._backend=="swiftmysql"):
+                    cmdrm=" rm -f " + (imgURI).split(":")[1]
                     print "Post processing"
                     self._rExec(userId, cmdrm)
             else:

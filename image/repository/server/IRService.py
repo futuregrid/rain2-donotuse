@@ -37,6 +37,13 @@ elif(IRUtil.getBackend()=="mysql"):
     from IRDataAccessMysql import ImgStoreMysql
     from IRDataAccessMysql import ImgMetaStoreMysql
     from IRDataAccessMysql import IRUserStoreMysql
+elif(IRUtil.getBackend()=="swiftmysql"):
+    from IRDataAccessMysql import ImgStoreMysql
+    from IRDataAccessMysql import ImgMetaStoreMysql
+    from IRDataAccessMysql import IRUserStoreMysql
+    from IRDataAccessSwiftMysql import ImgStoreSwiftMysql
+    from IRDataAccessSwiftMysql import ImgMetaStoreSwiftMysql
+    from IRDataAccessSwiftMysql import IRUserStoreSwiftMysql
 else:
     from IRDataAccess import ImgStoreFS
     from IRDataAccess import ImgMetaStoreFS
@@ -74,25 +81,34 @@ class IRService(object):
             self.metaStore = ImgMetaStoreMysql(self._address,self._fgserverdir,self._log)
             self.imgStore = ImgStoreMysql(self._address,self._fgserverdir,self._log)            
             self.userStore = IRUserStoreMysql(self._address,self._fgserverdir,self._log)
+        elif(self._backend == "swiftmysql"):
+            self.metaStore = ImgMetaStoreSwiftMysql(self._address,self._fgserverdir,self._log)
+            self.imgStore = ImgStoreSwiftMysql(self._address,self._fgserverdir,self._log)            
+            self.userStore = IRUserStoreSwiftMysql(self._address,self._fgserverdir,self._log)
         else:
             self.metaStore = ImgMetaStoreFS()
             self.imgStore = ImgStoreFS()            
             self.userStore = IRUserStoreFS()    
         
     def uploadValidator(self, userId, size):
+        self._log.info("user:"+userId+" command:uploadValidator args={size:"+str(size)+"}")
         return self.userStore.uploadValidator(userId, size)
     
     def userAdd(self, userId, username):
+        self._log.info("user:"+userId+" command:userAdd args={userIdtoAdd:"+username+"}")
         user=IRUser(username)
         return self.userStore.userAdd(userId, user)
     
     def userDel(self, userId, userIdtoDel):
+        self._log.info("user:"+userId+" command:userDel args={userIdtoDel:"+userIdtoDel+"}")
         return self.userStore.userDel(userId, userIdtoDel)
     
     def userList(self, userId):
+        self._log.info("user:"+userId+" command:userlist")
         return self.userStore.queryStore(userId, None)
     
     def setUserRole(self, userId, userIdtoModify, role):
+        self._log.info("user:"+userId+" command:setUserRole args={userIdtoModify:"+userIdtoModify+", role:"+role+"}")
         if (role in IRUser.Role):
             return self.userStore.setRole(userId, userIdtoModify, role)
         else:
@@ -100,10 +116,12 @@ class IRService(object):
             print "Role not valid. Valid roles are "+str(IRUser.Role)
             return False
           
-    def setUserQuota(self, userId, userIdtoModify, quota):        
+    def setUserQuota(self, userId, userIdtoModify, quota):
+        self._log.info("user:"+userId+" command:setUserQuota args={userIdtoModify:"+userIdtoModify+", quota:"+str(quota)+"}")        
         return self.userStore.setQuota(userId, userIdtoModify, quota)
         
     def setUserStatus(self, userId, userIdtoModify, status):
+        self._log.info("user:"+userId+" command:setUserStatus args={userIdtoModify:"+userIdtoModify+", status:"+status+"}")
         if (status in IRUser.Status):
             return self.userStore.setUserStatus(userId, userIdtoModify, status)
         else:
@@ -116,15 +134,19 @@ class IRService(object):
         return IRUtil.auth(userId, None)
 
     def query(self, userId, queryString):
+        self._log.info("user:"+userId+" command:list args={queryString:"+queryString+"}")
         return self.metaStore.getItems(queryString)
 
     def get(self, userId, option, imgId):
+        self._log.info("user:"+userId+" command:get args={option:"+option+", imgId:"+imgId+"}")
         if (option == "img"):
             return self.imgStore.getItem(imgId, userId)
         elif (option == "uri"):
             return self.imgStore.getItemUri(imgId, userId)
 
     def put(self, userId, imgId, imgFile, attributeString, size):
+        self._log.info("user:"+userId+" command:put args={imgId:"+imgId+", imgFile:"+imgFile+", metadata:"+attributeString+",\
+                       size:"+str(size)+"}")
         """
         Register the file in the database
         
@@ -143,16 +165,20 @@ class IRService(object):
                                 
                 #put image item in the image store        
                 aImg = ImgEntry(imgId, aMeta, fileLocation, size)                
-                status=self.imgStore.addItem(aImg)
-                                
-                #put metadata into the image meta store
-                if(IRUtil.getBackend()!="mongodb"):                
-                    #with MongoDB I put the metadata with the ImgEntry            
-                    status=self.metaStore.addItem(aMeta)
+                statusImg=self.imgStore.addItem(aImg)
                 
-                #Add size and #imgs to user
-                status=self.userStore.updateAccounting(userId,size,1)
-                
+                if(statusImg):
+                    #put metadata into the image meta store
+                    if(IRUtil.getBackend()!="mongodb"):                
+                        #with MongoDB I put the metadata with the ImgEntry            
+                        statusMeta=self.metaStore.addItem(aMeta)
+                    
+                    if(statusMeta):
+                        #Add size and #imgs to user
+                        statusAcc=self.userStore.updateAccounting(userId,size,1)
+                        
+                        if (statusAcc):
+                            status=True
                 
             else:
                 self._log.error("File size must be higher than 0")
@@ -163,6 +189,7 @@ class IRService(object):
             return 0
     
     def updateItem(self, userId, imgId, attributeString):
+        self._log.info("user:"+userId+" command:updateItem args={imgId:"+imgId+",metadata:"+attributeString+"}")
         """
         Update Image Repository
         
@@ -180,6 +207,7 @@ class IRService(object):
         return success
         
     def remove(self, userId, imgId):
+        self._log.info("user:"+userId+" command:remove args={imgId:"+imgId+"}")
         size=[0] #Size is output parameter in the first call. 
         status=self.imgStore.removeItem(userId, imgId, size) 
         if(status):
@@ -187,6 +215,7 @@ class IRService(object):
         return status
     
     def histImg(self,userId, imgId):
+        self._log.info("user:"+userId+" command:histImg args={imgId:"+imgId+"}")
         return self.imgStore.histImg(imgId)
     
     def printHistImg(self,imgs):
@@ -211,7 +240,8 @@ class IRService(object):
         
         return output
     
-    def histUser(self,userId,userIdtoSearch):        
+    def histUser(self,userId,userIdtoSearch):    
+        self._log.info("user:"+userId+" command:histImg args={userIdtoSearch:"+userIdtoSearch+"}")    
         output={}
         output ['head'] = "User Id  Used Disk \t\t  Last Login  \t\t #Owned Images \n"
         output ['head']=string.expandtabs(output ['head'],8)
@@ -224,7 +254,7 @@ class IRService(object):
             userIdtoSearch=None
         
         users=self.userStore.queryStore(userId, userIdtoSearch)      
-                                
+                               
         if(users!=None):
             for key in users.keys():
                 spaces=""

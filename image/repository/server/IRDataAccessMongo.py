@@ -398,9 +398,10 @@ class ImgStoreMongo(AbstractImgStore):
         else:
             self._log.error("Could not get access to the database. The file has not been stored")
 
-        if (re.search('^/tmp/', item._imgURI)):
-            cmd="rm -rf "+ item._imgURI         
-            os.system(cmd)
+        for item in items:
+            if (re.search('^/tmp/', item._imgURI)):
+                cmd="rm -f "+ item._imgURI         
+                os.system(cmd)
         
         if (imgStored == len(items)):
             return True
@@ -1000,7 +1001,11 @@ class IRUserStoreMongo(AbstractIRUserStore):
         return: IRUser object
         """
     
-        return self.queryStore(userId,userId)[userId]
+        user=self.queryStore(userId,userId)
+        if(user!=None):
+            return user[userId]
+        else:
+            return None
     
     def updateAccounting (self, userId, size, num):     
         """
@@ -1023,6 +1028,12 @@ class IRUserStoreMongo(AbstractIRUserStore):
                 
                 totalSize= int(user['fsUsed']) + int(size)
                 total=int(user['ownedImgs'])+int(num)
+                
+                if(totalSize<0):
+                    totalSize=0
+                if(total<0):
+                    total=0
+                
                 collection.update({"userId": userId}, 
                                   {"$set": {"fsUsed" : totalSize, "ownedImgs":total}
                                             }, safe=True)

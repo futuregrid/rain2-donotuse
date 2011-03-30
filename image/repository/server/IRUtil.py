@@ -13,11 +13,17 @@ import sys, os
 __backend__="mongodb"
 __address__="localhost:23000"
 __fgirimgstoremongo__="/tmp/"
-"""
+
 #Mysql config
 __backend__= "mysql"
 __address__= "localhost"
 __fgirimgstoremysql__="/srv/irstore/"
+"""
+#Mysql-Swift
+__backend__= "swiftmysql"
+__address__= "localhost"
+__fgirimgstoreswift__="/tmp/"
+
 
 ############################################
 #DIR WHERE THE SERVER SOFTWARE IS INSTALLED (Only used to store the log and in Mysql to keep the pass)
@@ -54,6 +60,8 @@ def getFgirimgstore():
         return __fgirimgstoremongo__
     elif (__backend__=="mysql"):
         return __fgirimgstoremysql__
+    elif(__backend__=="swiftmysql"):
+        return __fgirimgstoreswift__
 
 def getLogFile():
     return __logfile__

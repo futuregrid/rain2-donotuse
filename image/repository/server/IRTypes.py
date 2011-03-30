@@ -28,7 +28,7 @@ class IRUser(object):
         self._cred = cred
         self._fsCap = fsCap
         self._fsUsed = fsUsed
-        self._lastLogin = None
+        self._lastLogin = lastLogin
         self._status = status
         self._role = role
         self._ownedImgs=ownedImgs
