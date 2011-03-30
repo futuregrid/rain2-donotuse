@@ -1216,6 +1216,9 @@ class IRUserStoreMongo(AbstractIRUserStore):
                         
                 if (authorized):    
                     for user in users:
+                        
+                        user._lastLogin=datetime.fromordinal(1) #creates time 0001-01-01 00:00:00
+                        
                         meta = {"userId": user._userId,
                                 "cred" : user._cred,
                                 "fsUsed" : user._fsUsed,
