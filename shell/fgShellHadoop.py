@@ -41,7 +41,7 @@ class fgShellHadoop(Cmd):
         else :                 
             hadoop_cmd = ''.join(args)                           
             # for some reason __init__() does not get called..Hence putting this here 
-            self._fgHadoop = fgHadoop()
+            #self._fgHadoop = fgHadoop()
             self._fgHadoop.runJob(opts, hadoop_cmd, job_name)
             #self._log.error("SHElll test in fgshell repo")
     

@@ -89,6 +89,27 @@ class fgShellUtils(Cmd):
         print "When Script is active, all commands executed are stored in a file \n" +\
               "    Activate it by executing: script <file> or just script to use the default file (`pwd`/script)\n" +\
               "    To finish and store the commands use: script end"
+    
+    #################################
+    #Run JOB
+    #################################
+        
+    def do_runjob(self, args):    
+        """
+        Generic get command that changes its behaviour depending on the 
+        context specified with the use command.
+        """    
+        if(self._use!=""):            
+            command="self.do_"+self._use+"runjob(\""+args+"\")"
+            #print command
+            try:
+                eval(command)
+            except AttributeError:
+                print "The "+self._use+" context does not have a runjob method "
+                self._log.error(str(sys.exc_info()))
+        else:
+            print "You need to provide a Context executing the use <context> \n"+ \
+                  "You can see the available Contexts by executing show "
             
     #################################
     #GET
