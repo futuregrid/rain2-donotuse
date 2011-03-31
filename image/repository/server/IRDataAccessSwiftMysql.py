@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 """
-This class is to use Mysql as Image Repository back-end
-
+This class is to use Mysql and Swift (OpenStack Storage Object) as Image Repository back-end 
 
 MySQL Databases Info:
 
-    A database with all the info is called images. It contains two tables
+    A database with all the info is called imagesS. It contains two tables
         data      (Image details and URI)
         meta        (Image metadata)
 
@@ -32,7 +31,7 @@ import sys
 
 class ImgStoreSwiftMysql(ImgStoreMysql):
 
-    def __init__(self, address,fgirdir, log):
+    def __init__(self, address, addressS, fgirdir, log):
         """
         Initialize object
         
@@ -59,7 +58,7 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
             self._mysqlAddress=self._getAddress()
         
                
-        self._swiftAddress="192.168.1.2"
+        self._swiftAddress=addressS
         self._swiftConnection=None
         self._containerName="images"
             
@@ -349,7 +348,7 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
 
 class ImgMetaStoreSwiftMysql(ImgMetaStoreMysql):
 
-    def __init__(self, address,fgirdir, log):
+    def __init__(self, address, fgirdir, log):
         """
         Initialize object
         

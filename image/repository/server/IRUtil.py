@@ -13,17 +13,27 @@ import sys, os
 __backend__="mongodb"
 __address__="localhost:23000"
 __fgirimgstoremongo__="/tmp/"
-
+"""
+"""
 #Mysql config
 __backend__= "mysql"
 __address__= "localhost"
 __fgirimgstoremysql__="/srv/irstore/"
 """
-#Mysql-Swift
+
+#Swift-Mysql
 __backend__= "swiftmysql"
-__address__= "localhost"
+__address__= "localhost"  #MysqlAddress
+__addressS__= "192.168.1.2" #Swift proxy address
 __fgirimgstoreswift__="/tmp/"
 
+"""
+#Swift-Mongo
+__backend__= "swiftmongo"
+__address__="localhost:23000"  #Mongos address
+__addressS__= "192.168.1.2"    #Swift proxy address
+__fgirimgstoreswift__="/tmp/"
+"""
 
 ############################################
 #DIR WHERE THE SERVER SOFTWARE IS INSTALLED (Only used to store the log and in Mysql to keep the pass)
@@ -70,8 +80,12 @@ def getLogLevel():
 
 def getBackend():
     return __backend__
+
 def getAddress():
     return __address__
+
+def getAddressS():
+    return __addressS__
 
 def getImgId():
     imgId = str(randrange(999999999999999999999999))

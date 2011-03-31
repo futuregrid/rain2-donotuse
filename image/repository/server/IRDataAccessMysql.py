@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-This class is to use Mysql as Image Repository back-end
+This class is to use Mysql and the Filesystem as Image Repository back-end
 
 
 MySQL Databases Info:

@@ -44,6 +44,13 @@ elif(IRUtil.getBackend()=="swiftmysql"):
     from IRDataAccessSwiftMysql import ImgStoreSwiftMysql
     from IRDataAccessSwiftMysql import ImgMetaStoreSwiftMysql
     from IRDataAccessSwiftMysql import IRUserStoreSwiftMysql
+elif(IRUtil.getBackend()=="swiftmongo"):
+    from IRDataAccessMongo import ImgStoreMongo
+    from IRDataAccessMongo import ImgMetaStoreMongo
+    from IRDataAccessMongo import IRUserStoreMongo
+    from IRDataAccessSwiftMongo import ImgStoreSwiftMongo
+    from IRDataAccessSwiftMongo import ImgMetaStoreSwiftMongo
+    from IRDataAccessSwiftMongo import IRUserStoreSwiftMongo
 else:
     from IRDataAccess import ImgStoreFS
     from IRDataAccess import ImgMetaStoreFS
@@ -68,7 +75,7 @@ class IRService(object):
         
         #Config in IRUtil
         self._backend=IRUtil.getBackend()
-        self._address=IRUtil.getAddress()        
+        self._address=IRUtil.getAddress()                
         self._fgirimgstore=IRUtil.getFgirimgstore()
         self._fgserverdir=IRUtil.getFgserverdir()
         #Setup log        
@@ -82,9 +89,13 @@ class IRService(object):
             self.imgStore = ImgStoreMysql(self._address,self._fgserverdir,self._log)            
             self.userStore = IRUserStoreMysql(self._address,self._fgserverdir,self._log)
         elif(self._backend == "swiftmysql"):
-            self.metaStore = ImgMetaStoreSwiftMysql(self._address,self._fgserverdir,self._log)
-            self.imgStore = ImgStoreSwiftMysql(self._address,self._fgserverdir,self._log)            
-            self.userStore = IRUserStoreSwiftMysql(self._address,self._fgserverdir,self._log)
+            self.metaStore = ImgMetaStoreSwiftMysql(self._address, self._fgserverdir,self._log)
+            self.imgStore = ImgStoreSwiftMysql(self._address,IRUtil.getAddressS(), self._fgserverdir,self._log)            
+            self.userStore = IRUserStoreSwiftMysql(self._address, self._fgserverdir,self._log)
+        elif(self._backend == "swiftmongo"):
+            self.metaStore = ImgMetaStoreSwiftMongo(self._address, self._fgserverdir,self._log)
+            self.imgStore = ImgStoreSwiftMongo(self._address,IRUtil.getAddressS(), self._fgserverdir,self._log)            
+            self.userStore = IRUserStoreSwiftMongo(self._address, self._fgserverdir,self._log)
         else:
             self.metaStore = ImgMetaStoreFS()
             self.imgStore = ImgStoreFS()            
@@ -169,7 +180,7 @@ class IRService(object):
                 
                 if(statusImg):
                     #put metadata into the image meta store
-                    if(IRUtil.getBackend()!="mongodb"):                
+                    if(IRUtil.getBackend()!="mongodb" or IRUtil.getBackend()!="swiftmongo"):                
                         #with MongoDB I put the metadata with the ImgEntry            
                         statusMeta=self.metaStore.addItem(aMeta)
                     

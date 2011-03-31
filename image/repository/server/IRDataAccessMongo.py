@@ -16,6 +16,7 @@ MongoDB Databases Info:
         images.fs.files  (GridFS metadata)
         images.data      (Image details)
         images.meta        (Image metadata)
+        images.users     (users)
 
 REMEBER: imgId will be _id (String) in the data collection, which is also _id (ObjectId) in fs.files. 
                In the first case it is an String and in the second one is an ObjectId
@@ -919,8 +920,8 @@ class IRUserStoreMongo(AbstractIRUserStore):
     def __init__(self, address,fgirdir, log):
         super(IRUserStoreMongo, self).__init__()        
 
-        self._dbName = "users"   #file location for users
-        self._usercollection="data"
+        self._dbName = "images"   #file location for users
+        self._usercollection="users"
         self._dbConnection=None
         self._log=log
 
