@@ -45,7 +45,7 @@ file. This file is identified by __logfile__ in IRUtil.py
 
 -MongoDB
 
-    Config example: __backend__="mongo" __address__="localhost:23000"
+    Config example: __backend__="mongodb" __address__="localhost:23000"
 
     __backend__ indicates the MongoDB connection, it could be the
     address of the mongod process in a simple installation or the
