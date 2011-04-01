@@ -12,28 +12,28 @@ import sys, os
 #MongoDB config
 __backend__="mongodb"
 __address__="localhost:23000"
-__fgirimgstoremongo__="/tmp/"
+__fgirimgstore__="/tmp/"
 """
 """
 #Mysql config
 __backend__= "mysql"
 __address__= "localhost"
-__fgirimgstoremysql__="/srv/irstore/"
+__fgirimgstore__="/srv/irstore/"
 """
-
+"""
 #Swift-Mysql
 __backend__= "swiftmysql"
 __address__= "localhost"  #MysqlAddress
 __addressS__= "192.168.1.2" #Swift proxy address
-__fgirimgstoreswift__="/tmp/"
+__fgirimgstore__="/tmp/"
 
 """
 #Swift-Mongo
 __backend__= "swiftmongo"
 __address__="localhost:23000"  #Mongos address
 __addressS__= "192.168.1.2"    #Swift proxy address
-__fgirimgstoreswift__="/tmp/"
-"""
+__fgirimgstore__="/tmp/"
+
 
 ############################################
 #DIR WHERE THE SERVER SOFTWARE IS INSTALLED (Only used to store the log and in Mysql to keep the pass)
@@ -66,12 +66,7 @@ def getMysqluser():
     return __iradmin__
 
 def getFgirimgstore():
-    if (__backend__=="mongodb"):
-        return __fgirimgstoremongo__
-    elif (__backend__=="mysql"):
-        return __fgirimgstoremysql__
-    elif(__backend__=="swiftmysql"):
-        return __fgirimgstoreswift__
+    return __fgirimgstore__
 
 def getLogFile():
     return __logfile__
