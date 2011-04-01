@@ -449,7 +449,7 @@ class fgShellUtils(Cmd):
         try:
             readline.read_history_file(histfile)
         except IOError:
-            print "error"
+            #print "error"
             pass
 
         atexit.register(readline.write_history_file, histfile)
