@@ -180,9 +180,11 @@ class IRService(object):
                 
                 if(statusImg):
                     #put metadata into the image meta store
-                    if(IRUtil.getBackend()!="mongodb" or IRUtil.getBackend()!="swiftmongo"):                
+                    if(IRUtil.getBackend()!="mongodb" and IRUtil.getBackend()!="swiftmongo"):                
                         #with MongoDB I put the metadata with the ImgEntry            
                         statusMeta=self.metaStore.addItem(aMeta)
+                    else:
+                        statusMeta=True
                     
                     if(statusMeta):
                         #Add size and #imgs to user
