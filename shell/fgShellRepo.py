@@ -63,7 +63,7 @@ class fgShellRepo(Cmd):
             userList=self._service.histUser(os.popen('whoami', 'r').read().strip(), "None")
         
         try:
-            print userList
+            #print userList
             users = eval(userList[0])            
             print users['head']            
             for key in users.keys():
