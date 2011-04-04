@@ -88,7 +88,7 @@ class fgShellRepo(Cmd):
                 print "The user has not been created. \n"+\
                       "Please verify that you are admin and that the username does not exist \n"
         else:
-            self.help_repouseadd()
+            self.help_repouseradd()
             
     def help_repouseradd(self):
         print  "Image Repository useradd command: Add new user (only Admin user can execut it) \n "+ \
@@ -105,7 +105,7 @@ class fgShellRepo(Cmd):
                 print "The user has not been deleted. \n"+\
                       "Please verify that you are admin and that the username exists \n"
         else:
-            self.help_repousedel()
+            self.help_repouserdel()
     
     def help_repouserdel(self):
         print  "Image Repository userdel command: Remove a user (only Admin user can execut it) \n"+ \
