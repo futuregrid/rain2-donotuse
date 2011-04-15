@@ -350,7 +350,7 @@ class fgShell(fgShellUtils,
         """Terminates the shell, performing various clean-up actions."""
 
         #DEBUG("Terminating the shell")  #CHANGE TO PYTHON LOGS
-        print "\nExiting...\n"
+        self.postloop()
         exit(1)
 
     do_q = do_exit = do_quit
