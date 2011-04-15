@@ -179,9 +179,17 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
         imgStored=0
                         
         if (self.mysqlConnection() and self.swiftConnection()):
+            
             try:
-                cursor= self._dbConnection.cursor()
                 contain= self._swiftConnection.get_container(self._containerName)
+            except cloudfiles.errors.NoSuchContainer:
+                self._swiftConnection.create_container(self._containerName)
+                contain= self._swiftConnection.get_container(self._containerName)
+            except:
+                self._log.error("Error in ImgStoreSwiftMongo - persistToStore. "+str(sys.exc_info()))  
+            
+            try:
+                cursor= self._dbConnection.cursor()            
                 for item in items:
                     
                     img=contain.create_object(item._imgId)
