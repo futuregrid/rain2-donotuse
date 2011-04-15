@@ -40,6 +40,7 @@ from datetime import datetime
 import os
 import re
 import sys
+import cloudfiles
 
 class ImgStoreSwiftMongo(ImgStoreMongo):
 
