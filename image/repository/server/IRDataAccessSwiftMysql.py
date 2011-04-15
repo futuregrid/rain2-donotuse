@@ -347,7 +347,7 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
         connected = False
         
         try:
-            self._swiftConnection= cloudfiles.get_connection('test:tester','testing',authurl='http://'+_swiftAddress+':8080/auth/v1.0')
+            self._swiftConnection= cloudfiles.get_connection('test:tester','testing',authurl='http://'+self._swiftAddress+':8080/auth/v1.0')
             connected=True
         except:
             self._log.error("Error in swift connection. "+str(sys.exc_info()))
