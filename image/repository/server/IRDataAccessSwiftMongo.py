@@ -156,6 +156,7 @@ class ImgStoreSwiftMongo(ImgStoreMongo):
             except gridfs.errors.NoFile:
                 self._log.error("File not found")
             except cloudfiles.errors.NoSuchObject:
+                
                 self._log.error("File not found")
             except:
                 self._log.error("Error in ImgStoreSwiftMongo - queryToStore. "+str(sys.exc_info()))
@@ -372,7 +373,7 @@ class ImgStoreSwiftMongo(ImgStoreMongo):
         connected = False
         
         try:
-            self._swiftConnection= cloudfiles.get_connection('test:tester','testing',authurl='http://192.168.1.2:8081/auth/v1.0')
+            self._swiftConnection= cloudfiles.get_connection('test:tester','testing',authurl='http://'+_swiftAddress+':8080/auth/v1.0')
             connected=True
         except:
             self._log.error("Error in swift connection. "+str(sys.exc_info()))
