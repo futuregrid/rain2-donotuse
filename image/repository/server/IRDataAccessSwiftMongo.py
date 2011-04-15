@@ -338,9 +338,10 @@ class ImgStoreSwiftMongo(ImgStoreMongo):
         try:
             dbLink = self._dbConnection[self._dbName]
             collection = dbLink[self._metacollection]
-            gridfsLink=gridfs.GridFS(dbLink)
-                
-            exists=gridfsLink.exists(ObjectId(imgId))            
+            contain= self._swiftConnection.get_container(self._containerName)
+            
+            if imgId in contain.list_objects():
+                exists=True          
             #print imgId         
             #print ownerId
             aux=collection.find_one({"_id": imgId, "owner": ownerId})
