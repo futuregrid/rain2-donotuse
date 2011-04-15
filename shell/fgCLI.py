@@ -351,7 +351,7 @@ class fgShell(fgShellUtils,
 
         #DEBUG("Terminating the shell")  #CHANGE TO PYTHON LOGS
         print "\nExiting...\n"
-        sys.exit(1)
+        exit(1)
 
     do_q = do_exit = do_quit
 
