@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-This class is to use Mysql and Swift (OpenStack Storage Object) as Image Repository back-end 
+This class is to use Mysql and Cumulus (OpenStack Storage Object) as Image Repository back-end 
 
 MySQL Databases Info:
 
@@ -26,10 +26,13 @@ import re
 import MySQLdb
 import string
 import IRUtil
-import cloudfiles
 import sys
+import boto
+from boto.s3.key import Key
+from boto.s3.connection import OrdinaryCallingFormat
+from boto.s3.connection import S3Connection
 
-class ImgStoreSwiftMysql(ImgStoreMysql):
+class ImgStoreCumulusMysql(ImgStoreMysql):
 
     def __init__(self, address, addressS, fgirdir, log):
         """
@@ -43,7 +46,7 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
         """                
         super(ImgStoreMysql, self).__init__()
                 
-        self._dbName="imagesS"
+        self._dbName="imagesC"
         self._tabledata="data"
         self._tablemeta="meta"
         self._mysqlcfg=IRUtil.getMysqlcfg()
@@ -58,14 +61,14 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
             self._mysqlAddress=self._getAddress()
         
                
-        self._swiftAddress=addressS
-        self._swiftConnection=None
+        self._cumulusAddress=addressS
+        self._cumulusConnection=None
         self._containerName="images"
             
 
     
     def getItemUri(self, imgId, userId):
-        return "For now we do not provide this feature with the Swift system as backend."
+        return "For now we do not provide this feature with the Cumulus system as backend."
         
 
     def getItem(self, imgId, userId):
@@ -82,22 +85,7 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
         result = self.queryStore([imgId], imgLinks, userId)
         
         if (result):
-            filename="/tmp/"+imgId+".img"
-            if not os.path.isfile(filename):
-                f = open(filename, 'w')
-            else:
-                for i in range(100):
-                    filename="/tmp/"+imgId+".img"+i.__str__()
-                    if not os.path.isfile(filename):
-                        f = open(filename, 'w')
-                        break
-            
-            #I think that this need the connection with Swift
-            for chunk in imgLinks[0].stream():  
-                f.write(chunk)   
-            f.close()
-                              
-            return filename
+            return imgLinks[0]
         else:
             return None
         
@@ -114,10 +102,11 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
         
         itemsFound=0
                 
-        if (self.mysqlConnection() and self.swiftConnection()):
+        if (self.mysqlConnection() and self.cumulusConnection()):
             try:
                 cursor= self._dbConnection.cursor()                
-                contain= self._swiftConnection.get_container(self._containerName)
+                contain= self._cumulusConnection.get_bucket(self._containerName)                
+                k=Key(contain) 
                  
                 for imgId in imgIds:
                     access=False
@@ -133,7 +122,12 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
                         results=cursor.fetchone()
                         
                         if(results!=None):
-                            imgLinks.append(contain.get_object(imgId))
+                            k.key=imgId                        
+                            #Boto does not stream, so we have to create the file here instead of in getItem
+                            imagepath='/tmp/'+imgId+".img"                                                                            
+                            k.get_contents_to_filename(imagepath)                                                                           
+                             
+                            imgLinks.append(imagepath)
                             
                             accessCount=int(results[0])+1
                             
@@ -152,11 +146,12 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
                 self._log.error("I/O error({0}): {1}".format(errno, strerror))
                 self._log.error("No such file or directory. Image details: "+item.__str__())                
             except TypeError as detail:
-                self._log.error("TypeError in ImgStoreSwiftMysql - queryToStore: "+format(detail))
-            except cloudfiles.errors.NoSuchObject:
-                self._log.error("File not found")
+                self._log.error("TypeError in ImgStorecumulusMysql - queryToStore: "+format(detail))
+            except boto.exception.S3ResponseError as detail:
+                self._log.error("Code and reason "+detail.code+" "+detail.reason)
+                self._log.error("Error in ImgStoreCumulusMysql - queryToStore. full error "+str(sys.exc_info()))
             except:
-                self._log.error("Error in ImgStoreSwiftMysql - queryToStore. "+str(sys.exc_info()))
+                self._log.error("Error in ImgStorecumulusMysql - queryToStore. "+str(sys.exc_info()))
             finally:
                 self._dbConnection.close()                      
         else:
@@ -178,23 +173,30 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
          
         imgStored=0
                         
-        if (self.mysqlConnection() and self.swiftConnection()):
+        if (self.mysqlConnection() and self.cumulusConnection()):
             
             try:
-                contain= self._swiftConnection.get_container(self._containerName)
-            except cloudfiles.errors.NoSuchContainer:
-                self._swiftConnection.create_container(self._containerName)
-                contain= self._swiftConnection.get_container(self._containerName)
-                self._log.warning("Creating the container")
+                contain= self._cumulusConnection.get_bucket(self._containerName)
+            except boto.exception.S3ResponseError as detail:
+                if(detail.reason.strip()=="Not Found"):                
+                    self._log.warning("Creating bucket")
+                    self._cumulusConnection.create_bucket(self._containerName)
+                    contain= self._cumulusConnection.get_bucket(self._containerName)
+                else:
+                    self._log.error("Code and reason "+detail.code+" "+detail.reason)
+                    self._log.error("Error in ImgStorecumulusMysql - queryToStore. full error "+str(sys.exc_info()))
             except:
-                self._log.error("Error in ImgStoreSwiftMongo - persistToStore. "+str(sys.exc_info()))  
+                self._log.error("Error in ImgStorecumulusMysql - persistToStore. "+str(sys.exc_info()))   
             
             try:
-                cursor= self._dbConnection.cursor()            
+                cursor= self._dbConnection.cursor()      
+                
+                k=Key(contain)
+                      
                 for item in items:
                     
-                    img=contain.create_object(item._imgId)
-                    img.load_from_filename(item._imgURI)
+                    k.key= item._imgId                    
+                    k.set_contents_from_filename(item._imgURI)
                     
                     sql = "INSERT INTO %s (imgId, imgMetaData, imgUri, createdDate, lastAccess, accessCount, size) \
        VALUES ('%s', '%s', '%s', '%s', '%s', '%d', '%d' )" % \
@@ -212,9 +214,9 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
                 self._log.error("I/O error({0}): {1}".format(errno, strerror))
                 self._log.error("No such file or directory. Image details: "+item.__str__())                 
             except TypeError as detail:
-                self._log.error("TypeError in ImgStoreSwiftMysql - persistToStore "+format(detail))
+                self._log.error("TypeError in ImgStorecumulusMysql - persistToStore "+format(detail))
             except:
-                self._log.error("Error in ImgStoreSwiftMysql - persistToStore. "+str(sys.exc_info()))
+                self._log.error("Error in ImgStorecumulusMysql - persistToStore. "+str(sys.exc_info()))
             finally:
                 self._dbConnection.close()                      
         else:
@@ -248,7 +250,7 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
         
         removed=False     
         
-        if (self.mysqlConnection() and self.swiftConnection()):     ##Error 2006: MySQL server has gone away???
+        if (self.mysqlConnection() and self.cumulusConnection()):     ##Error 2006: MySQL server has gone away???
             
             ##Solve with this. LOOK INTO MYSQL CONNECTIONS
             con= MySQLdb.connect(host=self._mysqlAddress,                                                                                  
@@ -258,15 +260,15 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
             if(self.existAndOwner(imgId, userId)):            
                 try:
                     cursor= con.cursor()
-                    contain= self._swiftConnection.get_container(self._containerName)
+                    contain= self._cumulusConnection.get_bucket(self._containerName)               
+                    contain.delete_key(imgId)
                     
                     sql = "SELECT size FROM %s WHERE imgId = '%s' "% (self._tabledata, imgId)
                     #print sql
                     cursor.execute(sql)
                     results=cursor.fetchone()
-                    size[0]=int(results[0])
-                                       
-                    contain.delete_object(imgId)
+                    size[0]=int(results[0])                                      
+                    
                                         
                     sql="DELETE FROM %s WHERE imgId='%s'" % (self._tabledata,imgId)                    
                     sql1="DELETE FROM %s WHERE imgId='%s'" % (self._tablemeta,imgId)
@@ -286,7 +288,7 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
                 except TypeError as detail:
                     self._log.error("TypeError in ImgStoreMongo - removeItem "+format(detail))
                 except:
-                    self._log.error("Error in ImgStoreSwiftMysql - removeItem. "+str(sys.exc_info()))
+                    self._log.error("Error in ImgStorecumulusMysql - removeItem. "+str(sys.exc_info()))
                 finally:
                     con.close()
             else:
@@ -314,10 +316,11 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
         
         try:
             cursor= self._dbConnection.cursor()         
-            contain= self._swiftConnection.get_container(self._containerName)
-            
-            if imgId in contain.list_objects():
-                exists=True
+            contain= self._cumulusConnection.get_bucket(self._containerName)
+                        
+            if contain.get_key(imgId) != None:
+                exists=True         
+
                      
             sql = "SELECT owner FROM %s WHERE imgId='%s' and owner='%s'"% (self._tablemeta, imgId, ownerId)
             
@@ -334,29 +337,34 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
             self._log.error("No such file or directory. Image details: "+item.__str__())                
         except TypeError as detail:
             self._log.error("TypeError in ImgStoreMysql - existAndOwner: "+format(detail)) 
+        except:
+            self._log.error("Error in ImgStorecumulusMysql - existAndOwner. "+str(sys.exc_info()))
        
         if (exists and owner):
             return True
         else:
             return False
     
-    def swiftConnection(self):
+    def cumulusConnection(self):
         """
-        Connect with OpenStack swift
+        Connect with Nimbus Cumulus
         
         """
         connected = False
         
         #username an password will be moved to the config file
+        id='PgkhmT23FUv7aRZND7BOW'
+        pw='Bf9ppgw9mzxe2EoKjbVl0wjaNJoHlIPxJ6QAgA0pOj'
+        cf=OrdinaryCallingFormat()
         try:
-            self._swiftConnection= cloudfiles.get_connection('test:tester','testing',authurl='http://'+self._swiftAddress+':8080/auth/v1.0')
+            self._cumulusConnection= S3Connection(id, pw, host=self._cumulusAddress, port=8888, is_secure=False, calling_format=cf)
             connected=True
         except:
-            self._log.error("Error in swift connection. "+str(sys.exc_info()))
+            self._log.error("Error in cumulus connection. "+str(sys.exc_info()))
             
         return connected
 
-class ImgMetaStoreSwiftMysql(ImgMetaStoreMysql):
+class ImgMetaStoreCumulusMysql(ImgMetaStoreMysql):
 
     def __init__(self, address, fgirdir, log):
         """
@@ -370,7 +378,7 @@ class ImgMetaStoreSwiftMysql(ImgMetaStoreMysql):
         """                
         super(ImgMetaStoreMysql, self).__init__()
                 
-        self._dbName="imagesS"
+        self._dbName="imagesC"
         self._tabledata="data"
         self._tablemeta="meta"
         self._mysqlcfg=IRUtil.getMysqlcfg()
@@ -382,7 +390,7 @@ class ImgMetaStoreSwiftMysql(ImgMetaStoreMysql):
         else:
             self._mysqlAddress=self._getAddress()
                        
-class IRUserStoreSwiftMysql(IRUserStoreMysql):
+class IRUserStoreCumulusMysql(IRUserStoreMysql):
 
     def __init__(self, address,fgirdir, log):
         """
@@ -396,7 +404,7 @@ class IRUserStoreSwiftMysql(IRUserStoreMysql):
         """                
         super(IRUserStoreMysql, self).__init__()
                 
-        self._dbName="imagesS"
+        self._dbName="imagesC"
         self._tabledata="users"        
         self._mysqlcfg=IRUtil.getMysqlcfg()
         self._iradminsuer=IRUtil.getMysqluser()

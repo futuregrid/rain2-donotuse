@@ -40,9 +40,13 @@ from datetime import datetime
 import os
 import re
 import sys
-import cloudfiles
+import boto
+from boto.s3.key import Key
+from boto.s3.connection import OrdinaryCallingFormat
+from boto.s3.connection import S3Connection
 
-class ImgStoreSwiftMongo(ImgStoreMongo):
+
+class ImgStoreCumulusMongo(ImgStoreMongo):
 
     def __init__(self, address, addressS, fgirdir, log):
         """
@@ -56,7 +60,7 @@ class ImgStoreSwiftMongo(ImgStoreMongo):
         """                
         super(ImgStoreMongo, self).__init__()
         
-        self._dbName="imagesS"
+        self._dbName="imagesC"
         self._datacollection="data"
         self._metacollection="meta"
         self._dbConnection=None
@@ -67,12 +71,12 @@ class ImgStoreSwiftMongo(ImgStoreMongo):
         else:
             self._mongoAddress=self._getAddress()
             
-        self._swiftAddress=addressS
-        self._swiftConnection=None
-        self._containerName="imagesMongo"
+        self._cumulusAddress=addressS
+        self._cumulusConnection=None
+        self._containerName="imagesmongo"  ##bucket
 
     def getItemUri(self, imgId, userId):
-        return "For now we do not provide this feature with the Swift system as backend."
+        return "For now we do not provide this feature with the cumulus system as backend."
     
     def getItem(self, imgId, userId):
         """
@@ -88,22 +92,7 @@ class ImgStoreSwiftMongo(ImgStoreMongo):
         result = self.queryStore([imgId], imgLinks, userId)
         
         if (result):
-            filename="/tmp/"+imgId+".img"
-            if not os.path.isfile(filename):
-                f = open(filename, 'w')
-            else:
-                for i in range(100):
-                    filename="/tmp/"+imgId+".img"+i.__str__()
-                    if not os.path.isfile(filename):
-                        f = open(filename, 'w')
-                        break
-            
-            #I think that this need the connection with Swift
-            for chunk in imgLinks[0].stream():  
-                f.write(chunk)   
-            f.close()
-                              
-            return filename
+            return imgLinks[0]
         else:
             return None
 
@@ -119,14 +108,15 @@ class ImgStoreSwiftMongo(ImgStoreMongo):
         del imgLinks[:]
         itemsFound = 0
                   
-        if (self.mongoConnection() and self.swiftConnection()):
+        if (self.mongoConnection() and self.cumulusConnection()):
             try:
                 
                 dbLink = self._dbConnection[self._dbName]
                 collection = dbLink[self._datacollection]
                 
-                contain= self._swiftConnection.get_container(self._containerName)
-                                
+                contain= self._cumulusConnection.get_bucket(self._containerName)                
+                k=Key(contain)                
+                
                 for imgId in imgIds:
                     
                     access=False
@@ -137,7 +127,15 @@ class ImgStoreSwiftMongo(ImgStoreMongo):
                         access=True
                         #self._log.debug("ifpublic "+str(access))
                     if (access):
-                        imgLinks.append(contain.get_object(imgId))
+                                                
+                        k.key=imgId
+                        
+                        #Boto does not stream, so we have to create the file here instead of in getItem
+                        imagepath='/tmp/'+imgId+".img"
+                                                                        
+                        k.get_contents_to_filename(imagepath)
+                         
+                        imgLinks.append(imagepath)
                         
                         collection.update({"_id": imgId}, 
                                       {"$inc": {"accessCount": 1},}, safe=True)
@@ -146,20 +144,18 @@ class ImgStoreSwiftMongo(ImgStoreMongo):
                         #print "here"                                         
                         itemsFound +=1    
             except pymongo.errors.AutoReconnect:                
-                self._log.warning("Autoreconnected in ImgStoreSwiftMongo - queryStore.") 
+                self._log.warning("Autoreconnected in ImgStorecumulusMongo - queryStore.") 
             except pymongo.errors.ConnectionFailure:                
                 self._log.error("Connection failure: the query cannot be performed.")  
             except TypeError as detail:
-                self._log.error("TypeError in ImgStoreSwiftMongo - queryStore")
+                self._log.error("TypeError in ImgStorecumulusMongo - queryStore")
             except bson.errors.InvalidId:
                 self._log.error("There is no Image with such Id. (ImgStoreMongo - queryStore)")
-            except gridfs.errors.NoFile:
-                self._log.error("File not found")
-            except cloudfiles.errors.NoSuchObject:
-                
-                self._log.error("File not found")
+            except boto.exception.S3ResponseError as detail:
+                self._log.error("Code and reason "+detail.code+" "+detail.reason)
+                self._log.error("Error in ImgStorecumulusMongo - queryToStore. full error "+str(sys.exc_info()))
             except:
-                self._log.error("Error in ImgStoreSwiftMongo - queryToStore. "+str(sys.exc_info()))
+                self._log.error("Error in ImgStorecumulusMongo - queryToStore. "+str(sys.exc_info()))
             finally:
                 self._dbConnection.disconnect()    
         else:
@@ -181,27 +177,32 @@ class ImgStoreSwiftMongo(ImgStoreMongo):
         self._dbConnection = self.mongoConnection()
         imgStored=0
                 
-        if (self.mongoConnection() and self.swiftConnection()):
+        if (self.mongoConnection() and self.cumulusConnection()):
             
             try:
-                contain= self._swiftConnection.get_container(self._containerName)
-            except cloudfiles.errors.NoSuchContainer:
-                self._swiftConnection.create_container(self._containerName)
-                contain= self._swiftConnection.get_container(self._containerName)
-                self._log.warning("Creating the container")
+                contain= self._cumulusConnection.get_bucket(self._containerName)
+            except boto.exception.S3ResponseError as detail:
+                if(detail.reason.strip()=="Not Found"):                
+                    self._log.warning("Creating bucket")
+                    self._cumulusConnection.create_bucket(self._containerName)
+                    contain= self._cumulusConnection.get_bucket(self._containerName)
+                else:
+                    self._log.error("Code and reason "+detail.code+" "+detail.reason)
+                    self._log.error("Error in ImgStorecumulusMongo - queryToStore. full error "+str(sys.exc_info()))
             except:
-                self._log.error("Error in ImgStoreSwiftMongo - persistToStore. "+str(sys.exc_info()))      
+                self._log.error("Error in ImgStorecumulusMongo - persistToStore. "+str(sys.exc_info()))      
                 
             try:
                 dbLink = self._dbConnection[self._dbName]
                 collection = dbLink[self._datacollection]
                 collectionMeta = dbLink[self._metacollection]
                 
+                k=Key(contain)
+                                
                 for item in items:
-                                        
-                    img=contain.create_object(item._imgId)
-                    img.load_from_filename(item._imgURI)
-                                         
+                                                      
+                    k.key= item._imgId                    
+                    k.set_contents_from_filename(item._imgURI)
                     
                     tags=item._imgMeta._tag.split(",")
                     tags_list = [x.strip() for x in tags]
@@ -227,8 +228,7 @@ class ImgStoreSwiftMongo(ImgStoreMongo):
                     collection.insert(data, safe=True)
                                                             
                     imgStored+=1
-                                      
-                    
+                                                          
             except pymongo.errors.AutoReconnect:
                 self._log.warning("Autoreconnected.")                 
             except pymongo.errors.ConnectionFailure:
@@ -238,11 +238,11 @@ class ImgStoreSwiftMongo(ImgStoreMongo):
                 self._log.error(errorstr)
                 self._log.error("No such file or directory. Image details: "+item.__str__())                 
             except TypeError as detail:
-                self._log.error("TypeError in ImgStoreSwiftMongo - persistToStore")
+                self._log.error("TypeError in ImgStorecumulusMongo - persistToStore")
             except pymongo.errors.OperationFailure:
-                self._log.error("Operation Failure in ImgStoreSwiftMongo - persistenToStore")  
+                self._log.error("Operation Failure in ImgStorecumulusMongo - persistenToStore")  
             except:
-                self._log.error("Error in ImgStoreSwiftMongo - persistToStore. "+str(sys.exc_info()))           
+                self._log.error("Error in ImgStoreCumulusMongo - persistToStore. "+str(sys.exc_info()))           
             finally:
                 self._dbConnection.disconnect()                      
         else:
@@ -275,19 +275,18 @@ class ImgStoreSwiftMongo(ImgStoreMongo):
         Return boolean
         """   
         removed=False
-        if (self.mongoConnection() and self.swiftConnection()):
+        if (self.mongoConnection() and self.cumulusConnection()):
             if(self.existAndOwner(imgId, userId)):    
                 try:
                     dbLink = self._dbConnection[self._dbName]
                     collection = dbLink[self._datacollection]
                     collectionMeta = dbLink[self._metacollection]
-                                        
-                    contain= self._swiftConnection.get_container(self._containerName)
+
+                    contain= self._cumulusConnection.get_bucket(self._containerName)               
+                    contain.delete_key(imgId)
                     
                     aux=collection.find_one({"_id": imgId})
                     size[0]=aux['size']
-                    
-                    contain.delete_object(imgId)
                     
                     collection.remove({"_id": imgId}, safe=True) #Wait for replication? w=3 option
                     collectionMeta.remove({"_id": imgId}, safe=True)
@@ -300,11 +299,11 @@ class ImgStoreSwiftMongo(ImgStoreMongo):
                     self._log.error("I/O error({0}): {1}".format(errno, strerror))
                     self._log.error("No such file or directory. Image details: "+imgEntry1.__str__())                 
                 except TypeError as detail:
-                    self._log.error("TypeError in ImgStoreSwiftMongo - RemoveItem")                
+                    self._log.error("TypeError in ImgStorecumulusMongo - RemoveItem")                
                 except pymongo.errors.OperationFailure:
-                    self._log.error("Operation Failure in ImgStoreSwiftMongo - RemoveItem")
+                    self._log.error("Operation Failure in ImgStorecumulusMongo - RemoveItem")
                 except:
-                    self._log.error("Error in ImgStoreSwiftMongo - removeItem. "+str(sys.exc_info()))
+                    self._log.error("Error in ImgStorecumulusMongo - removeItem. "+str(sys.exc_info()))
                 finally:
                     self._dbConnection.disconnect()
             else:
@@ -331,10 +330,11 @@ class ImgStoreSwiftMongo(ImgStoreMongo):
         try:
             dbLink = self._dbConnection[self._dbName]
             collection = dbLink[self._metacollection]
-            contain= self._swiftConnection.get_container(self._containerName)
             
-            if imgId in contain.list_objects():
-                exists=True          
+            contain= self._cumulusConnection.get_bucket(self._containerName)
+                       
+            if contain.get_key(imgId) != None:
+                exists=True         
             #print imgId         
             #print ownerId
             aux=collection.find_one({"_id": imgId, "owner": ownerId})
@@ -351,31 +351,34 @@ class ImgStoreSwiftMongo(ImgStoreMongo):
             self._log.error("TypeError in ImgStoreMongo - existAndOwner")
         except bson.errors.InvalidId:
             self._log.error("Error, not a valid ObjectId in ImgStoreMongo - existAndOwner")
-        except gridfs.errors.NoFile:
-            self._log.error("File not found")
+        except:
+            self._log.error("Error in ImgStorecumulusMongo - existAndOwner. "+str(sys.exc_info()))
                 
         if (exists and isOwner):
             return True
         else:
             return False
 
-    def swiftConnection(self):
+    def cumulusConnection(self):
         """
-        Connect with OpenStack swift
+        Connect with Nimbus Cumulus
         
         """
         connected = False
         
         #username an password will be moved to the config file
+        id='PgkhmT23FUv7aRZND7BOW'
+        pw='Bf9ppgw9mzxe2EoKjbVl0wjaNJoHlIPxJ6QAgA0pOj'
+        cf=OrdinaryCallingFormat()
         try:
-            self._swiftConnection= cloudfiles.get_connection('test:tester','testing',authurl='http://'+self._swiftAddress+':8080/auth/v1.0')
+            self._cumulusConnection= S3Connection(id, pw, host=self._cumulusAddress, port=8888, is_secure=False, calling_format=cf)
             connected=True
         except:
-            self._log.error("Error in swift connection. "+str(sys.exc_info()))
+            self._log.error("Error in cumulus connection. "+str(sys.exc_info()))
             
         return connected
 
-class ImgMetaStoreSwiftMongo(ImgMetaStoreMongo):
+class ImgMetaStoreCumulusMongo(ImgMetaStoreMongo):
 
     def __init__(self, address, fgirdir, log):
         """
@@ -389,7 +392,7 @@ class ImgMetaStoreSwiftMongo(ImgMetaStoreMongo):
         """                
         super(ImgMetaStoreMongo, self).__init__()
                 
-        self._dbName="imagesS"
+        self._dbName="imagesC"
         self._datacollection="data"
         self._metacollection="meta"
         self._dbConnection=None
@@ -400,7 +403,7 @@ class ImgMetaStoreSwiftMongo(ImgMetaStoreMongo):
         else:
             self._mongoAddress=self._getAddress()
                        
-class IRUserStoreSwiftMongo(IRUserStoreMongo):
+class IRUserStoreCumulusMongo(IRUserStoreMongo):
 
     def __init__(self, address,fgirdir, log):
         """
@@ -414,7 +417,7 @@ class IRUserStoreSwiftMongo(IRUserStoreMongo):
         """                
         super(IRUserStoreMongo, self).__init__()
                 
-        self._dbName = "imagesS"   #file location for users
+        self._dbName = "imagesC"   #file location for users
         self._usercollection="users"
         self._dbConnection=None
         self._log=log

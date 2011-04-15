@@ -26,13 +26,27 @@ __backend__= "swiftmysql"
 __address__= "localhost"  #MysqlAddress
 __addressS__= "192.168.1.2" #Swift proxy address
 __fgirimgstore__="/tmp/"
-
+"""
 """
 #Swift-Mongo
 __backend__= "swiftmongo"
 __address__="localhost:23000"  #Mongos address
 __addressS__= "192.168.1.2"    #Swift proxy address
 __fgirimgstore__="/tmp/"
+"""
+"""
+#Cumulus-Mysql
+__backend__= "cumulusmysql"
+__address__="localhost"  #Mongos address
+__addressS__= "192.168.1.2"    #cumulus address
+__fgirimgstore__="/tmp/"
+"""
+#Cumulus-Mongo
+__backend__= "cumulusmongo"
+__address__="localhost:23000"  #Mongos address
+__addressS__= "192.168.1.2"    #cumulus address
+__fgirimgstore__="/tmp/"
+
 
 
 ############################################

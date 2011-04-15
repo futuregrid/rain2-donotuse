@@ -48,7 +48,7 @@ class IRClientConf(object):
         
         self.loadConfig()        
         
-        self._backends = ["mongodb","mysql","swiftmysql","swiftmongo"] #available backends
+        self._backends = ["mongodb","mysql","swiftmysql","swiftmongo","cumulusmysql","cumulusmongo"] #available backends
         self._setupBackend()
         
         ###TODO ADD SSH KEY TO SSH-ADD

@@ -25,6 +25,7 @@ from IRTypes import ImgEntry
 from IRTypes import IRUser
 from IRTypes import IRCredential
 import IRUtil
+import re
 from IRDataAccess import AbstractImgStore
 from IRDataAccess import AbstractImgMetaStore
 from IRDataAccess import AbstractIRUserStore
@@ -51,6 +52,20 @@ elif(IRUtil.getBackend()=="swiftmongo"):
     from IRDataAccessSwiftMongo import ImgStoreSwiftMongo
     from IRDataAccessSwiftMongo import ImgMetaStoreSwiftMongo
     from IRDataAccessSwiftMongo import IRUserStoreSwiftMongo
+elif(IRUtil.getBackend()=="cumulusmysql"):
+    from IRDataAccessMysql import ImgStoreMysql
+    from IRDataAccessMysql import ImgMetaStoreMysql
+    from IRDataAccessMysql import IRUserStoreMysql
+    from IRDataAccessCumulusMysql import ImgStoreCumulusMysql
+    from IRDataAccessCumulusMysql import ImgMetaStoreCumulusMysql
+    from IRDataAccessCumulusMysql import IRUserStoreCumulusMysql
+elif(IRUtil.getBackend()=="cumulusmongo"):
+    from IRDataAccessMongo import ImgStoreMongo
+    from IRDataAccessMongo import ImgMetaStoreMongo
+    from IRDataAccessMongo import IRUserStoreMongo
+    from IRDataAccessCumulusMongo import ImgStoreCumulusMongo
+    from IRDataAccessCumulusMongo import ImgMetaStoreCumulusMongo
+    from IRDataAccessCumulusMongo import IRUserStoreCumulusMongo
 else:
     from IRDataAccess import ImgStoreFS
     from IRDataAccess import ImgMetaStoreFS
@@ -96,6 +111,14 @@ class IRService(object):
             self.metaStore = ImgMetaStoreSwiftMongo(self._address, self._fgserverdir,self._log)
             self.imgStore = ImgStoreSwiftMongo(self._address,IRUtil.getAddressS(), self._fgserverdir,self._log)            
             self.userStore = IRUserStoreSwiftMongo(self._address, self._fgserverdir,self._log)
+        elif(self._backend == "cumulusmysql"):
+            self.metaStore = ImgMetaStoreCumulusMysql(self._address, self._fgserverdir,self._log)
+            self.imgStore = ImgStoreCumulusMysql(self._address,IRUtil.getAddressS(), self._fgserverdir,self._log)            
+            self.userStore = IRUserStoreCumulusMysql(self._address, self._fgserverdir,self._log)
+        elif(self._backend == "cumulusmongo"):
+            self.metaStore = ImgMetaStoreCumulusMongo(self._address, self._fgserverdir,self._log)
+            self.imgStore = ImgStoreCumulusMongo(self._address,IRUtil.getAddressS(), self._fgserverdir,self._log)            
+            self.userStore = IRUserStoreCumulusMongo(self._address, self._fgserverdir,self._log)
         else:
             self.metaStore = ImgMetaStoreFS()
             self.imgStore = ImgStoreFS()            
@@ -180,8 +203,9 @@ class IRService(object):
                 
                 if(statusImg):
                     #put metadata into the image meta store
-                    if(IRUtil.getBackend()!="mongodb" and IRUtil.getBackend()!="swiftmongo"):                
-                        #with MongoDB I put the metadata with the ImgEntry            
+                    
+                    #with MongoDB I put the metadata with the ImgEntry, so it skips meta add                    
+                    if( re.search("mongo",IRUtil.getBackend()) == None):  
                         statusMeta=self.metaStore.addItem(aMeta)
                     else:
                         statusMeta=True
