@@ -346,14 +346,14 @@ class fgShell(fgShellUtils,
         print "\n"
         self.do_quit(arguments)
 
-    def do_quit(self, arguments):
-        """Terminates the shell, performing various clean-up actions."""
+    #def do_quit(self, arguments):
+    #    """Terminates the shell, performing various clean-up actions."""
 
         #DEBUG("Terminating the shell")  #CHANGE TO PYTHON LOGS
-        self.postloop()
-        exit(1)
+    #    self.postloop()
+    #    exit(1)
 
-    do_q = do_exit = do_quit
+    #do_q = do_exit = do_quit
 
     def help_EOF(self):
         """Documentation for the EOF command."""
@@ -385,7 +385,7 @@ class fgShell(fgShellUtils,
            Despite the claims in the Cmd documentaion, Cmd.postloop() is not a stub.
         """
         cmd.Cmd.postloop(self)   ## Clean up command completion
-        print "\nExiting..."
+        #print "\nExiting..."
 
     def precmd(self, line):
         """ This method is called after the line has been input but before
