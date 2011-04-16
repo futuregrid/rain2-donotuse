@@ -1,7 +1,11 @@
+The information about the usage and deployment of the image repository is maintened in https://portal.futuregrid.org/manual/dev/soft-deploy/fg-repo
+
+This information can be outdated
+--------------------------------
+
 VER: 0.1a
 ------------
-
-This is the prototype of the FG Image Repository which layouts the
+This is the alpha version of the FG Image Repository which layouts the
 basic code framework and implements some basic functionality using
 python.
 
@@ -118,7 +122,7 @@ like query, put, get, modify are supported.
 2. SSH/SCP is used for authentication/authorization. This is not an
 ideal way in long run since it lacks of fine-grained authorization.
 
-3. We have a plan that improve this prototype with a> replace the file
+3. We have a plan that improve this version with a> replace the file
 based data access by a distributed DB based solution(MangoDB is now on
 the list); b> convert the ssh and remote execution paradigm with
 service based solution as the names already implied. However this need
