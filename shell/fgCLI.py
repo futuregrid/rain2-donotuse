@@ -361,6 +361,7 @@ class fgShell(fgShellUtils,
         print "The EOF character quits the command shell."
         print "This is useful for piping in commands from a script file."
         print "Functionally, this command is no different than 'quit'."
+    help_eof = help_EOF
 
     def help_quit(self):
         """Documentation for the quit command."""
