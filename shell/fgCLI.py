@@ -366,7 +366,7 @@ class fgShell(fgShellUtils,
         """Documentation for the quit command."""
 
         print "The quit command terminates the application."
-        
+    help_q = help_exit = help_quit   
     ##############################
     #PRE and POST commands
     ##############################
