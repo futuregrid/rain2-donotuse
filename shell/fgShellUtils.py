@@ -91,12 +91,11 @@ class fgShellUtils(Cmd):
             print "Script is activated. To finish it use: script end"
     
     def help_script(self):
-        message = '''\
-        When Script is active, all commands executed are stored in
-        a file Activate it by executing: script <file> or just script
-        to use the default file (`pwd`/script) To finish and store the
-        commands use: script end'''
-        self.print_man("script", message)
+        message = ''' When Script is active, all commands executed are stored
+        in a file. Activate it by executing: script [file]. If no argument is
+        provided, the file will be called \'script\' and will be located in your
+        current directory. To finish and store the commands use: script end'''
+        self.print_man("script [file]", message)
 
     ############################################################
     # manual
@@ -106,11 +105,58 @@ class fgShellUtils(Cmd):
         print "----------------------------------------------------------------------"
         print "%s" % (name)
         print "----------------------------------------------------------------------"
-        man_lines = textwrap.wrap(textwrap.dedent(msg), 60)
+        man_lines = textwrap.wrap(textwrap.dedent(msg), 64)
         for line in man_lines:
-            print "\t%s" % (line)
+            print "    %s" % (line)
         print ""
-
+    
+    def do_manual (self, args):
+        "Print all manual pages organized by contexts"
+        print "######################################################################"
+        print "Generic commands (available in any context)\n"
+        print "######################################################################"
+        for i in self._docHelp:
+            print "-------------------------------------------------------"
+            print i
+            print "-------------------------------------------------------"
+            try:
+                func = getattr(self, 'help_'+i)
+                func()                
+            except AttributeError:
+                try:
+                    doc=getattr(self, 'do_'+i).__doc__
+                    if doc:
+                        self.stdout.write("%s\n"%str(doc))                      
+                except AttributeError:
+                    pass                    
+                  
+        for context in self.env:
+            if (context != ""):
+                print "######################################################################"
+                print "\nSpecific Commands for the context: "+context
+                print "######################################################################" 
+                                     
+                self.getDocUndoc(context)
+                for i in self._specdocHelp:
+                    #print "-------------------------------------------------------"
+                    #print i
+                    #print "-------------------------------------------------------"
+                     
+                    if (i.strip().startswith(context)):
+                        i=i[len(context):]                                                
+                    try:
+                        func = getattr(self, 'help_'+context+i)
+                        func()                
+                    except AttributeError:
+                        try:
+                            doc=getattr(self, 'do_'+context+i).__doc__
+                            if doc:
+                                self.stdout.write("%s\n"%str(doc))                      
+                        except AttributeError:
+                            pass
+                    print "\n"
+    
+    """
     def do_manual (self, args):
         all_manpages = ['use',
                'show',
@@ -158,7 +204,7 @@ class fgShellUtils(Cmd):
 #            eval("self.help_"+manualpage+"()")
         this_function_name = sys._getframe().f_code.co_name
         print this_function_name
-    
+    """
     #################################
     #Run JOB
     #################################

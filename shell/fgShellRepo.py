@@ -16,6 +16,7 @@ from futuregrid.utils import fgLog
 from cmd2 import Cmd
 from cmd2 import options
 from cmd2 import make_option
+import textwrap
 
 
 class fgShellRepo(Cmd):
@@ -29,16 +30,15 @@ class fgShellRepo(Cmd):
     ############################################################
     # test
     ############################################################
-   
+    """
     @options([make_option('-q', '--quick', help='Make things fast'),
               make_option('-s', '--slow', type=int, help='Make things slow')]) 
-    def do_repotest(self, args, opts):
-        """Test Help"""
+    def do_repotest(self, args, opts):        
         arg = ''.join(args)      
         print opts.quick
         print opts.slow
         self._log.error("SHElll test in fgshell repo")
-
+    """
     ############################################################
     # hist img
     ############################################################
@@ -163,7 +163,7 @@ class fgShellRepo(Cmd):
                 
 
     ############################################################
-    #
+    # setuserquota
     ############################################################
     
     def do_reposetuserquota(self, args):
@@ -280,13 +280,39 @@ class fgShellRepo(Cmd):
         "of all values of attributeString (you do not need to provide all of "+\
         "them): vmtype=xen & imgtype=opennebula & os=linux & arch=x86_64 & "+\
         "description=my image & tag=tag1,tag2 & permission=public & "+\
-        "imgStatus=available."        
+        "imgStatus=available. Some attributes are controlled:"        
         self.print_man("modify <imgId> <Metadata>",msg)
-        ms=   "Some attributes are controlled: \n"+\
-              " vmtype= " + str(IRTypes.ImgMeta.VmType) + "\n"\
-              "     imgtype= " + str(IRTypes.ImgMeta.ImgType) + "\n"\
-              "     imgStatus= " + str(IRTypes.ImgMeta.ImgStatus) + "\n"\
-              "     Permission= " + str(IRTypes.ImgMeta.Permission)
+        
+        first=True
+        for line in textwrap.wrap("vmtype= " + str(IRTypes.ImgMeta.VmType), 64):
+            if first:
+                print "    %s" % (line)
+                first=False
+            else:
+                print "      %s" % (line)
+        first=True
+        for line in textwrap.wrap("imgtype= " + str(IRTypes.ImgMeta.ImgType), 64):
+            if first:
+                print "    %s" % (line)
+                first=False
+            else:
+                print "      %s" % (line)
+        first=True
+        for line in textwrap.wrap("imgStatus= " + str(IRTypes.ImgMeta.ImgStatus), 64):
+            if first:
+                print "    %s" % (line)
+                first=False
+            else:
+                print "      %s" % (line)
+        first=True
+        for line in textwrap.wrap("Permission= " + str(IRTypes.ImgMeta.Permission), 64):
+            if first:
+                print "    %s" % (line)
+                first=False
+            else:
+                print "      %s" % (line)
+              
+              
     ############################################################
     # permission
     ############################################################
@@ -303,9 +329,9 @@ class fgShellRepo(Cmd):
             self.help_reposetpermission()        
             
     def help_reposetpermission(self):
-        print  "Image Repository setPermission command: Change image permission. \n" + \
-               "                              It has two arguments <imgId> <permission> \n" + \
-               "                              Permission= " + str(IRTypes.ImgMeta.Permission)
+        msg = "Image Repository setPermission command: Change image permission."+\
+            " Permission= " + str(IRTypes.ImgMeta.Permission)
+        self.print_man("setpermission  <imgId> <permission>", msg)
 
     ############################################################
     # get
@@ -325,8 +351,8 @@ class fgShellRepo(Cmd):
             self.help_repoget()        
             
     def help_repoget(self):
-        print  "Image Repository get command: Get an image or only the URI by id. \n" + \
-               "                              It has two arguments <img OR uri> <imgId>"
+        msg =  "Image Repository get command: Get an image or only the URI by id. \n"
+        self.print_man("get <img OR uri> <imgId>", msg)
 
     ############################################################
     # put
@@ -374,23 +400,48 @@ class fgShellRepo(Cmd):
         
         
     def help_repoput(self):
-        print  "The Image Repository put command has two arguments <imgId> [attributeString] \
-                \n If no attributeString provided some default values are assigned \n" + \
-                "Example of all values of attributeString (you do not need to provide all of them) \n" \
-                "vmtype=xen & imgtype=opennebula & os=linux & arch=x86_64 & description=my image & tag=tag1,tag2 & permission=public & imgStatus=available \n" + \
-                "Some attributes are controlled: \n" + \
-                "     vmtype= " + str(IRTypes.ImgMeta.VmType) + "\n"\
-                "     imgtype= " + str(IRTypes.ImgMeta.ImgType) + "\n"\
-                "     imgStatus= " + str(IRTypes.ImgMeta.ImgStatus) + "\n"\
-                "     Permission= " + str(IRTypes.ImgMeta.Permission)
+        msg =  "Image Repository put command: Upload a new image and its "+\
+            "metadata as an attributeString. If no attributeString provided some default values are "+\
+            "assigned. Example of all values of attributeString (you do not need to "+\
+            "provide all of them): vmtype=xen & imgtype=opennebula & os=linux & "+\
+            "arch=x86_64 & description=my image & tag=tag1,tag2 & permission=public & "+\
+            "imgStatus=available. Some attributes are controlled:"
+        self.print_man("put <imgFile> [attributeString]",msg)
+        
+        first=True
+        for line in textwrap.wrap("vmtype= " + str(IRTypes.ImgMeta.VmType), 64):
+            if first:
+                print "    %s" % (line)
+                first=False
+            else:
+                print "      %s" % (line)
+        first=True
+        for line in textwrap.wrap("imgtype= " + str(IRTypes.ImgMeta.ImgType), 64):
+            if first:
+                print "    %s" % (line)
+                first=False
+            else:
+                print "      %s" % (line)
+        first=True
+        for line in textwrap.wrap("imgStatus= " + str(IRTypes.ImgMeta.ImgStatus), 64):
+            if first:
+                print "    %s" % (line)
+                first=False
+            else:
+                print "      %s" % (line)
+        first=True
+        for line in textwrap.wrap("Permission= " + str(IRTypes.ImgMeta.Permission), 64):
+            if first:
+                print "    %s" % (line)
+                first=False
+            else:
+                print "      %s" % (line)
+
 
     ############################################################
     # remove
     ############################################################
-
-
-    def do_reporemove(self, args):
-        """The Image Repository remove command has two arguments <imgId>"""
+    def do_reporemove(self, args):        
         args = self.getArgs(args)                 
         if (len(args) == 1):
             if (self._service.remove(os.popen('whoami', 'r').read().strip(), args[0]) == "True"):
@@ -401,6 +452,6 @@ class fgShellRepo(Cmd):
             self.help_reporemove() 
             
     def help_reporemove(self):
-        print  "The Image Repository remove command has one arguments <imgId>"
-        
+        msg = "The Image Repository remove command: Remove a image from the repository."
+        self.print_man("remove <imgId>", msg)
     

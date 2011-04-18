@@ -145,10 +145,7 @@ class fgShell(fgShellUtils,
     ###########################
     #HELP 
     ###########################
-    def complete_help(self, *args):
-        #pass        
-        listcmd=set(i for i in self._docHelp if i.startswith(args[0]))        
-        return list(listcmd)
+    
     
     def getDocUndoc(self,args):
         base_cmds=['exec','exit','help','history','quit','use','contexts','script']
@@ -232,56 +229,10 @@ class fgShell(fgShellUtils,
                     final_undoc.append(i)             
         
             self._specdocHelp=spec_doc
+            
         self._docHelp=final_doc
         self._undocHelp=final_undoc
     
-    def do_print_man (self, args):
-        "Print all manual pages organized by contexts"
-        print "######################################################################"
-        print "Generic commands (available in any context)\n"
-        print "######################################################################"
-        for i in self._docHelp:
-            print "-------------------------------------------------------"
-            print i
-            print "-------------------------------------------------------"
-            try:
-                func = getattr(self, 'help_'+i)
-                func()                
-            except AttributeError:
-                try:
-                    doc=getattr(self, 'do_'+i).__doc__
-                    if doc:
-                        self.stdout.write("%s\n"%str(doc))                      
-                except AttributeError:
-                    pass                    
-                  
-        for context in self.env:
-            if (context != ""):
-                print "######################################################################"
-                print "\nSpecific Commands for the context: "+context
-                print "######################################################################" 
-                                     
-                self.getDocUndoc(context)
-                for i in self._specdocHelp:
-                    #print "-------------------------------------------------------"
-                    #print i
-                    #print "-------------------------------------------------------"
-                     
-                    if (i.strip().startswith(context)):
-                        i=i[len(context):]                                                
-                    try:
-                        func = getattr(self, 'help_'+context+i)
-                        func()                
-                    except AttributeError:
-                        try:
-                            doc=getattr(self, 'do_'+context+i).__doc__
-                            if doc:
-                                self.stdout.write("%s\n"%str(doc))                      
-                        except AttributeError:
-                            pass
-                    print "\n"
-
-
     def do_help(self, args):
         """Get help on commands
         'help' or '?' with no arguments prints a list of commands for which help is available
@@ -361,7 +312,12 @@ class fgShell(fgShellUtils,
             cmd.Cmd.print_topics(self, specdoc_header, self._specdocHelp, 15, 80)
             #cmd.Cmd.print_topics(self,cmd.Cmd.misc_header, help.keys(), 15,80)
             cmd.Cmd.print_topics(self, undoc_header, self._undocHelp, 15, 80)
-    
+            
+    def complete_help(self, *args):
+        listcmd=set(i for i in self._docHelp if i.startswith(args[0]))        
+        listcmd1=set(i for i in self._undocHelp if i.startswith(args[0]))
+        listcmd2=set(i for i in self._specdocHelp if i.startswith(args[0]))
+        return list(listcmd|listcmd1|listcmd2)
     ###########################
     #Command Completion
     ###########################
