@@ -36,6 +36,7 @@ class fgHadoop:
     def generate_job_script(sefl, job_name, hadoop_command, data_input_dir,
                             data_output_dir, walltime, num_nodes, queue,) :
         local_storage_dir = "/tmp/$PBS_JOBID-fg-hadoop"
+        # gvl: tmp dir must be able to be specified. is probably globally set?
         hadoop_conf_dir = "$HADOOP_HOME/conf"
         
         job_script = "#!/bin/bash \n"
