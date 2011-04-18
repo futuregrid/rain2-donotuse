@@ -91,10 +91,10 @@ class fgShellUtils(Cmd):
             print "Script is activated. To finish it use: script end"
     
     def help_script(self):
-        message = ''' When Script is active, all commands executed are stored
-        in a file. Activate it by executing: script [file]. If no argument is
-        provided, the file will be called \'script\' and will be located in your
-        current directory. To finish and store the commands use: script end'''
+        message = " When Script is active, all commands executed are stored "+\
+        "in a file. Activate it by executing: script [file]. If no argument is "+\
+        "provided, the file will be called \'script\' and will be located in your "+\
+        "current directory. To finish and store the commands use: script end"
         self.print_man("script [file]", message)
 
     ############################################################
@@ -116,17 +116,19 @@ class fgShellUtils(Cmd):
         print "Generic commands (available in any context)\n"
         print "######################################################################"
         for i in self._docHelp:
-            print "-------------------------------------------------------"
-            print i
-            print "-------------------------------------------------------"
+            
             try:
                 func = getattr(self, 'help_'+i)
                 func()                
             except AttributeError:
-                try:
+                try:                    
                     doc=getattr(self, 'do_'+i).__doc__
                     if doc:
-                        self.stdout.write("%s\n"%str(doc))                      
+                        print "----------------------------------------------------------------------"
+                        print "%s" % (i)
+                        print "----------------------------------------------------------------------"
+                        self.stdout.write("%s\n"%str(doc))
+                        print ""                      
                 except AttributeError:
                     pass                    
                   
@@ -138,10 +140,7 @@ class fgShellUtils(Cmd):
                                      
                 self.getDocUndoc(context)
                 for i in self._specdocHelp:
-                    #print "-------------------------------------------------------"
-                    #print i
-                    #print "-------------------------------------------------------"
-                     
+            
                     if (i.strip().startswith(context)):
                         i=i[len(context):]                                                
                     try:
@@ -151,10 +150,13 @@ class fgShellUtils(Cmd):
                         try:
                             doc=getattr(self, 'do_'+context+i).__doc__
                             if doc:
-                                self.stdout.write("%s\n"%str(doc))                      
+                                print "----------------------------------------------------------------------"
+                                print "%s" % (i)
+                                print "----------------------------------------------------------------------"
+                                self.stdout.write("%s\n"%str(doc))                                                      
                         except AttributeError:
                             pass
-                    print "\n"
+                    print ""
     
     """
     def do_manual (self, args):
@@ -205,15 +207,23 @@ class fgShellUtils(Cmd):
         this_function_name = sys._getframe().f_code.co_name
         print this_function_name
     """
+    def generic_error(self):
+        print "    Please select a CONTEXT by executing use <context_name>\n"+\
+                  "    Execute \'contexts\' command to see the available context names \n"+\
+                  "    Note that this command may not be available in all CONTEXTS"
+    def generic_help(self):
+        msg="Generic command that changes its behaviour depending on the CONTEXT. "
+        for line in textwrap.wrap(msg, 64):            
+            print "    %s" % (line)
+        print ""
+        self.generic_error()
+        
+            
     #################################
     #Run JOB
-    #################################
-        
-    def do_runjob(self, args):    
-        """
-        Generic get command that changes its behaviour depending on
-        the context specified with the use command.
-        """    
+    #################################    
+       
+    def do_runjob(self, args):
         if(self._use!=""):            
             command="self.do_"+self._use+"runjob(\""+args+"\")"
             #print command
@@ -223,19 +233,15 @@ class fgShellUtils(Cmd):
                 print "The "+self._use+" context does not have a runjob method "
                 self._log.error(str(sys.exc_info()))
         else:
-            print "You need to provide a Context executing the use <context> \n"+ \
-                  "You can see the available Contexts by executing contexts "
-            
-
+            self.generic_error()
+    
+    help_runjob=generic_help        
+    
     #################################
     #GET
     #################################
         
-    def do_get(self, args):    
-        """
-        Generic get command that changes its behaviour depending on the 
-        context specified with the use command.
-        """    
+    def do_get(self, args):        
         if(self._use!=""):            
             command="self.do_"+self._use+"get(\""+args+"\")"
             #print command
@@ -245,18 +251,14 @@ class fgShellUtils(Cmd):
                 print "The "+self._use+" context does not have a get method "
                 self._log.error(str(sys.exc_info()))
         else:
-            print "You need to provide a Context executing the use <context> \n"+ \
-                  "You can see the available Contexts by executing contexts "
+            self.generic_error()
+    help_get=generic_help
     
     #################################
     #MODIFY
     #################################
         
-    def do_modify(self, args):
-        """
-        Generic get command that changes its behaviour depending on the 
-        context specified with the use command.
-        """
+    def do_modify(self, args):        
         if(self._use!=""):            
             command="self.do_"+self._use+"modify(\""+args+"\")"
             #print command
@@ -266,18 +268,14 @@ class fgShellUtils(Cmd):
                 print "The "+self._use+" context does not have a modify method "
                 self._log.error(str(sys.exc_info()))
         else:
-            print "You need to provide a Context executing the use <context> \n"+ \
-                  "You can see the available Contexts by executing contexts " 
+            self.generic_error()
+    help_modify=generic_help
     
     #################################
     #Set permission
     #################################
         
-    def do_setpermission(self, args):
-        """
-        Generic setpermission command that changes its behaviour depending on the 
-        context specified with the use command.
-        """
+    def do_setpermission(self, args):        
         if(self._use!=""):            
             command="self.do_"+self._use+"setpermission(\""+args+"\")"
             #print command
@@ -287,18 +285,14 @@ class fgShellUtils(Cmd):
                 print "The "+self._use+" context does not have a setpermission method "
                 self._log.error(str(sys.exc_info()))
         else:
-            print "You need to provide a Context executing the use <context> \n"+ \
-                  "You can see the available Contexts by executing contexts "
+            self.generic_error()
+    help_setpermission=generic_help
                        
     ################################
     #PUT
     ################################
     
-    def do_put(self,args):
-        """
-        Generic put command that changes its behaviour depending on the 
-        context specified with the use command.
-        """
+    def do_put(self,args):        
         if(self._use!=""):
             command="self.do_"+self._use+"put(\""+args+"\")"
             try:
@@ -307,18 +301,14 @@ class fgShellUtils(Cmd):
                 print "The "+self._use+" context does not have a put method"
                 self._log.error(str(sys.exc_info()))
         else:
-            print "You need to provide a Context executing the use <context> \n"+ \
-                  "You can see the available Contexts by executing contexts "
-            
+            self.generic_error()
+    help_put=generic_help
+             
     ################################
     #REMOVE
     ################################
     
-    def do_remove(self,args):
-        """
-        Generic remove command that changes its behaviour depending on the 
-        context specified with the use command.
-        """        
+    def do_remove(self,args):             
         if(self._use!=""):
             command="self.do_"+self._use+"remove(\""+args+"\")"
             try:
@@ -327,8 +317,8 @@ class fgShellUtils(Cmd):
                 print "The "+self._use+" context does not have a remove method"
                 self._log.error(str(sys.exc_info()))
         else:
-            print "You need to provide a Context executing the use <context> \n"+ \
-                  "You can see the available Contexts by executing contexts "
+            self.generic_error()
+    help_remove=generic_help
     
     #def do_prueba(self,args):
     #    """Prueba Help"""
@@ -338,11 +328,7 @@ class fgShellUtils(Cmd):
     #List
     ################################
     
-    def do_list(self,args):
-        """
-        Generic list command that changes its behaviour depending on the 
-        context specified with the use command.
-        """
+    def do_list(self,args):        
         if(self._use!=""):
             command="self.do_"+self._use+"list(\""+args+"\")"
             try:
@@ -351,18 +337,14 @@ class fgShellUtils(Cmd):
                 print "The "+self._use+" context does not have a list method"
                 self._log.error(str(sys.exc_info()))
         else:
-            print "You need to provide a Context executing the use <context> \n"+ \
-                  "You can see the available Contexts by executing contexts "
+            self.generic_error()
+    help_list=generic_help
             
     #################################
     #User Add
     #################################
         
-    def do_useradd(self, args):
-        """
-        Generic useradd command that changes its behaviour depending on the 
-        context specified with the use command.
-        """
+    def do_useradd(self, args):        
         if(self._use!=""):            
             command="self.do_"+self._use+"useradd(\""+args+"\")"
             #print command
@@ -372,18 +354,14 @@ class fgShellUtils(Cmd):
                 print "The "+self._use+" context does not have a useradd method "
                 self._log.error(str(sys.exc_info()))
         else:
-            print "You need to provide a Context executing the use <context> \n"+ \
-                  "You can see the available Contexts by executing contexts "
+            self.generic_error()
+    help_useradd=generic_help
     
     #################################
     #User Del
     #################################
         
-    def do_userdel(self, args):
-        """
-        Generic userdel command that changes its behaviour depending on the 
-        context specified with the use command.
-        """
+    def do_userdel(self, args):        
         if(self._use!=""):            
             command="self.do_"+self._use+"userdel(\""+args+"\")"
             #print command
@@ -393,18 +371,14 @@ class fgShellUtils(Cmd):
                 print "The "+self._use+" context does not have a userdel method "
                 self._log.error(str(sys.exc_info()))
         else:
-            print "You need to provide a Context executing the use <context> \n"+ \
-                  "You can see the available Contexts by executing contexts "                
+            self.generic_error()              
+    help_userdel=generic_help
     
     #################################
     #User List
     #################################
         
-    def do_userlist(self, args):
-        """
-        Generic userlist command that changes its behaviour depending on the 
-        context specified with the use command.
-        """
+    def do_userlist(self, args):        
         if(self._use!=""):            
             command="self.do_"+self._use+"userlist(\""+args+"\")"
             #print command
@@ -414,18 +388,14 @@ class fgShellUtils(Cmd):
                 print "The "+self._use+" context does not have a userlist method "
                 self._log.error(str(sys.exc_info()))
         else:
-            print "You need to provide a Context executing the use <context> \n"+ \
-                  "You can see the available Contexts by executing contexts "       
+            self.generic_error()
+    help_userlist=generic_help
     
     #################################
     #Set User Quota
     #################################
         
-    def do_setuserquota(self, args):
-        """
-        Generic setuserquota command that changes its behaviour depending on the 
-        context specified with the use command.
-        """
+    def do_setuserquota(self, args):        
         if(self._use!=""):            
             command="self.do_"+self._use+"setuserquota(\""+args+"\")"
             #print command
@@ -435,18 +405,13 @@ class fgShellUtils(Cmd):
                 print "The "+self._use+" context does not have a setuserquota method "
                 self._log.error(str(sys.exc_info()))
         else:
-            print "You need to provide a Context executing the use <context> \n"+ \
-                  "You can see the available Contexts by executing contexts "
-                  
+            self.generic_error()
+    help_setuserquota=generic_help                  
     #################################
     #Set User Role
     #################################
         
-    def do_setuserrole(self, args):
-        """
-        Generic setuserquota command that changes its behaviour depending on the 
-        context specified with the use command.
-        """
+    def do_setuserrole(self, args):        
         if(self._use!=""):            
             command="self.do_"+self._use+"setuserrole(\""+args+"\")"
             #print command
@@ -456,18 +421,14 @@ class fgShellUtils(Cmd):
                 print "The "+self._use+" context does not have a setuserrole method "
                 self._log.error(str(sys.exc_info()))
         else:
-            print "You need to provide a Context executing the use <context> \n"+ \
-                  "You can see the available Contexts by executing contexts "
-    
+            self.generic_error()
+    help_setuserrole=generic_help     
     #################################
     #Set User Status
     #################################
         
     def do_setuserstatus(self, args):
-        """
-        Generic setuserstatus command that changes its behaviour depending on the 
-        context specified with the use command.
-        """
+        
         if(self._use!=""):            
             command="self.do_"+self._use+"setuserstatus(\""+args+"\")"
             #print command
@@ -477,18 +438,15 @@ class fgShellUtils(Cmd):
                 print "The "+self._use+" context does not have a setuserstatus method "
                 self._log.error(str(sys.exc_info()))
         else:
-            print "You need to provide a Context executing the use <context> \n"+ \
-                  "You can see the available Contexts by executing contexts "
-    
+            self.generic_error()
+    help_setuserstatus=generic_help     
+
     #################################
     #Hist img
     #################################
         
     def do_histimg(self, args):
-        """
-        Generic histimg command that changes its behaviour depending on the 
-        context specified with the use command.
-        """
+        
         if(self._use!=""):            
             command="self.do_"+self._use+"histimg(\""+args+"\")"
             #print command
@@ -498,18 +456,15 @@ class fgShellUtils(Cmd):
                 print "The "+self._use+" context does not have a histimg method "
                 self._log.error(str(sys.exc_info()))
         else:
-            print "You need to provide a Context executing the use <context> \n"+ \
-                  "You can see the available Contexts by executing contexts "
+            self.generic_error()
+    help_histimg=generic_help
     
     #################################
     #Hist users
     #################################
         
     def do_histuser(self, args):
-        """
-        Generic histuser command that changes its behaviour depending on the 
-        context specified with the use command.
-        """
+        
         if(self._use!=""):            
             command="self.do_"+self._use+"histuser(\""+args+"\")"
             #print command
@@ -519,18 +474,14 @@ class fgShellUtils(Cmd):
                 print "The "+self._use+" context does not have a histuser method "
                 self._log.error(str(sys.exc_info()))
         else:
-            print "You need to provide a Context executing the use <context> \n"+ \
-                  "You can see the available Contexts by executing contexts "
+            self.generic_error()
+    help_histuser=generic_help
                               
     ##########################################################################
     # LOAD
     ##########################################################################
 
-    def do_exec(self, script_file):
-        """Runs the specified script file with the command-line interpreter.
-        
-        Lines from the script file are printed out with a '>' preceding them,
-        for clarity."""
+    def do_exec(self, script_file):       
 
         if script_file.strip() == "":
             self.help_exec()
@@ -546,13 +497,10 @@ class fgShellUtils(Cmd):
             pass
 
     def help_exec(self):
-        print "Runs the specified script file."
-        print
-        print "Syntax:"
-        print "   do_exec <script_file>"
-        print
-        print "Lines from the script file are printed out with a '>' preceding"
-        print "them, for clarity."
+        msg = "Runs the specified script file. Lines from the script file are "+\
+        "printed out with a '>' preceding them, for clarity."
+        self.print_man("exec <script_file>", msg) 
+        
     
     #####################################
     # IO

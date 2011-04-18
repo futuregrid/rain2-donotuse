@@ -108,8 +108,11 @@ class fgShell(fgShellUtils,
             self.prompt = "fg"+temp+""+arg+">"
             
     def help_use(self):
-        print "Change Context to a particular FG component"
-        print "To see the available contexts use the contexts command"
+        msg = "Change the Shell CONTEXT to use a specific FG component. To see "+\
+        "the available contexts use the \'contexts\' command. If no argument is "+\
+        "provided it returns to the default context." 
+        
+        self.print_man("use [context]", msg)
     
     ############################
     #CONTEXTS
@@ -122,25 +125,37 @@ class fgShell(fgShellUtils,
             print i       
                     
     def help_contexts(self):
-        print "Show the available context in FG Shell"
+        msg = "Show the available CONTEXTS in FG Shell"
+        self.print_man("contexts", msg)
             
     ##########################################################################
     # HISTORY
     ##########################################################################
 
-    def do_history(self, line):
-        """Print a list of commands that have been entered."""
+    def do_history(self, line):        
         hist=[]
         for i in range(readline.get_current_history_length()):
             hist.append(readline.get_history_item(i+1))
         print hist
+        
     do_hi=do_hist = do_history
     
-    def do_historysession(self, line):
-        """Print a list of commands that have been entered in the current session"""
+    def help_history (self):
+        msg="Print a list of commands that have been entered."
+        self.print_man("history", msg)
+    help_hi=help_hist = help_history    
+    
+    
+    def do_historysession(self, line):        
         Cmd.do_history(self,line)
     
     do_his=do_hists = do_historysession
+    
+    def help_historysession (self):
+        msg="Print a list of commands that have been entered in the current session"
+        self.print_man("historysession", msg)
+        
+    help_his=help_hists = help_historysession
     
     ###########################
     #HELP 
@@ -148,8 +163,8 @@ class fgShell(fgShellUtils,
     
     
     def getDocUndoc(self,args):
-        base_cmds=['exec','exit','help','history','quit','use','contexts','script']
-        base_cmd2=['cmdenvironment','edit','li','load', 'pause','py','run','save','shell', 'shortcuts','set','show','historysession']
+        base_cmds=['exec','help','history','quit','use','contexts','script']
+        base_cmd2=['li','load', 'pause','py','run','save','shell', 'shortcuts','set','show','historysession']
         base_cmds+=base_cmd2
         final_doc=[]
         final_undoc=[]
@@ -188,11 +203,11 @@ class fgShell(fgShellUtils,
                     if(com.startswith(args.strip())):
                         if com in help:
                             use_doc.append(com)
-                            del help[com]
+                            del help[com]                            
                         elif getattr(self, name).__doc__:
                             use_doc.append(com)
                         else:
-                            use_undoc.append(com)
+                            use_undoc.append(com)                            
                     else:    
                         if com in help:
                             cmds_doc.append(com)
@@ -209,7 +224,7 @@ class fgShell(fgShellUtils,
         
         final_doc.sort()
         final_undoc.sort()
-
+        
         if (args!=""):
                                
             for i in use_doc:
@@ -217,11 +232,13 @@ class fgShell(fgShellUtils,
                     #final_doc.append(i[len(self._use):])
                     spec_doc.append(i[len(args.strip()):])
                 elif i[len(args.strip()):] in cmds_undoc:
-                    final_undoc.append(i[len(args.strip()):])
+                    if (self._use==""):
+                        final_undoc.append(i[len(args.strip()):])
+                    else:
+                        spec_doc.append(i[len(args.strip()):])
                 else:
                     #final_doc.append(i)
-                    spec_doc.append(i)
-                    
+                    spec_doc.append(i)            
             for i in use_undoc:
                 if i[len(args.strip()):] in cmds_undoc:
                     final_undoc.append(i[len(args.strip()):])
@@ -232,31 +249,42 @@ class fgShell(fgShellUtils,
             
         self._docHelp=final_doc
         self._undocHelp=final_undoc
+        
     
-    def do_help(self, args):
-        """Get help on commands
-        'help' or '?' with no arguments prints a list of commands for which help is available
-        'help <command>' or '? <command>' gives help on <command>
-        """
+    def do_help(self, args):        
         allspec=[]
         if (args.strip()==""):
             print "\nA complete manual can be found in https://portal.futuregrid.org/man/fg-shell\n"
-        ## The only reason to define this method is for the help text in the doc string
+        ## The only reason to define this method is for the help text in the doc string        
         if (self._use==""):
             #cmd.Cmd.do_help(self, args)
-            self.customHelpNoContext(args)
+            undoc=[]
+            self.customHelpNoContext(args)            
             if (args.strip()==""):
                 for i in self.env:
                     if i!="":
                         self.getDocUndoc(i)                
                         specdoc_header=self.text[i]+" commands. Execute \"use "+i+"\" to use them. (type help <topic>):"
-                        cmd.Cmd.print_topics(self, specdoc_header, self._specdocHelp, 15, 80)                
+                        cmd.Cmd.print_topics(self, specdoc_header, self._specdocHelp, 15, 80)
+                        undoc.extend(self._undocHelp)
                         allspec.extend(self._specdocHelp)
-                self._specdocHelp= allspec
-                print "Please select a CONTEXT by executing use <context_name>\n"+\
+                self._specdocHelp= allspec            
+               
+            undoc_header="Undocumented commands"
+            self._undocHelp=undoc
+            cmd.Cmd.print_topics(self, undoc_header, self._undocHelp, 15, 80)
+            
+            if (args.strip()==""):
+                      print "Please select a CONTEXT by executing use <context_name>\n"+\
                       "Execute \'contexts\' command to see the available context names \n"
+            
         else:
             self.customHelp(args)
+    def help_help(self):
+        msg = "Get help on commands. 'help' or '?' with no arguments prints a "+\
+        "list of commands for which help is available. 'help <command>' or '? "+\
+        "<command>' gives help on <command>"
+        self.print_man("help [command]", msg)
             
     def customHelpNoContext(self,args):
         if args:
@@ -381,9 +409,8 @@ class fgShell(fgShellUtils,
     help_eof = help_EOF
 
     def help_quit(self):
-        """Documentation for the quit command."""
-
-        print "The quit command terminates the application."
+         msg = "This command terminates the Shell."
+         self.print_man("quit", msg)
     help_q = help_exit = help_quit   
     ##############################
     #PRE and POST commands

@@ -46,7 +46,7 @@ class fgShellHadoop(Cmd):
                           help='Number of nodes for the job', 
                           default=2, type=int)    ]) 
     def do_hadooprunjob(self, args, opts):
-        """Test Help"""
+        """Run a hadoop job"""
         hadoop_home = os.environ.get("HADOOP_HOME")
         job_name = opts.jobname
           
@@ -60,4 +60,3 @@ class fgShellHadoop(Cmd):
             #self._fgHadoop = fgHadoop()
             self._fgHadoop.runJob(opts, hadoop_cmd, job_name)
             #self._log.error("SHElll test in fgshell repo")
-    
