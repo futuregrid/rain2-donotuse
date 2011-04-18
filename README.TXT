@@ -1,4 +1,12 @@
 
+SEE: https://portal.futuregrid.org/manual/dev/soft-deploy
+
+     https://portal.futuregrid.org/manual/dev/soft-deploy/fg-shell
+     https://portal.futuregrid.org/manual/dev/soft-deploy/fg-repo
+
+For more information
+
+The page here will be at one point merged into theabove pages
 
 
 REQUIREMENTS

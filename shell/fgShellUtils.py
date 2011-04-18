@@ -22,6 +22,9 @@ class fgShellUtils(Cmd):
         self._scriptList=[]
         self._scriptFile=self._conf.getScriptFile()
     
+
+    ############################################################
+  
     def getArgs(self,args):
         """
         Convert the string args to a list of arguments
@@ -37,9 +40,10 @@ class fgShellUtils(Cmd):
                     argsList.append(istriped)            
         return argsList  
     
-    ####################
+    ############################################################
     #SCRIPT
-    #################
+    ############################################################
+
     def do_script(self,arg):
         """
         When Script is active, all commands executed are stored in a
@@ -94,6 +98,18 @@ class fgShellUtils(Cmd):
                 print "Script is activated. To finish it use: script end"
         else:
             print "Script is activated. To finish it use: script end"
+    
+    def help_script(self):
+        message = '''\
+        When Script is active, all commands executed are stored in
+        a file Activate it by executing: script <file> or just script
+        to use the default file (`pwd`/script) To finish and store the
+        commands use: script end'''
+        self.print_man("script", message)
+
+    ############################################################
+    # print_man
+    ############################################################
 
     def print_man(self, name, msg):
         print "######################################################################"
@@ -103,14 +119,6 @@ class fgShellUtils(Cmd):
         for line in man_lines:
             print "\t%s" % (line)
         print ""
-    
-    def help_script(self):
-        message = '''\
-        When Script is active, all commands executed are stored in
-        a file Activate it by executing: script <file> or just script
-        to use the default file (`pwd`/script) To finish and store the
-        commands use: script end'''
-        self.print_man("script", message)
 
     def do_manual (self, args):
         all_manpages = ['use',
