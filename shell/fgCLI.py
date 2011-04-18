@@ -234,28 +234,49 @@ class fgShell(fgShellUtils,
   
     
     def do_print_man (self, args):
-        "Printes all manual pages"
-        """
-        man_list=[]
-        names=dir(self.__class__) 
-        for name in names:
-            if name[:5] == 'help_':
-                man_list.append(name)
-        for name in man_list:
-            print "\n\n#####################################################################"
-            print "Command: %s" % (name)
-            print "---------------------------------------------------------------------\n"
-            eval ("self."+name+"()")
-        """
+        "Print all manual pages organized by contexts"
+        print "#######################################################"
         print "Generic commands (available in any context)\n"
-        print self._docHelp
+        print "#######################################################"
+        for i in self._docHelp:
+            print "-------------------------------------------------------"
+            print i
+            print "-------------------------------------------------------"
+            try:
+                func = getattr(self, 'help_'+i)
+                func()                
+            except AttributeError:
+                try:
+                    doc=getattr(self, 'do_'+i).__doc__
+                    if doc:
+                        self.stdout.write("%s\n"%str(doc))                      
+                except AttributeError:
+                    pass                    
+                  
         for context in self.env:
             if (context != ""):
+                print "#######################################################"
                 print "\nSpecific Commands for the context: "+context
-                
+                print "#######################################################"                
                 self.getDocUndoc(context)
-                print self._specdocHelp
-                print "\n"
+                for i in self._specdocHelp:
+                    print "-------------------------------------------------------"
+                    print i
+                    print "-------------------------------------------------------"
+                     
+                    if (i.strip().startswith(context)):
+                        i=i[len(context):]                                                
+                    try:
+                        func = getattr(self, 'help_'+context+i)
+                        func()                
+                    except AttributeError:
+                        try:
+                            doc=getattr(self, 'do_'+context+i).__doc__
+                            if doc:
+                                self.stdout.write("%s\n"%str(doc))                      
+                        except AttributeError:
+                            pass
+                    print "\n"
 
 
     def do_help(self, args):
