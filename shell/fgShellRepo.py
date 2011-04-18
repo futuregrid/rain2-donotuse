@@ -105,7 +105,6 @@ class fgShellRepo(Cmd):
             self.help_repouseradd()
             
     def help_repouseradd(self):
-
         msg = '''\
               Image Repository useradd command: Add new user (only Admin
               user can execut it) It has one arguments <userId> (userId must be the
@@ -129,8 +128,9 @@ class fgShellRepo(Cmd):
             self.help_repouserdel()
     
     def help_repouserdel(self):
-        msg = "Image Repository userdel command: Remove a user (only Admin user can execut it) \n"+ \
-               "                                  It has one arguments <userId> \n"
+        msg = '''\ 
+              Image Repository userdel command: Remove a user
+              (only Admin user can execut it). It has one arguments <userId>'''
         self.print_man("userdel", msg)
 
     ############################################################
