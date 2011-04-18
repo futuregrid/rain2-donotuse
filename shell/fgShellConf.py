@@ -6,6 +6,10 @@ from futuregrid.utils import fgLog
 import sys
 
 class fgShellConf(object):
+
+    ############################################################
+    # getLogHistFile
+    ############################################################
     
     def __init__(self):
         
@@ -40,22 +44,59 @@ class fgShellConf(object):
         
         ###TODO ADD SSH KEY TO SSH-ADD
         
-    
+    ############################################################
+    # getLogHistFile
+    ############################################################
+
     def getLogHistDir(self):
         return self._loghistdir    
+
+    ############################################################
+    # getConfigFile
+    ############################################################
+
     def getConfigFile(self):
         return self._configfile
+
+   ############################################################
+    # getLogFile
+    ############################################################
+
     def getLogFile(self):
         return self._logfile
+
+   ############################################################
+    # getHistFile
+    ############################################################
+
+
     def getHistFile(self):
         return self._histfile
+ 
+    ############################################################
+    # getScriptFile
+    ############################################################
+
     def getScriptFile(self):
         return self._scriptfile
+
+    ############################################################
+    # getLogLevel
+    ############################################################
+
     def getLogLevel(self):
         return self._logLevel 
+
+    ############################################################
+    # getBanner
+    ############################################################
+
     def getBanner(self):
         return self._banner
-    
+
+    ############################################################
+    # loadConfig
+    ############################################################
     def loadConfig(self):
         
         config = ConfigParser.ConfigParser()
