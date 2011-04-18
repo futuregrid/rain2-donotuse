@@ -252,7 +252,8 @@ class fgShell(fgShellUtils,
         'help' or '?' with no arguments prints a list of commands for which help is available
         'help <command>' or '? <command>' gives help on <command>
         """
-        print "\nA complete manual can be found in https://portal.futuregrid.org/man/fg-shell\n"
+        if (args.strip()==""):
+            print "\nA complete manual can be found in https://portal.futuregrid.org/man/fg-shell\n"
         ## The only reason to define this method is for the help text in the doc string
         if (self._use==""):
             #cmd.Cmd.do_help(self, args)
