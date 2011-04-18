@@ -10,6 +10,7 @@ import os
 import readline
 import atexit
 import sys
+import textwrap
 from cmd2 import Cmd
 
 class fgShellUtils(Cmd):
@@ -40,6 +41,15 @@ class fgShellUtils(Cmd):
     #SCRIPT
     #################
     def do_script(self,arg):
+        """
+        When Script is active, all commands executed are stored in a
+       file "Activate it by executing: script <file> or just script to
+       use the default file 
+
+            (`pwd`/script) 
+
+       To finish and store the commands use: script end
+       """
         args=self.getArgs(arg)
         if not self._script:
             self._scriptList=[]
@@ -84,20 +94,78 @@ class fgShellUtils(Cmd):
                 print "Script is activated. To finish it use: script end"
         else:
             print "Script is activated. To finish it use: script end"
-            
-    def help_script(self):
-        print "When Script is active, all commands executed are stored in a file \n" +\
-              "    Activate it by executing: script <file> or just script to use the default file (`pwd`/script)\n" +\
-              "    To finish and store the commands use: script end"
+
+    def print_man(self, name, msg):
+        print "######################################################################"
+        print "%s" % (name)
+        print "----------------------------------------------------------------------"
+        man_lines = textwrap.wrap(textwrap.dedent(msg), 60)
+        for line in man_lines:
+            print "\t%s" % (line)
+        print ""
     
+    def help_script(self):
+        message = '''\
+        When Script is active, all commands executed are stored in
+        a file Activate it by executing: script <file> or just script
+        to use the default file (`pwd`/script) To finish and store the
+        commands use: script end'''
+        self.print_man("script", message)
+
+    def do_manual (self, args):
+        all_manpages = ['use',
+               'show',
+               'history',
+               'historysession',
+               'print_man',
+               'help',
+               'EOF',
+               'hadooprunjob',
+               'repotest',
+               'repohistimg',
+               'repohistuser',
+               'repouseradd',
+               'repouserdel',
+               'repouserlist',
+               'reposetuserquota',
+               'reposetuserrole',
+               'reposetuserstatus',
+               'repolist',
+               'repomodify',
+               'reposetpermission',
+               'repoget',
+               'repoput',
+               'reporemove',
+               'script',
+               'manual',
+               'runjob',
+               'get',
+               'modify',
+               'setpermission',
+               'put',
+               'remove',
+               'list',
+               'useradd',
+               'userdel',
+               'userlist',
+               'setuserquota',
+               'setuserrole',
+               'setuserstatus',
+               'histimg',
+               'histuser',
+               'exec']
+        for manualpage in all_manpages:
+            self.print_man(manualpage,manualpage)
+#            eval("self.help_"+manualpage+"()")
+  
     #################################
     #Run JOB
     #################################
         
     def do_runjob(self, args):    
         """
-        Generic get command that changes its behaviour depending on the 
-        context specified with the use command.
+        Generic get command that changes its behaviour depending on
+        the context specified with the use command.
         """    
         if(self._use!=""):            
             command="self.do_"+self._use+"runjob(\""+args+"\")"
@@ -111,6 +179,7 @@ class fgShellUtils(Cmd):
             print "You need to provide a Context executing the use <context> \n"+ \
                   "You can see the available Contexts by executing show "
             
+
     #################################
     #GET
     #################################
@@ -286,7 +355,7 @@ class fgShellUtils(Cmd):
         
     def do_userlist(self, args):
         """
-        Generic userdel command that changes its behaviour depending on the 
+        Generic userlist command that changes its behaviour depending on the 
         context specified with the use command.
         """
         if(self._use!=""):            

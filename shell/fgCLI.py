@@ -231,7 +231,22 @@ class fgShell(fgShellUtils,
             self._docHelp=final_doc
             self._undocHelp=final_undoc
             self._specdocHelp=spec_doc
-    
+ 
+    def do_print_man (self, args):
+        "Printes all manual pages"
+        man_list=[]
+        names=dir(self.__class__) 
+        for name in names:
+            if name[:5] == 'help_':
+                man_list.append(name)
+        for name in man_list:
+            print "\n\n#####################################################################"
+            print "Command: %s" % (name)
+            print "---------------------------------------------------------------------\n"
+            eval ("self."+name+"()")
+
+
+
     def do_help(self, args):
         """Get help on commands
         'help' or '?' with no arguments prints a list of commands for which help is available
