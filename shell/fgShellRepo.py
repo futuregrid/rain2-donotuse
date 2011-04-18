@@ -128,7 +128,7 @@ class fgShellRepo(Cmd):
             self.help_repouserdel()
     
     def help_repouserdel(self):
-        msg = '''\ 
+        msg = '''\
               Image Repository userdel command: Remove a user
               (only Admin user can execut it). It has one arguments <userId>'''
         self.print_man("userdel", msg)
