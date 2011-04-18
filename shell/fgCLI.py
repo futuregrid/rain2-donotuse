@@ -250,12 +250,12 @@ class fgShell(fgShellUtils,
         print "Generic commands (available in any context)\n"
         print self._docHelp
         for context in self.env:
-            if context !=
-            print "\nSpecific Commands for the context: "+context
-            
-            self.getDocUndoc(context)
-            print self._specdocHelp
-            print "\n"
+            if (context != ""):
+                print "\nSpecific Commands for the context: "+context
+                
+                self.getDocUndoc(context)
+                print self._specdocHelp
+                print "\n"
 
 
     def do_help(self, args):
