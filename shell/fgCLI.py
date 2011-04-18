@@ -28,6 +28,9 @@ class fgShell(fgShellUtils,
     
     def __init__(self, silent=False):
         
+        self._locals={}
+        self._globals={}
+        
         #Load Config
         self._conf=fgShellConf()                
         #Setup log  
@@ -39,6 +42,7 @@ class fgShell(fgShellUtils,
         
         #Context        
         self.env=["repo","rain","hadoop",""]
+        self.text={'repo':'Image Repository', 'rain':'Dynamic Provisioning', 'hadoop':'Apache Hadoop'}
         self._use=""
         self._contextOn=[] # initialized contexts
         
@@ -105,20 +109,21 @@ class fgShell(fgShellUtils,
             
     def help_use(self):
         print "Change Context to a particular FG component"
-        print "To see the available contexts use the show command"
+        print "To see the available contexts use the contexts command"
     
     ############################
-    #SHOW
+    #CONTEXTS
     ############################
-    def do_show(self,argument):        
+    
+    def do_contexts(self,argument):        
         print "FG Contexts:"
         print "-------------"           
         for i in self.env:
             print i       
                     
-    def help_show(self):
+    def help_contexts(self):
         print "Show the available context in FG Shell"
-               
+            
     ##########################################################################
     # HISTORY
     ##########################################################################
@@ -146,9 +151,8 @@ class fgShell(fgShellUtils,
         return list(listcmd)
     
     def getDocUndoc(self,args):
-        base_cmds=['EOF','exec','exit','help','hi','hist','history','q','quit','use','show','script']
-        base_cmd2=['cmdenvironment','ed','edit','l','li','load', 'pause','py','r', 'run','save','shell', 'shortcuts',
-                   'his', 'hists', 'historysession']
+        base_cmds=['exec','exit','help','history','quit','use','contexts','script']
+        base_cmd2=['cmdenvironment','edit','li','load', 'pause','py','run','save','shell', 'shortcuts','set','show','historysession']
         base_cmds+=base_cmd2
         final_doc=[]
         final_undoc=[]
@@ -200,18 +204,16 @@ class fgShell(fgShellUtils,
                             cmds_doc.append(com)
                         else:
                             cmds_undoc.append(com)
-        if (args==""):
-            self._docHelp=cmds_doc
-            self._undocHelp=cmds_undoc
-        else:            
-            for i in base_cmds:            
-                if (i in cmds_doc):
-                    final_doc.append(i)
-                elif (i in cmds_undoc):
-                    final_undoc.append(i)
-            
-            final_doc.sort()
-            final_undoc.sort()
+        for i in base_cmds:            
+            if (i in cmds_doc):
+                final_doc.append(i)
+            elif (i in cmds_undoc):
+                final_undoc.append(i)
+        
+        final_doc.sort()
+        final_undoc.sort()
+
+        if (args!=""):
                                
             for i in use_doc:
                 if i[len(args.strip()):] in cmds_doc:
@@ -227,17 +229,17 @@ class fgShell(fgShellUtils,
                 if i[len(args.strip()):] in cmds_undoc:
                     final_undoc.append(i[len(args.strip()):])
                 else:
-                    final_undoc.append(i)              
-            self._docHelp=final_doc
-            self._undocHelp=final_undoc
+                    final_undoc.append(i)             
+        
             self._specdocHelp=spec_doc
-  
+        self._docHelp=final_doc
+        self._undocHelp=final_undoc
     
     def do_print_man (self, args):
         "Print all manual pages organized by contexts"
-        print "#######################################################"
+        print "######################################################################"
         print "Generic commands (available in any context)\n"
-        print "#######################################################"
+        print "######################################################################"
         for i in self._docHelp:
             print "-------------------------------------------------------"
             print i
@@ -255,14 +257,15 @@ class fgShell(fgShellUtils,
                   
         for context in self.env:
             if (context != ""):
-                print "#######################################################"
+                print "######################################################################"
                 print "\nSpecific Commands for the context: "+context
-                print "#######################################################"                
+                print "######################################################################" 
+                                     
                 self.getDocUndoc(context)
                 for i in self._specdocHelp:
-                    print "-------------------------------------------------------"
-                    print i
-                    print "-------------------------------------------------------"
+                    #print "-------------------------------------------------------"
+                    #print i
+                    #print "-------------------------------------------------------"
                      
                     if (i.strip().startswith(context)):
                         i=i[len(context):]                                                
@@ -284,12 +287,23 @@ class fgShell(fgShellUtils,
         'help' or '?' with no arguments prints a list of commands for which help is available
         'help <command>' or '? <command>' gives help on <command>
         """
+        allspec=[]
         if (args.strip()==""):
             print "\nA complete manual can be found in https://portal.futuregrid.org/man/fg-shell\n"
         ## The only reason to define this method is for the help text in the doc string
         if (self._use==""):
             #cmd.Cmd.do_help(self, args)
             self.customHelpNoContext(args)
+            if (args.strip()==""):
+                for i in self.env:
+                    if i!="":
+                        self.getDocUndoc(i)                
+                        specdoc_header=self.text[i]+" commands. Execute \"use "+i+"\" to use them. (type help <topic>):"
+                        cmd.Cmd.print_topics(self, specdoc_header, self._specdocHelp, 15, 80)                
+                        allspec.extend(self._specdocHelp)
+                self._specdocHelp= allspec
+                print "Please select a CONTEXT by executing use <context_name>\n"+\
+                      "Execute \'contexts\' command to see the available context names \n"
         else:
             self.customHelp(args)
             
@@ -316,10 +330,8 @@ class fgShell(fgShellUtils,
             
             cmd.Cmd.print_topics(self, doc_header, self._docHelp, 15, 80)
             #cmd.Cmd.print_topics(self,cmd.Cmd.misc_header, help.keys(), 15,80)
-            cmd.Cmd.print_topics(self, undoc_header, self._undocHelp, 15, 80)
-            
-            print "Please select a context by executing use <context>\n"+\
-                  "You can see the available Contexts by executing show \n" 
+            cmd.Cmd.print_topics(self, undoc_header, self._undocHelp, 15, 80)           
+             
             
     def customHelp(self,args):
         if args:            

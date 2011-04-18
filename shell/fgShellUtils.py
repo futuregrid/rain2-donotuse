@@ -44,16 +44,7 @@ class fgShellUtils(Cmd):
     #SCRIPT
     ############################################################
 
-    def do_script(self,arg):
-        """
-        When Script is active, all commands executed are stored in a
-       file "Activate it by executing: script <file> or just script to
-       use the default file 
-
-            (`pwd`/script) 
-
-       To finish and store the commands use: script end
-       """
+    def do_script(self,arg):        
         args=self.getArgs(arg)
         if not self._script:
             self._scriptList=[]
@@ -112,8 +103,7 @@ class fgShellUtils(Cmd):
     ############################################################
 
     def print_man(self, name, msg):
-        
-        print "######################################################################"
+        print "----------------------------------------------------------------------"
         print "%s" % (name)
         print "----------------------------------------------------------------------"
         man_lines = textwrap.wrap(textwrap.dedent(msg), 60)
@@ -168,7 +158,7 @@ class fgShellUtils(Cmd):
 #            eval("self.help_"+manualpage+"()")
         this_function_name = sys._getframe().f_code.co_name
         print this_function_name
-  
+    
     #################################
     #Run JOB
     #################################
@@ -188,7 +178,7 @@ class fgShellUtils(Cmd):
                 self._log.error(str(sys.exc_info()))
         else:
             print "You need to provide a Context executing the use <context> \n"+ \
-                  "You can see the available Contexts by executing show "
+                  "You can see the available Contexts by executing contexts "
             
 
     #################################
@@ -210,7 +200,7 @@ class fgShellUtils(Cmd):
                 self._log.error(str(sys.exc_info()))
         else:
             print "You need to provide a Context executing the use <context> \n"+ \
-                  "You can see the available Contexts by executing show "
+                  "You can see the available Contexts by executing contexts "
     
     #################################
     #MODIFY
@@ -231,7 +221,7 @@ class fgShellUtils(Cmd):
                 self._log.error(str(sys.exc_info()))
         else:
             print "You need to provide a Context executing the use <context> \n"+ \
-                  "You can see the available Contexts by executing show " 
+                  "You can see the available Contexts by executing contexts " 
     
     #################################
     #Set permission
@@ -252,7 +242,7 @@ class fgShellUtils(Cmd):
                 self._log.error(str(sys.exc_info()))
         else:
             print "You need to provide a Context executing the use <context> \n"+ \
-                  "You can see the available Contexts by executing show "
+                  "You can see the available Contexts by executing contexts "
                        
     ################################
     #PUT
@@ -272,7 +262,7 @@ class fgShellUtils(Cmd):
                 self._log.error(str(sys.exc_info()))
         else:
             print "You need to provide a Context executing the use <context> \n"+ \
-                  "You can see the available Contexts by executing show "
+                  "You can see the available Contexts by executing contexts "
             
     ################################
     #REMOVE
@@ -292,7 +282,7 @@ class fgShellUtils(Cmd):
                 self._log.error(str(sys.exc_info()))
         else:
             print "You need to provide a Context executing the use <context> \n"+ \
-                  "You can see the available Contexts by executing show "
+                  "You can see the available Contexts by executing contexts "
     
     #def do_prueba(self,args):
     #    """Prueba Help"""
@@ -316,7 +306,7 @@ class fgShellUtils(Cmd):
                 self._log.error(str(sys.exc_info()))
         else:
             print "You need to provide a Context executing the use <context> \n"+ \
-                  "You can see the available Contexts by executing show "
+                  "You can see the available Contexts by executing contexts "
             
     #################################
     #User Add
@@ -337,7 +327,7 @@ class fgShellUtils(Cmd):
                 self._log.error(str(sys.exc_info()))
         else:
             print "You need to provide a Context executing the use <context> \n"+ \
-                  "You can see the available Contexts by executing show "
+                  "You can see the available Contexts by executing contexts "
     
     #################################
     #User Del
@@ -358,7 +348,7 @@ class fgShellUtils(Cmd):
                 self._log.error(str(sys.exc_info()))
         else:
             print "You need to provide a Context executing the use <context> \n"+ \
-                  "You can see the available Contexts by executing show "                
+                  "You can see the available Contexts by executing contexts "                
     
     #################################
     #User List
@@ -379,7 +369,7 @@ class fgShellUtils(Cmd):
                 self._log.error(str(sys.exc_info()))
         else:
             print "You need to provide a Context executing the use <context> \n"+ \
-                  "You can see the available Contexts by executing show "       
+                  "You can see the available Contexts by executing contexts "       
     
     #################################
     #Set User Quota
@@ -400,7 +390,7 @@ class fgShellUtils(Cmd):
                 self._log.error(str(sys.exc_info()))
         else:
             print "You need to provide a Context executing the use <context> \n"+ \
-                  "You can see the available Contexts by executing show "
+                  "You can see the available Contexts by executing contexts "
                   
     #################################
     #Set User Role
@@ -421,7 +411,7 @@ class fgShellUtils(Cmd):
                 self._log.error(str(sys.exc_info()))
         else:
             print "You need to provide a Context executing the use <context> \n"+ \
-                  "You can see the available Contexts by executing show "
+                  "You can see the available Contexts by executing contexts "
     
     #################################
     #Set User Status
@@ -442,7 +432,7 @@ class fgShellUtils(Cmd):
                 self._log.error(str(sys.exc_info()))
         else:
             print "You need to provide a Context executing the use <context> \n"+ \
-                  "You can see the available Contexts by executing show "
+                  "You can see the available Contexts by executing contexts "
     
     #################################
     #Hist img
@@ -463,7 +453,7 @@ class fgShellUtils(Cmd):
                 self._log.error(str(sys.exc_info()))
         else:
             print "You need to provide a Context executing the use <context> \n"+ \
-                  "You can see the available Contexts by executing show "
+                  "You can see the available Contexts by executing contexts "
     
     #################################
     #Hist users
@@ -484,7 +474,7 @@ class fgShellUtils(Cmd):
                 self._log.error(str(sys.exc_info()))
         else:
             print "You need to provide a Context executing the use <context> \n"+ \
-                  "You can see the available Contexts by executing show "
+                  "You can see the available Contexts by executing contexts "
                               
     ##########################################################################
     # LOAD
