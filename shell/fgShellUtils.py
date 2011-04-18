@@ -108,7 +108,7 @@ class fgShellUtils(Cmd):
         self.print_man("script", message)
 
     ############################################################
-    # print_man
+    # manual
     ############################################################
 
     def print_man(self, name, msg):
