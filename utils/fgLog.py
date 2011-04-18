@@ -2,6 +2,7 @@ import logging
 import logging.handlers
 
 class fgLog():
+
     def __init__(self, logfile, loglevel, whois, verbose):
         self._logger = logging.getLogger(whois)
         self._formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")

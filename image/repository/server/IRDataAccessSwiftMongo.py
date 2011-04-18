@@ -44,6 +44,9 @@ import cloudfiles
 
 class ImgStoreSwiftMongo(ImgStoreMongo):
 
+    ############################################################
+    # __init__
+    ############################################################
     def __init__(self, address, addressS, fgirdir, log):
         """
         Initialize object
@@ -71,9 +74,15 @@ class ImgStoreSwiftMongo(ImgStoreMongo):
         self._swiftConnection=None
         self._containerName="imagesMongo"
 
+    ############################################################
+    # getItemUri
+    ############################################################
     def getItemUri(self, imgId, userId):
         return "For now we do not provide this feature with the Swift system as backend."
     
+    ############################################################
+    # getItem
+    ############################################################
     def getItem(self, imgId, userId):
         """
         Get Image file identified by the imgId
@@ -107,6 +116,10 @@ class ImgStoreSwiftMongo(ImgStoreMongo):
         else:
             return None
 
+
+    ############################################################
+    # queryStore
+    ############################################################
     def queryStore(self, imgIds, imgLinks, userId):
         """        
         Query the DB and provide a generator object of the Images to create them with strean method.    
@@ -170,6 +183,10 @@ class ImgStoreSwiftMongo(ImgStoreMongo):
         else:
             return False
            
+
+    ############################################################
+    # persistToStore
+    ############################################################
     def persistToStore(self, items):
         """Copy imgEntry and imgMeta to the DB. It first store the imgEntry to get the file Id
         
@@ -258,6 +275,9 @@ class ImgStoreSwiftMongo(ImgStoreMongo):
         else:
             return False
         
+    ############################################################
+    # removeItem 
+    ############################################################
     def removeItem (self, userId, imgId, size):
         #what are we going to do with concurrency?
         """
@@ -314,6 +334,9 @@ class ImgStoreSwiftMongo(ImgStoreMongo):
             
         return removed
     
+    ############################################################
+    # existAndOwner
+    ############################################################
     def existAndOwner(self, imgId, ownerId):
         """
         To verify if the file exists and I am the owner
@@ -359,6 +382,9 @@ class ImgStoreSwiftMongo(ImgStoreMongo):
         else:
             return False
 
+    ############################################################
+    # swiftConnection
+    ############################################################
     def swiftConnection(self):
         """
         Connect with OpenStack swift
@@ -377,6 +403,9 @@ class ImgStoreSwiftMongo(ImgStoreMongo):
 
 class ImgMetaStoreSwiftMongo(ImgMetaStoreMongo):
 
+    ############################################################
+    # __init__
+    ############################################################
     def __init__(self, address, fgirdir, log):
         """
         Initialize object
@@ -402,6 +431,9 @@ class ImgMetaStoreSwiftMongo(ImgMetaStoreMongo):
                        
 class IRUserStoreSwiftMongo(IRUserStoreMongo):
 
+    ############################################################
+    # __init__
+    ############################################################
     def __init__(self, address,fgirdir, log):
         """
         Initialize object

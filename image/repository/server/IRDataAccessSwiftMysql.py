@@ -31,6 +31,9 @@ import sys
 
 class ImgStoreSwiftMysql(ImgStoreMysql):
 
+    ############################################################
+    # __init__
+    ############################################################
     def __init__(self, address, addressS, fgirdir, log):
         """
         Initialize object
@@ -64,10 +67,16 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
             
 
     
+    ############################################################
+    # getItemUri
+    ############################################################
     def getItemUri(self, imgId, userId):
         return "For now we do not provide this feature with the Swift system as backend."
         
 
+    ############################################################
+    # getItem
+    ############################################################
     def getItem(self, imgId, userId):
         """
         Get Image file identified by the imgId
@@ -103,6 +112,9 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
         
 
            
+    ############################################################
+    # queryStore
+    ############################################################
     def queryStore(self, imgIds, imgLinks, userId):
         """        
         Query the DB and provide the uri.    
@@ -167,6 +179,10 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
         else:
             return False
            
+
+    ############################################################
+    # persistToStore
+    ############################################################
     def persistToStore(self, items):
         """Copy imgEntry to the DB. 
         
@@ -230,6 +246,9 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
         else:
             return False
         
+    ############################################################
+    # removeItem 
+    ############################################################
     def removeItem (self, userId, imgId, size):
         #what are we going to do with concurrency?
         """
@@ -297,6 +316,9 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
             
         return removed
             
+    ############################################################
+    # existAndOwner
+    ############################################################
     def existAndOwner(self, imgId, ownerId):
         """
         To verify if the file exists and I am the owner
@@ -340,6 +362,9 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
         else:
             return False
     
+    ############################################################
+    # swiftConnection
+    ############################################################
     def swiftConnection(self):
         """
         Connect with OpenStack swift
@@ -358,6 +383,10 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
 
 class ImgMetaStoreSwiftMysql(ImgMetaStoreMysql):
 
+
+    ############################################################
+    # __init__
+    ############################################################
     def __init__(self, address, fgirdir, log):
         """
         Initialize object
@@ -384,6 +413,9 @@ class ImgMetaStoreSwiftMysql(ImgMetaStoreMysql):
                        
 class IRUserStoreSwiftMysql(IRUserStoreMysql):
 
+    ############################################################
+    # __init__
+    ############################################################
     def __init__(self, address,fgirdir, log):
         """
         Initialize object

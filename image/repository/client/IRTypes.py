@@ -10,6 +10,9 @@ __version__ = '0.1'
 from datetime import datetime
 
 class IRCredential(object):
+    ############################################################
+    # __init__
+    ############################################################
     def __init__(self, provider, cred):
         super(IRCredential, self).__init__()
         self._provider = provider
@@ -21,6 +24,9 @@ class IRUser(object):
     Role=["user","admin"]
     
     #fsCap in bytes. 4G by default
+    ############################################################
+    # __init__
+    ############################################################
     def __init__(self, userId, cred=None, fsCap=4294967296, fsUsed=0, 
                  lastLogin=None, status=Status[0], role=Role[0], ownedImgs=0):
         super(IRUser, self).__init__()
@@ -33,14 +39,23 @@ class IRUser(object):
         self._role = role
         self._ownedImgs=ownedImgs
         
+    ############################################################
+    # setCred
+    ############################################################
     def setCred(self,cred):
         self._cred = cred
     
+    ############################################################
+    # __repr__
+    ############################################################
     def __repr__(self):
         return "\"userId=%s, cred=%s, fsCap=%s, fsUsed=%s, lastLogin=%s, status=%s, role=%s, ownedImgs=%s \"" % \
                 (self._userId, self._cred, self._fsCap, self._fsUsed, \
                  self._lastLogin, self._status, self._role, self._ownedImgs)
     
+    ############################################################
+    # __str__
+    ############################################################
     def __str__(self):
         return "\"%s, %s, %d, %d, %s, %s, %s, %s\"" % \
                 (self._userId, self._cred, self._fsCap, self._fsUsed, \
@@ -88,6 +103,9 @@ class ImgMeta(object):
                    VmType[0], ImgType[0],
                    Permission[1], ImgStatus[0]]
          
+    ############################################################
+    # init
+    ############################################################
     def __init__(self,
                  imgId,
                  os,
@@ -112,12 +130,18 @@ class ImgMeta(object):
         self._description = description
         self._tag = tag
     
+    ############################################################
+    # __repr__
+    ############################################################
     def __repr__(self):
         return "\"imgId=%s, os=%s, arch=%s, owner=%s, description=%s, tag=%s, vmType=%s, imgType=%s, permission=%s, status=%s\"" % \
                 (self._imgId, self._os, self._arch, self._owner, \
                  self._description, self._tag, self._vmType, self._imgType, \
                  self._permission, self._imgStatus)
     
+    ############################################################
+    # str
+    ############################################################
     def __str__(self):
         return "\"%s, %s, %s, %s, %s, %s, %s, %s, %s, %s\"" % \
                 (self._imgId, self._os, self._arch, self._owner, \
@@ -144,22 +168,37 @@ class ImgEntry(object):
         self._size = size
     
     
+    ############################################################
+    # __repr__
+    ############################################################
     def __repr__(self):
         return "\"imgId=%s, imgURI=%s, createdDate=%s, lastAccess=%s, accessCount=%s, size=%s\"" % \
                 (self._imgId, self._imgURI, self._createdDate, self._lastAccess, \
                  self._accessCount, self._size)
     
+    ############################################################
+    # __str__
+    ############################################################
     def __str__(self):
         return "\"%s, %s, %s, %s, %s, %s\"" % \
                 (self._imgId, self._imgURI, self._createdDate, self._lastAccess, \
                  self._accessCount, self._size)
                      
+    ############################################################
+    # get
+    ############################################################
     def get(self, userId, imgId):
         pass
     
+    ############################################################
+    # put
+    ############################################################
     def put(self, userId, attrStr, imgFile):
         pass
         
+    ############################################################
+    # remove
+    ############################################################
     def remove(self, userId, imgId):
         pass
 

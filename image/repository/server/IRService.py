@@ -85,6 +85,9 @@ except:
 
 class IRService(object):
 
+    ############################################################
+    # __init__
+    ############################################################
     def __init__(self):
         super(IRService, self).__init__()
         
@@ -124,23 +127,38 @@ class IRService(object):
             self.imgStore = ImgStoreFS()            
             self.userStore = IRUserStoreFS()    
         
+    ############################################################
+    # uploadValidator
+    ############################################################
     def uploadValidator(self, userId, size):
         self._log.info("user:"+userId+" command:uploadValidator args={size:"+str(size)+"}")
         return self.userStore.uploadValidator(userId, size)
     
+    ############################################################
+    # userAdd
+    ############################################################
     def userAdd(self, userId, username):
         self._log.info("user:"+userId+" command:userAdd args={userIdtoAdd:"+username+"}")
         user=IRUser(username)
         return self.userStore.userAdd(userId, user)
     
+    ############################################################
+    # userDel
+    ############################################################
     def userDel(self, userId, userIdtoDel):
         self._log.info("user:"+userId+" command:userDel args={userIdtoDel:"+userIdtoDel+"}")
         return self.userStore.userDel(userId, userIdtoDel)
     
+    ############################################################
+    # userList
+    ############################################################
     def userList(self, userId):
         self._log.info("user:"+userId+" command:userlist")
         return self.userStore.queryStore(userId, None)
     
+    ############################################################
+    # setUserRole
+    ############################################################
     def setUserRole(self, userId, userIdtoModify, role):
         self._log.info("user:"+userId+" command:setUserRole args={userIdtoModify:"+userIdtoModify+", role:"+role+"}")
         if (role in IRUser.Role):
@@ -150,10 +168,16 @@ class IRService(object):
             print "Role not valid. Valid roles are "+str(IRUser.Role)
             return False
           
+    ############################################################
+    # setUserQuota
+    ############################################################
     def setUserQuota(self, userId, userIdtoModify, quota):
         self._log.info("user:"+userId+" command:setUserQuota args={userIdtoModify:"+userIdtoModify+", quota:"+str(quota)+"}")        
         return self.userStore.setQuota(userId, userIdtoModify, quota)
         
+    ############################################################
+    # setUserStatus
+    ############################################################
     def setUserStatus(self, userId, userIdtoModify, status):
         self._log.info("user:"+userId+" command:setUserStatus args={userIdtoModify:"+userIdtoModify+", status:"+status+"}")
         if (status in IRUser.Status):
@@ -171,6 +195,9 @@ class IRService(object):
         self._log.info("user:"+userId+" command:list args={queryString:"+queryString+"}")
         return self.metaStore.getItems(queryString)
 
+    ############################################################
+    # get
+    ############################################################
     def get(self, userId, option, imgId):
         self._log.info("user:"+userId+" command:get args={option:"+option+", imgId:"+imgId+"}")
         if (option == "img"):
@@ -178,6 +205,9 @@ class IRService(object):
         elif (option == "uri"):
             return self.imgStore.getItemUri(imgId, userId)
 
+    ############################################################
+    # put
+    ############################################################
     def put(self, userId, imgId, imgFile, attributeString, size):
         self._log.info("user:"+userId+" command:put args={imgId:"+imgId+", imgFile:"+imgFile+", metadata:"+attributeString+",\
                        size:"+str(size)+"}")
@@ -225,6 +255,9 @@ class IRService(object):
         else:
             return 0
     
+    ############################################################
+    # updateItem
+    ############################################################
     def updateItem(self, userId, imgId, attributeString):
         self._log.info("user:"+userId+" command:updateItem args={imgId:"+imgId+",metadata:"+attributeString+"}")
         """
@@ -243,6 +276,9 @@ class IRService(object):
                 
         return success
         
+    ############################################################
+    # remove
+    ############################################################
     def remove(self, userId, imgId):
         self._log.info("user:"+userId+" command:remove args={imgId:"+imgId+"}")
         size=[0] #Size is output parameter in the first call. 
@@ -251,10 +287,16 @@ class IRService(object):
             status=self.userStore.updateAccounting(userId, -(size[0]), -1)
         return status
     
+    ############################################################
+    # histImg
+    ############################################################
     def histImg(self,userId, imgId):
         self._log.info("user:"+userId+" command:histImg args={imgId:"+imgId+"}")
         return self.imgStore.histImg(imgId)
     
+    ############################################################
+    # printHistImg
+    ############################################################
     def printHistImg(self,imgs):
         output={}
         output ['head'] = "    Image Id \t\t     Created Date \t Last Access \t    #Access \n"
@@ -277,6 +319,10 @@ class IRService(object):
         
         return output
     
+
+    ############################################################
+    # histUser
+    ############################################################
     def histUser(self,userId,userIdtoSearch):    
         self._log.info("user:"+userId+" command:histImg args={userIdtoSearch:"+userIdtoSearch+"}")    
         output={}
@@ -308,6 +354,9 @@ class IRService(object):
         
         
     
+    ############################################################
+    # _createImgMeta
+    ############################################################
     def _createImgMeta(self, userId, imgId, attributeString, update):  ##We assume that values are check in client side
         """
         Create a ImgMeta object from a list of attributes
@@ -359,6 +408,9 @@ class IRService(object):
         #print aMeta
         return aMeta
         
+    ############################################################
+    # usage
+    ############################################################
 def usage():
     print "options:"
     print '''
@@ -381,6 +433,9 @@ def usage():
         --setUserStatus <userId> <status> :modify user status
           '''
           
+    ############################################################
+    # main
+    ############################################################
 def main():
 
     

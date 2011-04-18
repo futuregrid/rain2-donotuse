@@ -30,6 +30,9 @@ import IRUtil
 
 class ImgStoreMysql(AbstractImgStore):
 
+    ############################################################
+    # __init__
+    ############################################################
     def __init__(self, address,fgirdir, log):
         """
         Initialize object
@@ -56,15 +59,24 @@ class ImgStoreMysql(AbstractImgStore):
         else:
             self._mysqlAddress=self._getAddress()
             
+    ############################################################
+    # _getAddress
+    ############################################################
     def _getAddress(self):
         """Read from a config file and get the mongos address (list of address:port 
         separated by commas)
         """
         return "192.168.1.1"
     
+    ############################################################
+    # getItemUri
+    ############################################################
     def getItemUri(self, imgId, userId):
         return self.getItem(imgId, userId)
         
+    ############################################################
+    # getItem
+    ############################################################
     def getItem(self, imgId, userId):
         """
         Get Image file identified by the imgId
@@ -82,6 +94,9 @@ class ImgStoreMysql(AbstractImgStore):
         else:
             return None
         
+    ############################################################
+    # addItem
+    ############################################################
     def addItem(self, imgEntry1):
         """
         Add imgEntry to store or Update it if exists and the user is the owner
@@ -143,6 +158,9 @@ class ImgStoreMysql(AbstractImgStore):
         return updated   
     """  
     
+    ############################################################
+    # histImg 
+    ############################################################
     def histImg (self,imgId):
         """
         Query DB to provide history information about the image Usage
@@ -190,6 +208,9 @@ class ImgStoreMysql(AbstractImgStore):
         else:
             return None
            
+    ############################################################
+    # queryStore
+    ############################################################
     def queryStore(self, imgIds, imgLinks, userId):
         """        
         Query the DB and provide the uri.    
@@ -249,6 +270,10 @@ class ImgStoreMysql(AbstractImgStore):
         else:
             return False
            
+
+    ############################################################
+    # persistToStore
+    ############################################################
     def persistToStore(self, items):
         """Copy imgEntry to the DB. 
         
@@ -293,6 +318,9 @@ class ImgStoreMysql(AbstractImgStore):
         else:
             return False
         
+    ############################################################
+    # removeItem 
+    ############################################################
     def removeItem (self, userId, imgId, size):
         #what are we going to do with concurrency?
         """
@@ -358,6 +386,9 @@ class ImgStoreMysql(AbstractImgStore):
             
         return removed
              
+    ############################################################
+    # existAndOwner
+    ############################################################
     def existAndOwner(self, imgId, ownerId):
         """
         To verify if the file exists and I am the owner
@@ -406,6 +437,10 @@ class ImgStoreMysql(AbstractImgStore):
         else:
             return False
     
+
+    ############################################################
+    # isPublic
+    ############################################################
     def isPublic(self, imgId):
         """
         To verify if the file is public
@@ -439,6 +474,9 @@ class ImgStoreMysql(AbstractImgStore):
        
         return public
                      
+    ############################################################
+    # mysqlConnection
+    ############################################################
     def mysqlConnection(self):  
         """connect with the mongos available
         
@@ -473,6 +511,9 @@ class ImgStoreMysql(AbstractImgStore):
 
 class ImgMetaStoreMysql(AbstractImgMetaStore):
     
+    ############################################################
+    # __init__
+    ############################################################
     def __init__(self, address,fgirdir, log):        
         """
         Initialize object
@@ -495,16 +536,25 @@ class ImgMetaStoreMysql(AbstractImgMetaStore):
         else:
             self._mysqlAddress=self._getAddress()
             
+    ############################################################
+    # _getAddress
+    ############################################################
     def _getAddress(self):
         """Read from a config file and get the mongos address (list of address:port 
         separated by commas)
         """
         return "192.168.1.1:23000,192.168.1.8:23000"
     
+    ############################################################
+    # getItem
+    ############################################################
     def getItem(self, imgId):
         criteria = "* where imgid="+imgId
         return self.queryStore (criteria)
         
+    ############################################################
+    # addItem
+    ############################################################
     def addItem(self, imgMeta):
         """
         Add imgEntry to store or Update it if exists and the user is the owner
@@ -518,6 +568,9 @@ class ImgMetaStoreMysql(AbstractImgMetaStore):
                     
         return status          
         
+    ############################################################
+    # updateItem
+    ############################################################
     def updateItem(self, userId, imgId, imgMeta1):
          #what are we going to do with concurrency? because I need to remove the old file
         """
@@ -607,12 +660,18 @@ class ImgMetaStoreMysql(AbstractImgMetaStore):
         return success
     
     
+    ############################################################
+    # getItems
+    ############################################################
     def getItems(self, criteria):
         if self.queryStore(criteria):
             return self._items
         else:
             return None
         
+    ############################################################
+    # queryStore
+    ############################################################
     def queryStore(self, criteria):
         """
         Query the db and store the documents in self._items
@@ -705,6 +764,9 @@ class ImgMetaStoreMysql(AbstractImgMetaStore):
        
         return success
     
+    ############################################################
+    # convertDicToObject
+    ############################################################
     def convertDicToObject(self, dic, fullMode): 
         """
         This method convert a dictionary in a ImgMetaStoreMongo object
@@ -747,6 +809,10 @@ class ImgMetaStoreMysql(AbstractImgMetaStore):
         
         return tmpMeta                 
                                   
+
+    ############################################################
+    # persistToStore
+    ############################################################
     def persistToStore(self, items):
         """Copy imgMeta to the DB. 
         
@@ -791,9 +857,15 @@ class ImgMetaStoreMysql(AbstractImgMetaStore):
         else:
             return False
     
+    ############################################################
+    # removeItem 
+    ############################################################
     def removeItem (self, imdId):
         self._log.error("Data has not been deleted. Please, use the ImgStoreMysql to delete items ")
         
+    ############################################################
+    # existAndOwner
+    ############################################################
     def existAndOwner(self, imgId, ownerId):
         """
         To verify if the file exists and I am the owner
@@ -841,6 +913,9 @@ class ImgMetaStoreMysql(AbstractImgMetaStore):
         else:
             return False
         
+    ############################################################
+    # mysqlConnection
+    ############################################################
     def mysqlConnection(self):
         """connect with the mysql db
         
@@ -874,6 +949,10 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
     If we got a huge number of user ^^ try to create an index to accelerate searchs
          collection.ensure_index("userId")
     '''
+
+    ############################################################
+    # __init__
+    ############################################################
     def __init__(self, address,fgirdir, log):  
         super(IRUserStoreMysql, self).__init__()        
         #self._items = []        
@@ -889,6 +968,9 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
         else:
             self._mysqlAddress=self._getAddress()
             
+    ############################################################
+    # _getAddress
+    ############################################################
     def _getAddress(self):
         """Read from a config file and get the mongos address (list of address:port 
         separated by commas)
@@ -896,6 +978,9 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
         return "192.168.1.1:23000,192.168.1.8:23000"
         
     
+    ############################################################
+    # queryStore
+    ############################################################
     def queryStore(self, userId, userIdtoSearch):
         """
         Query the db and store the documents in self._items
@@ -948,6 +1033,9 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
         else:
             return None
            
+    ############################################################
+    # _getUser
+    ############################################################
     def _getUser(self, userId):
         """Get user from the store by Id'''
                 
@@ -964,6 +1052,9 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
             return None
 
     
+    ############################################################
+    # updateAccounting 
+    ############################################################
     def updateAccounting (self, userId, size, num):     
         """
         Update the disk usage and number of owned images of a user when it add a new Image
@@ -1017,6 +1108,9 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
         return success
     
     
+    ############################################################
+    # setRole
+    ############################################################
     def setRole(self, userId, userIdtoModify, role):
         """
         Modify the role of a user. Only admins can do it
@@ -1085,6 +1179,9 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
        
         return success
     
+    ############################################################
+    # setUserStatus
+    ############################################################
     def setUserStatus(self, userId, userIdtoModify, status):
         """
         Modify the status of a user. Only admins can do it
@@ -1119,6 +1216,9 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
        
         return success
     
+    ############################################################
+    # userDel
+    ############################################################
     def userDel(self, userId, userIdtoDel):
         """
         Modify the quota of a user. Only admins can do it
@@ -1153,6 +1253,10 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
             
         return removed
         
+
+    ############################################################
+    # userAdd
+    ############################################################
     def userAdd(self, userId, user):
         """
         Add user to the database
@@ -1165,6 +1269,9 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
         return self.persistToStore(userId, [user])
     
         
+    ############################################################
+    # persistToStore
+    ############################################################
     def persistToStore(self, userId, users):
         """
         Add user to the database
@@ -1255,6 +1362,9 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
        
         return admin
             
+    ############################################################
+    # uploadValidator
+    ############################################################
     def uploadValidator(self, userId, imgSize):
         user = self._getUser(userId)
         ret = False
@@ -1270,6 +1380,9 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
         
         return ret      
     
+    ############################################################
+    # mysqlConnection
+    ############################################################
     def mysqlConnection(self):         
         """connect with the mysql db
         

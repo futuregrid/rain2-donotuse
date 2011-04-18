@@ -34,6 +34,9 @@ from boto.s3.connection import S3Connection
 
 class ImgStoreCumulusMysql(ImgStoreMysql):
 
+    ############################################################
+    # __init__
+    ############################################################
     def __init__(self, address, addressS, fgirdir, log):
         """
         Initialize object
@@ -67,10 +70,16 @@ class ImgStoreCumulusMysql(ImgStoreMysql):
             
 
     
+    ############################################################
+    # getItemUri
+    ############################################################
     def getItemUri(self, imgId, userId):
         return "For now we do not provide this feature with the Cumulus system as backend."
         
 
+    ############################################################
+    # getItem
+    ############################################################
     def getItem(self, imgId, userId):
         """
         Get Image file identified by the imgId
@@ -91,6 +100,9 @@ class ImgStoreCumulusMysql(ImgStoreMysql):
         
 
            
+    ############################################################
+    # queryStore
+    ############################################################
     def queryStore(self, imgIds, imgLinks, userId):
         """        
         Query the DB and provide the uri.    
@@ -162,6 +174,9 @@ class ImgStoreCumulusMysql(ImgStoreMysql):
         else:
             return False
            
+    ############################################################
+    # persistToStore
+    ############################################################
     def persistToStore(self, items):
         """Copy imgEntry to the DB. 
         
@@ -232,6 +247,10 @@ class ImgStoreCumulusMysql(ImgStoreMysql):
         else:
             return False
         
+    
+    ############################################################
+    # removeItem 
+    ############################################################
     def removeItem (self, userId, imgId, size):
         #what are we going to do with concurrency?
         """
@@ -299,6 +318,9 @@ class ImgStoreCumulusMysql(ImgStoreMysql):
             
         return removed
             
+    ############################################################
+    # existAndOwner
+    ############################################################
     def existAndOwner(self, imgId, ownerId):
         """
         To verify if the file exists and I am the owner
@@ -345,6 +367,9 @@ class ImgStoreCumulusMysql(ImgStoreMysql):
         else:
             return False
     
+    ############################################################
+    # cumulusConnection
+    ############################################################
     def cumulusConnection(self):
         """
         Connect with Nimbus Cumulus
@@ -366,6 +391,9 @@ class ImgStoreCumulusMysql(ImgStoreMysql):
 
 class ImgMetaStoreCumulusMysql(ImgMetaStoreMysql):
 
+    ############################################################
+    # __init__
+    ############################################################
     def __init__(self, address, fgirdir, log):
         """
         Initialize object
@@ -392,6 +420,9 @@ class ImgMetaStoreCumulusMysql(ImgMetaStoreMysql):
                        
 class IRUserStoreCumulusMysql(IRUserStoreMysql):
 
+    ############################################################
+    # __init__
+    ############################################################
     def __init__(self, address,fgirdir, log):
         """
         Initialize object

@@ -23,6 +23,10 @@ from IRServiceProxy import IRServiceProxy
 # TODO can we make that a shell command and than yous write a wrapper: "fg irclient ... arguments ..."
 # This way this command could be a shell script.
 
+############################################################
+# usage
+############################################################
+
 def usage():
     print "options:"
     print '''
@@ -45,6 +49,10 @@ def usage():
 -i/--histimg [imgId]                           get usage info of an image
 -u/--histuser <userId>                         get usage info of a user
           '''
+
+############################################################
+# main
+############################################################
 
 def main():
     try:

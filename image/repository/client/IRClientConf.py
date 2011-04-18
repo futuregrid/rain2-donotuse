@@ -11,6 +11,10 @@ import logging
 
 class IRClientConf(object):
     
+    ############################################################
+    # init
+    ############################################################
+
     def __init__(self):
         super(IRClientConf, self).__init__()
         
@@ -54,25 +58,63 @@ class IRClientConf(object):
         ###TODO ADD SSH KEY TO SSH-ADD
         
     
+    ############################################################
+    # getLogHistDir
+    ############################################################
     def getLogHistDir(self):
         return self._loghistdir    
+
+    ############################################################
+    # getConfigFile
+    ############################################################
     def getConfigFile(self):
         return self._configfile
+
+    ############################################################
+    # getLogFile
+    ############################################################
     def getLogFile(self):
         return self._logfile
+
+    ############################################################
+    # getLogLevel
+    ############################################################
     def getLogLevel(self):
         return self._logLevel
+
+    ############################################################
+    # getIrconfig
+    ############################################################
     def getIrconfig(self):
         return self._irconfig
+
+    ############################################################
+    # getBackend
+    ############################################################
     def getBackend(self):
         return self._backend
+
+    ############################################################
+    # getFgirimgstore
+    ############################################################
     def getFgirimgstore(self):
         return self._fgirimgstore 
+
+    ############################################################
+    # getServerdir
+    ############################################################
     def getServerdir(self):
         return self._serverdir
+
+    ############################################################
+    # getServeraddr
+    ############################################################
     def getServeraddr(self):
         return self._serveraddr
     
+    ############################################################
+    # loadConfig
+    ############################################################
     def loadConfig(self):
         
         config = ConfigParser.ConfigParser()
@@ -127,6 +169,9 @@ class IRClientConf(object):
             print "Error: No option IRconfig in section Repo"
             sys.exit(0)
             
+    ############################################################
+    # _setupBackend 
+    ############################################################
     def _setupBackend (self):  
         userId = os.popen('whoami', 'r').read().strip()        
         if not os.path.isfile(self._irconfig):

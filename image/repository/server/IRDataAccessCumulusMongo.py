@@ -48,6 +48,9 @@ from boto.s3.connection import S3Connection
 
 class ImgStoreCumulusMongo(ImgStoreMongo):
 
+    ############################################################
+    # __init__
+    ############################################################
     def __init__(self, address, addressS, fgirdir, log):
         """
         Initialize object
@@ -75,9 +78,16 @@ class ImgStoreCumulusMongo(ImgStoreMongo):
         self._cumulusConnection=None
         self._containerName="imagesmongo"  ##bucket
 
+    ############################################################
+    # getItemUri
+    ############################################################
     def getItemUri(self, imgId, userId):
         return "For now we do not provide this feature with the cumulus system as backend."
     
+
+    ############################################################
+    # getItem    
+    ############################################################
     def getItem(self, imgId, userId):
         """
         Get Image file identified by the imgId
@@ -96,6 +106,9 @@ class ImgStoreCumulusMongo(ImgStoreMongo):
         else:
             return None
 
+    ############################################################
+    # queryStore
+    ############################################################
     def queryStore(self, imgIds, imgLinks, userId):
         """        
         Query the DB and provide a generator object of the Images to create them with strean method.    
@@ -166,6 +179,9 @@ class ImgStoreCumulusMongo(ImgStoreMongo):
         else:
             return False
            
+    ############################################################
+    # persistToStore
+    ############################################################
     def persistToStore(self, items):
         """Copy imgEntry and imgMeta to the DB. It first store the imgEntry to get the file Id
         
@@ -258,6 +274,9 @@ class ImgStoreCumulusMongo(ImgStoreMongo):
         else:
             return False
         
+    ############################################################
+    # removeItem 
+    ############################################################
     def removeItem (self, userId, imgId, size):
         #what are we going to do with concurrency?
         """
@@ -359,6 +378,9 @@ class ImgStoreCumulusMongo(ImgStoreMongo):
         else:
             return False
 
+    ############################################################
+    # cumulusConnection
+    ############################################################
     def cumulusConnection(self):
         """
         Connect with Nimbus Cumulus
@@ -380,6 +402,9 @@ class ImgStoreCumulusMongo(ImgStoreMongo):
 
 class ImgMetaStoreCumulusMongo(ImgMetaStoreMongo):
 
+    ############################################################
+    # __init__
+    ############################################################
     def __init__(self, address, fgirdir, log):
         """
         Initialize object
@@ -405,6 +430,9 @@ class ImgMetaStoreCumulusMongo(ImgMetaStoreMongo):
                        
 class IRUserStoreCumulusMongo(IRUserStoreMongo):
 
+    ############################################################
+    # __init__
+    ############################################################
     def __init__(self, address,fgirdir, log):
         """
         Initialize object

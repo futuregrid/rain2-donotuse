@@ -14,46 +14,106 @@ from IRTypes import IRUser
 import re
 
 class AbstractImgStore(object):
+    ############################################################
+    # __init__
+    ############################################################
     def __init__(self):        
         if type(self) is AbstractImgStore:
             raise Exception('This is an abstract class')
         else:
             self._items = {}    
             
+    ############################################################
+    # getItemUri
+    ############################################################
     def getItemUri(self, imgId):
         pass                    
+
+    ############################################################
+    # getItem
+    ############################################################
     def getItem(self, imgId, userId):
         pass
+
+    ############################################################
+    # addItem
+    ############################################################
     def addItem(self, imgEntry):
         pass
+
+    ############################################################
+    # updateItem
+    ############################################################
     def updateItem(self, imgId, imgEntry):
         pass
+
+    ############################################################
+    # queryStore
+    ############################################################
     def queryStore(self, imgIds, userId):
         pass
+
+    ############################################################
+    # persistToStore
+    ############################################################
     def persistToStore(self, items):
         pass
+
+    ############################################################
+    # removeItem
+    ############################################################
     def removeItem(self, userId, imgId):
         pass
 
 class AbstractImgMetaStore(object):
+    ############################################################
+    # __init__
+    ############################################################
     def __init__(self):        
         if type(self) is AbstractImgMetaStore:
             raise Exception('This is an abstract class')
         else:
             self._items = {}    
                     
+    ############################################################
+    # getItem
+    ############################################################
     def getItem(self, imgId):
         pass
+
+    ############################################################
+    # addItem
+    ############################################################
     def addItem(self, imgMeta):
         pass
+
+    ############################################################
+    # updateItem
+    ############################################################
     def updateItem(self, imgId, imgEntry):
         pass
+
+    ############################################################
+    # getItems
+    ############################################################
     def getItems(self, criteria):
         pass
+
+    ############################################################
+    # queryStore
+    ############################################################
     def queryStore(self, imgIds):
         pass
+
+    ############################################################
+    # persistToStore
+    ############################################################
     def persistToStore(self, items):
         pass
+
+    ############################################################
+    # removeItem
+    ############################################################
     def removeItem(self, userId, imgId):
         pass
 
@@ -61,21 +121,36 @@ class AbstractIRUserStore(object):
     '''
     User store existing as a file or db
     '''
+    ############################################################
+    # __init__
+    ############################################################
     def __init__(self):
         if type(self) is AbstractImgMetaStore:
             raise Exception('This is an abstract class')
         else:
             self._items = {}
       
+    ############################################################
+    # getUser
+    ############################################################
     def getUser(self, userId):
         pass
         
+    ############################################################
+    # addUser
+    ############################################################
     def addUser(self, user):
         pass
         
+    ############################################################
+    # persistToStore
+    ############################################################
     def persistToStore(self, users):
         pass
             
+    ############################################################
+    # uploadValidator
+    ############################################################
     def uploadValidator(self, userId, imgSize):
         pass
 
@@ -83,14 +158,23 @@ class AbstractIRUserStore(object):
 # Image store existing as a file or db 
 #
 class ImgStoreFS(AbstractImgStore):
+    ############################################################
+    # __init__
+    ############################################################
     def __init__(self):
         super(ImgStoreFS, self).__init__()
         #self._items = {}
         self._fsloc = "IRImgStore"   #file location containing images
     
+    ############################################################
+    # getItemUri
+    ############################################################
     def getItemUri(self, imgId):
         return getItem(imgId)
     
+    ############################################################
+    # getItem
+    ############################################################
     def getItem(self, imgId):
         if not imgId in self._items.keys():
             # not found, so searching the file
@@ -103,10 +187,18 @@ class ImgStoreFS(AbstractImgStore):
             ret = None
         return ret
         
+
+    ############################################################
+    # addItem
+    ############################################################
     def addItem(self, imgEntry):
         self.persistToStore([imgEntry])
         self._items[imgEntry._imgId] = imgEntry
         
+    
+    ############################################################
+    # updateItem
+    ############################################################
     def updateItem(self, imgId, imgEntry):
         ret = True;
         if not imgId in self._items.keys():
@@ -115,6 +207,9 @@ class ImgStoreFS(AbstractImgStore):
             self._items[imgEntry._imgId] = imgEntry
         return ret
         
+    ############################################################
+    # queryStore
+    ############################################################
     def queryStore(self, imgIds):
         ret = False
         self._getItems()
@@ -128,6 +223,10 @@ class ImgStoreFS(AbstractImgStore):
         return ret
         
         
+
+    ############################################################
+    # _getItems
+    ############################################################
     def _getItems(self):
         f = open(self._fsloc, "r")
         self._items.clear()
@@ -139,6 +238,10 @@ class ImgStoreFS(AbstractImgStore):
             self._items[args[0]] = ImgEntry(args[0], None, args[1])
         f.close()
                     
+
+    ############################################################
+    # persistToStore
+    ############################################################
     def persistToStore(self, items):
         f = open(self._fsloc, "a")
         for item in items:
@@ -149,11 +252,17 @@ class ImgStoreFS(AbstractImgStore):
 # Image metadata store
 #       
 class ImgMetaStoreFS(AbstractImgMetaStore):
+    ############################################################
+    # __init__
+    ############################################################
     def __init__(self):
         super(ImgMetaStoreFS, self).__init__()
         #self._items = {}
         self._fsloc = "IRMetaStore"   #file location containing the metadata
         
+    ############################################################
+    # getItem
+    ############################################################
     def getItem(self, imgId):
         if not imgId in self._items.keys():
             if self.queryStore("id=" + imgId):
@@ -164,10 +273,17 @@ class ImgMetaStoreFS(AbstractImgMetaStore):
             ret = self._items[imgId];
         return ret
         
+    ############################################################
+    # addItem
+    ############################################################
     def addItem(self, imgMeta):
         self.persistToStore([imgMeta])
         self._items[imgMeta._imgId] = imgMeta
     
+    
+    ############################################################
+    # updateItem
+    ############################################################
     def updateItem(self, imgId, imgMeta):
         ret = True;
         if not imgId in _items.keys():
@@ -176,12 +292,19 @@ class ImgMetaStoreFS(AbstractImgMetaStore):
             self._items[imgMeta._imgId] = imgMeta
         return ret
     
+    ############################################################
+    # getItems
+    ############################################################
     def getItems(self, criteria):
         if self.queryStore(criteria):
             return self._items
         else:
             return None
         
+
+    ############################################################
+    # queryStore
+    ############################################################
     def queryStore(self, criteria):
         ret = False
         self._items.clear()
@@ -219,6 +342,9 @@ class ImgMetaStoreFS(AbstractImgMetaStore):
         f.close()
         return ret
               
+    ############################################################
+    # persistToStore
+    ############################################################
     def persistToStore(self, items):
         f = open(self._fsloc, "a")
         for item in items:
@@ -229,21 +355,37 @@ class IRUserStoreFS(AbstractIRUserStore):
     '''
     User store existing as a file or db
     '''
+    ############################################################
+    # __init__
+    ############################################################
     def __init__(self):
         super(IRUserStoreFS, self).__init__()        
         #self._items = []
         self._fsloc = "IRUserStore"   #file location for users
       
+    ############################################################
+    # getUser
+    ############################################################
     def getUser(self, userId):
         '''Get user from the store by Id'''
         return IRUser(userId)
         
+    
+    ############################################################
+    # addUser
+    ############################################################
     def addUser(self, user):
         pass
         
+    ############################################################
+    # persistToStore
+    ############################################################
     def persistToStore(self, users):
         pass
             
+    ############################################################
+    # uploadValidator
+    ############################################################
     def uploadValidator(self, userId, imgSize):
         user = self.getUser(userId)
         ret = True

@@ -52,6 +52,9 @@ import sys
 
 class ImgStoreMongo(AbstractImgStore):
 
+    ############################################################
+    # __init__
+    ############################################################
     def __init__(self, address,fgirdir, log):
         """
         Initialize object
@@ -75,15 +78,24 @@ class ImgStoreMongo(AbstractImgStore):
         else:
             self._mongoAddress=self._getAddress()
             
+    ############################################################
+    # _getAddress
+    ############################################################
     def _getAddress(self):
         """Read from a config file and get the mongos address (list of address:port 
         separated by commas)
         """
         return "192.168.1.1:23000,192.168.1.8:23000"
     
+    ############################################################
+    # getItemUri
+    ############################################################
     def getItemUri(self, imgId, userId):
         return "MongoDB cannot provide an image URI, try to retrieve the image."
         
+    ############################################################
+    # getItem
+    ############################################################
     def getItem(self, imgId, userId):
         """
         Get Image file identified by the imgId
@@ -115,6 +127,9 @@ class ImgStoreMongo(AbstractImgStore):
         else:
             return None
         
+    ############################################################
+    # addItem
+    ############################################################
     def addItem(self, imgEntry1):
         """
         Add imgEntry to store or Update it if exists and the user is the owner
@@ -217,6 +232,9 @@ class ImgStoreMongo(AbstractImgStore):
         return imgUpdated  
     """  
     
+    ############################################################
+    # histImg 
+    ############################################################
     def histImg (self,imgId):
         """
         Query DB to provide history information about the image Usage
@@ -265,6 +283,9 @@ class ImgStoreMongo(AbstractImgStore):
             return None
          
                         
+    ############################################################
+    # queryStore
+    ############################################################
     def queryStore(self, imgIds, imgLinks, userId):
         """        
         Query the DB and provide the GridOut of the Images to create them with read method.    
@@ -323,6 +344,9 @@ class ImgStoreMongo(AbstractImgStore):
         else:
             return False
            
+    ############################################################
+    # persistToStore
+    ############################################################
     def persistToStore(self, items):
         """Copy imgEntry and imgMeta to the DB. It first store the imgEntry to get the file Id
         
@@ -409,6 +433,9 @@ class ImgStoreMongo(AbstractImgStore):
         else:
             return False
         
+    ############################################################
+    # removeItem 
+    ############################################################
     def removeItem (self, userId, imgId, size):
         #what are we going to do with concurrency?
         """
@@ -461,6 +488,9 @@ class ImgStoreMongo(AbstractImgStore):
             
         return removed
     
+    ############################################################
+    # existAndOwner
+    ############################################################
     def existAndOwner(self, imgId, ownerId):
         """
         To verify if the file exists and I am the owner
@@ -505,6 +535,9 @@ class ImgStoreMongo(AbstractImgStore):
         else:
             return False
     
+    ############################################################
+    # isPublic
+    ############################################################
     def isPublic(self, imgId):
         """
         To verify if the file is public
@@ -539,6 +572,9 @@ class ImgStoreMongo(AbstractImgStore):
                 
         return public
                       
+    ############################################################
+    # mongoConnection
+    ############################################################
     def mongoConnection(self):
         """connect with the mongos available
         
@@ -562,6 +598,9 @@ class ImgStoreMongo(AbstractImgStore):
 
 class ImgMetaStoreMongo(AbstractImgMetaStore):
     
+    ############################################################
+    # __init__
+    ############################################################
     def __init__(self, address,fgirdir, log):        
         """
         Initialize object
@@ -583,21 +622,34 @@ class ImgMetaStoreMongo(AbstractImgMetaStore):
         else:
             self._mongoAddress=self._getAddress()
             
+    ############################################################
+    # _getAddress
+    ############################################################
     def _getAddress(self):
         """Read from a config file and get the mongos address (list of address:port 
         separated by commas)
         """
         return "192.168.1.1:23000,192.168.1.8:23000"
     
+    ############################################################
+    # getItem
+    ############################################################
     def getItem(self, imgId):
         criteria = "* where id="+imgId
         return queryStore (criteria)
         
+    ############################################################
+    # addItem
+    ############################################################
     def addItem(self, imgMeta):
         self._log.error("Please, use the ImgStoreMongo to add new items")            
                     
         return False
     
+
+    ############################################################
+    # existAndOwner
+    ############################################################
     def existAndOwner(self, imgId, ownerId):
         """
         To verify if the file exists and I am the owner
@@ -641,6 +693,10 @@ class ImgMetaStoreMongo(AbstractImgMetaStore):
         else:
             return False
         
+
+    ############################################################
+    # updateItem
+    ############################################################
     def updateItem(self, userId, imgId, imgMeta1):
          #what are we going to do with concurrency? because I need to remove the old file
         """
@@ -737,12 +793,18 @@ class ImgMetaStoreMongo(AbstractImgMetaStore):
                     
         return imgUpdated  
     
+    ############################################################
+    # getItems
+    ############################################################
     def getItems(self, criteria):
         if self.queryStore(criteria):
             return self._items
         else:
             return None
         
+    ############################################################
+    # queryStore
+    ############################################################
     def queryStore(self, criteria):
         """
         Query the db and store the documents in self._items
@@ -882,14 +944,23 @@ class ImgMetaStoreMongo(AbstractImgMetaStore):
         
         return tmpMeta           
                                   
+    ############################################################
+    # persistToStore
+    ############################################################
     def persistToStore(self, items):
         #this method is used only in ImgStoreMongo
         self._log.error("Data has not been stored. Please, use the ImgStoreMongo to add new items")
     
+    ############################################################
+    # removeItem 
+    ############################################################
     def removeItem (self, imdId):
         #this method is used only in ImgStoreMongo
         self._log.error("Data has not been deleted. Please, use the ImgStoreMongo to delete items ")
         
+    ############################################################
+    # mongoConnection
+    ############################################################
     def mongoConnection(self):
         """connect with the mongos available
         
@@ -917,6 +988,9 @@ class IRUserStoreMongo(AbstractIRUserStore):
     If we got a huge number of user ^^ try to create an index to accelerate searchs
          collection.ensure_index("userId")
     '''
+    ############################################################
+    # __init__
+    ############################################################
     def __init__(self, address,fgirdir, log):
         super(IRUserStoreMongo, self).__init__()        
 
@@ -930,12 +1004,20 @@ class IRUserStoreMongo(AbstractIRUserStore):
         else:
             self._mongoAddress=self._getAddress()
             
+    ############################################################
+    # _getAddress
+    ############################################################
     def _getAddress(self):
         """Read from a config file and get the mongos address (list of address:port 
         separated by commas)
         """
         return "192.168.1.1:23000,192.168.1.8:23000"
            
+
+
+    ############################################################
+    # queryStore
+    ############################################################
     def queryStore(self, userId, userIdtoSearch):
         """Get user from the store by Id'''
                 
@@ -1083,6 +1165,9 @@ class IRUserStoreMongo(AbstractIRUserStore):
         
         return success
     
+    ############################################################
+    # setQuota
+    ############################################################
     def setQuota(self, userId, userIdtoModify, quota):
         """
         Modify the quota of a user. Only admins can do it
@@ -1114,6 +1199,9 @@ class IRUserStoreMongo(AbstractIRUserStore):
         
         return success
     
+    ############################################################
+    # setUserStatus
+    ############################################################
     def setUserStatus(self, userId, userIdtoModify, status):
         """
         Modify the status of a user. Only admins can do it
@@ -1145,6 +1233,10 @@ class IRUserStoreMongo(AbstractIRUserStore):
         
         return success
     
+
+    ############################################################
+    # userDel
+    ############################################################
     def userDel(self, userId, userIdtoDel):
         """
         Modify the quota of a user. Only admins can do it
@@ -1176,6 +1268,9 @@ class IRUserStoreMongo(AbstractIRUserStore):
         
         return success
          
+    ############################################################
+    # userAdd
+    ############################################################
     def userAdd(self, userId, user):
         """
         Add user to the database. Only admins can do it
@@ -1189,6 +1284,10 @@ class IRUserStoreMongo(AbstractIRUserStore):
         return self.persistToStore(userId, [user])
     
         
+
+    ############################################################
+    # persistToStore
+    ############################################################
     def persistToStore(self, userId, users):
         """
         Add user to the database. Only admins can do it
@@ -1259,6 +1358,10 @@ class IRUserStoreMongo(AbstractIRUserStore):
         else:
             return False
     
+
+    ############################################################
+    # isAdmin
+    ############################################################
     def isAdmin(self, userId):
         """
         Verify if a user is admin
@@ -1285,6 +1388,9 @@ class IRUserStoreMongo(AbstractIRUserStore):
         
         return admin
             
+    ############################################################
+    # uploadValidator
+    ############################################################
     def uploadValidator(self, userId, imgSize):
         user = self._getUser(userId)
         ret = False
@@ -1300,6 +1406,9 @@ class IRUserStoreMongo(AbstractIRUserStore):
         
         return ret      
     
+    ############################################################
+    # mongoConnection
+    ############################################################
     def mongoConnection(self):
         """connect with the mongos available
         
