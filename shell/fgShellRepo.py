@@ -19,9 +19,16 @@ from cmd2 import make_option
 
 
 class fgShellRepo(Cmd):
-    
+
+    ############################################################
+    #
+    ############################################################
     def __init__(self):
         self._service = IRServiceProxy()
+
+    ############################################################
+    # test
+    ############################################################
    
     @options([make_option('-q','--quick', help='Make things fast'),
               make_option('-s','--slow', type=int, help='Make things slow')]) 
@@ -31,6 +38,10 @@ class fgShellRepo(Cmd):
         print opts.quick
         print opts.slow
         self._log.error("SHElll test in fgshell repo")
+
+    ############################################################
+    # hist img
+    ############################################################
     
     def do_repohistimg(self, args):        
         args=self.getArgs(args)
@@ -76,6 +87,9 @@ class fgShellRepo(Cmd):
     def help_repohistuser(self):
         print  "Image Repository histuser command: Return information about the user historical usage. \n "+ \
                "                                  It has one optional argument [userId]\n"
+    ############################################################
+    # user add
+    ############################################################
     
     def do_repouseradd(self, args):
         args=self.getArgs(args)                
@@ -94,6 +108,9 @@ class fgShellRepo(Cmd):
         print  "Image Repository useradd command: Add new user (only Admin user can execut it) \n "+ \
                "                                  It has one arguments <userId> (userId must be the username in the system.)\n"
                
+    ############################################################
+    # user del
+    ############################################################
     
     def do_repouserdel(self, args):
         args=self.getArgs(args)         
@@ -110,6 +127,10 @@ class fgShellRepo(Cmd):
     def help_repouserdel(self):
         print  "Image Repository userdel command: Remove a user (only Admin user can execut it) \n"+ \
                "                                  It has one arguments <userId> \n"
+
+    ############################################################
+    # userlist
+    ############################################################
     
     def do_repouserlist(self, args):        
         #args=self.getArgs(args)      
@@ -133,6 +154,10 @@ class fgShellRepo(Cmd):
     def help_repouserlist(self):
         print  "Image Repository userlist command: Get list of users \n"
                 
+
+    ############################################################
+    #
+    ############################################################
     
     def do_reposetuserquota(self, args):
         args=self.getArgs(args)         
@@ -149,6 +174,10 @@ class fgShellRepo(Cmd):
     def help_reposetuserquota(self):
         print  "Image Repository setuserquota command: Establish disk space available for users (this is given in bytes) \n"+ \
                "                                  It has one arguments <userId> <quota in bytes> (Math expressions like 4*1024 also works)\n"
+
+    ############################################################
+    # userrole
+    ############################################################
     
     def do_reposetuserrole(self, args):
         args=self.getArgs(args)         
@@ -166,6 +195,10 @@ class fgShellRepo(Cmd):
         print  "Image Repository setuserrole command: Change role of a particular user \n"+ \
                "                                  It has one arguments <userId> <role>\n" +\
                "                                  Available roles: "+str(IRTypes.IRUser.Role)+"\n"
+
+    ############################################################
+    # userstatus
+    ############################################################
     
     def do_reposetuserstatus(self, args):
         args=self.getArgs(args)         
@@ -183,6 +216,10 @@ class fgShellRepo(Cmd):
         print  "Image Repository setuserstatus command: Change status of a particular user \n"+ \
                "                                  It has one arguments <userId> <status>\n" +\
                "                                  Available status: "+str(IRTypes.IRUser.Status)+"\n"
+
+    ############################################################
+    # list
+    ############################################################
             
     def do_repolist(self, args):        
         #args=self.getArgs(args)      
@@ -213,6 +250,10 @@ class fgShellRepo(Cmd):
                 "                              If not argument provided it get all \n"+ \
                 "   queryString can be: * ; * where field=XX, field2=YY; \n"+ \
                 "                       field1,field2 where field3=XX \n"
+
+    ############################################################
+    # modify
+    ############################################################
                 
     def do_repomodify(self, args):       
         args=self.getArgs(args)
@@ -241,6 +282,10 @@ class fgShellRepo(Cmd):
                 "     imgtype= "+str(IRTypes.ImgMeta.ImgType)+"\n"\
                 "     imgStatus= "+str(IRTypes.ImgMeta.ImgStatus)+"\n"\
                 "     Permission= "+str(IRTypes.ImgMeta.Permission)
+
+    ############################################################
+    # permission
+    ############################################################
     
     def do_reposetpermission(self, args):       
         args=self.getArgs(args)                
@@ -257,6 +302,10 @@ class fgShellRepo(Cmd):
         print  "Image Repository setPermission command: Change image permission. \n"+ \
                "                              It has two arguments <imgId> <permission> \n"+ \
                "                              Permission= "+str(IRTypes.ImgMeta.Permission)
+
+    ############################################################
+    # get
+    ############################################################
                            
     def do_repoget(self, args): 
         args=self.getArgs(args)   
@@ -274,6 +323,10 @@ class fgShellRepo(Cmd):
     def help_repoget(self):
         print  "Image Repository get command: Get an image or only the URI by id. \n"+ \
                "                              It has two arguments <img OR uri> <imgId>"
+
+    ############################################################
+    # put
+    ############################################################
     
     def do_repoput(self, args):       
         
@@ -326,6 +379,10 @@ class fgShellRepo(Cmd):
                 "     imgtype= "+str(IRTypes.ImgMeta.ImgType)+"\n"\
                 "     imgStatus= "+str(IRTypes.ImgMeta.ImgStatus)+"\n"\
                 "     Permission= "+str(IRTypes.ImgMeta.Permission)
+
+    ############################################################
+    # remove
+    ############################################################
 
 
     def do_reporemove(self,args):
