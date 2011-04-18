@@ -19,16 +19,32 @@ from cmd2 import make_option
 
 
 class fgShellHadoop(Cmd):
-    
+
+    ############################################################
+    # init
+    ############################################################
     def __init__(self):
         self._fgHadoop = fgHadoop()   
+
+    ############################################################
+    # hadooprunjob
+    ############################################################
     
-    @options([make_option('-j','--jobname', help='Provide a name for the job.'),
-              make_option('-i','--inputdir', help='Directory containing the input data for the job'),
-              make_option('-o','--outputdir', help='Directory to store the output data from the job'),
-              make_option('-q', '--queue', help='Queue to submit the job', default="batch"),    
-              make_option('-w', '--walltime', help='Walltime for the job (hh:mm:ss)', default='00:20:00'),    
-              make_option('-n', '--nodes', help='Number of nodes for the job', default=2, type=int)    ]) 
+    @options([make_option('-j','--jobname', 
+                          help='Provide a name for the job.'),
+              make_option('-i','--inputdir', 
+                          help='Directory containing the input data for the job'),
+              make_option('-o','--outputdir', 
+                          help='Directory to store the output data from the job'),
+              make_option('-q', '--queue', 
+                          help='Queue to submit the job', 
+                          default="batch"),    
+              make_option('-w', '--walltime', 
+                          help='Walltime for the job (hh:mm:ss)', 
+                          default='00:20:00'),    
+              make_option('-n', '--nodes', 
+                          help='Number of nodes for the job', 
+                          default=2, type=int)    ]) 
     def do_hadooprunjob(self, args, opts):
         """Test Help"""
         hadoop_home = os.environ.get("HADOOP_HOME")
