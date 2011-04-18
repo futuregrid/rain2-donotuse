@@ -157,6 +157,8 @@ class fgShellUtils(Cmd):
         for manualpage in all_manpages:
             self.print_man(manualpage,manualpage)
 #            eval("self.help_"+manualpage+"()")
+        this_function_name = sys._getframe().f_code.co_name
+        print this_function_name
   
     #################################
     #Run JOB
