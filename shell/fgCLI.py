@@ -184,7 +184,7 @@ class fgShell(fgShellUtils,
                         else:
                             cmds_undoc.append(com)
                 else:
-                    if(com.startswith(self._use)):
+                    if(com.startswith(args.strip())):
                         if com in help:
                             use_doc.append(com)
                             del help[com]
@@ -214,26 +214,28 @@ class fgShell(fgShellUtils,
             final_undoc.sort()
                                
             for i in use_doc:
-                if i[len(self._use):] in cmds_doc:
+                if i[len(args.strip()):] in cmds_doc:
                     #final_doc.append(i[len(self._use):])
-                    spec_doc.append(i[len(self._use):])
-                elif i[len(self._use):] in cmds_undoc:
-                    final_undoc.append(i[len(self._use):])
+                    spec_doc.append(i[len(args.strip()):])
+                elif i[len(args.strip()):] in cmds_undoc:
+                    final_undoc.append(i[len(args.strip()):])
                 else:
                     #final_doc.append(i)
                     spec_doc.append(i)
                     
             for i in use_undoc:
-                if i[len(self._use):] in cmds_undoc:
-                    final_undoc.append(i[len(self._use):])
+                if i[len(args.strip()):] in cmds_undoc:
+                    final_undoc.append(i[len(args.strip()):])
                 else:
                     final_undoc.append(i)              
             self._docHelp=final_doc
             self._undocHelp=final_undoc
             self._specdocHelp=spec_doc
- 
+  
+    
     def do_print_man (self, args):
         "Printes all manual pages"
+        """
         man_list=[]
         names=dir(self.__class__) 
         for name in names:
@@ -244,7 +246,16 @@ class fgShell(fgShellUtils,
             print "Command: %s" % (name)
             print "---------------------------------------------------------------------\n"
             eval ("self."+name+"()")
-
+        """
+        print "Generic commands (available in any context)\n"
+        print self._docHelp
+        for context in self.env:
+            if context !=
+            print "\nSpecific Commands for the context: "+context
+            
+            self.getDocUndoc(context)
+            print self._specdocHelp
+            print "\n"
 
 
     def do_help(self, args):
