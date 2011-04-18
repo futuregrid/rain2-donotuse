@@ -30,8 +30,15 @@ import argparse
 # TODO : Configure the conf location
 class fgHadoop:
     
+    ############################################################
+    # init
+    ############################################################
     def __init__(self):
         print "init hadoop"
+
+    ############################################################
+    # generate jb script
+    ############################################################
 
     def generate_job_script(sefl, job_name, hadoop_command, data_input_dir,
                             data_output_dir, walltime, num_nodes, queue,) :
@@ -86,6 +93,9 @@ class fgHadoop:
         masters_file.close()
         return masters_file_name      
            
+    ############################################################
+    # run job
+    ############################################################
         
     def runJob(self, args, hadoop_cmd, jobname):
         hadoop_home = os.environ.get("HADOOP_HOME")
@@ -97,6 +107,9 @@ class fgHadoop:
             
             subprocess.call("qsub " + job_script, shell=True)
 
+############################################################
+# main
+############################################################
     
 def main():        
     parser = argparse.ArgumentParser(description='Run a Hadoop Job in FutureGrid')
