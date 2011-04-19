@@ -208,9 +208,11 @@ class fgShellUtils(Cmd):
         print this_function_name
     """
     def generic_error(self):
-        print "    Please select a CONTEXT by executing use <context_name>\n"+\
-                  "    Execute \'contexts\' command to see the available context names \n"+\
-                  "    Note that this command may not be available in all CONTEXTS"
+        print "    Please select a CONTEXT by executing use <context_name>.\n"+\
+                  "    Execute \'contexts\' command to see the available context names. \n"+\
+                  "    Help information is also different depending on the context. \n" +\
+                  "    Note that this command may not be available in all CONTEXTS."
+                  
     def generic_help(self):
         msg="Generic command that changes its behaviour depending on the CONTEXT. "
         for line in textwrap.wrap(msg, 64):            
