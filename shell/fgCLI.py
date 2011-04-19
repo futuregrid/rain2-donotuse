@@ -84,7 +84,7 @@ class fgShell(fgShellUtils,
                 dashstr+="-"
             print dashstr
                                
-            self.getDocUndoc(arg)
+            self.getDocUndoc(arg.strip())
             
             if (arg=="repo"):
                 requirements=["Repo"]
@@ -246,19 +246,30 @@ class fgShell(fgShellUtils,
                     final_undoc.append(i)             
         
             self._specdocHelp=spec_doc
-            
+        else:
+            undoc=[]
+            allspec=[]
+            for i in self.env:
+                if i != "":
+                    self.getDocUndoc(i)
+                    undoc.extend(self._undocHelp)
+                    allspec.extend(self._specdocHelp)
+            self._specdocHelp= allspec
+            self._undocHelp.extend(undoc)
+        
         self._docHelp=final_doc
         self._undocHelp=final_undoc
         
     
     def do_help(self, args):        
-        allspec=[]
+        
         if (args.strip()==""):
             print "\nA complete manual can be found in https://portal.futuregrid.org/man/fg-shell\n"
         ## The only reason to define this method is for the help text in the doc string        
         if (self._use==""):
             #cmd.Cmd.do_help(self, args)
             undoc=[]
+            allspec=[]
             self.customHelpNoContext(args)            
             if (args.strip()==""):
                 for i in self.env:
