@@ -374,7 +374,7 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
         
         #username an password will be moved to the config file
         try:
-            self._swiftConnection= cloudfiles.get_connection('test:tester','testing',authurl='http://'+self._swiftAddress+':8080/auth/v1.0')
+            self._swiftConnection= cloudfiles.get_connection('test:tester','testing',authurl='https://'+self._swiftAddress+':8080/auth/v1.0')
             connected=True
         except:
             self._log.error("Error in swift connection. "+str(sys.exc_info()))
