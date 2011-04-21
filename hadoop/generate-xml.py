@@ -34,6 +34,7 @@ import sys
 #=========================
 
 def get_config_document():
+    # TODO handle if the file already exists
     doc = xml.dom.minidom.Document()
     config_element = doc.createElement("configuration")
     doc.appendChild(config_element)
@@ -66,6 +67,7 @@ def create_mapred_site(master_node_ip, mapred_local_dir):
     #doc, dfs_name_property =  create_property("dfs.name.dir", "/tmp/matlab/name", doc)
     config_element.appendChild(create_property("mapred.job.tracker", master_node_ip + ":53777", doc))
     config_element.appendChild(create_property("mapred.local.dir", mapred_local_dir, doc))
+    config_element.appendChild(create_property("mapreduce.map.java.opts", "-Xmx1024M", doc))
     return doc
 
 def create_core_site(master_node_ip):
