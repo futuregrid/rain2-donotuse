@@ -1,0 +1,25 @@
+#!/bin/bash
+# shutdown the vm's started by start_vms.
+# @author Thilina Gunarathne
+
+# quit if PBS_NODEFILE is not present
+if [ ! -e "$PBS_NODEFILE" ]; then
+   echo "PBS_NODEFILE does not exist"
+  exit 0
+fi
+
+# remove the duplicates from the node file
+nodes=`sort -u $PBS_NODEFILE`
+
+
+# invoke runvm_local in each node to start the VM 
+for line in $nodes;do
+
+ # destroy the VM in the node
+ ssh  $line "sudo virsh destroy rhels5.5"
+ # delete the image file
+ ssh $line "rm -f /var/tmp/rhels55-b534.qcow"
+ # delete the metadata file
+ ssh $line "rm -f /tmp/rhels5.5.xml"
+
+done

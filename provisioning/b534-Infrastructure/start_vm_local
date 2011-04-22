@@ -1,0 +1,21 @@
+#!/bin/bash
+image_location="/var/tmp/rhels55-b534.qcow"
+
+# Verify that we got three arguments to this command
+if [ $# != 3 ]; then
+   echo "$0 <mac_address_for_vm> <image_conf_xml_template> <vm_image> "
+   exit 0
+fi 
+
+echo "Staging the VM on `/bin/hostname`"
+
+# copy VM image to /tmp
+cp -f $3 $image_location
+
+# setting up the mac address in to the vm spec file.
+sed -e 's|__MAC_ADDRESS__|'$1'|' -e 's|__IMAGE_LOCATION__|'$image_location'|'  $2  > /tmp/rhels5.5.xml
+
+
+echo "starting VM on `/bin/hostname`"
+sudo /usr/bin/virsh create  /tmp/rhels5.5.xml
+

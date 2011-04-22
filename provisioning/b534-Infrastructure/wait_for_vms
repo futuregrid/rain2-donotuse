@@ -1,0 +1,35 @@
+#!/bin/bash
+# Wait for VM's to boot up. 
+# We wait till all the VM's can be pinged.
+# @author Thilina Gunarathne
+
+TIMEOUT=1200
+count=1
+
+# start to check from the first node onwards.
+for vm in `cat $1`;do
+  echo $vm
+  res=1
+  while [ $res -ne 0 ]
+  do
+     if [ $count -gt $TIMEOUT ];then
+        echo "Error. Timeout reached."
+        exit -1
+     fi
+
+     sleep 1
+     ping -c 2 $vm >/dev/null 2>&1
+
+     if [ $? == 0 ] 
+     then 
+        res=0
+     fi
+
+     (( count++ ))
+ 
+  done
+done
+
+# sleeping bit more to give more time for the SSH to comeup
+sleep 10
+exit 0

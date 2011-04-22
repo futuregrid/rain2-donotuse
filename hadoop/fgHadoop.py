@@ -68,8 +68,8 @@ class fgHadoop:
     
         job_script +="echo starting the cluster  \n"
         job_script +="$HADOOP_HOME/bin/start-dfs.sh  \n" #--config $HADOOP_CONF_DIR
-        job_script +="$HADOOP_HOME/bin/hadoop dfsadmin -safemode wait \n"
-        job_script +="sleep 30 \n" # safemode wait seems to be still buggy
+        #job_script +="$HADOOP_HOME/bin/hadoop dfsadmin -safemode wait \n"
+        job_script +="sleep 100 \n" # safemode wait seems to be still buggy
         
         if(data_input_dir):
             job_script +="$HADOOP_HOME/bin/hadoop fs -put "

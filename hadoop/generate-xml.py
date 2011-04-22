@@ -67,7 +67,7 @@ def create_mapred_site(master_node_ip, mapred_local_dir):
     #doc, dfs_name_property =  create_property("dfs.name.dir", "/tmp/matlab/name", doc)
     config_element.appendChild(create_property("mapred.job.tracker", master_node_ip + ":53777", doc))
     config_element.appendChild(create_property("mapred.local.dir", mapred_local_dir, doc))
-    config_element.appendChild(create_property("mapreduce.map.java.opts", "-Xmx1024M", doc))
+    config_element.appendChild(create_property("mapreduce.map.java.opts", "-Xmx2018m", doc))
     return doc
 
 def create_core_site(master_node_ip):

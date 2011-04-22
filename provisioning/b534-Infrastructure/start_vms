@@ -1,0 +1,52 @@
+#!/bin/bash
+# Starts a VM's in every node of the current job reservation.
+# In order to ensure the environment variables get exported properly,
+# This script needs to be run using ". start_vms" as a sourced script.
+# @author Thilina Gunarathne, Greg Pike
+
+# For the class purposes, we fix the image
+# In the future we can let users specify their own images
+image_file='/share/project/B534/xxxxx.qcow'
+image_conf_tmpl='/share/project/B534/xxxx.tmpl'
+
+# quit if PBS_NODEFILE is not present
+if [ ! -e "$PBS_NODEFILE" ]; then
+   echo "PBS_NODEFILE does not exist"
+   return 0
+fi
+
+# remove the duplicates from the node file
+nodes=`sort -u $PBS_NODEFILE`
+
+# create a temp file to give back the VM IP addresses to users
+vm_ip_file=$(mktemp /tmp/$PBS_JOBID.XXXXXXXXXX) || { echo "Failed to create temp file"; exit 1; }
+
+echo "Starting VM's on $nodes"
+
+# invoke runvm_local in each node to start the VM 
+for line in $nodes;do
+
+ # Getting MAC address and IP address for the new VM
+ case $line in
+   ixx)
+      vmname=xxx.xxx.xxx.xxx
+      mymac=xx:xx:xx:xx:xx:xx
+      ;;
+   ixx)
+      vmname=xxx.xxx.xxx.xxx
+      mymac=xx:xx:xx:xx:xx:xx
+      ;;
+
+ esac
+
+ # start VM in the node
+ ssh  $line "nohup /usr/local/bin/start_vm_local $mymac $image_conf_tmpl $image_file"
+
+ echo $vmname >> $vm_ip_file
+done
+
+echo "IP addresses of the VM's"
+cat $vm_ip_file
+
+VM_NODEFILE=$vm_ip_file
+echo "You can also get the ip addresses of VM's from the VM_NODEFILE."
