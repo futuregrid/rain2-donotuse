@@ -203,7 +203,7 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
                 contain= self._swiftConnection.get_container(self._containerName)
                 self._log.warning("Creating the container")
             except:
-                self._log.error("Error in ImgStoreSwiftMongo - persistToStore. "+str(sys.exc_info()))  
+                self._log.error("Error in ImgStoreSwiftMysql - persistToStore. "+str(sys.exc_info()))  
             
             try:
                 cursor= self._dbConnection.cursor()            
@@ -303,7 +303,7 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
                     self._log.error("I/O error({0}): {1}".format(errno, strerror))
                     self._log.error("No such file or directory. Image details: "+item.__str__())                 
                 except TypeError as detail:
-                    self._log.error("TypeError in ImgStoreMongo - removeItem "+format(detail))
+                    self._log.error("TypeError in ImgStoreSwiftMysql - removeItem "+format(detail))
                 except:
                     self._log.error("Error in ImgStoreSwiftMysql - removeItem. "+str(sys.exc_info()))
                 finally:
