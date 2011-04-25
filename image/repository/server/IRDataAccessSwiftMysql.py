@@ -301,11 +301,11 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
                 except MySQLdb.Error, e:
                     self._log.error("Error %d: %s" % (e.args[0], e.args[1]))
                     con.rollback()                           
-                except IOError as (errno, strerror):
-                    self._log.error("I/O error({0}): {1}".format(errno, strerror))
+                except IOError:                
+                    self._log.error("Error in ImgStoreSwiftMysql - removeItem. "+str(sys.exc_info()))
                     self._log.error("No such file or directory. Image details: "+item.__str__())                 
-                except TypeError as detail:
-                    self._log.error("TypeError in ImgStoreSwiftMysql - removeItem "+format(detail))
+                except TypeError:
+                    self._log.error("TypeError in ImgStoreSwiftMysql - removeItem "+str(sys.exc_info()))  
                 except:
                     self._log.error("Error in ImgStoreSwiftMysql - removeItem. "+str(sys.exc_info()))
                 finally:
@@ -353,11 +353,11 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
                     
         except MySQLdb.Error, e:
             self._log.error("Error %d: %s" % (e.args[0], e.args[1]))                                           
-        except IOError as (errno, strerror):
-            self._log.error("I/O error({0}): {1}".format(errno, strerror))
-            self._log.error("No such file or directory. Image details: "+item.__str__())                
-        except TypeError as detail:
-            self._log.error("TypeError in ImgStoreMysql - existAndOwner: "+format(detail)) 
+        except IOError:                
+            self._log.error("Error in ImgStoreSwiftMongo - existandOwner. "+str(sys.exc_info()))
+            self._log.error("No such file or directory. Image details: "+item.__str__())                 
+        except TypeError:
+            self._log.error("TypeError in ImgStoreSwiftMongo - existandOwner "+str(sys.exc_info()))  
        
         if (exists and owner):
             return True

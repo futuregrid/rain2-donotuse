@@ -161,11 +161,11 @@ class ImgStoreCumulusMysql(ImgStoreMysql):
             except MySQLdb.Error, e:
                 self._log.error("Error %d: %s" % (e.args[0], e.args[1]))                
                 self._dbConnection.rollback()                           
-            except IOError as (errno, strerror):
-                self._log.error("I/O error({0}): {1}".format(errno, strerror))
-                self._log.error("No such file or directory. Image details: "+item.__str__())                
-            except TypeError as detail:
-                self._log.error("TypeError in ImgStorecumulusMysql - queryToStore: "+format(detail))
+            except IOError:                
+                self._log.error("Error in ImgStorecumulusMysql - queryStore. "+str(sys.exc_info()))
+                self._log.error("No such file or directory. Image details: "+item.__str__())                 
+            except TypeError:
+                self._log.error("TypeError in ImgStorecumulusMysql - queryStore "+str(sys.exc_info()))
             except boto.exception.S3ResponseError as detail:
                 self._log.error("Code and reason "+detail.code+" "+detail.reason)
                 self._log.error("Error in ImgStoreCumulusMysql - queryToStore. full error "+str(sys.exc_info()))
@@ -232,11 +232,11 @@ class ImgStoreCumulusMysql(ImgStoreMysql):
             except MySQLdb.Error, e:
                 self._log.error("Error %d: %s" % (e.args[0], e.args[1]))
                 self._dbConnection.rollback()                           
-            except IOError as (errno, strerror):
-                self._log.error("I/O error({0}): {1}".format(errno, strerror))
+            except IOError:                
+                self._log.error("Error in ImgStorecumulusMongo - persistToStore. "+str(sys.exc_info()))
                 self._log.error("No such file or directory. Image details: "+item.__str__())                 
-            except TypeError as detail:
-                self._log.error("TypeError in ImgStorecumulusMysql - persistToStore "+format(detail))
+            except TypeError:
+                self._log.error("TypeError in ImgStorecumulusMongo - persistToStore "+str(sys.exc_info()))
             except:
                 self._log.error("Error in ImgStorecumulusMysql - persistToStore. "+str(sys.exc_info()))
             finally:
@@ -308,11 +308,11 @@ class ImgStoreCumulusMysql(ImgStoreMysql):
                 except MySQLdb.Error, e:
                     self._log.error("Error %d: %s" % (e.args[0], e.args[1]))
                     con.rollback()                           
-                except IOError as (errno, strerror):
-                    self._log.error("I/O error({0}): {1}".format(errno, strerror))
+                except IOError:                
+                    self._log.error("Error in ImgStorecumulusMongo - removeItem. "+str(sys.exc_info()))
                     self._log.error("No such file or directory. Image details: "+item.__str__())                 
-                except TypeError as detail:
-                    self._log.error("TypeError in ImgStoreMongo - removeItem "+format(detail))
+                except TypeError:
+                    self._log.error("TypeError in ImgStorecumulusMongo - removeItem "+str(sys.exc_info()))
                 except:
                     self._log.error("Error in ImgStorecumulusMysql - removeItem. "+str(sys.exc_info()))
                 finally:
@@ -362,10 +362,10 @@ class ImgStoreCumulusMysql(ImgStoreMysql):
         except MySQLdb.Error, e:
             self._log.error("Error %d: %s" % (e.args[0], e.args[1]))                                           
         except IOError as (errno, strerror):
-            self._log.error("I/O error({0}): {1}".format(errno, strerror))
-            self._log.error("No such file or directory. Image details: "+item.__str__())                
-        except TypeError as detail:
-            self._log.error("TypeError in ImgStoreMysql - existAndOwner: "+format(detail)) 
+            self._log.error("Error in ImgStorecumulusMongo - existAndOwner. "+str(sys.exc_info()))
+            self._log.error("No such file or directory. Image details: "+item.__str__())                 
+        except TypeError:
+            self._log.error("TypeError in ImgStorecumulusMongo - existAndOwner "+str(sys.exc_info()))
         except:
             self._log.error("Error in ImgStorecumulusMysql - existAndOwner. "+str(sys.exc_info()))
        

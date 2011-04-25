@@ -255,12 +255,11 @@ class ImgStoreCumulusMongo(ImgStoreMongo):
                 self._log.warning("Autoreconnected.")                 
             except pymongo.errors.ConnectionFailure:
                 self._log.error("Connection failure. The file has not been stored. Image details: "+item.__str__()+"\n")                                           
-            except IOError as (errno, strerror):
-                errorstr="I/O error({0}): {1}".format(errno, strerror)
-                self._log.error(errorstr)
+            except IOError:                
+                self._log.error("Error in ImgStorecumulusMongo - persistenToStore. "+str(sys.exc_info()))
                 self._log.error("No such file or directory. Image details: "+item.__str__())                 
-            except TypeError as detail:
-                self._log.error("TypeError in ImgStorecumulusMongo - persistToStore")
+            except TypeError:
+                self._log.error("TypeError in ImgStorecumulusMongo - persistenToStore "+str(sys.exc_info()))  
             except pymongo.errors.OperationFailure:
                 self._log.error("Operation Failure in ImgStorecumulusMongo - persistenToStore")  
             except:
@@ -320,11 +319,11 @@ class ImgStoreCumulusMongo(ImgStoreMongo):
                     self._log.warning("Autoreconnected.")                 
                 except pymongo.errors.ConnectionFailure:
                     self._log.error("Connection failure. The file has not been updated")                                           
-                except IOError as (errno, strerror):
-                    self._log.error("I/O error({0}): {1}".format(errno, strerror))
-                    self._log.error("No such file or directory. Image details: "+imgEntry1.__str__())                 
-                except TypeError as detail:
-                    self._log.error("TypeError in ImgStorecumulusMongo - RemoveItem")                
+                except IOError:                
+                    self._log.error("Error in ImgStorecumulusMongo - RemoveItem. "+str(sys.exc_info()))
+                    self._log.error("No such file or directory. Image details: "+item.__str__())                 
+                except TypeError:
+                    self._log.error("TypeError in ImgStorecumulusMongo - RemoveItem "+str(sys.exc_info()))          
                 except pymongo.errors.OperationFailure:
                     self._log.error("Operation Failure in ImgStorecumulusMongo - RemoveItem")
                 except:

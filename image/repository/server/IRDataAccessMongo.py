@@ -410,12 +410,11 @@ class ImgStoreMongo(AbstractImgStore):
                 self._log.warning("Autoreconnected.")                 
             except pymongo.errors.ConnectionFailure:
                 self._log.error("Connection failure. The file has not been stored. Image details: "+item.__str__()+"\n")                                           
-            except IOError as (errno, strerror):
-                errorstr="I/O error({0}): {1}".format(errno, strerror)
-                self._log.error(errorstr)
+            except IOError:                
+                self._log.error("Error in ImgStoreMongo - persistToStore. "+str(sys.exc_info()))
                 self._log.error("No such file or directory. Image details: "+item.__str__())                 
-            except TypeError as detail:
-                self._log.error("TypeError in ImgStoreMongo - persistToStore")
+            except TypeError:
+                self._log.error("TypeError in ImgStoreMongo - persistToStore "+str(sys.exc_info()))
             except pymongo.errors.OperationFailure:
                 self._log.error("Operation Failure in ImgStoreMongo - persistenToStore")             
             finally:
@@ -472,11 +471,11 @@ class ImgStoreMongo(AbstractImgStore):
                     self._log.warning("Autoreconnected.")                 
                 except pymongo.errors.ConnectionFailure:
                     self._log.error("Connection failure. The file has not been updated")                                           
-                except IOError as (errno, strerror):
-                    self._log.error("I/O error({0}): {1}".format(errno, strerror))
-                    self._log.error("No such file or directory. Image details: "+imgEntry1.__str__())                 
-                except TypeError as detail:
-                    self._log.error("TypeError in ImgStoreMongo - RemoveItem")                
+                except IOError:                
+                    self._log.error("Error in ImgStoreMongo - removeitem. "+str(sys.exc_info()))
+                    self._log.error("No such file or directory. Image details: "+item.__str__())                 
+                except TypeError:
+                    self._log.error("TypeError in ImgStoreMongo - removeitem "+str(sys.exc_info()))  
                 except pymongo.errors.OperationFailure:
                     self._log.error("Operation Failure in ImgStoreMongo - RemoveItem")
                 finally:
@@ -776,12 +775,11 @@ class ImgMetaStoreMongo(AbstractImgMetaStore):
                     self._log.warning("Autoreconnected.")                 
                 except pymongo.errors.ConnectionFailure:
                     self._log.error("Connection failure. The file has not been updated")                                           
-                except IOError as (errno, strerror):
-                    errorstr="I/O error({0}): {1}".format(errno, strerror)
-                    self._log.error(errorstr)
-                    self._log.error("No such file or directory. Image details: "+imgEntry1.__str__())                 
-                except TypeError as detail:
-                    self._log.error("TypeError in ImgMetaStoreMongo - UpdateImage")                
+                except IOError:                
+                    self._log.error("Error in ImgMetaStoreMongo - updateimage. "+str(sys.exc_info()))
+                    self._log.error("No such file or directory. Image details: "+item.__str__())                 
+                except TypeError:
+                    self._log.error("TypeError in ImgMetaStoreMongo - updateimage "+str(sys.exc_info()))         
                 except pymongo.errors.OperationFailure:
                     self._log.error("Operation Failure in ImgMetaStoreMongo - UpdateImage")
                 finally:
@@ -1057,10 +1055,11 @@ class IRUserStoreMongo(AbstractIRUserStore):
                 self._log.warning("Autoreconnected in IRUserStoreMongo - queryStore")                 
             except pymongo.errors.ConnectionFailure:
                 self._log.error("Connection failure in IRUserStoreMongo - queryStore")                                           
-            except IOError as (errno, strerror):
-                errostr="I/O error({0}): {1}".format(errno, strerror)
-                self._log.error(errorstr)
-                self._log.error("IOError in IRUserStoreMongo - queryStore")                 
+            except IOError:                
+                self._log.error("Error in ImgUserMongo - queryStore. "+str(sys.exc_info()))
+                self._log.error("No such file or directory. Image details: "+item.__str__())                 
+            except TypeError:
+                self._log.error("TypeError in ImgUserMongo - queryStore "+str(sys.exc_info()))            
             
             except pymongo.errors.OperationFailure:
                 self._log.error("Operation Failure in IRUserStoreMongo - queryStore")
@@ -1340,12 +1339,11 @@ class IRUserStoreMongo(AbstractIRUserStore):
                 self._log.warning("Autoreconnected.")                 
             except pymongo.errors.ConnectionFailure:
                 self._log.error("Connection failure. The user has not been stored.")                                           
-            except IOError as (errno, strerror):
-                errorstr="I/O error({0}): {1}".format(errno, strerror)
-                self._log.error(errorsrt)
-                self._log.error("No such file or directory.")                 
-            except TypeError as detail:
-                self._log.error("TypeError in IRUserStoreMongo - addUser")
+            except IOError:                
+                self._log.error("Error in IRUserStoreMongo - addUser. "+str(sys.exc_info()))
+                self._log.error("No such file or directory. Image details: "+item.__str__())                 
+            except TypeError:
+                self._log.error("TypeError in IRUserStoreMongo - addUser "+str(sys.exc_info()))
             except pymongo.errors.OperationFailure:
                 self._log.error("Operation Failure in IRUserStoreMongo - addUser")
             finally:
