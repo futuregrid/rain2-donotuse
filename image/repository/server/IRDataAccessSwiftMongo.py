@@ -101,7 +101,7 @@ class ImgStoreSwiftMongo(ImgStoreMongo):
             if not os.path.isfile(filename):
                 f = open(filename, 'w')
             else:
-                for i in range(100):
+                for i in range(1000):
                     filename="/tmp/"+imgId+".img"+i.__str__()
                     if not os.path.isfile(filename):
                         f = open(filename, 'w')

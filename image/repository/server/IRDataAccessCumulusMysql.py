@@ -136,7 +136,14 @@ class ImgStoreCumulusMysql(ImgStoreMysql):
                         if(results!=None):
                             k.key=imgId                        
                             #Boto does not stream, so we have to create the file here instead of in getItem
-                            imagepath='/tmp/'+imgId+".img"                                                                            
+                            imagepath='/tmp/'+imgId+".img"
+                            
+                            if os.path.isfile(imagepath):                            
+                                for i in range(1000):
+                                    imagepath="/tmp/"+imgId+".img"+i.__str__()
+                                    if not os.path.isfile(imagepath):                                    
+                                        break
+                                                                                                  
                             k.get_contents_to_filename(imagepath)                                                                           
                              
                             imgLinks.append(imagepath)
