@@ -250,12 +250,11 @@ class ImgStoreSwiftMongo(ImgStoreMongo):
                 self._log.warning("Autoreconnected.")                 
             except pymongo.errors.ConnectionFailure:
                 self._log.error("Connection failure. The file has not been stored. Image details: "+item.__str__()+"\n")                                           
-            except IOError as (errno, strerror):
-                errorstr="I/O error({0}): {1}".format(errno, strerror)
-                self._log.error(errorstr)
+            except IOError:                
+                self._log.error("Error in ImgStoreSwiftMongo - persistToStore. "+str(sys.exc_info()))
                 self._log.error("No such file or directory. Image details: "+item.__str__())                 
-            except TypeError as detail:
-                self._log.error("TypeError in ImgStoreSwiftMongo - persistToStore")
+            except TypeError:
+                self._log.error("TypeError in ImgStoreSwiftMongo - persistToStore "+str(sys.exc_info()))
             except pymongo.errors.OperationFailure:
                 self._log.error("Operation Failure in ImgStoreSwiftMongo - persistenToStore")  
             except:

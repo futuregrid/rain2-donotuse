@@ -224,9 +224,11 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
             except MySQLdb.Error, e:
                 self._log.error("Error %d: %s" % (e.args[0], e.args[1]))
                 self._dbConnection.rollback()                           
-            except IOError as (errno, strerror):
-                self._log.error("I/O error({0}): {1}".format(errno, strerror))
+            except IOError:                
+                self._log.error("Error in ImgStoreSwiftMysql - persistToStore. "+str(sys.exc_info()))
                 self._log.error("No such file or directory. Image details: "+item.__str__())                 
+            except TypeError:
+                self._log.error("TypeError in ImgStoreSwiftMysql - persistToStore "+str(sys.exc_info()))                 
             except TypeError as detail:
                 self._log.error("TypeError in ImgStoreSwiftMysql - persistToStore "+format(detail))
             except:
