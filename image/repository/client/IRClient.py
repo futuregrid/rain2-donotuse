@@ -204,12 +204,20 @@ def main():
                     print "The user has not been deleted"
             elif o in ("--userlist"):
                 userList=service.userList(os.popen('whoami', 'r').read().strip())
-                #print userList
-                imgs = eval(userList[0])
-                print str(len(imgs)) + " users found"
-                for key in imgs.keys():
-                    print imgs[key]
-                    
+                #print userList                
+                if(userList[0].strip() != "None"):
+                    try:
+                        imgs = eval(userList[0])
+                        print str(len(imgs)) + " users found"
+                        for key in imgs.keys():
+                            print imgs[key]               
+                    except:
+                        print "userlist: Error:" + str(sys.exc_info()[0]) + "\n"                
+                        print "userlist: Error interpreting the list of users from Image Repository" + str(sys.exc_info()[0])
+                else:
+                    print "No list of images returned. \n" + \
+                          "Please verify that you are admin \n"  
+                                    
             elif o in ("--setuserquota"):
                 status=service.setUserQuota(os.popen('whoami', 'r').read().strip(), args[0], args[1])
                 if(status=="True"):
