@@ -359,7 +359,7 @@ class ImgStoreMysql(AbstractImgStore):
                     size[0]=int(results[0])
                     
                     uri=self.getItem(imgId, userId)
-                    os.system("rm -rf "+uri)
+                    os.system("rm -f "+uri)
                     
                     sql="DELETE FROM %s WHERE imgId='%s'" % (self._tabledata,imgId)                    
                     sql1="DELETE FROM %s WHERE imgId='%s'" % (self._tablemeta,imgId)

@@ -210,7 +210,7 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
                 for item in items:
                     
                     loaded=False
-                    retries=0
+                    retries=0                    
                     while (not loaded and retries<10):
                         try:
                             img=contain.create_object(item._imgId)
@@ -219,15 +219,15 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
                         except:
                             retries+=1
                             self._log.error("Error in ImgStoreSwiftMysql - trytoload "+str(sys.exc_info()))                    
-                    
-                    sql = "INSERT INTO %s (imgId, imgMetaData, imgUri, createdDate, lastAccess, accessCount, size) \
-       VALUES ('%s', '%s', '%s', '%s', '%s', '%d', '%d' )" % \
-       (self._tabledata, item._imgId, item._imgId, "", datetime.utcnow(), datetime.utcnow(), 0, item._size)
-                    
-                    cursor.execute(sql)
-                    self._dbConnection.commit()
-                                                   
-                    imgStored+=1
+                    if loaded:
+                        sql = "INSERT INTO %s (imgId, imgMetaData, imgUri, createdDate, lastAccess, accessCount, size) \
+           VALUES ('%s', '%s', '%s', '%s', '%s', '%d', '%d' )" % \
+           (self._tabledata, item._imgId, item._imgId, "", datetime.utcnow(), datetime.utcnow(), 0, item._size)
+                        
+                        cursor.execute(sql)
+                        self._dbConnection.commit()
+                                                       
+                        imgStored+=1
                     
             except MySQLdb.Error, e:
                 self._log.error("Error %d: %s" % (e.args[0], e.args[1]))

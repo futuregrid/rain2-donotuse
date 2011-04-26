@@ -227,31 +227,31 @@ class ImgStoreSwiftMongo(ImgStoreMongo):
                             retries+=1
                             self._log.error("Error in ImgStoreSwiftMysql - trytoload "+str(sys.exc_info()))  
                                          
-                    
-                    tags=item._imgMeta._tag.split(",")
-                    tags_list = [x.strip() for x in tags]
-                    meta = {"_id": item._imgId,
-                            "os" : item._imgMeta._os,
-                            "arch" : item._imgMeta._arch,
-                            "owner" : item._imgMeta._owner,
-                            "description" : item._imgMeta._description,
-                            "tag" : tags_list,
-                            "vmType" : item._imgMeta._vmType,
-                            "imgType" : item._imgMeta._imgType,
-                            "permission" : item._imgMeta._permission,
-                            "imgStatus" : item._imgMeta._imgStatus,                            
-                            }
-                    data = {"_id": item._imgId,
-                            "createdDate" : datetime.utcnow(), 
-                            "lastAccess" : datetime.utcnow(),
-                            "accessCount" : 0,
-                            "size" : item._size,
-                            }
-                    
-                    collectionMeta.insert(meta, safe=True)
-                    collection.insert(data, safe=True)
-                                                            
-                    imgStored+=1
+                    if loaded:
+                        tags=item._imgMeta._tag.split(",")
+                        tags_list = [x.strip() for x in tags]
+                        meta = {"_id": item._imgId,
+                                "os" : item._imgMeta._os,
+                                "arch" : item._imgMeta._arch,
+                                "owner" : item._imgMeta._owner,
+                                "description" : item._imgMeta._description,
+                                "tag" : tags_list,
+                                "vmType" : item._imgMeta._vmType,
+                                "imgType" : item._imgMeta._imgType,
+                                "permission" : item._imgMeta._permission,
+                                "imgStatus" : item._imgMeta._imgStatus,                            
+                                }
+                        data = {"_id": item._imgId,
+                                "createdDate" : datetime.utcnow(), 
+                                "lastAccess" : datetime.utcnow(),
+                                "accessCount" : 0,
+                                "size" : item._size,
+                                }
+                        
+                        collectionMeta.insert(meta, safe=True)
+                        collection.insert(data, safe=True)
+                                                                
+                        imgStored+=1
                                       
                     
             except pymongo.errors.AutoReconnect:
