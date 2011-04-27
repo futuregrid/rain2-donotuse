@@ -16,6 +16,7 @@ from IRTypes import ImgEntry
 from IRTypes import IRUser
 from IRTypes import IRCredential
 from IRServiceProxy import IRServiceProxy
+import textwrap
 
 
 #TODOD: GVL we need to settle on one getopt function. argparse, getopt, .... we should just use one.
@@ -28,27 +29,71 @@ from IRServiceProxy import IRServiceProxy
 ############################################################
 
 def usage():
-    print "options:"
+    
+    print "\n---------------------------------"
+    print "FutureGrid Image Repository Help "
+    print "---------------------------------\n"
     print '''
- Command                                       Description
- -------                                       -----------
--h/--help                                      get help information
--l/--auth                                      login/authentication
--q/--list [queryString]                        get list of images that meet the criteria
--a/--setPermission <imgId> <permissionString>  set access permission
--g/--get <img/uri> <imgId>                     get an image or only the URI
--p/--put <imgFile> [attributeString]           upload/register an image
--m/--modify <imgId> <attributeString>          update Metadata   
--r/--remove <imgId>                            remove an image        
---useradd <userId>                             add user 
---userdel <userId>                             remove user
---userlist                                     list of users
---setUserquota <userId> <quota>                modify user quota
---setUserRole  <userId> <role>                 modify user role
---setUserStatus <userId> <status>              modify user status
--i/--histimg [imgId]                           get usage info of an image
--u/--histuser <userId>                         get usage info of a user
-          '''
+    -h/--help: get help information
+    -l/--auth: login/authentication
+    -q/--list [queryString]: get list of images that meet the criteria
+    -a/--setPermission <imgId> <permissionString>: set access permission
+    -g/--get <img/uri> <imgId>: get an image or only the URI
+    -p/--put <imgFile> [attributeString]: upload/register an image
+    -m/--modify <imgId> <attributeString>: update Metadata   
+    -r/--remove <imgId>: remove an image        
+    --useradd <userId>: add user 
+    --userdel <userId>: remove user
+    --userlist: list of users
+    --setUserquota <userId> <quota>: modify user quota
+    --setUserRole  <userId> <role>: modify user role
+    --setUserStatus <userId> <status>: modify user status
+    -i/--histimg [imgId]: get usage info of an image
+    -u/--histuser <userId>: get usage info of a user
+          
+          
+Notes:
+    
+    attributeString example (you do not need to provide all of them): 
+        vmtype=xen | imgtype=opennebula | os=linux | arch=x86_64 | 
+        description=my image | tag=tag1,tag2 | permission=public | 
+        imgStatus=available.
+    
+    queryString: * or * where field=XX, field2=YY or 
+         field1,field2 where field3=XX
+    
+    Some argument's values are controlled:'''
+    
+    
+    first=True
+    for line in textwrap.wrap("vmtype= " + str(ImgMeta.VmType), 64):
+        if first:
+            print "         %s" % (line)
+            first=False
+        else:
+            print "           %s" % (line)
+    first=True
+    for line in textwrap.wrap("imgtype= " + str(ImgMeta.ImgType), 64):
+        if first:
+            print "         %s" % (line)
+            first=False
+        else:
+            print "               %s" % (line)
+    first=True
+    for line in textwrap.wrap("imgStatus= " + str(ImgMeta.ImgStatus), 64):
+        if first:
+            print "         %s" % (line)
+            first=False
+        else:
+            print "           %s" % (line)
+    first=True
+    for line in textwrap.wrap("Permission= " + str(ImgMeta.Permission), 64):
+        if first:
+            print "         %s" % (line)
+            first=False
+        else:
+            print "           %s" % (line)
+          
 
 ############################################################
 # main
@@ -105,43 +150,68 @@ def main():
                 print str(len(imgs)) + " items found"
                 for key in imgs.keys():
                     print imgs[key]
+                
+                if(imgsList[0].strip() != "None"):
+                    try:
+                        imgs = eval(imgsList[0])
+                        print str(len(imgs)) + " items found"
+                        for key in imgs.keys():
+                            print imgs[key]                
+                    except:
+                        print "list: Error:" + str(sys.exc_info()[0]) + "\n"                
+                        self._log.error("list: Error interpreting the list of images from Image Repository" + str(sys.exc_info()[0]))
+                else:
+                    print "No list of images returned"   
+                 
                 #service.query("tstuser2", "imgId=fakeid4950877")
             elif o in ("-a", "--setpermission"):
-                status=service.setPermission(os.popen('whoami', 'r').read().strip(), args[0], args[1])
-                if(status=="True"):
-                    print "Permission of img "+args[0]+" updated"
+                if (len(args)==0):
+                    status=service.setPermission(os.popen('whoami', 'r').read().strip(), args[0], args[1])
+                    if(status=="True"):
+                        print "Permission of img "+args[0]+" updated"
+                    else:
+                        print "The permission have not been changed. "+status
                 else:
-                    print "The permission have not been changed. "+status
-            elif o in ("-g", "--get"):                               
-                img1 = service.get(os.popen('whoami', 'r').read().strip(), args[0], args[1])
-                #img2 = service.get(os.popen('whoami', 'r').read().strip(), option, id2)
-                if img1:
-                    print img1
+                    usage()
+            elif o in ("-g", "--get"):   
+                if (len(args) == 2):                            
+                    img1 = service.get(os.popen('whoami', 'r').read().strip(), args[0], args[1])
+                    #img2 = service.get(os.popen('whoami', 'r').read().strip(), option, id2)
+                    if img1:
+                        print img1
+                    else:
+                        print "Cannot get access to the image with imgId = " + args[1]
                 else:
-                    print "The image with imgId= " + args[1] +" has not been found"
-    
-                #if img2:
-                #    print img2
-                #else:
-                #    print "not found for imgId=" + id2
-    
+                    usage()
+                    
             elif o in ("-p", "--put"):
                 status=0
+                ok=False
                 if (len(args)==2):                
                     status = service.put(os.popen('whoami', 'r').read().strip(), None, args[0], args[1])
+                    ok=True
                 elif (len(args)==1):
                     status = service.put(os.popen('whoami', 'r').read().strip(), None, args[0], "")
+                    of=True
+                else:
+                    usage()
                 #id2 = service.put(os.popen('whoami', 'r').read().strip(), None, "/home/javi/tst3.iso", "vmtype=vmware")
                 #print "image has been uploaded and registered with id " + str(id1)
                 #id2 = service.put(os.popen('whoami', 'r').read().strip(), None, "/home/javi/tst2.iso", "vmtype=11|imgType=0|os=UBUNTU|arch=x86_64| owner=tstuser2| description=another test| tag=tsttaga, tsttagb")
-                                
-                if(status==0):
-                    print "the image has NOT been uploaded"
-                elif(status==-1):
-                    print "the image has NOT been uploaded"
-                    print "The User does not exist"
-                else:
-                    print "image has been uploaded and registered with id " + str(status)
+                if(ok):              
+                    if(status==0):
+                        print "the image has NOT been uploaded. Please, verify that the file exists and the metadata string is valid"
+                    elif(status==-1):
+                        print "the image has NOT been uploaded"
+                        print "The User does not exist"
+                    elif(status == "-2"):
+                        print "The image has NOT been uploaded"
+                        print "The User is not active"
+                    elif(status == "-3"):
+                        print "The image has NOT been uploaded"
+                        print "The file exceed the quota"
+                    else:
+                        print "image has been uploaded and registered with id " + str(status)
                 
                     
             elif o in ("-r", "--remove"):
@@ -160,24 +230,34 @@ def main():
                 
                 imgs = eval(imgsList[0])
                 
-                print imgs['head']
-                for key in imgs.keys():
-                    if key != 'head':
-                        print imgs[key]
+                try:
+                    imgs = eval(imgsList[0])            
+                    print imgs['head']
+                    for key in imgs.keys():
+                        if key != 'head':
+                            print imgs[key]     
+                except:
+                    print "histimg: Error:" + str(sys.exc_info()[0]) + "\n"                
+                    self._log.error("histimg: Error interpreting the list of images from Image Repository" + str(sys.exc_info()[0]))
+       
                 
             elif o in ("-u", "--histuser"):
                 if(len(args)==1):
                     imgsList=service.histUser(os.popen('whoami', 'r').read().strip(), args[0])
                 else:
                     imgsList=service.histUser(os.popen('whoami', 'r').read().strip(), "None")
-                
-                
-                imgs = eval(imgsList[0])
-                
-                print imgs['head']
-                for key in imgs.keys():
-                    if key != 'head':
-                        print imgs[key]
+                                       
+                try:            
+                    users = eval(userList[0])            
+                    print users['head']            
+                    for key in users.keys():
+                        if key != 'head':
+                            print users[key]     
+                except:
+                    print "histuser: Error:" + str(sys.exc_info()[0]) + "\n"                
+                    self._log.error("histuser: Error interpreting the list of users from Image Repository" + str(sys.exc_info()[0]))
+               
+                        
             elif o in ("-m", "--modify"): 
                 if (len(args)==2):
                     success=service.updateItem(os.popen('whoami', 'r').read().strip(), args[0], args[1])
@@ -191,17 +271,28 @@ def main():
                     usage()
             #This commands only can be used by users with Admin Role.
             elif o in ("--useradd"):  #args[0] is the username. It MUST be the same that the system user
-                status=service.userAdd(os.popen('whoami', 'r').read().strip(), args[0])                
-                if(status=="True"):
-                    print "User created successfully."
+                if (len(args) == 1):
+                    status=service.userAdd(os.popen('whoami', 'r').read().strip(), args[0])                
+                    if(status=="True"):
+                        print "User created successfully."
+                        print "Remember that you still need to activate this user (see setuserstatus command)\n"
+                    else:
+                        print "The user has not been created. \n" + \
+                              "Please verify that you are admin and that the username does not exist \n"
                 else:
-                    print "The user has not been created"
+                    usage()
+                    
             elif o in ("--userdel"):
-                status=service.userDel(os.popen('whoami', 'r').read().strip(), args[0])
-                if(status=="True"):
-                    print "User deleted successfully."
+                if (len(args) == 1):
+                    status=service.userDel(os.popen('whoami', 'r').read().strip(), args[0])
+                    if(status=="True"):
+                        print "User deleted successfully."                
+                    else:
+                        print "The user has not been deleted. \n" + \
+                              "Please verify that you are admin and that the username exists \n"
                 else:
-                    print "The user has not been deleted"
+                    usage()
+                        
             elif o in ("--userlist"):
                 userList=service.userList(os.popen('whoami', 'r').read().strip())
                 #print userList                
@@ -219,23 +310,37 @@ def main():
                           "Please verify that you are admin \n"  
                                     
             elif o in ("--setuserquota"):
-                status=service.setUserQuota(os.popen('whoami', 'r').read().strip(), args[0], args[1])
-                if(status=="True"):
-                    print "Quota changed successfully."
+                if (len(args) == 2):
+                    status=service.setUserQuota(os.popen('whoami', 'r').read().strip(), args[0], args[1])
+                    if(status=="True"):
+                        print "Quota changed successfully."
+                    else:
+                        print "The user quota has not been changed. \n" + \
+                              "Please verify that you are admin and that the username exists \n"
                 else:
-                    print "The quota has not been changed"
+                    usage()
+                        
             elif o in ("--setuserrole"):
-                status=service.setUserRole(os.popen('whoami', 'r').read().strip(), args[0], args[1])
-                if(status=="True"):
-                    print "Role changed successfully."
+                if (len(args) == 2):
+                    status=service.setUserRole(os.popen('whoami', 'r').read().strip(), args[0], args[1])
+                    if(status=="True"):
+                        print "Role changed successfully."
+                    else:
+                        print "The user role has not been changed. " + status + "\n"\
+                      "Please verify that you are admin and that the username exists \n"
                 else:
-                    print "The role has not been changed"
+                    usage()
+                        
             elif o in ("--setuserstatus"):
-                status=service.setUserStatus(os.popen('whoami', 'r').read().strip(), args[0], args[1])
-                if(status=="True"):
-                    print "Status changed successfully."
+                if (len(args) == 2):
+                    status=service.setUserStatus(os.popen('whoami', 'r').read().strip(), args[0], args[1])
+                    if(status=="True"):
+                        print "Status changed successfully."
+                    else:
+                        print "The user status has not been changed. " + status + "\n"\
+                      "Please verify that you are admin and that the username exists \n"
                 else:
-                    print "The status has not been changed"
+                    usage()
             else:
                 assert False, "unhandled option"
 
