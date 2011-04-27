@@ -164,7 +164,7 @@ class fgShell(fgShellUtils,
     
     def getDocUndoc(self,args):
         base_cmds=['exec','help','history','quit','use','contexts','script']
-        base_cmd2=['li','load', 'pause','py','run','save','shell', 'shortcuts','set','show','historysession']
+        base_cmd2=['li','load', 'pause','py','run','save', 'shortcuts','set','show','historysession']
         base_cmds+=base_cmd2
         final_doc=[]
         final_undoc=[]
