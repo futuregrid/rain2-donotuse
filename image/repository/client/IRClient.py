@@ -146,10 +146,6 @@ def main():
                     imgsList = service.query(os.popen('whoami', 'r').read().strip(), args[0])
                 #dict wrapped into a list, convert it first
                 #print imgsList
-                imgs = eval(imgsList[0])
-                print str(len(imgs)) + " items found"
-                for key in imgs.keys():
-                    print imgs[key]
                 
                 if(imgsList[0].strip() != "None"):
                     try:
