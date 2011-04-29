@@ -95,7 +95,7 @@ class ImgStoreSwiftMongo(ImgStoreMongo):
                         
         imgLinks=[]  
         result = self.queryStore([imgId], imgLinks, userId)
-        
+        """
         if (result):
             filename="/tmp/"+imgId+".img"
             if not os.path.isfile(filename):
@@ -115,7 +115,13 @@ class ImgStoreSwiftMongo(ImgStoreMongo):
             return filename
         else:
             return None
-
+        """
+        ##to skip the python api
+        if (result):
+            return imgLinks[0]
+        else:
+            return None
+        ##to skip the python api
 
     ############################################################
     # queryStore
@@ -150,7 +156,25 @@ class ImgStoreSwiftMongo(ImgStoreMongo):
                         access=True
                         #self._log.debug("ifpublic "+str(access))
                     if (access):
-                        imgLinks.append(contain.get_object(imgId))
+                        
+                        #imgLinks.append(contain.get_object(imgId))
+                        
+                        ##to skip the python api
+                        imagepath='/tmp/'+imgId+".img"
+                        
+                        if os.path.isfile(imagepath):                            
+                            for i in range(1000):
+                                imagepath="/tmp/"+imgId+".img"+i.__str__()
+                                if not os.path.isfile(imagepath):                                    
+                                    break
+                                
+                        cmd="$HOME/swift/trunk/bin/st download "+self._containerName+" "+imgId+" -o "+imagepath+" -A https://192.168.11.40:8080/auth/v1.0 -U test:tester -K testing"
+                        
+                        os.system(cmd)
+
+                        imgLinks.append(imagepath)
+                        ##to skip the python api
+                        
                         
                         collection.update({"_id": imgId}, 
                                       {"$inc": {"accessCount": 1},}, safe=True)
@@ -215,7 +239,7 @@ class ImgStoreSwiftMongo(ImgStoreMongo):
                 collectionMeta = dbLink[self._metacollection]
                 
                 for item in items:
-                                        
+                    """                   
                     loaded=False
                     retries=0
                     while (not loaded and retries<10):
@@ -226,6 +250,12 @@ class ImgStoreSwiftMongo(ImgStoreMongo):
                         except:
                             retries+=1
                             self._log.error("Error in ImgStoreSwiftMysql - trytoload "+str(sys.exc_info()))  
+                    """
+                    
+                    cmd="$HOME/swift/trunk/bin/st upload "+item._imgURI+" "+self._containerName+" -A https://192.168.11.40:8080/auth/v1.0 -U test:tester -K testing"
+                    status=os.system(cmd)
+                    self._log(" swift upload image status: "+status)
+                    loaded=True
                                          
                     if loaded:
                         tags=item._imgMeta._tag.split(",")
