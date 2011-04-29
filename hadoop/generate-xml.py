@@ -105,6 +105,12 @@ def generate_hadoop_configs(nodes, local_base_dir, conf_dir):
     slaves_file.writelines(x + '\n' for x in nodes[1:])
     slaves_file.close()
     
+        
+    #hdfs_site_file = open(conf_dir + "hdfs-site.xml", "a+")
+    #if (hdfs_site_file):
+    #    dom2 = xml.dom.minidom.parse(hdfs_site_file)
+    #    print dom2
+    
     hdfs_site_doc = create_hdfs_site(local_base_dir + "name", local_base_dir + "data")
     write_xmldoc_to_file(hdfs_site_doc, conf_dir + "hdfs-site.xml")
     
@@ -152,7 +158,7 @@ def main():
         
         nodes = process_ips(nodes)
         generate_hadoop_configs(nodes, local_base_dir, hadoop_conf_dir)
-        prepare_file_system(nodes, local_base_dir)
+        #prepare_file_system(nodes, local_base_dir)
         
     else :
         print "Invalid Arguments"

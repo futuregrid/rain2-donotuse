@@ -60,3 +60,29 @@ class fgShellHadoop(Cmd):
             #self._fgHadoop = fgHadoop()
             self._fgHadoop.runJob(opts, hadoop_cmd, job_name)
             #self._log.error("SHElll test in fgshell repo")
+            
+            
+    @options([make_option('-j','--jobname', 
+                          help='Provide a name for the job.'),             
+              make_option('-q', '--queue', 
+                          help='Queue to submit the job', 
+                          default="batch"),    
+              make_option('-w', '--walltime', 
+                          help='Walltime for the job (hh:mm:ss)', 
+                          default='00:20:00'),    
+              make_option('-n', '--nodes', 
+                          help='Number of nodes for the job', 
+                          default=2, type=int)    ]) 
+    def do_hadooprunscript(self, args, opts):
+        """Run a hadoop job"""
+        hadoop_home = os.environ.get("HADOOP_HOME")
+        job_name = opts.jobname
+          
+        if (not hadoop_home):
+            print("HADOOP_HOME is not set.")
+        elif(not job_name):
+            print("Job name (-j or --jobname) is required.")
+        else :                 
+            hadoop_cmd = ''.join(args)                           
+            self._fgHadoop.runScript(opts, hadoop_cmd, job_name)
+            #self._log.error("SHElll test in fgshell repo")

@@ -239,6 +239,24 @@ class fgShellUtils(Cmd):
     
     help_runjob=generic_help        
     
+        #################################
+    #Run JOB
+    #################################    
+       
+    def do_runscript(self, args):
+        if(self._use!=""):            
+            command="self.do_"+self._use+"runscript(\""+args+"\")"
+            #print command
+            try:
+                eval(command)
+            except AttributeError:
+                print "The "+self._use+" context does not have a runscript method "
+                self._log.error(str(sys.exc_info()))
+        else:
+            self.generic_error()
+    
+    help_runjob=generic_help      
+    
     #################################
     #GET
     #################################
