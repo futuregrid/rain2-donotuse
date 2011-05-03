@@ -164,7 +164,7 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
                                     if not os.path.isfile(imagepath):                                    
                                         break
                                     
-                            cmd="$HOME/swift/trunk/bin/st download "+self._containerName+" "+imgId+" -o "+imagepath+" -A https://192.168.11.40:8080/auth/v1.0 -U test:tester -K testing"
+                            cmd="$HOME/swift/trunk/bin/st download -q "+self._containerName+" "+imgId+" -o "+imagepath+" -A https://192.168.11.40:8080/auth/v1.0 -U test:tester -K testing"
                             
                             os.system(cmd)
 
@@ -218,8 +218,8 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
          
         imgStored=0
                         
-        if (self.mysqlConnection() and self.swiftConnection()):
-            
+        if (self.mysqlConnection() ):#and self.swiftConnection()):
+            """ 
             try:
                 contain= self._swiftConnection.get_container(self._containerName)
             except cloudfiles.errors.NoSuchContainer:
@@ -228,7 +228,7 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
                 self._log.warning("Creating the container")
             except:
                 self._log.error("Error in ImgStoreSwiftMysql - persistToStore. "+str(sys.exc_info()))  
-            
+            """ 
             try:
                 cursor= self._dbConnection.cursor()            
                 for item in items:
@@ -246,10 +246,12 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
                             self._log.error("Error in ImgStoreSwiftMysql - trytoload "+str(sys.exc_info()))                        
                     """
                     ##to skip the python api
-                    cmd="$HOME/swift/trunk/bin/st upload "+item._imgURI+" "+self._containerName+" -A https://192.168.11.40:8080/auth/v1.0 -U test:tester -K testing"
+                    s=os.chdir("/tmp")#self._fgirdir)
+                    cmd="$HOME/swift/trunk/bin/st upload -q "+self._containerName+" "+item._imgId+" -A https://192.168.11.40:8080/auth/v1.0 -U test:tester -K testing"
                     status=os.system(cmd)
-                    self._log(" swift upload image status: "+status)
-                    loaded=True
+                    self._log.debug(" swift upload image status: "+str(status))
+                    if (status==0):
+                        loaded=True
                     ##to skip the python api
                     if loaded:
                         sql = "INSERT INTO %s (imgId, imgMetaData, imgUri, createdDate, lastAccess, accessCount, size) \
@@ -319,7 +321,7 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
             if(self.existAndOwner(imgId, userId)):            
                 try:
                     cursor= con.cursor()
-                    contain= self._swiftConnection.get_container(self._containerName)
+                    #contain= self._swiftConnection.get_container(self._containerName)
                     
                     sql = "SELECT size FROM %s WHERE imgId = '%s' "% (self._tabledata, imgId)
                     #print sql
@@ -327,16 +329,21 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
                     results=cursor.fetchone()
                     size[0]=int(results[0])
                                        
-                    contain.delete_object(imgId)
-                                        
-                    sql="DELETE FROM %s WHERE imgId='%s'" % (self._tabledata,imgId)                    
-                    sql1="DELETE FROM %s WHERE imgId='%s'" % (self._tablemeta,imgId)
+                    #contain.delete_object(imgId)
+
+                    cmd="$HOME/swift/trunk/bin/st delete -q "+self._containerName+" "+imgId+" -A https://192.168.11.40:8080/auth/v1.0 -U test:tester -K testing"
+                    status=os.system(cmd)
+                    self._log.debug(" swift remove image status: "+str(status))
+                    if (status==0):                   
                     
-                    cursor.execute(sql)                    
-                    cursor.execute(sql1)
-                    con.commit()
+                        sql="DELETE FROM %s WHERE imgId='%s'" % (self._tabledata,imgId)                    
+                        sql1="DELETE FROM %s WHERE imgId='%s'" % (self._tablemeta,imgId)
                     
-                    removed=True
+                        cursor.execute(sql)                    
+                        cursor.execute(sql1)
+                        con.commit()
+                    
+                        removed=True
                     
                 except MySQLdb.Error, e:
                     self._log.error("Error %d: %s" % (e.args[0], e.args[1]))
@@ -380,7 +387,10 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
             cursor= self._dbConnection.cursor()         
             contain= self._swiftConnection.get_container(self._containerName)
             
-            if imgId in contain.list_objects():
+            #if imgId in contain.list_objects():
+            cmd="$HOME/swift/trunk/bin/st list "+self._containerName+" -A https://192.168.11.40:8080/auth/v1.0 -U test:tester -K testing"
+            output=os.popen(cmd).read()
+            if imgId in output:
                 exists=True
                      
             sql = "SELECT owner FROM %s WHERE imgId='%s' and owner='%s'"% (self._tablemeta, imgId, ownerId)
