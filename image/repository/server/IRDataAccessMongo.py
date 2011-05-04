@@ -55,7 +55,7 @@ class ImgStoreMongo(AbstractImgStore):
     ############################################################
     # __init__
     ############################################################
-    def __init__(self, address,fgirdir, log):
+    def __init__(self, address, fgirdir, log):
         """
         Initialize object
         
@@ -67,16 +67,16 @@ class ImgStoreMongo(AbstractImgStore):
         """                
         super(ImgStoreMongo, self).__init__()
         
-        self._dbName="images"
-        self._datacollection="data"
-        self._metacollection="meta"
-        self._dbConnection=None
-        self._log=log 
+        self._dbName = "images"
+        self._datacollection = "data"
+        self._metacollection = "meta"
+        self._dbConnection = None
+        self._log = log 
         
         if (address != ""):
-            self._mongoAddress=address
+            self._mongoAddress = address
         else:
-            self._mongoAddress=self._getAddress()
+            self._mongoAddress = self._getAddress()
             
     ############################################################
     # _getAddress
@@ -106,16 +106,16 @@ class ImgStoreMongo(AbstractImgStore):
         return the image uri
         """
                         
-        imgLinks=[]  
+        imgLinks = []  
         result = self.queryStore([imgId], imgLinks, userId)
         
         if (result):
-            filename="/tmp/"+imgId+".img"
+            filename = "/tmp/" + imgId + ".img"
             if not os.path.isfile(filename):
                 f = open(filename, 'w')
             else:
                 for i in range(1000):
-                    filename="/tmp/"+imgId+".img"+i.__str__()
+                    filename = "/tmp/" + imgId + ".img" + i.__str__()
                     if not os.path.isfile(filename):
                         f = open(filename, 'w')
                         break
@@ -138,8 +138,8 @@ class ImgStoreMongo(AbstractImgStore):
         imgEntry : Image information. 
         """
         #self._items.append(imgEntry)
-        status=False
-        status=self.persistToStore([imgEntry1])            
+        status = False
+        status = self.persistToStore([imgEntry1])            
                     
         return status
     """
@@ -235,7 +235,7 @@ class ImgStoreMongo(AbstractImgStore):
     ############################################################
     # histImg 
     ############################################################
-    def histImg (self,imgId):
+    def histImg (self, imgId):
         """
         Query DB to provide history information about the image Usage
         
@@ -245,23 +245,23 @@ class ImgStoreMongo(AbstractImgStore):
         return list of imgEntry or None
         
         """
-        success=False             
+        success = False             
         if (self.mongoConnection()):
             try:
                 dbLink = self._dbConnection[self._dbName]
                 collection = dbLink[self._datacollection]   
                 
                 
-                if (imgId.strip()=="None"):
-                    results=collection.find({},['_id','createdDate','lastAccess', 'accessCount'])
+                if (imgId.strip() == "None"):
+                    results = collection.find({}, ['_id', 'createdDate', 'lastAccess', 'accessCount'])
                 else:
-                    results=collection.find({'_id':imgId},['_id','createdDate','lastAccess', 'accessCount'])
+                    results = collection.find({'_id':imgId}, ['_id', 'createdDate', 'lastAccess', 'accessCount'])
                              
                 for dic in results:               
-                    tmpEntry=ImgEntry(dic['_id'],"","",0,str(dic['createdDate']).split(".")[0],str(dic['lastAccess']).split(".")[0],dic['accessCount'])                    
+                    tmpEntry = ImgEntry(dic['_id'], "", "", 0, str(dic['createdDate']).split(".")[0], str(dic['lastAccess']).split(".")[0], dic['accessCount'])                    
                     self._items[tmpEntry._imgId] = tmpEntry
                     
-                success=True    
+                success = True    
             except pymongo.errors.AutoReconnect:                
                 self._log.warning("Autoreconnected in ImgStoreMongo - histImg.") 
             except pymongo.errors.ConnectionFailure:                
@@ -303,25 +303,25 @@ class ImgStoreMongo(AbstractImgStore):
                 
                 dbLink = self._dbConnection[self._dbName]
                 collection = dbLink[self._datacollection]
-                gridfsLink=gridfs.GridFS(dbLink)                
+                gridfsLink = gridfs.GridFS(dbLink)                
                 for imgId in imgIds:
                     
-                    access=False
+                    access = False
                     if(self.existAndOwner(imgId, userId)):
-                        access=True
+                        access = True
                         #self._log.debug("ifowner "+str(access))
                     elif(self.isPublic(imgId)):
-                        access=True
+                        access = True
                         #self._log.debug("ifpublic "+str(access))
                     if (access):
                         imgLinks.append(gridfsLink.get(ObjectId(imgId)))
                         
-                        collection.update({"_id": imgId}, 
-                                      {"$inc": {"accessCount": 1},}, safe=True)
-                        collection.update({"_id": imgId}, 
-                                      {"$set": {"lastAccess": datetime.utcnow()},}, safe=True)
+                        collection.update({"_id": imgId},
+                                      {"$inc": {"accessCount": 1}, }, safe=True)
+                        collection.update({"_id": imgId},
+                                      {"$set": {"lastAccess": datetime.utcnow()}, }, safe=True)
                         #print "here"                                         
-                        itemsFound +=1    
+                        itemsFound += 1    
             except pymongo.errors.AutoReconnect:                
                 self._log.warning("Autoreconnected in ImgStoreMongo - queryStore.") 
             except pymongo.errors.ConnectionFailure:                
@@ -356,14 +356,14 @@ class ImgStoreMongo(AbstractImgStore):
         return: True if all items are stored successfully, False in any other case
         """               
         self._dbConnection = self.mongoConnection()
-        imgStored=0
+        imgStored = 0
                 
         if (self.mongoConnection()):
             try:
                 dbLink = self._dbConnection[self._dbName]
                 collection = dbLink[self._datacollection]
                 collectionMeta = dbLink[self._metacollection]
-                gridfsLink=gridfs.GridFS(dbLink)
+                gridfsLink = gridfs.GridFS(dbLink)
                 for item in items:
                     #each imgType is stored in a different DB
                     #dbLink = self._dbConnection[self._dbNames.get(item._imgMeta._imgType)]                
@@ -375,12 +375,12 @@ class ImgStoreMongo(AbstractImgStore):
                                   
                     
                     with open(item._imgURI) as image:
-                        imgId = gridfsLink.put(image, chunksize=4096*1024)
+                        imgId = gridfsLink.put(image, chunksize=4096 * 1024)
                     
-                    item._imgId=imgId.__str__().decode('utf-8') # we store an String instead of an ObjectId.
+                    item._imgId = imgId.__str__().decode('utf-8') # we store an String instead of an ObjectId.
                     #item._imgMeta._imgId=imgId #not needed                                                                       
                     
-                    tags=item._imgMeta._tag.split(",")
+                    tags = item._imgMeta._tag.split(",")
                     tags_list = [x.strip() for x in tags]
                     meta = {"_id": item._imgId,
                             "os" : item._imgMeta._os,
@@ -391,10 +391,10 @@ class ImgStoreMongo(AbstractImgStore):
                             "vmType" : item._imgMeta._vmType,
                             "imgType" : item._imgMeta._imgType,
                             "permission" : item._imgMeta._permission,
-                            "imgStatus" : item._imgMeta._imgStatus,                            
+                            "imgStatus" : item._imgMeta._imgStatus,
                             }
                     data = {"_id": item._imgId,
-                            "createdDate" : datetime.utcnow(), 
+                            "createdDate" : datetime.utcnow(),
                             "lastAccess" : datetime.utcnow(),
                             "accessCount" : 0,
                             "size" : item._size,
@@ -403,18 +403,18 @@ class ImgStoreMongo(AbstractImgStore):
                     collectionMeta.insert(meta, safe=True)
                     collection.insert(data, safe=True)
                                                             
-                    imgStored+=1
+                    imgStored += 1
                                       
                     
             except pymongo.errors.AutoReconnect:
                 self._log.warning("Autoreconnected.")                 
             except pymongo.errors.ConnectionFailure:
-                self._log.error("Connection failure. The file has not been stored. Image details: "+item.__str__()+"\n")                                           
+                self._log.error("Connection failure. The file has not been stored. Image details: " + item.__str__() + "\n")                                           
             except IOError:                
-                self._log.error("Error in ImgStoreMongo - persistToStore. "+str(sys.exc_info()))
-                self._log.error("No such file or directory. Image details: "+item.__str__())                 
+                self._log.error("Error in ImgStoreMongo - persistToStore. " + str(sys.exc_info()))
+                self._log.error("No such file or directory. Image details: " + item.__str__())                 
             except TypeError:
-                self._log.error("TypeError in ImgStoreMongo - persistToStore "+str(sys.exc_info()))
+                self._log.error("TypeError in ImgStoreMongo - persistToStore " + str(sys.exc_info()))
             except pymongo.errors.OperationFailure:
                 self._log.error("Operation Failure in ImgStoreMongo - persistenToStore")             
             finally:
@@ -424,7 +424,7 @@ class ImgStoreMongo(AbstractImgStore):
 
         for item in items:
             if (re.search('^/tmp/', item._imgURI)):
-                cmd="rm -f "+ item._imgURI         
+                cmd = "rm -f " + item._imgURI         
                 os.system(cmd)
         
         if (imgStored == len(items)):
@@ -451,31 +451,31 @@ class ImgStoreMongo(AbstractImgStore):
         
         Return boolean
         """   
-        removed=False
+        removed = False
         if (self.mongoConnection()):
             if(self.existAndOwner(imgId, userId)):    
                 try:
                     dbLink = self._dbConnection[self._dbName]
                     collection = dbLink[self._datacollection]
                     collectionMeta = dbLink[self._metacollection]
-                    gridfsLink=gridfs.GridFS(dbLink)
+                    gridfsLink = gridfs.GridFS(dbLink)
                     
-                    aux=collection.find_one({"_id": imgId})
-                    size[0]=aux['size']
+                    aux = collection.find_one({"_id": imgId})
+                    size[0] = aux['size']
                     
                     gridfsLink.delete(ObjectId(imgId))
                     collection.remove({"_id": imgId}, safe=True) #Wait for replication? w=3 option
                     collectionMeta.remove({"_id": imgId}, safe=True)
-                    removed=True
+                    removed = True
                 except pymongo.errors.AutoReconnect:  #TODO: Study what happens with that. store or not store the file
                     self._log.warning("Autoreconnected.")                 
                 except pymongo.errors.ConnectionFailure:
                     self._log.error("Connection failure. The file has not been updated")                                           
                 except IOError:                
-                    self._log.error("Error in ImgStoreMongo - removeitem. "+str(sys.exc_info()))
-                    self._log.error("No such file or directory. Image details: "+item.__str__())                 
+                    self._log.error("Error in ImgStoreMongo - removeitem. " + str(sys.exc_info()))
+                    self._log.error("No such file or directory. Image details: " + item.__str__())                 
                 except TypeError:
-                    self._log.error("TypeError in ImgStoreMongo - removeitem "+str(sys.exc_info()))  
+                    self._log.error("TypeError in ImgStoreMongo - removeitem " + str(sys.exc_info()))  
                 except pymongo.errors.OperationFailure:
                     self._log.error("Operation Failure in ImgStoreMongo - RemoveItem")
                 finally:
@@ -501,18 +501,18 @@ class ImgStoreMongo(AbstractImgStore):
         Return: boolean
         """
         
-        exists=False
-        isOwner=False       
+        exists = False
+        isOwner = False       
         
         try:
             dbLink = self._dbConnection[self._dbName]
             collection = dbLink[self._metacollection]
-            gridfsLink=gridfs.GridFS(dbLink)
+            gridfsLink = gridfs.GridFS(dbLink)
                 
-            exists=gridfsLink.exists(ObjectId(imgId))            
+            exists = gridfsLink.exists(ObjectId(imgId))            
             #print imgId         
             #print ownerId
-            aux=collection.find_one({"_id": imgId, "owner": ownerId})
+            aux = collection.find_one({"_id": imgId, "owner": ownerId})
             if (aux == None):
                 isOwner = False
             else:
@@ -547,16 +547,16 @@ class ImgStoreMongo(AbstractImgStore):
         Return: boolean
         """
         
-        public=False
+        public = False
                
         try:
             dbLink = self._dbConnection[self._dbName]
             collection = dbLink[self._metacollection]
             
-            aux=collection.find_one({"_id": imgId})
+            aux = collection.find_one({"_id": imgId})
             
-            if(aux['permission']=="public"):
-                public=True
+            if(aux['permission'] == "public"):
+                public = True
                             
         except pymongo.errors.AutoReconnect:  #TODO: Study what happens with that. store or not store the file
             self._log.warning("Autoreconnected.")                 
@@ -587,7 +587,7 @@ class ImgStoreMongo(AbstractImgStore):
             connected = True
 
         except pymongo.errors.ConnectionFailure as detail:
-            self._log.error("Connection failed for "+self._mongoAddress)
+            self._log.error("Connection failed for " + self._mongoAddress)
         except TypeError:  
             self._log.error("TypeError in ImgStoreMongo - mongoConnection")
 
@@ -600,7 +600,7 @@ class ImgMetaStoreMongo(AbstractImgMetaStore):
     ############################################################
     # __init__
     ############################################################
-    def __init__(self, address,fgirdir, log):        
+    def __init__(self, address, fgirdir, log):        
         """
         Initialize object
         
@@ -610,16 +610,16 @@ class ImgMetaStoreMongo(AbstractImgMetaStore):
         """           
         super(ImgMetaStoreMongo, self).__init__()     
 
-        self._dbName="images"
-        self._datacollection="data"
-        self._metacollection="meta"
-        self._dbConnection=None
-        self._log=log 
+        self._dbName = "images"
+        self._datacollection = "data"
+        self._metacollection = "meta"
+        self._dbConnection = None
+        self._log = log 
 
         if (address != ""):
-            self._mongoAddress=address
+            self._mongoAddress = address
         else:
-            self._mongoAddress=self._getAddress()
+            self._mongoAddress = self._getAddress()
             
     ############################################################
     # _getAddress
@@ -634,7 +634,7 @@ class ImgMetaStoreMongo(AbstractImgMetaStore):
     # getItem
     ############################################################
     def getItem(self, imgId):
-        criteria = "* where id="+imgId
+        criteria = "* where id=" + imgId
         return queryStore (criteria)
         
     ############################################################
@@ -659,17 +659,17 @@ class ImgMetaStoreMongo(AbstractImgMetaStore):
         
         Return: boolean
         """
-        exists=False
-        isOwner=False    
+        exists = False
+        isOwner = False    
            
         try:
             dbLink = self._dbConnection[self._dbName]
             collection = dbLink[self._metacollection]
-            gridfsLink=gridfs.GridFS(dbLink)
+            gridfsLink = gridfs.GridFS(dbLink)
               
-            exists=gridfsLink.exists(ObjectId(imgId))            
+            exists = gridfsLink.exists(ObjectId(imgId))            
                              
-            aux=collection.find_one({"_id": imgId, "owner": ownerId})
+            aux = collection.find_one({"_id": imgId, "owner": ownerId})
             if (aux == None):
                 isOwner = False
             else:
@@ -709,47 +709,47 @@ class ImgMetaStoreMongo(AbstractImgMetaStore):
         
         Return boolean
         """         
-        imgUpdated=False
+        imgUpdated = False
         
         if (self.mongoConnection()):
-            oldDeleted=False
-            newimgId=""
+            oldDeleted = False
+            newimgId = ""
             if(self.existAndOwner(imgId, userId)):
                 try:
                     dbLink = self._dbConnection[self._dbName]
                     #collection = dbLink[self._datacollection]
                     collectionMeta = dbLink[self._metacollection]
                     
-                    tags=imgMeta1._tag.split(",")
+                    tags = imgMeta1._tag.split(",")
                     tags_list = [x.strip() for x in tags]
                     
-                    dic={}
-                    temp=imgMeta1.__repr__()
+                    dic = {}
+                    temp = imgMeta1.__repr__()
                     
-                    temp = temp.replace('\"','')
+                    temp = temp.replace('\"', '')
                     #print temp
                     attributes = temp.split(',')
                     
                     #Control tag
-                    tagstr=""
-                    newattr=[]
-                    i=0
+                    tagstr = ""
+                    newattr = []
+                    i = 0
                     
                     
                     while (i < len(attributes)):                        
                         if attributes[i].strip().startswith('tag='):
-                            tagstr+=attributes[i]                             
-                            more=True                            
+                            tagstr += attributes[i]                             
+                            more = True                            
                             while(more):
-                                if(attributes[i+1].strip().startswith('vmType=')):
-                                    more=False
+                                if(attributes[i + 1].strip().startswith('vmType=')):
+                                    more = False
                                 else:
-                                     tagstr+=","+attributes[i+1]
-                                     i+=1
+                                     tagstr += "," + attributes[i + 1]
+                                     i += 1
                             newattr.append(tagstr)
                         else:
                             newattr.append(attributes[i])
-                        i+=1
+                        i += 1
                     
                     for item in newattr:
                         attribute = item.strip()
@@ -757,29 +757,29 @@ class ImgMetaStoreMongo(AbstractImgMetaStore):
                         tmp = attribute.split("=")
                         key = tmp[0].strip()            
                         value = tmp[1].strip()
-                        if not (value=='' or key=="imgId" or key=="owner"):            
+                        if not (value == '' or key == "imgId" or key == "owner"):            
                             #print key +"  "+value
-                            if (key=="tag"):
-                                tags=value.split(",")
+                            if (key == "tag"):
+                                tags = value.split(",")
                                 tags_list = [x.strip() for x in tags]
-                                dic[key]=tags_list
+                                dic[key] = tags_list
                             else:
-                                dic[key]=value
+                                dic[key] = value
                                                                
-                    collectionMeta.update({"_id": imgId}, 
+                    collectionMeta.update({"_id": imgId},
                                       {"$set": dic }, safe=True)
                     
-                    imgUpdated=True
+                    imgUpdated = True
                     
                 except pymongo.errors.AutoReconnect:  #TODO: Study what happens with that. store or not store the file
                     self._log.warning("Autoreconnected.")                 
                 except pymongo.errors.ConnectionFailure:
                     self._log.error("Connection failure. The file has not been updated")                                           
                 except IOError:                
-                    self._log.error("Error in ImgMetaStoreMongo - updateimage. "+str(sys.exc_info()))
-                    self._log.error("No such file or directory. Image details: "+item.__str__())                 
+                    self._log.error("Error in ImgMetaStoreMongo - updateimage. " + str(sys.exc_info()))
+                    self._log.error("No such file or directory. Image details: " + item.__str__())                 
                 except TypeError:
-                    self._log.error("TypeError in ImgMetaStoreMongo - updateimage "+str(sys.exc_info()))         
+                    self._log.error("TypeError in ImgMetaStoreMongo - updateimage " + str(sys.exc_info()))         
                 except pymongo.errors.OperationFailure:
                     self._log.error("Operation Failure in ImgMetaStoreMongo - UpdateImage")
                 finally:
@@ -824,21 +824,21 @@ class ImgMetaStoreMongo(AbstractImgMetaStore):
                 dbLink = self._dbConnection[self._dbName]
                 collection = dbLink[self._metacollection]                
                 
-                criteria=criteria.strip()  #remove spaces before
+                criteria = criteria.strip()  #remove spaces before
                 segs = criteria.split(" ")  #splits in parts                
                 args = [x.strip() for x in segs]
                 
-                fieldsFound=False
-                where=False                
-                fieldsWhere={}
-                fields=[]    
+                fieldsFound = False
+                where = False                
+                fieldsWhere = {}
+                fields = []    
                 for i in range(len(args)):                      
-                    if ( args[i] != " "):
+                    if (args[i] != " "):
                         if not fieldsFound:
                             if (args[i] == "*"):                                
                                 del fields[:]
                                 fields = "*"
-                                fieldsFound=True
+                                fieldsFound = True
                             else:
                                 aux = args[i].split(",")                                                
                                 aux1 = [z.strip() for z in aux]
@@ -847,15 +847,15 @@ class ImgMetaStoreMongo(AbstractImgMetaStore):
                                         if (j == "*"):
                                             del fields[:]
                                             fields = "*"
-                                            fieldsFound=True
+                                            fieldsFound = True
                                         elif (j == "where" or j == "WHERE"):
-                                            where=True
-                                            fieldsFound=True        
+                                            where = True
+                                            fieldsFound = True        
                                         else:
                                             fields.append(j) 
                         elif not where:
-                            if ( args[i] == "where" or args[i] == "WHERE"):
-                                where=True
+                            if (args[i] == "where" or args[i] == "WHERE"):
+                                where = True
                         else:
                             aux = args[i].split(",")                                                
                             aux1 = [z.strip() for z in aux]
@@ -863,28 +863,28 @@ class ImgMetaStoreMongo(AbstractImgMetaStore):
                                 if (j != ""):                                
                                     aux2 = j.split("=")
                                     if (aux2[0].strip() == "imgId"):
-                                        fieldsWhere["_id"]=aux2[1].strip()                                                                            
+                                        fieldsWhere["_id"] = aux2[1].strip()                                                                            
                                     #elif (aux2[0].strip() == "imgType" or aux2[0].strip() == "vmType" or aux2[0].strip() == "imgStatus"):
                                      #   fieldsWhere[aux2[0].strip()]=int(aux2[1].strip())
                                     else:
-                                        fieldsWhere[aux2[0].strip()]=aux2[1].strip()                                                          
+                                        fieldsWhere[aux2[0].strip()] = aux2[1].strip()                                                          
                           
-                #print "fields "+fields.__str__()
-                #print "fieldsWhere "+fieldsWhere.__str__()   
+                self._log.debug("fields " + fields.__str__())
+                self._log.debug("fieldsWhere " + fieldsWhere.__str__())   
                 
-                if ( fields == "*"):
-                    results=collection.find(fieldsWhere)
+                if (fields == "*"):
+                    results = collection.find(fieldsWhere)
                     for resultList in results:
                         #print resultList
                         tmpMeta = self.convertDicToObject(resultList, True)
                         self._items[tmpMeta._imgId] = tmpMeta
                 else:
-                    results=collection.find(fieldsWhere, fields)                    
+                    results = collection.find(fieldsWhere, fields)                    
                     for resultList in results:
                         tmpMeta = self.convertDicToObject(resultList, False)                    
                         self._items[tmpMeta._imgId] = tmpMeta                      
                                 
-                success=True
+                success = True
                     
             except pymongo.errors.AutoReconnect:
                 self._log.warning("Autoreconnected in ImgMetaStoreMongo - queryStore") 
@@ -910,33 +910,33 @@ class ImgMetaStoreMongo(AbstractImgMetaStore):
         return: ImgMetaStoreMongo
         """
         if (fullMode):
-            tags=','.join(str(bit) for bit in dic['tag'])
-            tmpMeta = ImgMeta(dic['_id'], dic['os'], dic['arch'],dic['owner'], 
-                                          dic["description"], tags, dic["vmType"], 
+            tags = ','.join(str(bit) for bit in dic['tag'])
+            tmpMeta = ImgMeta(dic['_id'], dic['os'], dic['arch'], dic['owner'],
+                                          dic["description"], tags, dic["vmType"],
                                           dic["imgType"], dic["permission"], dic["imgStatus"])
         else:
             tmpMeta = ImgMeta("", "", "", "", "", "", "", 0, "", "")                    
             for i in dic.keys():
                 if (i == "_id"):
-                    tmpMeta._imgId=dic[i]
+                    tmpMeta._imgId = dic[i]
                 elif (i == "os"):
-                    tmpMeta._os=dic[i]
+                    tmpMeta._os = dic[i]
                 elif (i == "arch"):
-                    tmpMeta._arch=dic[i]
+                    tmpMeta._arch = dic[i]
                 elif (i == "owner"):
-                    tmpMeta._owner=dic[i]
+                    tmpMeta._owner = dic[i]
                 elif (i == "description"):
-                    tmpMeta._description=dic[i]
+                    tmpMeta._description = dic[i]
                 elif (i == "tag"):                                
-                    tmpMeta._tag=",".join(str(bit) for bit in dic[i])
+                    tmpMeta._tag = ",".join(str(bit) for bit in dic[i])
                 elif (i == "vmType"):
-                    tmpMeta._vmType=dic[i]
+                    tmpMeta._vmType = dic[i]
                 elif (i == "imgType"):
-                    tmpMeta._imgType=dic[i]
+                    tmpMeta._imgType = dic[i]
                 elif (i == "permission"):
-                    tmpMeta._permission=dic[i]
+                    tmpMeta._permission = dic[i]
                 elif (i == "imgStatus"):
-                    tmpMeta._imgStatus=dic[i]
+                    tmpMeta._imgStatus = dic[i]
         
         #print tmpMeta._tag
         
@@ -973,7 +973,7 @@ class ImgMetaStoreMongo(AbstractImgMetaStore):
             connected = True
 
         except pymongo.errors.ConnectionFailure as detail:
-            self._log.error("Connection failed for "+self._mongoAddress)
+            self._log.error("Connection failed for " + self._mongoAddress)
         except TypeError:  
             self._log.error("TypeError in ImgStoreMongo - mongoConnection")
 
@@ -989,18 +989,18 @@ class IRUserStoreMongo(AbstractIRUserStore):
     ############################################################
     # __init__
     ############################################################
-    def __init__(self, address,fgirdir, log):
+    def __init__(self, address, fgirdir, log):
         super(IRUserStoreMongo, self).__init__()        
 
         self._dbName = "images"   #file location for users
-        self._usercollection="users"
-        self._dbConnection=None
-        self._log=log
+        self._usercollection = "users"
+        self._dbConnection = None
+        self._log = log
 
         if (address != ""):
-            self._mongoAddress=address
+            self._mongoAddress = address
         else:
-            self._mongoAddress=self._getAddress()
+            self._mongoAddress = self._getAddress()
             
     ############################################################
     # _getAddress
@@ -1025,30 +1025,30 @@ class IRUserStoreMongo(AbstractIRUserStore):
         return: IRUser object
         """
         
-        found=False
-        tmpUser={}
+        found = False
+        tmpUser = {}
                 
         if (self.mongoConnection()):
             try:
                 dbLink = self._dbConnection[self._dbName]
                 collection = dbLink[self._usercollection]
                                 
-                if(userIdtoSearch!=None):
+                if(userIdtoSearch != None):
                                    
-                    dic=collection.find_one({"userId": userId})
+                    dic = collection.find_one({"userId": userId})
                     
                     if not dic == None:
                         
-                        tmpUser[dic['userId']] = IRUser(dic['userId'], dic['cred'], dic['fsCap'], dic['fsUsed'],dic['lastLogin'], 
-                                              dic["status"], dic["role"],dic["ownedImgs"])
+                        tmpUser[dic['userId']] = IRUser(dic['userId'], dic['cred'], dic['fsCap'], dic['fsUsed'], dic['lastLogin'],
+                                              dic["status"], dic["role"], dic["ownedImgs"])
                         found = True
                 elif (self.isAdmin(userId)):
-                    dicList=collection.find()
+                    dicList = collection.find()
                     
                     for dic in dicList:
                         
-                        tmpUser[dic['userId']] = IRUser(dic['userId'], dic['cred'], dic['fsCap'], dic['fsUsed'],dic['lastLogin'], 
-                                              dic["status"], dic["role"],dic["ownedImgs"])
+                        tmpUser[dic['userId']] = IRUser(dic['userId'], dic['cred'], dic['fsCap'], dic['fsUsed'], dic['lastLogin'],
+                                              dic["status"], dic["role"], dic["ownedImgs"])
                         found = True
                                                   
             except pymongo.errors.AutoReconnect: 
@@ -1056,10 +1056,10 @@ class IRUserStoreMongo(AbstractIRUserStore):
             except pymongo.errors.ConnectionFailure:
                 self._log.error("Connection failure in IRUserStoreMongo - queryStore")                                           
             except IOError:                
-                self._log.error("Error in ImgUserMongo - queryStore. "+str(sys.exc_info()))
-                self._log.error("No such file or directory. Image details: "+item.__str__())                 
+                self._log.error("Error in ImgUserMongo - queryStore. " + str(sys.exc_info()))
+                self._log.error("No such file or directory. Image details: " + item.__str__())                 
             except TypeError:
-                self._log.error("TypeError in ImgUserMongo - queryStore "+str(sys.exc_info()))            
+                self._log.error("TypeError in ImgUserMongo - queryStore " + str(sys.exc_info()))            
             
             except pymongo.errors.OperationFailure:
                 self._log.error("Operation Failure in IRUserStoreMongo - queryStore")
@@ -1083,8 +1083,8 @@ class IRUserStoreMongo(AbstractIRUserStore):
         return: IRUser object
         """
     
-        user=self.queryStore(userId,userId)
-        if(user!=None):
+        user = self.queryStore(userId, userId)
+        if(user != None):
             return user[userId]
         else:
             return None
@@ -1106,20 +1106,20 @@ class IRUserStoreMongo(AbstractIRUserStore):
                 dbLink = self._dbConnection[self._dbName]
                 collection = dbLink[self._usercollection]     
                 
-                user=collection.find_one({"userId": userId})                               
+                user = collection.find_one({"userId": userId})                               
                 
-                totalSize= int(user['fsUsed']) + int(size)
-                total=int(user['ownedImgs'])+int(num)
+                totalSize = int(user['fsUsed']) + int(size)
+                total = int(user['ownedImgs']) + int(num)
                 
-                if(totalSize<0):
-                    totalSize=0
-                if(total<0):
-                    total=0
+                if(totalSize < 0):
+                    totalSize = 0
+                if(total < 0):
+                    total = 0
                 
-                collection.update({"userId": userId}, 
+                collection.update({"userId": userId},
                                   {"$set": {"fsUsed" : totalSize, "ownedImgs":total}
                                             }, safe=True)
-                success=True
+                success = True
             except pymongo.errors.AutoReconnect:
                 self._log.warning("Autoreconnected in IRUserStoreMongo - updateAccounting") 
             except pymongo.errors.ConnectionFailure:
@@ -1147,10 +1147,10 @@ class IRUserStoreMongo(AbstractIRUserStore):
                     dbLink = self._dbConnection[self._dbName]
                     collection = dbLink[self._usercollection]     
                     
-                    collection.update({"userId": userIdtoModify}, 
+                    collection.update({"userId": userIdtoModify},
                                       {"$set": {"role" : role}
                                                 }, safe=True)
-                    success=True
+                    success = True
             except pymongo.errors.AutoReconnect:
                 self._log.warning("Autoreconnected in IRUserStoreMongo - setRole") 
             except pymongo.errors.ConnectionFailure:
@@ -1181,10 +1181,10 @@ class IRUserStoreMongo(AbstractIRUserStore):
                     dbLink = self._dbConnection[self._dbName]
                     collection = dbLink[self._usercollection]     
                     
-                    collection.update({"userId": userIdtoModify}, 
+                    collection.update({"userId": userIdtoModify},
                                       {"$set": {"fsCap" : quota}
                                                 }, safe=True)
-                    success=True
+                    success = True
             except pymongo.errors.AutoReconnect:
                 self._log.warning("Autoreconnected in IRUserStoreMongo - setRole") 
             except pymongo.errors.ConnectionFailure:
@@ -1215,10 +1215,10 @@ class IRUserStoreMongo(AbstractIRUserStore):
                     dbLink = self._dbConnection[self._dbName]
                     collection = dbLink[self._usercollection]     
                     
-                    collection.update({"userId": userIdtoModify}, 
+                    collection.update({"userId": userIdtoModify},
                                       {"$set": {"status" : status}
                                                 }, safe=True)
-                    success=True
+                    success = True
             except pymongo.errors.AutoReconnect:
                 self._log.warning("Autoreconnected in IRUserStoreMongo - setUserStatus") 
             except pymongo.errors.ConnectionFailure:
@@ -1252,7 +1252,7 @@ class IRUserStoreMongo(AbstractIRUserStore):
                     
                     collection.remove({"userId": userIdtoDel}, safe=True)
                     
-                    success=True
+                    success = True
                     
             except pymongo.errors.AutoReconnect:
                 self._log.warning("Autoreconnected in IRUserStoreMongo - userDel") 
@@ -1296,27 +1296,27 @@ class IRUserStoreMongo(AbstractIRUserStore):
         
         return boolean. True only if all users where added correctly to the db
         """
-        userStored=0
-        authorized=False
+        userStored = 0
+        authorized = False
         if (self.mongoConnection()):            
             try:
                 dbLink = self._dbConnection[self._dbName]
                 collection = dbLink[self._usercollection]
-                output=collection.find_one()
+                output = collection.find_one()
                 
-                if (output==None):                    
-                    self._log.warning("First User inserted is "+ users[0]._userId+". He is admin")
-                    users[0]._status="active"
-                    users[0]._role="admin"                    
-                    authorized=True                   
+                if (output == None):                    
+                    self._log.warning("First User inserted is " + users[0]._userId + ". He is admin")
+                    users[0]._status = "active"
+                    users[0]._role = "admin"                    
+                    authorized = True                   
                 else:
                     if(self.isAdmin(userId)):
-                        authorized=True
+                        authorized = True
                         
                 if (authorized):    
                     for user in users:
                         
-                        user._lastLogin=datetime.fromordinal(1) #creates time 0001-01-01 00:00:00
+                        user._lastLogin = datetime.fromordinal(1) #creates time 0001-01-01 00:00:00
                         
                         meta = {"userId": user._userId,
                                 "cred" : user._cred,
@@ -1330,9 +1330,9 @@ class IRUserStoreMongo(AbstractIRUserStore):
 
                         if (collection.find_one({"userId": user._userId}) == None):
                             collection.insert(meta, safe=True)                                                        
-                            userStored+=1
+                            userStored += 1
                         else:
-                            self._log.error("The userId "+user._userId+" exits in the database")
+                            self._log.error("The userId " + user._userId + " exits in the database")
                                                      
                     
             except pymongo.errors.AutoReconnect:  #TODO: Study what happens with that. store or not store the file
@@ -1340,10 +1340,10 @@ class IRUserStoreMongo(AbstractIRUserStore):
             except pymongo.errors.ConnectionFailure:
                 self._log.error("Connection failure. The user has not been stored.")                                           
             except IOError:                
-                self._log.error("Error in IRUserStoreMongo - addUser. "+str(sys.exc_info()))
-                self._log.error("No such file or directory. Image details: "+item.__str__())                 
+                self._log.error("Error in IRUserStoreMongo - addUser. " + str(sys.exc_info()))
+                self._log.error("No such file or directory. Image details: " + item.__str__())                 
             except TypeError:
-                self._log.error("TypeError in IRUserStoreMongo - addUser "+str(sys.exc_info()))
+                self._log.error("TypeError in IRUserStoreMongo - addUser " + str(sys.exc_info()))
             except pymongo.errors.OperationFailure:
                 self._log.error("Operation Failure in IRUserStoreMongo - addUser")
             finally:
@@ -1364,23 +1364,23 @@ class IRUserStoreMongo(AbstractIRUserStore):
         """
         Verify if a user is admin
         """
-        admin=False
+        admin = False
            
         try:
             dbLink = self._dbConnection[self._dbName]
             collection = dbLink[self._usercollection]
                              
-            aux=collection.find_one({"userId": userId})
-            if (aux!=None):
-                if (aux['role']=="admin"):
-                    admin=True
+            aux = collection.find_one({"userId": userId})
+            if (aux != None):
+                if (aux['role'] == "admin"):
+                    admin = True
             #print admin   
         except pymongo.errors.AutoReconnect:  
             self._log.warning("Autoreconnected.")                 
         except pymongo.errors.ConnectionFailure:
             self._log.error("Connection failure") 
         except TypeError as detail:
-            self._log.error("TypeError in IRUserStoreMongo - isAdmin"+str(sys.exc_info()))
+            self._log.error("TypeError in IRUserStoreMongo - isAdmin" + str(sys.exc_info()))
         except bson.errors.InvalidId:
             self._log.error("Error, not a valid ObjectId in IRUserStoreMongo - isAdmin")
         
@@ -1392,15 +1392,15 @@ class IRUserStoreMongo(AbstractIRUserStore):
     def uploadValidator(self, userId, imgSize):
         user = self._getUser(userId)
         ret = False
-        if (user!=None):
-            if (user._status=="active"):
+        if (user != None):
+            if (user._status == "active"):
                 #self._log.debug(user._fsCap)                   
                 if imgSize + user._fsUsed <= user._fsCap:                    
                     ret = True
             else:
-                ret="NoActive"
+                ret = "NoActive"
         else:
-            ret="NoUser"
+            ret = "NoUser"
         
         return ret      
     
@@ -1421,7 +1421,7 @@ class IRUserStoreMongo(AbstractIRUserStore):
             connected = True
 
         except pymongo.errors.ConnectionFailure as detail:
-            self._log.error("Connection failed for "+self._mongoAddress)
+            self._log.error("Connection failed for " + self._mongoAddress)
         except TypeError:  
             self._log.error("TypeError in IRUserStoreMongo - mongoConnection")
 

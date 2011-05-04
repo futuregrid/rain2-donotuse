@@ -65,32 +65,32 @@ Notes:
     Some argument's values are controlled:'''
     
     
-    first=True
+    first = True
     for line in textwrap.wrap("vmtype= " + str(ImgMeta.VmType), 64):
         if first:
             print "         %s" % (line)
-            first=False
+            first = False
         else:
             print "           %s" % (line)
-    first=True
+    first = True
     for line in textwrap.wrap("imgtype= " + str(ImgMeta.ImgType), 64):
         if first:
             print "         %s" % (line)
-            first=False
+            first = False
         else:
             print "               %s" % (line)
-    first=True
+    first = True
     for line in textwrap.wrap("imgStatus= " + str(ImgMeta.ImgStatus), 64):
         if first:
             print "         %s" % (line)
-            first=False
+            first = False
         else:
             print "           %s" % (line)
-    first=True
+    first = True
     for line in textwrap.wrap("Permission= " + str(ImgMeta.Permission), 64):
         if first:
             print "         %s" % (line)
-            first=False
+            first = False
         else:
             print "           %s" % (line)
           
@@ -102,8 +102,8 @@ Notes:
 def main():
     try:
         opts, args = gnu_getopt(sys.argv[1:],
-                                "hlqagprium",  
-                                ["help",        
+                                "hlqagprium",
+                                ["help",
                                  "auth",
                                  "list",
                                  "setpermission",
@@ -126,7 +126,7 @@ def main():
         print
         usage()
         sys.exit(2)
-    if (len(opts)==0):
+    if (len(opts) == 0):
         usage()
     else:
         service = IRServiceProxy()
@@ -140,7 +140,7 @@ def main():
                 #service.auth(username)
                 print service.auth("fuwang")
             elif o in ("-q", "--list"):
-                if (len(args)==0):
+                if (len(args) == 0):
                     imgsList = service.query(os.popen('whoami', 'r').read().strip(), "*")
                 else:
                     imgsList = service.query(os.popen('whoami', 'r').read().strip(), args[0])
@@ -161,12 +161,12 @@ def main():
                  
                 #service.query("tstuser2", "imgId=fakeid4950877")
             elif o in ("-a", "--setpermission"):
-                if (len(args)==0):
-                    status=service.setPermission(os.popen('whoami', 'r').read().strip(), args[0], args[1])
-                    if(status=="True"):
-                        print "Permission of img "+args[0]+" updated"
+                if (len(args) == 0):
+                    status = service.setPermission(os.popen('whoami', 'r').read().strip(), args[0], args[1])
+                    if(status == "True"):
+                        print "Permission of img " + args[0] + " updated"
                     else:
-                        print "The permission have not been changed. "+status
+                        print "The permission have not been changed. " + status
                 else:
                     usage()
             elif o in ("-g", "--get"):   
@@ -181,23 +181,23 @@ def main():
                     usage()
                     
             elif o in ("-p", "--put"):
-                status=0
-                ok=False
-                if (len(args)==2):                
+                status = 0
+                ok = False
+                if (len(args) == 2):                
                     status = service.put(os.popen('whoami', 'r').read().strip(), None, args[0], args[1])
-                    ok=True
-                elif (len(args)==1):
+                    ok = True
+                elif (len(args) == 1):
                     status = service.put(os.popen('whoami', 'r').read().strip(), None, args[0], "")
-                    of=True
+                    of = True
                 else:
                     usage()
                 #id2 = service.put(os.popen('whoami', 'r').read().strip(), None, "/home/javi/tst3.iso", "vmtype=vmware")
                 #print "image has been uploaded and registered with id " + str(id1)
                 #id2 = service.put(os.popen('whoami', 'r').read().strip(), None, "/home/javi/tst2.iso", "vmtype=11|imgType=0|os=UBUNTU|arch=x86_64| owner=tstuser2| description=another test| tag=tsttaga, tsttagb")
                 if(ok):              
-                    if(status==0):
+                    if(status == 0):
                         print "the image has NOT been uploaded. Please, verify that the file exists and the metadata string is valid"
-                    elif(status==-1):
+                    elif(status == -1):
                         print "the image has NOT been uploaded"
                         print "The User does not exist"
                     elif(status == "-2"):
@@ -211,18 +211,18 @@ def main():
                 
                     
             elif o in ("-r", "--remove"):
-                if(len(args)==1):
+                if(len(args) == 1):
                     if (service.remove(os.popen('whoami', 'r').read().strip(), args[0]) == "True"):
-                        print "The image with imgId=" + args[0] +" has been removed"
+                        print "The image with imgId=" + args[0] + " has been removed"
                     else:
-                        print "The image with imgId=" + args[0] +" has NOT been removed. Please verify the imgId and if you are the image owner"
+                        print "The image with imgId=" + args[0] + " has NOT been removed. Please verify the imgId and if you are the image owner"
                 else:
                     usage()
             elif o in ("-i", "--histimg"):
-                if(len(args)==1):
-                    imgsList=service.histImg(os.popen('whoami', 'r').read().strip(), args[0])
+                if(len(args) == 1):
+                    imgsList = service.histImg(os.popen('whoami', 'r').read().strip(), args[0])
                 else:
-                    imgsList=service.histImg(os.popen('whoami', 'r').read().strip(), "None")
+                    imgsList = service.histImg(os.popen('whoami', 'r').read().strip(), "None")
                 
                 imgs = eval(imgsList[0])
                 
@@ -238,10 +238,10 @@ def main():
        
                 
             elif o in ("-u", "--histuser"):
-                if(len(args)==1):
-                    imgsList=service.histUser(os.popen('whoami', 'r').read().strip(), args[0])
+                if(len(args) == 1):
+                    imgsList = service.histUser(os.popen('whoami', 'r').read().strip(), args[0])
                 else:
-                    imgsList=service.histUser(os.popen('whoami', 'r').read().strip(), "None")
+                    imgsList = service.histUser(os.popen('whoami', 'r').read().strip(), "None")
                                        
                 try:            
                     users = eval(userList[0])            
@@ -255,11 +255,11 @@ def main():
                
                         
             elif o in ("-m", "--modify"): 
-                if (len(args)==2):
-                    success=service.updateItem(os.popen('whoami', 'r').read().strip(), args[0], args[1])
+                if (len(args) == 2):
+                    success = service.updateItem(os.popen('whoami', 'r').read().strip(), args[0], args[1])
                     #success=service.updateItem(os.popen('whoami', 'r').read().strip(), "4d66c1f9577d70165f000000", "vmType=kvm|imgType=Opennebula|os=Windows|arch=x86_64| owner=tstuser2| description=another test| tag=tsttagT, tsttagY")
                     
-                    if (success=="True"):
+                    if (success == "True"):
                         print "The item was successfully updated"
                     else:
                         print "Error in the update. Please verify that you are the owner or that you introduced the correct arguments"
@@ -268,8 +268,8 @@ def main():
             #This commands only can be used by users with Admin Role.
             elif o in ("--useradd"):  #args[0] is the username. It MUST be the same that the system user
                 if (len(args) == 1):
-                    status=service.userAdd(os.popen('whoami', 'r').read().strip(), args[0])                
-                    if(status=="True"):
+                    status = service.userAdd(os.popen('whoami', 'r').read().strip(), args[0])                
+                    if(status == "True"):
                         print "User created successfully."
                         print "Remember that you still need to activate this user (see setuserstatus command)\n"
                     else:
@@ -280,8 +280,8 @@ def main():
                     
             elif o in ("--userdel"):
                 if (len(args) == 1):
-                    status=service.userDel(os.popen('whoami', 'r').read().strip(), args[0])
-                    if(status=="True"):
+                    status = service.userDel(os.popen('whoami', 'r').read().strip(), args[0])
+                    if(status == "True"):
                         print "User deleted successfully."                
                     else:
                         print "The user has not been deleted. \n" + \
@@ -290,7 +290,7 @@ def main():
                     usage()
                         
             elif o in ("--userlist"):
-                userList=service.userList(os.popen('whoami', 'r').read().strip())
+                userList = service.userList(os.popen('whoami', 'r').read().strip())
                 #print userList                
                 if(userList[0].strip() != "None"):
                     try:
@@ -307,8 +307,8 @@ def main():
                                     
             elif o in ("--setuserquota"):
                 if (len(args) == 2):
-                    status=service.setUserQuota(os.popen('whoami', 'r').read().strip(), args[0], args[1])
-                    if(status=="True"):
+                    status = service.setUserQuota(os.popen('whoami', 'r').read().strip(), args[0], args[1])
+                    if(status == "True"):
                         print "Quota changed successfully."
                     else:
                         print "The user quota has not been changed. \n" + \
@@ -318,8 +318,8 @@ def main():
                         
             elif o in ("--setuserrole"):
                 if (len(args) == 2):
-                    status=service.setUserRole(os.popen('whoami', 'r').read().strip(), args[0], args[1])
-                    if(status=="True"):
+                    status = service.setUserRole(os.popen('whoami', 'r').read().strip(), args[0], args[1])
+                    if(status == "True"):
                         print "Role changed successfully."
                     else:
                         print "The user role has not been changed. " + status + "\n"\
@@ -329,8 +329,8 @@ def main():
                         
             elif o in ("--setuserstatus"):
                 if (len(args) == 2):
-                    status=service.setUserStatus(os.popen('whoami', 'r').read().strip(), args[0], args[1])
-                    if(status=="True"):
+                    status = service.setUserStatus(os.popen('whoami', 'r').read().strip(), args[0], args[1])
+                    if(status == "True"):
                         print "Status changed successfully."
                     else:
                         print "The user status has not been changed. " + status + "\n"\

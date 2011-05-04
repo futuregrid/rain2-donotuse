@@ -63,20 +63,20 @@ class ImgStoreCumulusMongo(ImgStoreMongo):
         """                
         super(ImgStoreMongo, self).__init__()
         
-        self._dbName="imagesC"
-        self._datacollection="data"
-        self._metacollection="meta"
-        self._dbConnection=None
-        self._log=log 
+        self._dbName = "imagesC"
+        self._datacollection = "data"
+        self._metacollection = "meta"
+        self._dbConnection = None
+        self._log = log 
         
         if (address != ""):
-            self._mongoAddress=address
+            self._mongoAddress = address
         else:
-            self._mongoAddress=self._getAddress()
+            self._mongoAddress = self._getAddress()
             
-        self._cumulusAddress=addressS
-        self._cumulusConnection=None
-        self._containerName="imagesmongo"  ##bucket
+        self._cumulusAddress = addressS
+        self._cumulusConnection = None
+        self._containerName = "imagesmongo"  ##bucket
 
     ############################################################
     # getItemUri
@@ -98,7 +98,7 @@ class ImgStoreCumulusMongo(ImgStoreMongo):
         return the image uri
         """
                         
-        imgLinks=[]  
+        imgLinks = []  
         result = self.queryStore([imgId], imgLinks, userId)
         
         if (result):
@@ -127,28 +127,28 @@ class ImgStoreCumulusMongo(ImgStoreMongo):
                 dbLink = self._dbConnection[self._dbName]
                 collection = dbLink[self._datacollection]
                 
-                contain= self._cumulusConnection.get_bucket(self._containerName)                
-                k=Key(contain)                
+                contain = self._cumulusConnection.get_bucket(self._containerName)                
+                k = Key(contain)                
                 
                 for imgId in imgIds:
                     
-                    access=False
+                    access = False
                     if(self.existAndOwner(imgId, userId)):
-                        access=True
+                        access = True
                         #self._log.debug("ifowner "+str(access))
                     elif(self.isPublic(imgId)):
-                        access=True
+                        access = True
                         #self._log.debug("ifpublic "+str(access))
                     if (access):
                                                 
-                        k.key=imgId
+                        k.key = imgId
                         
                         #Boto does not stream, so we have to create the file here instead of in getItem
-                        imagepath='/tmp/'+imgId+".img"
+                        imagepath = '/tmp/' + imgId + ".img"
                         
                         if os.path.isfile(imagepath):                            
                             for i in range(1000):
-                                imagepath="/tmp/"+imgId+".img"+i.__str__()
+                                imagepath = "/tmp/" + imgId + ".img" + i.__str__()
                                 if not os.path.isfile(imagepath):                                    
                                     break
                                         
@@ -156,12 +156,12 @@ class ImgStoreCumulusMongo(ImgStoreMongo):
                          
                         imgLinks.append(imagepath)
                         
-                        collection.update({"_id": imgId}, 
-                                      {"$inc": {"accessCount": 1},}, safe=True)
-                        collection.update({"_id": imgId}, 
-                                      {"$set": {"lastAccess": datetime.utcnow()},}, safe=True)
+                        collection.update({"_id": imgId},
+                                      {"$inc": {"accessCount": 1}, }, safe=True)
+                        collection.update({"_id": imgId},
+                                      {"$set": {"lastAccess": datetime.utcnow()}, }, safe=True)
                         #print "here"                                         
-                        itemsFound +=1    
+                        itemsFound += 1    
             except pymongo.errors.AutoReconnect:                
                 self._log.warning("Autoreconnected in ImgStorecumulusMongo - queryStore.") 
             except pymongo.errors.ConnectionFailure:                
@@ -171,10 +171,10 @@ class ImgStoreCumulusMongo(ImgStoreMongo):
             except bson.errors.InvalidId:
                 self._log.error("There is no Image with such Id. (ImgStoreMongo - queryStore)")
             except boto.exception.S3ResponseError as detail:
-                self._log.error("Code and reason "+detail.code+" "+detail.reason)
-                self._log.error("Error in ImgStorecumulusMongo - queryToStore. full error "+str(sys.exc_info()))
+                self._log.error("Code and reason " + detail.code + " " + detail.reason)
+                self._log.error("Error in ImgStorecumulusMongo - queryToStore. full error " + str(sys.exc_info()))
             except:
-                self._log.error("Error in ImgStorecumulusMongo - queryToStore. "+str(sys.exc_info()))
+                self._log.error("Error in ImgStorecumulusMongo - queryToStore. " + str(sys.exc_info()))
             finally:
                 self._dbConnection.disconnect()    
         else:
@@ -197,36 +197,36 @@ class ImgStoreCumulusMongo(ImgStoreMongo):
         return: True if all items are stored successfully, False in any other case
         """               
         self._dbConnection = self.mongoConnection()
-        imgStored=0
+        imgStored = 0
                 
         if (self.mongoConnection() and self.cumulusConnection()):
             
             try:
-                contain= self._cumulusConnection.get_bucket(self._containerName)
+                contain = self._cumulusConnection.get_bucket(self._containerName)
             except boto.exception.S3ResponseError as detail:
-                if(detail.reason.strip()=="Not Found"):                
+                if(detail.reason.strip() == "Not Found"):                
                     self._log.warning("Creating bucket")
                     self._cumulusConnection.create_bucket(self._containerName)
-                    contain= self._cumulusConnection.get_bucket(self._containerName)
+                    contain = self._cumulusConnection.get_bucket(self._containerName)
                 else:
-                    self._log.error("Code and reason "+detail.code+" "+detail.reason)
-                    self._log.error("Error in ImgStorecumulusMongo - queryToStore. full error "+str(sys.exc_info()))
+                    self._log.error("Code and reason " + detail.code + " " + detail.reason)
+                    self._log.error("Error in ImgStorecumulusMongo - queryToStore. full error " + str(sys.exc_info()))
             except:
-                self._log.error("Error in ImgStorecumulusMongo - persistToStore. "+str(sys.exc_info()))      
+                self._log.error("Error in ImgStorecumulusMongo - persistToStore. " + str(sys.exc_info()))      
                 
             try:
                 dbLink = self._dbConnection[self._dbName]
                 collection = dbLink[self._datacollection]
                 collectionMeta = dbLink[self._metacollection]
                 
-                k=Key(contain)
+                k = Key(contain)
                                 
                 for item in items:
                                                       
-                    k.key= item._imgId                    
+                    k.key = item._imgId                    
                     k.set_contents_from_filename(item._imgURI)
                     
-                    tags=item._imgMeta._tag.split(",")
+                    tags = item._imgMeta._tag.split(",")
                     tags_list = [x.strip() for x in tags]
                     meta = {"_id": item._imgId,
                             "os" : item._imgMeta._os,
@@ -237,10 +237,10 @@ class ImgStoreCumulusMongo(ImgStoreMongo):
                             "vmType" : item._imgMeta._vmType,
                             "imgType" : item._imgMeta._imgType,
                             "permission" : item._imgMeta._permission,
-                            "imgStatus" : item._imgMeta._imgStatus,                            
+                            "imgStatus" : item._imgMeta._imgStatus,
                             }
                     data = {"_id": item._imgId,
-                            "createdDate" : datetime.utcnow(), 
+                            "createdDate" : datetime.utcnow(),
                             "lastAccess" : datetime.utcnow(),
                             "accessCount" : 0,
                             "size" : item._size,
@@ -249,21 +249,21 @@ class ImgStoreCumulusMongo(ImgStoreMongo):
                     collectionMeta.insert(meta, safe=True)
                     collection.insert(data, safe=True)
                                                             
-                    imgStored+=1
+                    imgStored += 1
                                                           
             except pymongo.errors.AutoReconnect:
                 self._log.warning("Autoreconnected.")                 
             except pymongo.errors.ConnectionFailure:
-                self._log.error("Connection failure. The file has not been stored. Image details: "+item.__str__()+"\n")                                           
+                self._log.error("Connection failure. The file has not been stored. Image details: " + item.__str__() + "\n")                                           
             except IOError:                
-                self._log.error("Error in ImgStorecumulusMongo - persistenToStore. "+str(sys.exc_info()))
-                self._log.error("No such file or directory. Image details: "+item.__str__())                 
+                self._log.error("Error in ImgStorecumulusMongo - persistenToStore. " + str(sys.exc_info()))
+                self._log.error("No such file or directory. Image details: " + item.__str__())                 
             except TypeError:
-                self._log.error("TypeError in ImgStorecumulusMongo - persistenToStore "+str(sys.exc_info()))  
+                self._log.error("TypeError in ImgStorecumulusMongo - persistenToStore " + str(sys.exc_info()))  
             except pymongo.errors.OperationFailure:
                 self._log.error("Operation Failure in ImgStorecumulusMongo - persistenToStore")  
             except:
-                self._log.error("Error in ImgStoreCumulusMongo - persistToStore. "+str(sys.exc_info()))           
+                self._log.error("Error in ImgStoreCumulusMongo - persistToStore. " + str(sys.exc_info()))           
             finally:
                 self._dbConnection.disconnect()                      
         else:
@@ -271,7 +271,7 @@ class ImgStoreCumulusMongo(ImgStoreMongo):
 
         for item in items:
             if (re.search('^/tmp/', item._imgURI)):
-                cmd="rm -f "+ item._imgURI         
+                cmd = "rm -f " + item._imgURI         
                 os.system(cmd)
         
         if (imgStored == len(items)):
@@ -298,7 +298,7 @@ class ImgStoreCumulusMongo(ImgStoreMongo):
         
         Return boolean
         """   
-        removed=False
+        removed = False
         if (self.mongoConnection() and self.cumulusConnection()):
             if(self.existAndOwner(imgId, userId)):    
                 try:
@@ -306,28 +306,29 @@ class ImgStoreCumulusMongo(ImgStoreMongo):
                     collection = dbLink[self._datacollection]
                     collectionMeta = dbLink[self._metacollection]
 
-                    contain= self._cumulusConnection.get_bucket(self._containerName)               
+                    contain = self._cumulusConnection.get_bucket(self._containerName)               
                     contain.delete_key(imgId)
                     
-                    aux=collection.find_one({"_id": imgId})
-                    size[0]=aux['size']
+                    aux = collection.find_one({"_id": imgId})
+                    size[0] = aux['size']
                     
                     collection.remove({"_id": imgId}, safe=True) #Wait for replication? w=3 option
                     collectionMeta.remove({"_id": imgId}, safe=True)
-                    removed=True
+                    removed = True
                 except pymongo.errors.AutoReconnect:  #TODO: Study what happens with that. store or not store the file
                     self._log.warning("Autoreconnected.")                 
                 except pymongo.errors.ConnectionFailure:
                     self._log.error("Connection failure. The file has not been updated")                                           
                 except IOError:                
-                    self._log.error("Error in ImgStorecumulusMongo - RemoveItem. "+str(sys.exc_info()))
-                    self._log.error("No such file or directory. Image details: "+item.__str__())                 
+                    self._log.error("Error in ImgStorecumulusMongo - RemoveItem. " + str(sys.exc_info()))
+                    self._log.error("No such file or directory. Image details: " + item.__str__())                 
                 except TypeError:
-                    self._log.error("TypeError in ImgStorecumulusMongo - RemoveItem "+str(sys.exc_info()))          
+                    self._log.error("TypeError in ImgStorecumulusMongo - RemoveItem " + str(sys.exc_info()))          
+
                 except pymongo.errors.OperationFailure:
                     self._log.error("Operation Failure in ImgStorecumulusMongo - RemoveItem")
                 except:
-                    self._log.error("Error in ImgStorecumulusMongo - removeItem. "+str(sys.exc_info()))
+                    self._log.error("Error in ImgStorecumulusMongo - removeItem. " + str(sys.exc_info()))
                 finally:
                     self._dbConnection.disconnect()
             else:
@@ -348,20 +349,20 @@ class ImgStoreCumulusMongo(ImgStoreMongo):
         Return: boolean
         """
         
-        exists=False
-        isOwner=False       
+        exists = False
+        isOwner = False       
         
         try:
             dbLink = self._dbConnection[self._dbName]
             collection = dbLink[self._metacollection]
             
-            contain= self._cumulusConnection.get_bucket(self._containerName)
+            contain = self._cumulusConnection.get_bucket(self._containerName)
                        
             if contain.get_key(imgId) != None:
-                exists=True         
+                exists = True         
             #print imgId         
             #print ownerId
-            aux=collection.find_one({"_id": imgId, "owner": ownerId})
+            aux = collection.find_one({"_id": imgId, "owner": ownerId})
             if (aux == None):
                 isOwner = False
             else:
@@ -376,7 +377,7 @@ class ImgStoreCumulusMongo(ImgStoreMongo):
         except bson.errors.InvalidId:
             self._log.error("Error, not a valid ObjectId in ImgStoreMongo - existAndOwner")
         except:
-            self._log.error("Error in ImgStorecumulusMongo - existAndOwner. "+str(sys.exc_info()))
+            self._log.error("Error in ImgStorecumulusMongo - existAndOwner. " + str(sys.exc_info()))
                 
         if (exists and isOwner):
             return True
@@ -394,14 +395,14 @@ class ImgStoreCumulusMongo(ImgStoreMongo):
         connected = False
         
         #username an password will be moved to the config file
-        id='PgkhmT23FUv7aRZND7BOW'
-        pw='Bf9ppgw9mzxe2EoKjbVl0wjaNJoHlIPxJ6QAgA0pOj'
-        cf=OrdinaryCallingFormat()
+        id = 'PgkhmT23FUv7aRZND7BOW'
+        pw = 'Bf9ppgw9mzxe2EoKjbVl0wjaNJoHlIPxJ6QAgA0pOj'
+        cf = OrdinaryCallingFormat()
         try:
-            self._cumulusConnection= S3Connection(id, pw, host=self._cumulusAddress, port=8888, is_secure=False, calling_format=cf)
-            connected=True
+            self._cumulusConnection = S3Connection(id, pw, host=self._cumulusAddress, port=8888, is_secure=False, calling_format=cf)
+            connected = True
         except:
-            self._log.error("Error in cumulus connection. "+str(sys.exc_info()))
+            self._log.error("Error in cumulus connection. " + str(sys.exc_info()))
             
         return connected
 
@@ -422,23 +423,23 @@ class ImgMetaStoreCumulusMongo(ImgMetaStoreMongo):
         """                
         super(ImgMetaStoreMongo, self).__init__()
                 
-        self._dbName="imagesC"
-        self._datacollection="data"
-        self._metacollection="meta"
-        self._dbConnection=None
-        self._log=log
+        self._dbName = "imagesC"
+        self._datacollection = "data"
+        self._metacollection = "meta"
+        self._dbConnection = None
+        self._log = log
         
         if (address != ""):
-            self._mongoAddress=address
+            self._mongoAddress = address
         else:
-            self._mongoAddress=self._getAddress()
+            self._mongoAddress = self._getAddress()
                        
 class IRUserStoreCumulusMongo(IRUserStoreMongo):
 
     ############################################################
     # __init__
     ############################################################
-    def __init__(self, address,fgirdir, log):
+    def __init__(self, address, fgirdir, log):
         """
         Initialize object
         
@@ -451,12 +452,12 @@ class IRUserStoreCumulusMongo(IRUserStoreMongo):
         super(IRUserStoreMongo, self).__init__()
                 
         self._dbName = "imagesC"   #file location for users
-        self._usercollection="users"
-        self._dbConnection=None
-        self._log=log
+        self._usercollection = "users"
+        self._dbConnection = None
+        self._log = log
 
         if (address != ""):
-            self._mongoAddress=address
+            self._mongoAddress = address
         else:
-            self._mongoAddress=self._getAddress()
+            self._mongoAddress = self._getAddress()
       
