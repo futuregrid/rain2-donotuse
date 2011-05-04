@@ -16,6 +16,10 @@ exe:
 test-exe:
 	echo "list defaults" | ./dist/fg-shell.exe 
 
+doxygen:
+	doxygen config.dox
+	open doc/html/index.html
+
 apidoc:
 	mkdir -p doc/api
 #	cd src; epydoc --graph all --html futurgrid -o ../doc/api
