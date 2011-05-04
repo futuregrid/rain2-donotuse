@@ -17,7 +17,8 @@ test-exe:
 	echo "list defaults" | ./dist/fg-shell.exe 
 
 pylint:
-	pylint .
+	pylint --rcfile=check/standard.rc shell utils image 
+
 
 pychecker:
 	./check/pycheck.sh
