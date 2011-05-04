@@ -10,9 +10,9 @@ import sys, os
 ################
 
 #MongoDB config
-__backend__="mongodb"
-__address__="localhost:23000"
-__fgirimgstore__="/tmp/"
+__backend__ = "mongodb"
+__address__ = "localhost:23000"
+__fgirimgstore__ = "/tmp/"
 
 """
 #Mysql config
@@ -53,22 +53,22 @@ __fgirimgstore__="/tmp/"
 ############################################
 #DIR WHERE THE SERVER SOFTWARE IS INSTALLED (Only used to store the log and in Mysql to keep the pass)
 ############################################
-__fgserverdir__="/opt/futuregrid/futuregrid/"
+__fgserverdir__ = "/opt/futuregrid/futuregrid/"
 #__fgserverdir__="/N/u/fuwang/fgir/"
 
 ##############################
 #Mysql CONFIG
 ##############################
 #File with the MySQL password
-__mysqlcfg__=__fgserverdir__+"/var/.mysql.cnf"
-__iradmin__="IRUser"
+__mysqlcfg__ = __fgserverdir__ + "/var/.mysql.cnf"
+__iradmin__ = "IRUser"
 
 ########################
 #Log Options
 ########################
 ##At the end, it should be in /var/log or a var directory in the Futuregrid software
-__logfile__=__fgserverdir__+"/var/reposerver.log"  
-__logLevel__=logging.DEBUG
+__logfile__ = __fgserverdir__ + "/var/reposerver.log"  
+__logLevel__ = logging.DEBUG
 
 
 ############################################################

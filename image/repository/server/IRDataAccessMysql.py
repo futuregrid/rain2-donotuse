@@ -33,7 +33,7 @@ class ImgStoreMysql(AbstractImgStore):
     ############################################################
     # __init__
     ############################################################
-    def __init__(self, address,fgirdir, log):
+    def __init__(self, address, fgirdir, log):
         """
         Initialize object
         
@@ -45,19 +45,19 @@ class ImgStoreMysql(AbstractImgStore):
         """                
         super(ImgStoreMysql, self).__init__()
                 
-        self._dbName="images"
-        self._tabledata="data"
-        self._tablemeta="meta"
-        self._mysqlcfg=IRUtil.getMysqlcfg()
-        self._iradminsuer=IRUtil.getMysqluser()
+        self._dbName = "images"
+        self._tabledata = "data"
+        self._tablemeta = "meta"
+        self._mysqlcfg = IRUtil.getMysqlcfg()
+        self._iradminsuer = IRUtil.getMysqluser()
         
-        self._log=log
+        self._log = log
         
-        self._dbConnection=None
+        self._dbConnection = None
         if (address != ""):
-            self._mysqlAddress=address
+            self._mysqlAddress = address
         else:
-            self._mysqlAddress=self._getAddress()
+            self._mysqlAddress = self._getAddress()
             
     ############################################################
     # _getAddress
@@ -86,7 +86,7 @@ class ImgStoreMysql(AbstractImgStore):
         
         return the Image file as a str
         """
-        imgLinks=[]  
+        imgLinks = []  
         result = self.queryStore([imgId], imgLinks, userId)
         
         if (result):     
@@ -105,8 +105,8 @@ class ImgStoreMysql(AbstractImgStore):
         imgEntry : Image information. 
         """
         #self._items.append(imgEntry)
-        status=False
-        status=self.persistToStore([imgEntry1])            
+        status = False
+        status = self.persistToStore([imgEntry1])            
                     
         return status
     """
@@ -161,7 +161,7 @@ class ImgStoreMysql(AbstractImgStore):
     ############################################################
     # histImg 
     ############################################################
-    def histImg (self,imgId):
+    def histImg (self, imgId):
         """
         Query DB to provide history information about the image Usage
         
@@ -171,35 +171,35 @@ class ImgStoreMysql(AbstractImgStore):
         return list of imgEntry or None
         
         """
-        success=False             
+        success = False             
         if (self.mysqlConnection()):
             try:
-                cursor= self._dbConnection.cursor()
+                cursor = self._dbConnection.cursor()
                 
-                if (imgId.strip()=="None"):
-                    sql = "SELECT imgId, createdDate,lastAccess,accessCount FROM "+self._tabledata
+                if (imgId.strip() == "None"):
+                    sql = "SELECT imgId, createdDate,lastAccess,accessCount FROM " + self._tabledata
                 else:
-                    sql = "SELECT imgId, createdDate,lastAccess,accessCount FROM %s WHERE imgId = '%s' "% (self._tabledata, imgId)
+                    sql = "SELECT imgId, createdDate,lastAccess,accessCount FROM %s WHERE imgId = '%s' " % (self._tabledata, imgId)
                 
                 cursor.execute(sql)
-                results=cursor.fetchall()
+                results = cursor.fetchall()
                 
                 #self._log.debug(str(results))
                                              
                 for dic in results:               
-                    tmpEntry=ImgEntry(dic[0],"","",0,str(dic[1]).split(".")[0],str(dic[2]).split(".")[0],dic[3])                    
+                    tmpEntry = ImgEntry(dic[0], "", "", 0, str(dic[1]).split(".")[0], str(dic[2]).split(".")[0], dic[3])                    
                     self._items[tmpEntry._imgId] = tmpEntry
                     
-                success=True    
+                success = True    
             except MySQLdb.Error, e:
                 self._log.error("Error %d: %s" % (e.args[0], e.args[1]))                                           
             except IOError:                
-                self._log.error("Error in ImgStoreMysql - persistToStore. "+str(sys.exc_info()))
-                self._log.error("No such file or directory. Image details: "+item.__str__())                 
+                self._log.error("Error in ImgStoreMysql - persistToStore. " + str(sys.exc_info()))
+                self._log.error("No such file or directory. Image details: " + item.__str__())                 
             except TypeError:
-                self._log.error("TypeError in ImgStoreMysql - persistToStore "+str(sys.exc_info()))               
+                self._log.error("TypeError in ImgStoreMysql - persistToStore " + str(sys.exc_info()))               
             except TypeError as detail:
-                self._log.error("TypeError in ImgStoreMysql - histimg: "+format(detail))
+                self._log.error("TypeError in ImgStoreMysql - histimg: " + format(detail))
             finally:
                 self._dbConnection.close()                      
         else:
@@ -222,46 +222,46 @@ class ImgStoreMysql(AbstractImgStore):
         imgLinks: This is an output parameter. Return the list URIs
         """
         
-        itemsFound=0
+        itemsFound = 0
                 
         if (self.mysqlConnection()):
             try:
-                cursor= self._dbConnection.cursor()
+                cursor = self._dbConnection.cursor()
                        
                 for imgId in imgIds:
-                    access=False
+                    access = False
                     if(self.existAndOwner(imgId, userId)):
-                        access=True
+                        access = True
                     elif(self.isPublic(imgId)):
-                        access=True
+                        access = True
                     
                     if (access):                    
-                        sql = "SELECT imgUri, accessCount FROM %s WHERE imgId = '%s' "% (self._tabledata, imgId)
+                        sql = "SELECT imgUri, accessCount FROM %s WHERE imgId = '%s' " % (self._tabledata, imgId)
                         #print sql
                         cursor.execute(sql)
-                        results=cursor.fetchone()
+                        results = cursor.fetchone()
                         #print results
                         
-                        if(results!=None):
+                        if(results != None):
                             imgLinks.append(results[0])
-                            accessCount=int(results[1])+1
+                            accessCount = int(results[1]) + 1
                             
-                            update="UPDATE %s SET lastAccess='%s', accessCount='%d' WHERE imgId='%s'" \
-                                           % (self._tabledata,datetime.utcnow(),accessCount, imgId)
+                            update = "UPDATE %s SET lastAccess='%s', accessCount='%d' WHERE imgId='%s'" \
+                                           % (self._tabledata, datetime.utcnow(), accessCount, imgId)
                             #print update
                             cursor.execute(update)
                             self._dbConnection.commit()
                                                             
-                            itemsFound+=1                    
+                            itemsFound += 1                    
                     
             except MySQLdb.Error, e:
                 self._log.error("Error %d: %s" % (e.args[0], e.args[1]))                
                 self._dbConnection.rollback()                           
             except IOError as (errno, strerror):
                 self._log.error("I/O error({0}): {1}".format(errno, strerror))
-                self._log.error("No such file or directory. Image details: "+item.__str__())                
+                self._log.error("No such file or directory. Image details: " + item.__str__())                
             except TypeError as detail:
-                self._log.error("TypeError in ImgStoreMysql - queryToStore: "+format(detail))
+                self._log.error("TypeError in ImgStoreMysql - queryToStore: " + format(detail))
             finally:
                 self._dbConnection.close()                      
         else:
@@ -285,11 +285,11 @@ class ImgStoreMysql(AbstractImgStore):
         return: True if all items are stored successfully, False in any other case
         """               
          
-        imgStored=0
+        imgStored = 0
                         
         if (self.mysqlConnection()):
             try:
-                cursor= self._dbConnection.cursor()         
+                cursor = self._dbConnection.cursor()         
                 for item in items:
                     
                     sql = "INSERT INTO %s (imgId, imgMetaData, imgUri, createdDate, lastAccess, accessCount, size) \
@@ -299,7 +299,7 @@ class ImgStoreMysql(AbstractImgStore):
                     cursor.execute(sql)
                     self._dbConnection.commit()
                                                             
-                    imgStored+=1
+                    imgStored += 1
                                       
                     
             except MySQLdb.Error, e:
@@ -307,9 +307,9 @@ class ImgStoreMysql(AbstractImgStore):
                 self._dbConnection.rollback()                           
             except IOError as (errno, strerror):
                 self._log.error("I/O error({0}): {1}".format(errno, strerror))
-                self._log.error("No such file or directory. Image details: "+item.__str__())                 
+                self._log.error("No such file or directory. Image details: " + item.__str__())                 
             except TypeError as detail:
-                self._log.error("TypeError in ImgStoreMysql - persistToStore "+format(detail))
+                self._log.error("TypeError in ImgStoreMysql - persistToStore " + format(detail))
             finally:
                 self._dbConnection.close()                      
         else:
@@ -339,45 +339,45 @@ class ImgStoreMysql(AbstractImgStore):
         Return boolean
         """   
         
-        removed=False     
+        removed = False     
         
         if (self.mysqlConnection()):             ##Error 2006: MySQL server has gone away???
             
             ##Solve with this. LOOK INTO MYSQL CONNECTIONS
-            con= MySQLdb.connect(host=self._mysqlAddress,                                                                                  
+            con = MySQLdb.connect(host=self._mysqlAddress,
                                            db=self._dbName,
                                            read_default_file=self._mysqlcfg,
                                            user=self._iradminsuer)
             if(self.existAndOwner(imgId, userId)):            
                 try:
-                    cursor= con.cursor()
+                    cursor = con.cursor()
                     
-                    sql = "SELECT size FROM %s WHERE imgId = '%s' "% (self._tabledata, imgId)
+                    sql = "SELECT size FROM %s WHERE imgId = '%s' " % (self._tabledata, imgId)
                     #print sql
                     cursor.execute(sql)
-                    results=cursor.fetchone()
-                    size[0]=int(results[0])
+                    results = cursor.fetchone()
+                    size[0] = int(results[0])
                     
-                    uri=self.getItem(imgId, userId)
-                    os.system("rm -f "+uri)
+                    uri = self.getItem(imgId, userId)
+                    os.system("rm -f " + uri)
                     
-                    sql="DELETE FROM %s WHERE imgId='%s'" % (self._tabledata,imgId)                    
-                    sql1="DELETE FROM %s WHERE imgId='%s'" % (self._tablemeta,imgId)
+                    sql = "DELETE FROM %s WHERE imgId='%s'" % (self._tabledata, imgId)                    
+                    sql1 = "DELETE FROM %s WHERE imgId='%s'" % (self._tablemeta, imgId)
                     
                     cursor.execute(sql)                    
                     cursor.execute(sql1)
                     con.commit()
                     
-                    removed=True
+                    removed = True
                     
                 except MySQLdb.Error, e:
                     self._log.error("Error %d: %s" % (e.args[0], e.args[1]))
                     con.rollback()                           
                 except IOError as (errno, strerror):
                     self._log.error("I/O error({0}): {1}".format(errno, strerror))
-                    self._log.error("No such file or directory. Image details: "+item.__str__())                 
+                    self._log.error("No such file or directory. Image details: " + item.__str__())                 
                 except TypeError as detail:
-                    self._log.error("TypeError in ImgStoreMongo - removeItem "+format(detail))
+                    self._log.error("TypeError in ImgStoreMongo - removeItem " + format(detail))
                 finally:
                     con.close()
             else:
@@ -402,37 +402,37 @@ class ImgStoreMysql(AbstractImgStore):
         Return: boolean
         """
         
-        exists=False
-        owner=False
+        exists = False
+        owner = False
                 
         
         try:
-            cursor= self._dbConnection.cursor()         
+            cursor = self._dbConnection.cursor()         
                     
-            sql = "SELECT imgUri FROM %s WHERE imgId = '%s' "% (self._tabledata, imgId)
+            sql = "SELECT imgUri FROM %s WHERE imgId = '%s' " % (self._tabledata, imgId)
             #print sql
             cursor.execute(sql)
-            results=cursor.fetchone()
+            results = cursor.fetchone()
            
-            if(results!=None):
+            if(results != None):
                 if (os.path.isfile(results[0])):               
-                    exists=True
+                    exists = True
                      
-            sql = "SELECT owner FROM %s WHERE imgId='%s' and owner='%s'"% (self._tablemeta, imgId, ownerId)
+            sql = "SELECT owner FROM %s WHERE imgId='%s' and owner='%s'" % (self._tablemeta, imgId, ownerId)
             #print sql
             cursor.execute(sql)
-            results=cursor.fetchone()
+            results = cursor.fetchone()
             #print results
-            if(results!=None):                  
-                owner=True                      
+            if(results != None):                  
+                owner = True                      
                     
         except MySQLdb.Error, e:
             self._log.error("Error %d: %s" % (e.args[0], e.args[1]))                                           
         except IOError as (errno, strerror):
             self._log.error("I/O error({0}): {1}".format(errno, strerror))
-            self._log.error("No such file or directory. Image details: "+item.__str__())                
+            self._log.error("No such file or directory. Image details: " + item.__str__())                
         except TypeError as detail:
-            self._log.error("TypeError in ImgStoreMysql - existAndOwner: "+format(detail)) 
+            self._log.error("TypeError in ImgStoreMysql - existAndOwner: " + format(detail)) 
        
         if (exists and owner):
             return True
@@ -453,26 +453,26 @@ class ImgStoreMysql(AbstractImgStore):
         Return: boolean
         """
        
-        public=False
+        public = False
         
         try:
-            cursor= self._dbConnection.cursor()      
+            cursor = self._dbConnection.cursor()      
                      
-            sql = "SELECT permission FROM %s WHERE imgId='%s'"% (self._tablemeta, imgId)
+            sql = "SELECT permission FROM %s WHERE imgId='%s'" % (self._tablemeta, imgId)
             #print sql
             cursor.execute(sql)
-            results=cursor.fetchone()
+            results = cursor.fetchone()
             #self._log.debug(results)
-            if (results!=None):
-                if(results[0]=="public"):                                      
-                    public=True                       
+            if (results != None):
+                if(results[0] == "public"):                                      
+                    public = True                       
         except MySQLdb.Error, e:
             self._log.error("Error %d: %s" % (e.args[0], e.args[1]))                                           
         except IOError as (errno, strerror):
             self._log.error("I/O error({0}): {1}".format(errno, strerror))
-            self._log.error("No such file or directory. Image details: "+item.__str__())                
+            self._log.error("No such file or directory. Image details: " + item.__str__())                
         except TypeError as detail:
-            self._log.error("TypeError in ImgStoreMysql - isPublic: "+format(detail)) 
+            self._log.error("TypeError in ImgStoreMysql - isPublic: " + format(detail)) 
        
         return public
                      
@@ -492,7 +492,7 @@ class ImgStoreMysql(AbstractImgStore):
         #TODO: change to a global connection??                
         connected = False 
         try:
-            self._dbConnection = MySQLdb.connect(host=self._mysqlAddress,                                                                                  
+            self._dbConnection = MySQLdb.connect(host=self._mysqlAddress,
                                            db=self._dbName,
                                            read_default_file=self._mysqlcfg,
                                            user=self._iradminsuer)
@@ -501,7 +501,7 @@ class ImgStoreMysql(AbstractImgStore):
         except MySQLdb.Error, e:
             self._log.error("Error %d: %s" % (e.args[0], e.args[1]))
         except TypeError as detail:  
-            self._log.error("TypeError in ImgStoreMysql - mysqlConnection "+format(detail))
+            self._log.error("TypeError in ImgStoreMysql - mysqlConnection " + format(detail))
 
         return connected 
   
@@ -516,7 +516,7 @@ class ImgMetaStoreMysql(AbstractImgMetaStore):
     ############################################################
     # __init__
     ############################################################
-    def __init__(self, address,fgirdir, log):        
+    def __init__(self, address, fgirdir, log):        
         """
         Initialize object
         
@@ -526,17 +526,17 @@ class ImgMetaStoreMysql(AbstractImgMetaStore):
         """           
         super(ImgMetaStoreMysql, self).__init__()     
         #self._items={}
-        self._dbName="images"
-        self._tabledata="data"
-        self._tablemeta="meta"
-        self._mysqlcfg=IRUtil.getMysqlcfg()
-        self._iradminsuer=IRUtil.getMysqluser()
-        self._log=log
-        self._dbConnection=None
+        self._dbName = "images"
+        self._tabledata = "data"
+        self._tablemeta = "meta"
+        self._mysqlcfg = IRUtil.getMysqlcfg()
+        self._iradminsuer = IRUtil.getMysqluser()
+        self._log = log
+        self._dbConnection = None
         if (address != ""):
-            self._mysqlAddress=address
+            self._mysqlAddress = address
         else:
-            self._mysqlAddress=self._getAddress()
+            self._mysqlAddress = self._getAddress()
             
     ############################################################
     # _getAddress
@@ -551,7 +551,7 @@ class ImgMetaStoreMysql(AbstractImgMetaStore):
     # getItem
     ############################################################
     def getItem(self, imgId):
-        criteria = "* where imgid="+imgId
+        criteria = "* where imgid=" + imgId
         return self.queryStore (criteria)
         
     ############################################################
@@ -565,8 +565,8 @@ class ImgMetaStoreMysql(AbstractImgMetaStore):
         imgEntry : Image information. 
         """
         #self._items.append(imgEntry)
-        status=False
-        status=self.persistToStore([imgMeta])            
+        status = False
+        status = self.persistToStore([imgMeta])            
                     
         return status          
         
@@ -586,17 +586,17 @@ class ImgMetaStoreMysql(AbstractImgMetaStore):
         
         Return boolean
         """ 
-        success=False
+        success = False
         
         if (self.mysqlConnection()):  
             if(self.existAndOwner(imgId, userId)):
                 try:
-                    cursor= self._dbConnection.cursor()                       
+                    cursor = self._dbConnection.cursor()                       
                    
-                    sql="UPDATE "+self._tablemeta+" SET "
+                    sql = "UPDATE " + self._tablemeta + " SET "
                     
-                    temp=imgMeta1.__repr__()
-                    temp = temp.replace('\"','')
+                    temp = imgMeta1.__repr__()
+                    temp = temp.replace('\"', '')
                     
                     #self._log.debug(str(temp))
                     
@@ -604,23 +604,23 @@ class ImgMetaStoreMysql(AbstractImgMetaStore):
                     #self._log.debug(str(attributes))
                     
                     #control tag
-                    tagstr=""
-                    newattr=[]
-                    i=0
+                    tagstr = ""
+                    newattr = []
+                    i = 0
                     while (i < len(attributes)):                        
                         if attributes[i].strip().startswith('tag='):
-                            tagstr+=attributes[i]                             
-                            more=True                            
+                            tagstr += attributes[i]                             
+                            more = True                            
                             while(more):
-                                if(attributes[i+1].strip().startswith('vmType=')):
-                                    more=False
+                                if(attributes[i + 1].strip().startswith('vmType=')):
+                                    more = False
                                 else:
-                                     tagstr+=","+attributes[i+1]
-                                     i+=1
+                                     tagstr += "," + attributes[i + 1]
+                                     i += 1
                             newattr.append(tagstr)
                         else:
                             newattr.append(attributes[i])
-                        i+=1
+                        i += 1
                                         
                     for item in newattr:
                         attribute = item.strip()
@@ -629,27 +629,27 @@ class ImgMetaStoreMysql(AbstractImgMetaStore):
                         tmp = attribute.split("=")
                         key = tmp[0].strip()            
                         value = tmp[1].strip()
-                        if not (value=='' or key=="imgId" or key=="owner"):            
+                        if not (value == '' or key == "imgId" or key == "owner"):            
                             #print key +"  "+value
-                            sql+=key+"=\'"+value+"\', "
-                    sql=sql[:-2]
+                            sql += key + "=\'" + value + "\', "
+                    sql = sql[:-2]
                     
-                    sql+=" WHERE imgId=\'"+imgId+"\'"
+                    sql += " WHERE imgId=\'" + imgId + "\'"
                     #print sql                
                      
                     cursor.execute(sql)
                     self._dbConnection.commit()
                                                             
-                    success=True                                      
+                    success = True                                      
                   
                 except MySQLdb.Error, e:
                     self._log.error("Error %d: %s" % (e.args[0], e.args[1]))
                     self._dbConnection.rollback()
                 except IOError as (errno, strerror):
                     self._log.error("I/O error({0}): {1}".format(errno, strerror))
-                    self._log.error("No such file or directory. Image details: "+imgMeta1.__str__())                 
+                    self._log.error("No such file or directory. Image details: " + imgMeta1.__str__())                 
                 except TypeError as detail:
-                    self._log.error("TypeError in ImgMetaStoreMongo - updateItem "+format(detail))                         
+                    self._log.error("TypeError in ImgMetaStoreMongo - updateItem " + format(detail))                         
                 finally:
                     self._dbConnection.close()
                                   
@@ -690,75 +690,75 @@ class ImgMetaStoreMysql(AbstractImgMetaStore):
         return list of dictionaries with the Metadata
         """
         #print criteria
-        success=False
-        where=False   
-        sql=""
-        beforewhere=""
+        success = False
+        where = False   
+        sql = ""
+        beforewhere = ""
         if (self.mysqlConnection()):
             try:
-                cursor= self._dbConnection.cursor()         
+                cursor = self._dbConnection.cursor()         
                     
                 #sql = "SELECT imgUri FROM %s WHERE imgId = '%s' "% (self._tablemeta, imgId)
                 #print sql
-                criteria=string.lower(criteria.strip())  #remove spaces before                
+                criteria = string.lower(criteria.strip())  #remove spaces before                
                 segs = criteria.split("where")                
-                if (len(segs)==1):
-                    if (re.search("=",segs[0])==None):
-                        sql="SELECT "+segs[0]+" FROM %s" % (self._tablemeta)
-                        beforewhere=segs[0]
+                if (len(segs) == 1):
+                    if (re.search("=", segs[0]) == None):
+                        sql = "SELECT " + segs[0] + " FROM %s" % (self._tablemeta)
+                        beforewhere = segs[0]
                     else:
-                        where=True
-                if (len(segs)==2 or where):
+                        where = True
+                if (len(segs) == 2 or where):
                     if (where):
-                        splitwhere=segs[0]
-                        beforewhere="*"
+                        splitwhere = segs[0]
+                        beforewhere = "*"
                     else:
-                        beforewhere=segs[0]
-                        splitwhere=segs[1]
+                        beforewhere = segs[0]
+                        splitwhere = segs[1]
                     aux = splitwhere.split(",")     
                                                                
                     aux1 = [z.strip() for z in aux]
-                    counter=0
-                    fieldswhere="WHERE "
+                    counter = 0
+                    fieldswhere = "WHERE "
                     for j in aux1:         
                         if (j != ""):                                
                             aux2 = j.split("=")
-                            fieldswhere+=aux2[0].strip()+"='"+aux2[1].strip()+"'"
-                            counter+=1
-                            if (counter<len(aux1)):
-                                fieldswhere+=" and "
-                    sql="SELECT "+beforewhere+" FROM "+self._tablemeta+" "+fieldswhere 
+                            fieldswhere += aux2[0].strip() + "='" + aux2[1].strip() + "'"
+                            counter += 1
+                            if (counter < len(aux1)):
+                                fieldswhere += " and "
+                    sql = "SELECT " + beforewhere + " FROM " + self._tablemeta + " " + fieldswhere 
                     #print sql
                 else:                    
-                    success=False
+                    success = False
                 
                 cursor.execute(sql)
-                results=cursor.fetchall()
+                results = cursor.fetchall()
                 
-                if((beforewhere.strip())=="*"):
+                if((beforewhere.strip()) == "*"):
                     for result in results:                        
-                        tmpMeta=self.convertDicToObject(result, True)
+                        tmpMeta = self.convertDicToObject(result, True)
                         self._items[tmpMeta._imgId] = tmpMeta
                 else:                    
                     for result in results:
-                        dic={}                    
-                        fields=(beforewhere.strip()).split(",")                   
+                        dic = {}                    
+                        fields = (beforewhere.strip()).split(",")                   
                         
                         for z in range(len(result)):
-                            dic[fields[z].strip()]=result[z]
+                            dic[fields[z].strip()] = result[z]
                         
-                        tmpMeta=self.convertDicToObject(dic, False)
+                        tmpMeta = self.convertDicToObject(dic, False)
                         self._items[tmpMeta._imgId] = tmpMeta                      
                 
-                success=True
+                success = True
                     
             except MySQLdb.Error, e:
                 self._log.error("Error %d: %s" % (e.args[0], e.args[1]))                                           
             except IOError as (errno, strerror):
                 self._log.error("I/O error({0}): {1}".format(errno, strerror))
-                self._log.error("No such file or directory. Image details: "+item.__str__())                
+                self._log.error("No such file or directory. Image details: " + item.__str__())                
             except TypeError as detail:
-                self._log.error("TypeError in ImgMetaStoreMysql - querytostore: "+format(detail))
+                self._log.error("TypeError in ImgMetaStoreMysql - querytostore: " + format(detail))
             finally:
                 self._dbConnection.close()                      
         else:
@@ -780,32 +780,32 @@ class ImgMetaStoreMysql(AbstractImgMetaStore):
         return: ImgMetaStoreMongo
         """
         if (fullMode):            
-            tmpMeta = ImgMeta(dic[0], dic[1], dic[2],dic[3], 
-                                          dic[4], dic[5], dic[6], 
+            tmpMeta = ImgMeta(dic[0], dic[1], dic[2], dic[3],
+                                          dic[4], dic[5], dic[6],
                                           dic[7], dic[8], dic[9])            
         else:
             tmpMeta = ImgMeta("", "", "", "", "", "", "", 0, "", "")                    
             for i in dic.keys():
                 if (i == "imgid"):
-                    tmpMeta._imgId=dic[i]
+                    tmpMeta._imgId = dic[i]
                 elif (i == "os"):
-                    tmpMeta._os=dic[i]
+                    tmpMeta._os = dic[i]
                 elif (i == "arch"):
-                    tmpMeta._arch=dic[i]
+                    tmpMeta._arch = dic[i]
                 elif (i == "owner"):
-                    tmpMeta._owner=dic[i]
+                    tmpMeta._owner = dic[i]
                 elif (i == "description"):
-                    tmpMeta._description=dic[i]
+                    tmpMeta._description = dic[i]
                 elif (i == "tag"):                                
-                    tmpMeta._tag=",".join(str(bit) for bit in dic[i])
+                    tmpMeta._tag = ",".join(str(bit) for bit in dic[i])
                 elif (i == "vmtype"):
-                    tmpMeta._vmType=dic[i]
+                    tmpMeta._vmType = dic[i]
                 elif (i == "imgtype"):
-                    tmpMeta._imgType=dic[i]
+                    tmpMeta._imgType = dic[i]
                 elif (i == "permission"):
-                    tmpMeta._permission=dic[i]
+                    tmpMeta._permission = dic[i]
                 elif (i == "imgstatus"):
-                    tmpMeta._imgStatus=dic[i]
+                    tmpMeta._imgStatus = dic[i]
         
         #print tmpMeta
         
@@ -824,30 +824,30 @@ class ImgMetaStoreMysql(AbstractImgMetaStore):
         return: True if all items are stored successfully, False in any other case
         """    
         
-        imgStored=0
+        imgStored = 0
         if (self.mysqlConnection()):
             try:
-                cursor= self._dbConnection.cursor()         
+                cursor = self._dbConnection.cursor()         
                 for item in items:                    
                     sql = "INSERT INTO %s (imgId, os, arch, vmType, \
                     imgType, permission, owner, imgStatus, description, tag) \
        VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' , '%s', '%s')" % \
-       (self._tablemeta, item._imgId, item._os, item._arch, item._vmType, item._imgType, item._permission, 
+       (self._tablemeta, item._imgId, item._os, item._arch, item._vmType, item._imgType, item._permission,
         item._owner, item._imgStatus, item._description, item._tag)
                        
                     cursor.execute(sql)
                     self._dbConnection.commit()
                                                             
-                    imgStored+=1                                      
+                    imgStored += 1                                      
                   
             except MySQLdb.Error, e:
                 self._log.error("Error %d: %s" % (e.args[0], e.args[1]))
                 self._dbConnection.rollback()
             except IOError as (errno, strerror):
                 self._log.error("I/O error({0}): {1}".format(errno, strerror))
-                self._log.error("No such file or directory. Image details: "+item.__str__())
+                self._log.error("No such file or directory. Image details: " + item.__str__())
             except TypeError as detail:
-                self._log.error("TypeError in ImgMetaStoreMongo - persistToStore "+format(detail))                         
+                self._log.error("TypeError in ImgMetaStoreMongo - persistToStore " + format(detail))                         
             finally:
                 self._dbConnection.close()
                                   
@@ -879,36 +879,36 @@ class ImgMetaStoreMysql(AbstractImgMetaStore):
         Return: boolean
         """
         
-        exists=False
-        owner=False
+        exists = False
+        owner = False
                 
         try:
-            cursor= self._dbConnection.cursor()         
+            cursor = self._dbConnection.cursor()         
                  
-            sql = "SELECT imgUri FROM %s WHERE imgId = '%s' "% (self._tabledata, imgId)
+            sql = "SELECT imgUri FROM %s WHERE imgId = '%s' " % (self._tabledata, imgId)
             #print sql
             cursor.execute(sql)
-            results=cursor.fetchone()
+            results = cursor.fetchone()
             #print results
-            if(results!=None):
+            if(results != None):
                 if (os.path.isfile(results[0])):               
-                    exists=True
+                    exists = True
                        
-            sql = "SELECT owner FROM %s WHERE imgId='%s' and owner='%s'"% (self._tablemeta, imgId, ownerId)
+            sql = "SELECT owner FROM %s WHERE imgId='%s' and owner='%s'" % (self._tablemeta, imgId, ownerId)
             #print sql
             cursor.execute(sql)
-            results=cursor.fetchone()
+            results = cursor.fetchone()
             #print results
-            if(results!=None):                  
-                owner=True                      
+            if(results != None):                  
+                owner = True                      
                  
         except MySQLdb.Error, e:
             self._log.error("Error %d: %s" % (e.args[0], e.args[1]))                                           
         except IOError as (errno, strerror):
             self._log.error("I/O error({0}): {1}".format(errno, strerror))
-            self._log.error("No such file or directory. Image details: "+item.__str__())                
+            self._log.error("No such file or directory. Image details: " + item.__str__())                
         except TypeError as detail:
-            self._log.error("TypeError in ImgStoreMysql - existAndOwner: "+format(detail))   
+            self._log.error("TypeError in ImgStoreMysql - existAndOwner: " + format(detail))   
        
         if (exists and owner):
             return True
@@ -931,7 +931,7 @@ class ImgMetaStoreMysql(AbstractImgMetaStore):
         #TODO: change to a global connection??                
         connected = False 
         try:
-            self._dbConnection = MySQLdb.connect(host=self._mysqlAddress,                                                                                  
+            self._dbConnection = MySQLdb.connect(host=self._mysqlAddress,
                                            db=self._dbName,
                                            read_default_file=self._mysqlcfg,
                                            user=self._iradminsuer)
@@ -940,7 +940,7 @@ class ImgMetaStoreMysql(AbstractImgMetaStore):
         except MySQLdb.Error, e:
             self._log.error("Error %d: %s" % (e.args[0], e.args[1]))
         except TypeError as detail:  
-            self._log.error("TypeError in ImgStoreMysql - mysqlConnection "+format(detail))
+            self._log.error("TypeError in ImgStoreMysql - mysqlConnection " + format(detail))
 
         return connected 
         
@@ -955,20 +955,20 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
     ############################################################
     # __init__
     ############################################################
-    def __init__(self, address,fgirdir, log):  
+    def __init__(self, address, fgirdir, log):  
         super(IRUserStoreMysql, self).__init__()        
         #self._items = []        
-        self._dbName="images"
-        self._tabledata="users"        
-        self._mysqlcfg=IRUtil.getMysqlcfg()
-        self._iradminsuer=IRUtil.getMysqluser()
-        self._log=log
+        self._dbName = "images"
+        self._tabledata = "users"        
+        self._mysqlcfg = IRUtil.getMysqlcfg()
+        self._iradminsuer = IRUtil.getMysqluser()
+        self._log = log
         
         self._dbConnection = None
         if (address != ""):
-            self._mysqlAddress=address
+            self._mysqlAddress = address
         else:
-            self._mysqlAddress=self._getAddress()
+            self._mysqlAddress = self._getAddress()
             
     ############################################################
     # _getAddress
@@ -990,33 +990,33 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
                                 
         return list of dictionaries with the Metadata
         """
-        found=False
-        tmpUser={}
+        found = False
+        tmpUser = {}
         if (self.mysqlConnection()):
             try:                
-                cursor= self._dbConnection.cursor()
+                cursor = self._dbConnection.cursor()
                 
-                if(userIdtoSearch!=None):                    
-                    if(userIdtoSearch==userId or self.isAdmin(userId)):                        
-                        sql = "SELECT * FROM %s WHERE userId = '%s' "% (self._tabledata, userIdtoSearch)
+                if(userIdtoSearch != None):                    
+                    if(userIdtoSearch == userId or self.isAdmin(userId)):                        
+                        sql = "SELECT * FROM %s WHERE userId = '%s' " % (self._tabledata, userIdtoSearch)
                         cursor.execute(sql)
-                        results=cursor.fetchone()                  
+                        results = cursor.fetchone()                  
                         
                         if (results != None):
-                            tmpUser[results[0]]=IRUser(results[0],results[1],int(results[2]),int(results[3]),
-                                                  results[4],results[5],results[6],results[7])
-                            self._log.debug("queryStore  "+str(tmpUser))                                                                        
-                            found=True                 
+                            tmpUser[results[0]] = IRUser(results[0], results[1], int(results[2]), int(results[3]),
+                                                  results[4], results[5], results[6], results[7])
+                            self._log.debug("queryStore  " + str(tmpUser))                                                                        
+                            found = True                 
                 elif (self.isAdmin(userId)):
-                    sql = "SELECT * FROM %s"% (self._tabledata)
+                    sql = "SELECT * FROM %s" % (self._tabledata)
                     cursor.execute(sql)
-                    results=cursor.fetchall()                    
+                    results = cursor.fetchall()                    
                     
                     for result in results:
-                        tmpUser[result[0]]=IRUser(result[0],result[1],int(result[2]),int(result[3]),
-                                              result[4],result[5],result[6],result[7])
+                        tmpUser[result[0]] = IRUser(result[0], result[1], int(result[2]), int(result[3]),
+                                              result[4], result[5], result[6], result[7])
                         #self._log.debug("queryStore  "+str(tmpUser))                                                                      
-                        found=True      
+                        found = True      
                     
             except MySQLdb.Error, e:
                 self._log.error("Error %d: %s" % (e.args[0], e.args[1]))                
@@ -1024,7 +1024,7 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
             except IOError as (errno, strerror):
                 self._log.error("I/O error({0}): {1}".format(errno, strerror))                                
             except TypeError as detail:
-                self._log.error("TypeError in IRUserStoreMongo - queryStore: "+format(detail))
+                self._log.error("TypeError in IRUserStoreMongo - queryStore: " + format(detail))
             finally:
                 self._dbConnection.close()                      
         else:
@@ -1047,8 +1047,8 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
         return: IRUser object
         """
     
-        user=self.queryStore(userId,userId)
-        if(user!=None):
+        user = self.queryStore(userId, userId)
+        if(user != None):
             return user[userId]
         else:
             return None
@@ -1067,33 +1067,33 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
         
         return: boolean
         """
-        success=False
+        success = False
         if (self.mysqlConnection()):
             try:
                 if(self.isAdmin(userId)):
-                    cursor= self._dbConnection.cursor()
+                    cursor = self._dbConnection.cursor()
                     
-                    sql = "SELECT fsUsed, ownedImgs FROM %s WHERE userId = '%s' "% (self._tabledata, userId)
+                    sql = "SELECT fsUsed, ownedImgs FROM %s WHERE userId = '%s' " % (self._tabledata, userId)
                     cursor.execute(sql)
-                    results=cursor.fetchone()                    
-                    currentSize=results[0]
-                    currentNum=results[1]
+                    results = cursor.fetchone()                    
+                    currentSize = results[0]
+                    currentNum = results[1]
                     
-                    totalSize=int(currentSize)+int(size)
-                    total=int(currentNum)+int(num)
+                    totalSize = int(currentSize) + int(size)
+                    total = int(currentNum) + int(num)
                     
-                    if(totalSize<0):
-                        totalSize=0
-                    if(total<0):
-                        total=0
+                    if(totalSize < 0):
+                        totalSize = 0
+                    if(total < 0):
+                        total = 0
                     
-                    update="UPDATE %s SET fsUsed='%d',ownedImgs='%d' WHERE userId='%s'" \
+                    update = "UPDATE %s SET fsUsed='%d',ownedImgs='%d' WHERE userId='%s'" \
                                    % (self._tabledata, totalSize, total, userId)
                     
                     cursor.execute(update)
                     self._dbConnection.commit()
                                                     
-                    success=True                 
+                    success = True                 
                     
             except MySQLdb.Error, e:
                 self._log.error("Error %d: %s" % (e.args[0], e.args[1]))                
@@ -1101,7 +1101,7 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
             except IOError as (errno, strerror):
                 self._log.error("I/O error({0}): {1}".format(errno, strerror))                                
             except TypeError as detail:
-                self._log.error("TypeError in IRUserStoreMongo - updateAccounting: "+format(detail))
+                self._log.error("TypeError in IRUserStoreMongo - updateAccounting: " + format(detail))
             finally:
                 self._dbConnection.close()                      
         else:
@@ -1119,19 +1119,19 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
         
         return boolean
         """
-        success=False
+        success = False
         if (self.mysqlConnection()):
             try:
                 if(self.isAdmin(userId)):
-                    cursor= self._dbConnection.cursor()
+                    cursor = self._dbConnection.cursor()
                                 
-                    update="UPDATE %s SET role='%s'WHERE userId='%s'" \
+                    update = "UPDATE %s SET role='%s'WHERE userId='%s'" \
                                    % (self._tabledata, role, userIdtoModify)
                     #print update
                     cursor.execute(update)
                     self._dbConnection.commit()
                                                     
-                    success=True                 
+                    success = True                 
                     
             except MySQLdb.Error, e:
                 self._log.error("Error %d: %s" % (e.args[0], e.args[1]))                
@@ -1139,7 +1139,7 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
             except IOError as (errno, strerror):
                 self._log.error("I/O error({0}): {1}".format(errno, strerror))                                
             except TypeError as detail:
-                self._log.error("TypeError in IRUserStoreMongo - setRole: "+format(detail))
+                self._log.error("TypeError in IRUserStoreMongo - setRole: " + format(detail))
             finally:
                 self._dbConnection.close()                      
         else:
@@ -1153,19 +1153,19 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
         
         return boolean
         """
-        success=False
+        success = False
         if (self.mysqlConnection()):
             try:
                 if(self.isAdmin(userId)):
-                    cursor= self._dbConnection.cursor()
+                    cursor = self._dbConnection.cursor()
                                 
-                    update="UPDATE %s SET fsCap='%d'WHERE userId='%s'" \
+                    update = "UPDATE %s SET fsCap='%d'WHERE userId='%s'" \
                                    % (self._tabledata, quota, userIdtoModify)
                     #print update
                     cursor.execute(update)
                     self._dbConnection.commit()
                                                     
-                    success=True                 
+                    success = True                 
                     
             except MySQLdb.Error, e:
                 self._log.error("Error %d: %s" % (e.args[0], e.args[1]))                
@@ -1173,7 +1173,7 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
             except IOError as (errno, strerror):
                 self._log.error("I/O error({0}): {1}".format(errno, strerror))                                
             except TypeError as detail:
-                self._log.error("TypeError in IRUserStoreMongo - setQuota: "+format(detail))
+                self._log.error("TypeError in IRUserStoreMongo - setQuota: " + format(detail))
             finally:
                 self._dbConnection.close()                      
         else:
@@ -1190,19 +1190,19 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
         
         return boolean
         """
-        success=False
+        success = False
         if (self.mysqlConnection()):
             try:
                 if(self.isAdmin(userId)):
-                    cursor= self._dbConnection.cursor()
+                    cursor = self._dbConnection.cursor()
                                 
-                    update="UPDATE %s SET status='%s'WHERE userId='%s'" \
+                    update = "UPDATE %s SET status='%s'WHERE userId='%s'" \
                                    % (self._tabledata, status, userIdtoModify)
                     #print update
                     cursor.execute(update)
                     self._dbConnection.commit()
                                                     
-                    success=True                 
+                    success = True                 
                     
             except MySQLdb.Error, e:
                 self._log.error("Error %d: %s" % (e.args[0], e.args[1]))                
@@ -1210,7 +1210,7 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
             except IOError as (errno, strerror):
                 self._log.error("I/O error({0}): {1}".format(errno, strerror))               
             except TypeError as detail:
-                self._log.error("TypeError in IRUserStoreMongo - setUserStatus: "+format(detail))
+                self._log.error("TypeError in IRUserStoreMongo - setUserStatus: " + format(detail))
             finally:
                 self._dbConnection.close()                      
         else:
@@ -1227,19 +1227,19 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
         
         return boolean
         """
-        removed=False     
+        removed = False     
         
         if (self.mysqlConnection()):             
             try:
                 if(self.isAdmin(userId)):
-                    cursor= self._dbConnection.cursor()
+                    cursor = self._dbConnection.cursor()
                     
-                    sql="DELETE FROM %s WHERE userId='%s'" % (self._tabledata,userIdtoDel)                    
+                    sql = "DELETE FROM %s WHERE userId='%s'" % (self._tabledata, userIdtoDel)                    
                                         
                     cursor.execute(sql)
                     self._dbConnection.commit()
                     
-                    removed=True
+                    removed = True
                 
             except MySQLdb.Error, e:
                 self._log.error("Error %d: %s" % (e.args[0], e.args[1]))                        
@@ -1247,7 +1247,7 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
             except IOError as (errno, strerror):
                 self._log.error("I/O error({0}): {1}".format(errno, strerror))                
             except TypeError as detail:
-                self._log.error("TypeError in IRUserStoreMongo - removeItem "+format(detail))
+                self._log.error("TypeError in IRUserStoreMongo - removeItem " + format(detail))
             finally:
                 self._dbConnection.close()            
         else:
@@ -1283,41 +1283,41 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
         
         return boolean. True only if all users where added correctly to the db
         """
-        userStored=0
-        authorized=False
+        userStored = 0
+        authorized = False
         if (self.mysqlConnection()):
             try:
-                cursor= self._dbConnection.cursor()      
+                cursor = self._dbConnection.cursor()      
                 
                 sql = "select * from %s " % (self._tabledata)
                                 
                 cursor.execute(sql)
-                output=cursor.fetchone()
+                output = cursor.fetchone()
                 
-                if (output==None):                    
-                    self._log.warning("First User inserted is "+ users[0]._userId+". He is admin")
-                    users[0]._status="active"
-                    users[0]._role="admin"                    
-                    authorized=True                   
+                if (output == None):                    
+                    self._log.warning("First User inserted is " + users[0]._userId + ". He is admin")
+                    users[0]._status = "active"
+                    users[0]._role = "admin"                    
+                    authorized = True                   
                 else:
                     if(self.isAdmin(userId)):
-                        authorized=True
+                        authorized = True
                 
                 if (authorized):
                    
                     for user in users:  
-                        user._lastLogin=datetime.fromordinal(1) #creates time 0001-01-01 00:00:00
+                        user._lastLogin = datetime.fromordinal(1) #creates time 0001-01-01 00:00:00
                                           
                         sql = "INSERT INTO %s (userId, cred, fsUsed, fsCap, \
                         lastLogin, status, role, ownedImgs) \
            VALUES ('%s', '%s', '%d', '%d', '%s', '%s', '%s', %d)" % \
-           (self._tabledata, user._userId,user._cred, user._fsUsed,user._fsCap, user._lastLogin,
+           (self._tabledata, user._userId, user._cred, user._fsUsed, user._fsCap, user._lastLogin,
                 user._status, user._role, user._ownedImgs)
                            
                         cursor.execute(sql)
                         self._dbConnection.commit()
                                                                 
-                        userStored+=1                                      
+                        userStored += 1                                      
                   
             except MySQLdb.Error, e:
                 self._log.error("Error %d: %s" % (e.args[0], e.args[1]))
@@ -1325,7 +1325,7 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
             except IOError as (errno, strerror):
                 self._log.error("I/O error({0}): {1}".format(errno, strerror))
             except TypeError as detail:
-                self._log.error("TypeError in ImgMetaStoreMongo - persistToStore "+format(detail))                         
+                self._log.error("TypeError in ImgMetaStoreMongo - persistToStore " + format(detail))                         
             finally:
                 self._dbConnection.close()
                                   
@@ -1341,26 +1341,26 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
         """
         Verify if a user is admin
         """
-        admin=False
+        admin = False
                 
         try:
-            cursor= self._dbConnection.cursor()         
+            cursor = self._dbConnection.cursor()         
                  
-            sql = "SELECT role FROM %s WHERE userId = '%s' "% (self._tabledata, userId)
+            sql = "SELECT role FROM %s WHERE userId = '%s' " % (self._tabledata, userId)
             #print sql
             cursor.execute(sql)
-            results=cursor.fetchone()
+            results = cursor.fetchone()
             #print results
-            if(results!=None):
-                if (results[0]=="admin"):               
-                    admin=True
+            if(results != None):
+                if (results[0] == "admin"):               
+                    admin = True
                  
         except MySQLdb.Error, e:
             self._log.error("Error %d: %s" % (e.args[0], e.args[1]))                                           
         except IOError as (errno, strerror):
             self._log.error("I/O error({0}): {1}".format(errno, strerror))               
         except TypeError as detail:
-            self._log.error("TypeError in IRUSerStoreMysql - isAdmin: "+format(detail))   
+            self._log.error("TypeError in IRUSerStoreMysql - isAdmin: " + format(detail))   
        
         return admin
             
@@ -1370,15 +1370,15 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
     def uploadValidator(self, userId, imgSize):
         user = self._getUser(userId)
         ret = False
-        if (user!=None):
-            if (user._status=="active"):
+        if (user != None):
+            if (user._status == "active"):
                 #self._log.debug(user._fsCap)                   
                 if imgSize + user._fsUsed <= user._fsCap:                    
                     ret = True
             else:
-                ret="NoActive"
+                ret = "NoActive"
         else:
-            ret="NoUser"
+            ret = "NoUser"
         
         return ret      
     
@@ -1398,7 +1398,7 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
         #TODO: change to a global connection??                
         connected = False 
         try:
-            self._dbConnection = MySQLdb.connect(host=self._mysqlAddress,                                                                                  
+            self._dbConnection = MySQLdb.connect(host=self._mysqlAddress,
                                            db=self._dbName,
                                            read_default_file=self._mysqlcfg,
                                            user=self._iradminsuer)
@@ -1407,6 +1407,6 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
         except MySQLdb.Error, e:
             self._log.error("Error %d: %s" % (e.args[0], e.args[1]))
         except TypeError as detail:  
-            self._log.error("TypeError in UserStoreMysql - mysqlConnection "+format(detail))
+            self._log.error("TypeError in UserStoreMysql - mysqlConnection " + format(detail))
 
         return connected 

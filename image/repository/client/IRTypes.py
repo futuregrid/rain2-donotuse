@@ -20,14 +20,14 @@ class IRCredential(object):
         
 class IRUser(object):
     
-    Status=["pending","active","inactive"]
-    Role=["user","admin"]
+    Status = ["pending", "active", "inactive"]
+    Role = ["user", "admin"]
     
     #fsCap in bytes. 4G by default
     ############################################################
     # __init__
     ############################################################
-    def __init__(self, userId, cred=None, fsCap=4294967296, fsUsed=0, 
+    def __init__(self, userId, cred=None, fsCap=4294967296, fsUsed=0,
                  lastLogin=None, status=Status[0], role=Role[0], ownedImgs=0):
         super(IRUser, self).__init__()
         self._userId = userId
@@ -37,12 +37,12 @@ class IRUser(object):
         self._lastLogin = None
         self._status = status
         self._role = role
-        self._ownedImgs=ownedImgs
+        self._ownedImgs = ownedImgs
         
     ############################################################
     # setCred
     ############################################################
-    def setCred(self,cred):
+    def setCred(self, cred):
         self._cred = cred
     
     ############################################################
@@ -94,10 +94,10 @@ class ImgMeta(object):
         "imgstatus": 9
     }
     
-    VmType=["none","xen","kvm","virtualbox","vmware"]
-    ImgType=["machine","kernel","eucalyptus","nimbus","opennebula","openstack"]
-    ImgStatus=["available","locked"]
-    Permission=["public","private"]
+    VmType = ["none", "xen", "kvm", "virtualbox", "vmware"]
+    ImgType = ["machine", "kernel", "eucalyptus", "nimbus", "opennebula", "openstack"]
+    ImgStatus = ["available", "locked"]
+    Permission = ["public", "private"]
     
     argsDefault = ['', '', '', '', '', '',
                    VmType[0], ImgType[0],
@@ -154,9 +154,9 @@ class ImgEntry(object):
                  imgMeta,
                  imgURI,
                  size,
-                 createdDate = datetime.utcnow(),
-                 lastAccess = datetime.utcnow(),
-                 accessCount = 0                 
+                 createdDate=datetime.utcnow(),
+                 lastAccess=datetime.utcnow(),
+                 accessCount=0                 
                  ):
         super(ImgEntry, self).__init__()
         self._imgId = imgId
