@@ -496,7 +496,62 @@ class fgShellUtils(Cmd):
         else:
             self.generic_error()
     help_histuser=generic_help
-                              
+    
+    
+    #################################
+    #Move nodes
+    #################################
+        
+    def do_move(self, args):
+        
+        if(self._use!=""):            
+            command="self.do_"+self._use+"move(\""+args+"\")"
+            #print command
+            try:
+                eval(command)
+            except AttributeError:
+                print "The "+self._use+" context does not have a move method "
+                self._log.error(str(sys.exc_info()))
+        else:
+            self.generic_error()
+    help_move=generic_help
+    
+    #################################
+    #Group nodes
+    #################################
+        
+    def do_group(self, args):
+        
+        if(self._use!=""):            
+            command="self.do_"+self._use+"group(\""+args+"\")"
+            #print command
+            try:
+                eval(command)
+            except AttributeError:
+                print "The "+self._use+" context does not have a group method "
+                self._log.error(str(sys.exc_info()))
+        else:
+            self.generic_error()
+    help_group=generic_help
+    
+    #################################
+    #Deploy nodes
+    #################################
+        
+    def do_deploy(self, args):
+        
+        if(self._use!=""):            
+            command="self.do_"+self._use+"deploy(\""+args+"\")"
+            #print command
+            try:
+                eval(command)
+            except AttributeError:
+                print "The "+self._use+" context does not have a deploy method "
+                self._log.error(str(sys.exc_info()))
+        else:
+            self.generic_error()
+    help_deploy=generic_help          
+    
     ##########################################################################
     # LOAD
     ##########################################################################
