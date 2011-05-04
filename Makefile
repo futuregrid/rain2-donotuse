@@ -16,6 +16,12 @@ exe:
 test-exe:
 	echo "list defaults" | ./dist/fg-shell.exe 
 
+pylint:
+	pylint .
+
+pychecker:
+	./check/pycheck.sh
+
 doxygen:
 	doxygen config.dox
 	open doc/html/index.html
