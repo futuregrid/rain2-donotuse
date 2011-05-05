@@ -42,7 +42,7 @@ def main():
     ch.setFormatter(formatter)
     logger.addHandler(ch)
     
-    #Set up random string	
+    #Set up random string    
     random.seed()
     randid = str(random.getrandbits(32))
     
@@ -67,10 +67,10 @@ def main():
 
     logging.info('Starting image generator...')
 
-	#Check if we have root privs 
+    #Check if we have root privs 
     if os.getuid() != 0:
-    	print "Sorry, you need to run with root privileges"
-    	sys.exit(1)
+        print "Sorry, you need to run with root privileges"
+        sys.exit(1)
     
     #help is auto-generated
     parser.add_option("-o", "--os", dest="os", help="specify destination Operating System")
@@ -88,8 +88,8 @@ def main():
     
     #Turn debugging off
     if not ops.debug:
-    	logging.basicConfig(level=logging.INFO)
-    	ch.setLevel(logging.INFO)
+        logging.basicConfig(level=logging.INFO)
+        ch.setLevel(logging.INFO)
     
     #Parse user
     user = ''
@@ -109,314 +109,314 @@ def main():
     
     #Parse arch command line arg
     if type(ops.arch) is not NoneType:
-    	if ops.arch == "i386" or ops.arch == "i686":
-    		arch = "i386"
-    	elif ops.arch == "amd64" or ops.arch == "x86_64":
-    		arch = "x86_64"
-    	else:	
-    		parser.error("Incorrect architecture type specified (i386|x86_64)")
-    		sys.exit(1)
+        if ops.arch == "i386" or ops.arch == "i686":
+            arch = "i386"
+        elif ops.arch == "amd64" or ops.arch == "x86_64":
+            arch = "x86_64"
+        else:    
+            parser.error("Incorrect architecture type specified (i386|x86_64)")
+            sys.exit(1)
     
     logging.debug('Selected Architecture: ' + arch)
     
     #Parse Software stack list
     if type(ops.software) is not NoneType:
     
-    	#Assume its comma seperated, so parse
-    	packages = re.split('[, ]', ops.software)
-    	#packages = ops.software.split(', ')
-    	packs = ' '.join(packages)
-    	logging.debug('Selected software packages: ' + packs)
+        #Assume its comma seperated, so parse
+        packages = re.split('[, ]', ops.software)
+        #packages = ops.software.split(', ')
+        packs = ' '.join(packages)
+        logging.debug('Selected software packages: ' + packs)
     else:
-    	packs = None 
+        packs = None 
     
     #TODO: Authorization mechanism TBD
     if type(ops.auth) is not NoneType:
-    	auth = ""
+        auth = ""
     
     # Build the image
     #Parse OS and version command line args
     if ops.os == "Ubuntu" or ops.os == "ubuntu":
-    	base_os = base_os + "ubuntu" + spacer
+        base_os = base_os + "ubuntu" + spacer
     
-    	#Set base version
-    	if type(ops.version) is NoneType:
-    		version = latest_ubuntu
-    	elif ops.version == "10.04" or ops.version == "lucid":
-    		version = "lucid"
-    	elif ops.version == "9.10" or ops.version == "karmic":
-    		version = "karmic"
-    	#TODO: can support older if necessary		
-    	logging.info('Building Ubuntu ' + version + ' image')
-    	
-    	img = buildUbuntu(user + '-' + randid, version, arch, packs)
+        #Set base version
+        if type(ops.version) is NoneType:
+            version = latest_ubuntu
+        elif ops.version == "10.04" or ops.version == "lucid":
+            version = "lucid"
+        elif ops.version == "9.10" or ops.version == "karmic":
+            version = "karmic"
+        #TODO: can support older if necessary        
+        logging.info('Building Ubuntu ' + version + ' image')
+        
+        img = buildUbuntu(user + '-' + randid, version, arch, packs)
     
     elif ops.os == "Debian" or ops.os == "debian":
-    	base_os = base_os + "debian" + spacer
+        base_os = base_os + "debian" + spacer
     elif ops.os == "Redhat" or ops.os == "redhat" or ops.os == "rhel":
-    	base_os = base_os + "rhel" + spacer
+        base_os = base_os + "rhel" + spacer
     elif ops.os == "CentOS" or ops.os == "Centos" or ops.os == "centos":
-    	base_os = base_os + "centos" + spacer
+        base_os = base_os + "centos" + spacer
     elif ops.os == "Fedora" or ops.os == "fedora":
-    	base_os = base_os + "fedora" + spacer
+        base_os = base_os + "fedora" + spacer
     else:
-    	parser.error("Incorrect OS type specified")
-    	sys.exit(1)
+        parser.error("Incorrect OS type specified")
+        sys.exit(1)
     
     
     logging.info('Generated image is available at /tmp/' + img + '.img.  Please be aware that this FutureGrid image is packaged without a kernel and fstab and is not built for any deployment type.  To deploy the new image, use the fg-image-deploy command.')
     
     if type(ops.givenname) is NoneType:
-    	ops.givenname = img
+        ops.givenname = img
     
     if type(ops.desc) is NoneType:
-    	ops.desc = " "
+        ops.desc = " "
     
     manifest(user, img, ops.os, version, arch, packs, ops.givenname, ops.desc)
 
 
-	# Cleanup
-	#TODO: verify everything is unmounted, delete temporary folder
+    # Cleanup
+    #TODO: verify everything is unmounted, delete temporary folder
 
 #END MAIN
 
 def buildUbuntu(name, version, arch, pkgs):
 
-	ubuntuLog = logging.getLogger('ubuntu')
+    ubuntuLog = logging.getLogger('ubuntu')
 
-	ubuntuLog.info('Retrieving Image: ubuntu-' + version + '-' + arch + '-base.img')
-	#Download base image from repository
-	runCmd('wget ' + base_url + 'base_os/ubuntu-' + version + '-' + arch + '-base.img -O /tmp/' + name + '.img')
-	
-	#Mount the new image
-	ubuntuLog.info('Mounting new image')
-	runCmd('mkdir /tmp/' + name)
-	runCmd('mount -o loop /tmp/' + name + '.img /tmp/' + name)
-	ubuntuLog.info('Mounted image')
+    ubuntuLog.info('Retrieving Image: ubuntu-' + version + '-' + arch + '-base.img')
+    #Download base image from repository
+    runCmd('wget ' + base_url + 'base_os/ubuntu-' + version + '-' + arch + '-base.img -O /tmp/' + name + '.img')
+    
+    #Mount the new image
+    ubuntuLog.info('Mounting new image')
+    runCmd('mkdir /tmp/' + name)
+    runCmd('mount -o loop /tmp/' + name + '.img /tmp/' + name)
+    ubuntuLog.info('Mounted image')
 
-	#Mount proc and pts
-	runCmd('mount -t proc proc /tmp/' + name + '/proc')
-	runCmd('mount -t devpts devpts /tmp/' + name + '/dev/pts')
-	ubuntuLog.info('Mounted proc and devpts')
+    #Mount proc and pts
+    runCmd('mount -t proc proc /tmp/' + name + '/proc')
+    runCmd('mount -t devpts devpts /tmp/' + name + '/dev/pts')
+    ubuntuLog.info('Mounted proc and devpts')
 
-	#Setup networking
-	
-	runCmd('wget ' + base_url + '/conf/ubuntu/interfaces -O /tmp/' + name + '/etc/network/interfaces')
-	os.system('echo localhost > /tmp/' + name + '/etc/hostname')
-	runCmd('hostname localhost')
-	ubuntuLog.info('Injected networking configuration')
+    #Setup networking
+    
+    runCmd('wget ' + base_url + '/conf/ubuntu/interfaces -O /tmp/' + name + '/etc/network/interfaces')
+    os.system('echo localhost > /tmp/' + name + '/etc/hostname')
+    runCmd('hostname localhost')
+    ubuntuLog.info('Injected networking configuration')
 
-	# Setup package repositories 
-	#TODO: Set mirros to IU/FGt
-	ubuntuLog.info('Configuring repositories')
-	
-	runCmd('wget ' + base_url + '/conf/ubuntu/' + version + '-sources.list -O /tmp/' + name + '/etc/apt/sources.list')
-	runCmd('chroot /tmp/' + name + ' apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 98932BEC')
+    # Setup package repositories 
+    #TODO: Set mirros to IU/FGt
+    ubuntuLog.info('Configuring repositories')
+    
+    runCmd('wget ' + base_url + '/conf/ubuntu/' + version + '-sources.list -O /tmp/' + name + '/etc/apt/sources.list')
+    runCmd('chroot /tmp/' + name + ' apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 98932BEC')
 
-	#Set apt-get into noninteractive mode
-	#runCmd('chroot /tmp/'+name+' DEBIAN_FRONTEND=noninteractive')
-	#runCmd('chroot /tmp/'+name+' DEBIAN_PRIORITY=critical')
+    #Set apt-get into noninteractive mode
+    #runCmd('chroot /tmp/'+name+' DEBIAN_FRONTEND=noninteractive')
+    #runCmd('chroot /tmp/'+name+' DEBIAN_PRIORITY=critical')
 
-	# Install BCFG2 client
-	ubuntuLog.info('Installing BCFG2 client')
-	runCmd('chroot /tmp/' + name + ' apt-get update')
-	#os.system('chroot /tmp/'+name+' apt-get update')
-	runCmd('chroot /tmp/' + name + ' apt-get -y install bcfg2')
-	#os.system('chroot /tmp/'+name+' apt-get -y install bcfg2')
-	ubuntuLog.info('Installed BCFG2 client')
-
-
-	#Configure BCFG2 client
-	ubuntuLog.info('Configuring BCFG2')
-	runCmd('wget ' + base_url + '/bcfg2/bcfg2.conf -O /tmp/' + name + '/etc/bcfg2.conf')
-	runCmd('wget ' + base_url + '/bcfg2/bcfg2.ca -O /tmp/' + name + '/etc/bcfg2.ca')
-	runCmd('wget ' + base_url + '/bcfg2/default -O /tmp/' + name + '/etc/default/bcfg2')
-	ubuntuLog.info('Injected FG deployment files')
-
-	#Inject group info for Probes
-	os.system('echo ' + name + ' > /tmp/' + name + '/etc/bcfg2.group')
-	ubuntuLog.info('Injected probes hook for unique group')
-	
-	ubuntuLog.info('Configured BCFG2 client settings')
-	
-	#Install packages
-	if pkgs != None:
-		ubuntuLog.info('Installing user-defined packages')
-		runCmd('chroot /tmp/' + name + ' apt-get -y install ' + pkgs)
-		ubuntuLog.info('Installed user-defined packages')
+    # Install BCFG2 client
+    ubuntuLog.info('Installing BCFG2 client')
+    runCmd('chroot /tmp/' + name + ' apt-get update')
+    #os.system('chroot /tmp/'+name+' apt-get update')
+    runCmd('chroot /tmp/' + name + ' apt-get -y install bcfg2')
+    #os.system('chroot /tmp/'+name+' apt-get -y install bcfg2')
+    ubuntuLog.info('Installed BCFG2 client')
 
 
+    #Configure BCFG2 client
+    ubuntuLog.info('Configuring BCFG2')
+    runCmd('wget ' + base_url + '/bcfg2/bcfg2.conf -O /tmp/' + name + '/etc/bcfg2.conf')
+    runCmd('wget ' + base_url + '/bcfg2/bcfg2.ca -O /tmp/' + name + '/etc/bcfg2.ca')
+    runCmd('wget ' + base_url + '/bcfg2/default -O /tmp/' + name + '/etc/default/bcfg2')
+    ubuntuLog.info('Injected FG deployment files')
 
-	#Setup BCFG2 server groups
-	push_bcfg2_group(name, pkgs, 'ubuntu', version) 
-	ubuntuLog.info('Setup new BCFG2 group')
+    #Inject group info for Probes
+    os.system('echo ' + name + ' > /tmp/' + name + '/etc/bcfg2.group')
+    ubuntuLog.info('Injected probes hook for unique group')
+    
+    ubuntuLog.info('Configured BCFG2 client settings')
+    
+    #Install packages
+    if pkgs != None:
+        ubuntuLog.info('Installing user-defined packages')
+        runCmd('chroot /tmp/' + name + ' apt-get -y install ' + pkgs)
+        ubuntuLog.info('Installed user-defined packages')
 
-	#Finished, now clean up
-	ubuntuLog.info('Genereated Ubuntu image ' + name + ' successfully!')
 
-	cleanup(name)
 
-	return name
+    #Setup BCFG2 server groups
+    push_bcfg2_group(name, pkgs, 'ubuntu', version) 
+    ubuntuLog.info('Setup new BCFG2 group')
+
+    #Finished, now clean up
+    ubuntuLog.info('Genereated Ubuntu image ' + name + ' successfully!')
+
+    cleanup(name)
+
+    return name
 
 def buildDebian(name, version, arch):
 
-	runCmd('')
+    runCmd('')
 
 
 def buildRHEL(name, version, arch):
 
-	runCmd('')
+    runCmd('')
 
 
 def buildCentos(name, version, arch):
 
-	runCmd('')
+    runCmd('')
 
 
 def buildFedora(name, version, arch):
 
-	runCmd('')
+    runCmd('')
 
 
 def runCmd(cmd):
-	cmdLog = logging.getLogger('exec')
-	cmdLog.debug(cmd)
-	#os.system(cmd)
-	#Use subprocess to properly direct output to log
-	#p = subprocess.Popen(cmd, shell=True)
-	p = Popen(cmd.split(' '), stdout=PIPE, stderr=PIPE) 
-	std = p.communicate()
-	if len(std[0]) > 0: 
-		cmdLog.debug('stdout: ' + std[0])
-	#cmdLog.debug('stderr: '+std[1])
+    cmdLog = logging.getLogger('exec')
+    cmdLog.debug(cmd)
+    #os.system(cmd)
+    #Use subprocess to properly direct output to log
+    #p = subprocess.Popen(cmd, shell=True)
+    p = Popen(cmd.split(' '), stdout=PIPE, stderr=PIPE) 
+    std = p.communicate()
+    if len(std[0]) > 0: 
+        cmdLog.debug('stdout: ' + std[0])
+    #cmdLog.debug('stderr: '+std[1])
 
-	#cmdLog.debug('Ret status: '+str(p.returncode))
-	if p.returncode != 0:
-		cmdLog.error('Command: ' + cmd + ' failed, status: ' + str(p.returncode) + ' --- ' + std[1])
-		sys.exit(p.returncode)
+    #cmdLog.debug('Ret status: '+str(p.returncode))
+    if p.returncode != 0:
+        cmdLog.error('Command: ' + cmd + ' failed, status: ' + str(p.returncode) + ' --- ' + std[1])
+        cleanup(namedir)
+        sys.exit(p.returncode)
 
 
 
 def cleanup(name):
-	#Cleanup
-	cleanupLog = logging.getLogger('cleanup')
+    #Cleanup
+    cleanupLog = logging.getLogger('cleanup')
 
-	os.system('umount /tmp/' + name + '/proc')
-	os.system('umount /tmp/' + name + '/dev/pts')
-	
-	cmd = 'umount /tmp/' + name
-	cleanupLog.debug('Executing: ' + cmd)
-	os.system(cmd)
-	 
-	cleanupLog.debug('Cleaned up mount points')
+    os.system('umount /tmp/' + name + '/proc')
+    os.system('umount /tmp/' + name + '/dev/pts')
+    
+    cmd = 'umount /tmp/' + name
+    cleanupLog.debug('Executing: ' + cmd)
+    os.system(cmd)
+     
+    cleanupLog.debug('Cleaned up mount points')
 
 
 def manifest(user, name, os, version, arch, pkgs, givenname, description):
 
-	manifestLog = logging.getLogger('manifest')
+    manifestLog = logging.getLogger('manifest')
 
-	manifest = Document()
-	
-	head = manifest.createElement('manifest')
-	manifest.appendChild(head)
+    manifest = Document()
+    
+    head = manifest.createElement('manifest')
+    manifest.appendChild(head)
 
-	userNode = manifest.createElement('user')
-	userVal = manifest.createTextNode(user)
-	userNode.appendChild(userVal)
-	head.appendChild(userNode)
+    userNode = manifest.createElement('user')
+    userVal = manifest.createTextNode(user)
+    userNode.appendChild(userVal)
+    head.appendChild(userNode)
 
-	imgNameNode = manifest.createElement('name')
-	imgNameVal = manifest.createTextNode(name)
-	imgNameNode.appendChild(imgNameVal)
-	head.appendChild(imgNameNode)
+    imgNameNode = manifest.createElement('name')
+    imgNameVal = manifest.createTextNode(name)
+    imgNameNode.appendChild(imgNameVal)
+    head.appendChild(imgNameNode)
 
-	imgGivenNameNode = manifest.createElement('givenname')
-	imgGivenNameVal = manifest.createTextNode(givenname)
-	imgGivenNameNode.appendChild(imgGivenNameVal)
-	head.appendChild(imgGivenNameNode)
+    imgGivenNameNode = manifest.createElement('givenname')
+    imgGivenNameVal = manifest.createTextNode(givenname)
+    imgGivenNameNode.appendChild(imgGivenNameVal)
+    head.appendChild(imgGivenNameNode)
 
-	descNode = manifest.createElement('description')
-	descVal = manifest.createTextNode(description)
-	descNode.appendChild(descVal)
-	head.appendChild(descNode)
+    descNode = manifest.createElement('description')
+    descVal = manifest.createTextNode(description)
+    descNode.appendChild(descVal)
+    head.appendChild(descNode)
 
-	osNode = manifest.createElement('os')
-	osNodeVal = manifest.createTextNode(os)
-	osNode.appendChild(osNodeVal)
-	head.appendChild(osNode)
+    osNode = manifest.createElement('os')
+    osNodeVal = manifest.createTextNode(os)
+    osNode.appendChild(osNodeVal)
+    head.appendChild(osNode)
 
-	versionNode = manifest.createElement('version')
-	versionNodeVal = manifest.createTextNode(version)
-	versionNode.appendChild(versionNodeVal)
-	head.appendChild(versionNode)
+    versionNode = manifest.createElement('version')
+    versionNodeVal = manifest.createTextNode(version)
+    versionNode.appendChild(versionNodeVal)
+    head.appendChild(versionNode)
 
-	archNode = manifest.createElement('arch')
-	archNodeVal = manifest.createTextNode(arch)
-	archNode.appendChild(archNodeVal)
-	head.appendChild(archNode)
+    archNode = manifest.createElement('arch')
+    archNodeVal = manifest.createTextNode(arch)
+    archNode.appendChild(archNodeVal)
+    head.appendChild(archNode)
 
-	#kernelNode = manifest.createElement('kernel')
-	#kernelNodeVal = manifest.createTextNode(kernel)
-	#kernelNode.appendChild(kernelNodeVal)
-	#head.appendChild(kernelNode)
+    #kernelNode = manifest.createElement('kernel')
+    #kernelNodeVal = manifest.createTextNode(kernel)
+    #kernelNode.appendChild(kernelNodeVal)
+    #head.appendChild(kernelNode)
 
-	packagesNode = manifest.createElement('packages')
-	packages = pkgs.split(' ')
-	for p in packages:
-		packageNode = manifest.createElement('package')
-		packageNodeVal = manifest.createTextNode(p)
-		packageNode.appendChild(packageNodeVal)
-		packagesNode.appendChild(packageNode)
-	
-	head.appendChild(packagesNode)
+    packagesNode = manifest.createElement('packages')
+    packages = pkgs.split(' ')
+    for p in packages:
+        packageNode = manifest.createElement('package')
+        packageNodeVal = manifest.createTextNode(p)
+        packageNode.appendChild(packageNodeVal)
+        packagesNode.appendChild(packageNode)
+    
+    head.appendChild(packagesNode)
 
-	filename = '/tmp/' + name + '.manifest.xml'
-	file = open(filename, 'w')
-	#Document.PrettyPrint(manifest, file)
-	#manifest.writexml(file, indent='	', addindent='	', newl='\n')
+    filename = '/tmp/' + name + '.manifest.xml'
+    file = open(filename, 'w')
+    #Document.PrettyPrint(manifest, file)
+    #manifest.writexml(file, indent='    ', addindent='    ', newl='\n')
 
-	output = manifest.toprettyxml()
-	file.write(output)
-	
-	manifestLog.info('Genereated manifest file: ' + filename)
-	
+    output = manifest.toprettyxml()
+    file.write(output)
+    
+    manifestLog.info('Genereated manifest file: ' + filename)
+    
 def push_bcfg2_group(name, pkgs, os, version):
-	#Push the group information to the BCFG2 server via a socket connection
+    #Push the group information to the BCFG2 server via a socket connection
 
-	bcfg2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	bcfg2.connect((bcfg2_url, bcfg2_port))
+    bcfg2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    bcfg2.connect((bcfg2_url, bcfg2_port))
 
-	#Send group name
-	bcfg2.send(name)
-	ret = bcfg2.recv(100)
-	if ret != 'OK':
-		logging.error('Incorrect reply from the server:' + ret)
-		sys.exit(1)
-	#Send OS 
-	bcfg2.send(os)
-	ret = bcfg2.recv(100)
-	if ret != 'OK':
-		logging.error('Incorrect reply from the server:' + ret)
-		sys.exit(1)
-	#Send OS Version
-	bcfg2.send(version)
-	ret = bcfg2.recv(100)
-	if ret != 'OK':
-		logging.error('Incorrect reply from the server:' + ret)
-	#Send package information
-	bcfg2.send(pkgs)
-	ret = bcfg2.recv(100)
-	if ret != 'OK':
-		logging.error('Incorrect reply from the server:' + ret)
-		sys.exit(1)
+    #Send group name
+    bcfg2.send(name)
+    ret = bcfg2.recv(100)
+    if ret != 'OK':
+        logging.error('Incorrect reply from the server:' + ret)
+        sys.exit(1)
+    #Send OS 
+    bcfg2.send(os)
+    ret = bcfg2.recv(100)
+    if ret != 'OK':
+        logging.error('Incorrect reply from the server:' + ret)
+        sys.exit(1)
+    #Send OS Version
+    bcfg2.send(version)
+    ret = bcfg2.recv(100)
+    if ret != 'OK':
+        logging.error('Incorrect reply from the server:' + ret)
+    #Send package information
+    bcfg2.send(pkgs)
+    ret = bcfg2.recv(100)
+    if ret != 'OK':
+        logging.error('Incorrect reply from the server:' + ret)
+        sys.exit(1)
 
 
 
 
 if __name__ == "__main__":
-	main()
+    main()
 #END
-
 
 
 
