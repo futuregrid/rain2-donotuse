@@ -13,6 +13,12 @@ mke2fs -F -j $IMG_FILE
 mkdir $DEST
 mount -o loop $IMG_FILE $DEST
 
+mkdir -p $DEST/var/lib/rpm
+mkdir -p $DEST/var/log
+mkdir -p $DEST/dev/pts
+touch $DEST/var/log/yum.log
+
+
 if [ $VER =='5.5' ] 
 then
     wget http://mirror.centos.org/centos/5.5/os/x86_64/CentOS/centos-release-5-5.el5.centos.x86_64.rpm -O centos-release.rpm

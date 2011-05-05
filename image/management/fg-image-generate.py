@@ -157,6 +157,13 @@ def main():
         base_os = base_os + "rhel" + spacer
     elif ops.os == "CentOS" or ops.os == "Centos" or ops.os == "centos":
         base_os = base_os + "centos" + spacer
+        
+        if type(ops.version) is NoneType:
+            version = latest_centos
+        
+        logging.info('Building Ubuntu ' + version + ' image')        
+        img = buildCentos(user + '-' + randid, version, arch, packs)
+        
     elif ops.os == "Fedora" or ops.os == "fedora":
         base_os = base_os + "fedora" + spacer
     else:
@@ -281,13 +288,13 @@ def buildCentos(name, version, arch, pkgs):
     centosLog.info('Mounted image')
 
     #Mount proc and pts
-    runCmd('mount -t proc proc /tmp/' + name + '/proc')
-    runCmd('mount -t devpts devpts /tmp/' + name + '/dev/pts')
-    centosLog.info('Mounted proc and devpts')
+    #runCmd('mount -t proc proc /tmp/' + name + '/proc')
+    #runCmd('mount -t devpts devpts /tmp/' + name + '/dev/pts')
+    #centosLog.info('Mounted proc and devpts')
 
     #Setup networking
     
-    runCmd('wget ' + base_url + '/conf/centos/ifcfg-eth0 -O /tmp/' + name + '/etc/sysconfig/network-scripts/')    
+    runCmd('wget ' + base_url + '/conf/centos/ifcfg-eth0 -O /tmp/' + name + '/etc/sysconfig/network-scripts/ifcfg-eth0')    
     #os.system('echo localhost > /tmp/' + name + '/etc/hostname')
     #runCmd('hostname localhost')
     centosLog.info('Injected networking configuration')
@@ -304,14 +311,15 @@ def buildCentos(name, version, arch, pkgs):
     #runCmd('chroot /tmp/'+name+' DEBIAN_PRIORITY=critical')
 
     # Install BCFG2 client
-    """
+    
     centosLog.info('Installing BCFG2 client')
-    runCmd('chroot /tmp/' + name + ' rpm -ivh http://download.fedora.redhat.com/pub/epel/5/i386/epel-release-5-4.noarch.rpm')    
+    runCmd('chroot /tmp/' + name + ' rpm -ivh http://download.fedora.redhat.com/pub/epel/5/i386/epel-release-5-4.noarch.rpm')
+    """"    
     runCmd('chroot /tmp/' + name + ' yum -y install bcfg2')
     #os.system('chroot /tmp/'+name+' apt-get -y install bcfg2')
     centosLog.info('Installed BCFG2 client')
 
-
+    
     #Configure BCFG2 client
     centosLog.info('Configuring BCFG2')
     runCmd('wget ' + base_url + '/bcfg2/bcfg2.conf -O /tmp/' + name + '/etc/bcfg2.conf')
