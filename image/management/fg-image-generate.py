@@ -245,8 +245,6 @@ def buildUbuntu(name, version, arch, pkgs):
         runCmd('chroot /tmp/' + name + ' apt-get -y install ' + pkgs)
         ubuntuLog.info('Installed user-defined packages')
 
-
-
     #Setup BCFG2 server groups
     push_bcfg2_group(name, pkgs, 'ubuntu', version) 
     ubuntuLog.info('Setup new BCFG2 group')
@@ -268,7 +266,7 @@ def buildRHEL(name, version, arch):
     runCmd('')
 
 
-def buildCentos(name, version, arch):
+def buildCentos(name, version, arch, pkgs):
 
     centosLog = logging.getLogger('centos')
 
@@ -289,27 +287,27 @@ def buildCentos(name, version, arch):
 
     #Setup networking
     
-    runCmd('wget ' + base_url + '/conf/centos/interfaces -O /tmp/' + name + '/etc/network/interfaces')
-    os.system('echo localhost > /tmp/' + name + '/etc/hostname')
-    runCmd('hostname localhost')
+    runCmd('wget ' + base_url + '/conf/centos/ifcfg-eth0 -O /tmp/' + name + '/etc/sysconfig/network-scripts/')    
+    #os.system('echo localhost > /tmp/' + name + '/etc/hostname')
+    #runCmd('hostname localhost')
     centosLog.info('Injected networking configuration')
 
     # Setup package repositories 
     #TODO: Set mirros to IU/FGt
-    centosLog.info('Configuring repositories')
     
-    runCmd('wget ' + base_url + '/conf/centos/' + version + '-sources.list -O /tmp/' + name + '/etc/apt/sources.list')
-    runCmd('chroot /tmp/' + name + ' apt-key adv --keyserver keyserver.centos.com --recv-keys 98932BEC')
+    #centosLog.info('Configuring repositories')    
+    #runCmd('wget ' + base_url + '/conf/centos/' + version + '-sources.list -O /tmp/' + name + '/etc/apt/sources.list')
+    #runCmd('chroot /tmp/' + name + ' apt-key adv --keyserver keyserver.centos.com --recv-keys 98932BEC')
 
     #Set apt-get into noninteractive mode
     #runCmd('chroot /tmp/'+name+' DEBIAN_FRONTEND=noninteractive')
     #runCmd('chroot /tmp/'+name+' DEBIAN_PRIORITY=critical')
 
     # Install BCFG2 client
+    """
     centosLog.info('Installing BCFG2 client')
-    runCmd('chroot /tmp/' + name + ' apt-get update')
-    #os.system('chroot /tmp/'+name+' apt-get update')
-    runCmd('chroot /tmp/' + name + ' apt-get -y install bcfg2')
+    runCmd('chroot /tmp/' + name + ' rpm -ivh http://download.fedora.redhat.com/pub/epel/5/i386/epel-release-5-4.noarch.rpm')    
+    runCmd('chroot /tmp/' + name + ' yum -y install bcfg2')
     #os.system('chroot /tmp/'+name+' apt-get -y install bcfg2')
     centosLog.info('Installed BCFG2 client')
 
@@ -326,14 +324,12 @@ def buildCentos(name, version, arch):
     centosLog.info('Injected probes hook for unique group')
     
     centosLog.info('Configured BCFG2 client settings')
-    
+    """    
     #Install packages
     if pkgs != None:
         centosLog.info('Installing user-defined packages')
-        runCmd('chroot /tmp/' + name + ' apt-get -y install ' + pkgs)
+        runCmd('chroot /tmp/' + name + ' yum -y install ' + pkgs)
         centosLog.info('Installed user-defined packages')
-
-
 
     #Setup BCFG2 server groups
     push_bcfg2_group(name, pkgs, 'centos', version) 
