@@ -270,7 +270,82 @@ def buildRHEL(name, version, arch):
 
 def buildCentos(name, version, arch):
 
-    runCmd('')
+    centosLog = logging.getLogger('centos')
+
+    centosLog.info('Retrieving Image: centos-' + version + '-' + arch + '-base.img')
+    #Download base image from repository
+    runCmd('wget ' + base_url + 'base_os/centos-' + version + '-' + arch + '-base.img -O /tmp/' + name + '.img')
+    
+    #Mount the new image
+    centosLog.info('Mounting new image')
+    runCmd('mkdir /tmp/' + name)
+    runCmd('mount -o loop /tmp/' + name + '.img /tmp/' + name)
+    centosLog.info('Mounted image')
+
+    #Mount proc and pts
+    runCmd('mount -t proc proc /tmp/' + name + '/proc')
+    runCmd('mount -t devpts devpts /tmp/' + name + '/dev/pts')
+    centosLog.info('Mounted proc and devpts')
+
+    #Setup networking
+    
+    runCmd('wget ' + base_url + '/conf/centos/interfaces -O /tmp/' + name + '/etc/network/interfaces')
+    os.system('echo localhost > /tmp/' + name + '/etc/hostname')
+    runCmd('hostname localhost')
+    centosLog.info('Injected networking configuration')
+
+    # Setup package repositories 
+    #TODO: Set mirros to IU/FGt
+    centosLog.info('Configuring repositories')
+    
+    runCmd('wget ' + base_url + '/conf/centos/' + version + '-sources.list -O /tmp/' + name + '/etc/apt/sources.list')
+    runCmd('chroot /tmp/' + name + ' apt-key adv --keyserver keyserver.centos.com --recv-keys 98932BEC')
+
+    #Set apt-get into noninteractive mode
+    #runCmd('chroot /tmp/'+name+' DEBIAN_FRONTEND=noninteractive')
+    #runCmd('chroot /tmp/'+name+' DEBIAN_PRIORITY=critical')
+
+    # Install BCFG2 client
+    centosLog.info('Installing BCFG2 client')
+    runCmd('chroot /tmp/' + name + ' apt-get update')
+    #os.system('chroot /tmp/'+name+' apt-get update')
+    runCmd('chroot /tmp/' + name + ' apt-get -y install bcfg2')
+    #os.system('chroot /tmp/'+name+' apt-get -y install bcfg2')
+    centosLog.info('Installed BCFG2 client')
+
+
+    #Configure BCFG2 client
+    centosLog.info('Configuring BCFG2')
+    runCmd('wget ' + base_url + '/bcfg2/bcfg2.conf -O /tmp/' + name + '/etc/bcfg2.conf')
+    runCmd('wget ' + base_url + '/bcfg2/bcfg2.ca -O /tmp/' + name + '/etc/bcfg2.ca')
+    runCmd('wget ' + base_url + '/bcfg2/default -O /tmp/' + name + '/etc/default/bcfg2')
+    centosLog.info('Injected FG deployment files')
+
+    #Inject group info for Probes
+    os.system('echo ' + name + ' > /tmp/' + name + '/etc/bcfg2.group')
+    centosLog.info('Injected probes hook for unique group')
+    
+    centosLog.info('Configured BCFG2 client settings')
+    
+    #Install packages
+    if pkgs != None:
+        centosLog.info('Installing user-defined packages')
+        runCmd('chroot /tmp/' + name + ' apt-get -y install ' + pkgs)
+        centosLog.info('Installed user-defined packages')
+
+
+
+    #Setup BCFG2 server groups
+    push_bcfg2_group(name, pkgs, 'centos', version) 
+    centosLog.info('Setup new BCFG2 group')
+
+    #Finished, now clean up
+    centosLog.info('Genereated centos image ' + name + ' successfully!')
+
+    cleanup(name)
+
+    return name
+
 
 
 def buildFedora(name, version, arch):

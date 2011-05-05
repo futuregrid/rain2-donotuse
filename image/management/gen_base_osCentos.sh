@@ -1,5 +1,5 @@
 #!/bin/bash
-#This must be executed in a CentOS machine
+#This must be executed in a CentOS machine with the version 5.5 or 5.6, depending what you need to get.
 
 #version can be 5.6 or 5.5
 VER=5.6
@@ -26,3 +26,6 @@ yum --installroot=$DEST -y groupinstall Core
 cp /etc/resolv.conf $DEST/etc/
 cp /etc/sysconfig/network $DEST/etc/sysconfig/
 echo "127.0.0.1 localhost.localdomain localhost" > $DEST/etc/hosts
+
+umount $DEST
+#rm -rf $DEST
