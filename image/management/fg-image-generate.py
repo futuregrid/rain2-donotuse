@@ -25,7 +25,7 @@ base_url = "http://fg-gravel3.futuregrid.iu.edu/"
 bcfg2_url = 'fg-gravel3.futuregrid.iu.edu'
 bcfg2_port = 45678
 def main():
-
+        global namedir   #this is to clean up when something fails
 	#Set up logging
 	log_filename = 'fg-image-generate.log'
 	#logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",datefmt='%a, %d %b %Y %H:%M:%S',filemode='w',filename=log_filename,level=logging.DEBUG)
@@ -96,6 +96,8 @@ def main():
 		user = os.getenv('FG_USER')
 	elif type(ops.user) is not NoneType:
 		user = ops.user
+	else
+                user="default"
 	#TODO: authenticate user via promting for CERT or password to auth against LDAP db
 
 	logging.debug('FG User: '+user)
@@ -237,7 +239,7 @@ def buildUbuntu(name, version, arch, pkgs):
 	ubuntuLog.info('Configured BCFG2 client settings')
 	
 	#Install packages
-	if type(pkgs) is not NoneType:
+	if pkgs != None:
 		ubuntuLog.info('Installing user-defined packages')
 		runCmd('chroot /tmp/'+name+' apt-get -y install '+pkgs)
 		ubuntuLog.info('Installed user-defined packages')
