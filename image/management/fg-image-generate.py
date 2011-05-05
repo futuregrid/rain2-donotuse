@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # Description: Command line front end for image generator
 #
-# Author: Andrew J. Younge
+# Author: Andrew J. Younge & Javier Diaz
 #
 
 from optparse import OptionParser
@@ -16,7 +16,7 @@ import sys
 import socket
 from subprocess import *
 #from xml.dom.ext import *
-from xml.dom.minidom import Document,parse
+from xml.dom.minidom import Document, parse
 
 
 
@@ -24,154 +24,155 @@ from xml.dom.minidom import Document,parse
 base_url = "http://fg-gravel3.futuregrid.iu.edu/"
 bcfg2_url = 'fg-gravel3.futuregrid.iu.edu'
 bcfg2_port = 45678
-def main():
-        global namedir   #this is to clean up when something fails
-	#Set up logging
-	log_filename = 'fg-image-generate.log'
-	#logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",datefmt='%a, %d %b %Y %H:%M:%S',filemode='w',filename=log_filename,level=logging.DEBUG)
-	logger = logging.getLogger()
-	logger.setLevel(logging.DEBUG)
-	formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-	handler = logging.FileHandler(log_filename)
-	handler.setLevel(logging.DEBUG)
-	handler.setFormatter(formatter)
-	logger.addHandler(handler)
-	ch = logging.StreamHandler()
-	ch.setLevel(logging.DEBUG)
-	ch.setFormatter(formatter)
-	logger.addHandler(ch)
+namedir = "" #this is to clean up when something fails
 
-	#Set up random string	
-	random.seed()
-	randid = str(random.getrandbits(32))
-	
-	parser = OptionParser()
+def main():    
+    #Set up logging
+    log_filename = 'fg-image-generate.log'
+    #logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",datefmt='%a, %d %b %Y %H:%M:%S',filemode='w',filename=log_filename,level=logging.DEBUG)
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)
+    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    handler = logging.FileHandler(log_filename)
+    handler.setLevel(logging.DEBUG)
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.DEBUG)
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
+    
+    #Set up random string	
+    random.seed()
+    randid = str(random.getrandbits(32))
+    
+    parser = OptionParser()
+    
+    #Default params
+    base_os = ""
+    spacer = "-"
+    latest_ubuntu = "lucid"
+    latest_debian = "lenny"
+    latest_rhel = "5.5"
+    latest_centos = "5.6"
+    latest_fedora = "13"
+    #kernel = "2.6.27.21-0.1-xen"
+    
+    #ubuntu-distro = ['lucid', 'karmic', 'jaunty']
+    #debian-distro = ['squeeze', 'lenny', 'etch']
+    #rhel-distro = ['5.5', '5.4', '4.8']
+    #fedora-distro = ['14','12']
 
-	#Default params
-	base_os = ""
-	spacer = "-"
-	latest_ubuntu="lucid"
-	latest_debian="lenny"
-	latest_rhel="5.5"
-	latest_centos="5.5"
-	latest_fedora="13"
-	#kernel = "2.6.27.21-0.1-xen"
-
-	#ubuntu-distro = ['lucid', 'karmic', 'jaunty']
-	#debian-distro = ['squeeze', 'lenny', 'etch']
-	#rhel-distro = ['5.5', '5.4', '4.8']
-	#fedora-distro = ['14','12']
 
 
-
-	logging.info('Starting image generator...')
+    logging.info('Starting image generator...')
 
 	#Check if we have root privs 
-	if os.getuid() != 0:
-		print "Sorry, you need to run with root privileges"
-		sys.exit(1)
-
-	#help is auto-generated
-	parser.add_option("-o", "--os", dest="os", help="specify destination Operating System")
-	parser.add_option("-v", "--version", dest="version", help="Operating System version")
-	parser.add_option("-a", "--arch", dest="arch", help="Destination hardware architecture")
-	parser.add_option("-l", "--auth", dest="auth", help="Authentication mechanism")
-	parser.add_option("-s", "--software", dest="software", help="Software stack to be automatically installed")
-	parser.add_option("-d", "--debug", action="store_true", dest="debug", help="Enable debugging")
-	parser.add_option("-u", "--user", dest="user", help="FutureGrid username")
-	parser.add_option("-n", "--name", dest="givenname", help="Desired recognizable name of the image")
-	parser.add_option("-e", "--description", dest="desc", help="Short description of the image and its purpose")
-
-	(ops, args) = parser.parse_args()
-
-
-	#Turn debugging off
-	if not ops.debug:
-		logging.basicConfig(level=logging.INFO)
-		ch.setLevel(logging.INFO)
-
-	#Parse user
-	user = ''
-	if type(os.getenv('FG_USER')) is not NoneType:
-		user = os.getenv('FG_USER')
-	elif type(ops.user) is not NoneType:
-		user = ops.user
-	else
-                user="default"
-	#TODO: authenticate user via promting for CERT or password to auth against LDAP db
-
-	logging.debug('FG User: '+user)
-
-
-
-	arch ="x86_64" #Default to 64-bit
-
-	#Parse arch command line arg
-	if type(ops.arch) is not NoneType:
-		if ops.arch == "i386" or ops.arch == "i686":
-			arch = "i386"
-		elif ops.arch == "amd64" or ops.arch== "x86_64":
-			arch = "x86_64"
-		else:	
-			parser.error("Incorrect architecture type specified (i386|x86_64)")
-			sys.exit(1)
-
-	logging.debug('Selected Architecture: '+arch)
-
-	#Parse Software stack list
-	if type(ops.software) is not NoneType:
-
-		#Assume its comma seperated, so parse
-		packages = re.split('[, ]',ops.software)
-		#packages = ops.software.split(', ')
-		packs = ' '.join(packages)
-		logging.debug('Selected software packages: '+packs)
-	else:
-		packs = None 
-
-	#TODO: Authorization mechanism TBD
-	if type(ops.auth) is not NoneType:
-		auth = ""
-
-	# Build the image
-	#Parse OS and version command line args
-	if ops.os == "Ubuntu" or ops.os == "ubuntu":
-		base_os = base_os+"ubuntu"+spacer
-
-		#Set base version
-		if type(ops.version) is NoneType:
-			version = latest_ubuntu
-		elif ops.version == "10.04" or ops.version == "lucid":
-			version = "lucid"
-		elif ops.version == "9.10" or ops.version =="karmic":
-			version = "karmic"
-		#TODO: can support older if necessary		
-		logging.info('Building Ubuntu '+version+' image')
-		
-		img = buildUbuntu(user+'-'+randid, version, arch, packs)
-
-	elif ops.os == "Debian" or ops.os == "debian":
-		base_os = base_os+"debian"+spacer
-	elif ops.os == "Redhat" or ops.os == "redhat" or ops.os == "rhel":
-		base_os = base_os+"rhel"+spacer
-	elif ops.os == "CentOS" or ops.os == "Centos" or ops.os == "centos":
-		base_os = base_os+"centos"+spacer
-	elif ops.os == "Fedora" or ops.os == "fedora":
-		base_os = base_os+"fedora"+spacer
-	else:
-		parser.error("Incorrect OS type specified")
-		sys.exit(1)
-
-
-	logging.info('Generated image is available at /tmp/'+img+'.img.  Please be aware that this FutureGrid image is packaged without a kernel and fstab and is not built for any deployment type.  To deploy the new image, use the fg-image-deploy command.')
-	
-	if type(ops.givenname) is NoneType:
-		ops.givenname = img
-	
-	if type(ops.desc) is NoneType:
-		ops.desc = " "
-	
-	manifest( user, img, ops.os, version, arch, packs, ops.givenname, ops.desc)
+    if os.getuid() != 0:
+    	print "Sorry, you need to run with root privileges"
+    	sys.exit(1)
+    
+    #help is auto-generated
+    parser.add_option("-o", "--os", dest="os", help="specify destination Operating System")
+    parser.add_option("-v", "--version", dest="version", help="Operating System version")
+    parser.add_option("-a", "--arch", dest="arch", help="Destination hardware architecture")
+    parser.add_option("-l", "--auth", dest="auth", help="Authentication mechanism")
+    parser.add_option("-s", "--software", dest="software", help="Software stack to be automatically installed")
+    parser.add_option("-d", "--debug", action="store_true", dest="debug", help="Enable debugging")
+    parser.add_option("-u", "--user", dest="user", help="FutureGrid username")
+    parser.add_option("-n", "--name", dest="givenname", help="Desired recognizable name of the image")
+    parser.add_option("-e", "--description", dest="desc", help="Short description of the image and its purpose")
+    
+    (ops, args) = parser.parse_args()
+    
+    
+    #Turn debugging off
+    if not ops.debug:
+    	logging.basicConfig(level=logging.INFO)
+    	ch.setLevel(logging.INFO)
+    
+    #Parse user
+    user = ''
+    if type(os.getenv('FG_USER')) is not NoneType:
+        user = os.getenv('FG_USER')
+    elif type(ops.user) is not NoneType:
+        user = ops.user
+    else:
+        user = "default"
+    #TODO: authenticate user via promting for CERT or password to auth against LDAP db
+    
+    logging.debug('FG User: ' + user)
+    
+    
+    
+    arch = "x86_64" #Default to 64-bit
+    
+    #Parse arch command line arg
+    if type(ops.arch) is not NoneType:
+    	if ops.arch == "i386" or ops.arch == "i686":
+    		arch = "i386"
+    	elif ops.arch == "amd64" or ops.arch == "x86_64":
+    		arch = "x86_64"
+    	else:	
+    		parser.error("Incorrect architecture type specified (i386|x86_64)")
+    		sys.exit(1)
+    
+    logging.debug('Selected Architecture: ' + arch)
+    
+    #Parse Software stack list
+    if type(ops.software) is not NoneType:
+    
+    	#Assume its comma seperated, so parse
+    	packages = re.split('[, ]', ops.software)
+    	#packages = ops.software.split(', ')
+    	packs = ' '.join(packages)
+    	logging.debug('Selected software packages: ' + packs)
+    else:
+    	packs = None 
+    
+    #TODO: Authorization mechanism TBD
+    if type(ops.auth) is not NoneType:
+    	auth = ""
+    
+    # Build the image
+    #Parse OS and version command line args
+    if ops.os == "Ubuntu" or ops.os == "ubuntu":
+    	base_os = base_os + "ubuntu" + spacer
+    
+    	#Set base version
+    	if type(ops.version) is NoneType:
+    		version = latest_ubuntu
+    	elif ops.version == "10.04" or ops.version == "lucid":
+    		version = "lucid"
+    	elif ops.version == "9.10" or ops.version == "karmic":
+    		version = "karmic"
+    	#TODO: can support older if necessary		
+    	logging.info('Building Ubuntu ' + version + ' image')
+    	
+    	img = buildUbuntu(user + '-' + randid, version, arch, packs)
+    
+    elif ops.os == "Debian" or ops.os == "debian":
+    	base_os = base_os + "debian" + spacer
+    elif ops.os == "Redhat" or ops.os == "redhat" or ops.os == "rhel":
+    	base_os = base_os + "rhel" + spacer
+    elif ops.os == "CentOS" or ops.os == "Centos" or ops.os == "centos":
+    	base_os = base_os + "centos" + spacer
+    elif ops.os == "Fedora" or ops.os == "fedora":
+    	base_os = base_os + "fedora" + spacer
+    else:
+    	parser.error("Incorrect OS type specified")
+    	sys.exit(1)
+    
+    
+    logging.info('Generated image is available at /tmp/' + img + '.img.  Please be aware that this FutureGrid image is packaged without a kernel and fstab and is not built for any deployment type.  To deploy the new image, use the fg-image-deploy command.')
+    
+    if type(ops.givenname) is NoneType:
+    	ops.givenname = img
+    
+    if type(ops.desc) is NoneType:
+    	ops.desc = " "
+    
+    manifest(user, img, ops.os, version, arch, packs, ops.givenname, ops.desc)
 
 
 	# Cleanup
@@ -183,25 +184,25 @@ def buildUbuntu(name, version, arch, pkgs):
 
 	ubuntuLog = logging.getLogger('ubuntu')
 
-	ubuntuLog.info('Retrieving Image: ubuntu-'+version+'-'+arch+'-base.img')
+	ubuntuLog.info('Retrieving Image: ubuntu-' + version + '-' + arch + '-base.img')
 	#Download base image from repository
-	runCmd('wget '+base_url+'base_os/ubuntu-'+version+'-'+arch+'-base.img -O /tmp/'+name+'.img')
+	runCmd('wget ' + base_url + 'base_os/ubuntu-' + version + '-' + arch + '-base.img -O /tmp/' + name + '.img')
 	
 	#Mount the new image
 	ubuntuLog.info('Mounting new image')
-	runCmd('mkdir /tmp/'+name)
-	runCmd('mount -o loop /tmp/'+name+'.img /tmp/'+name)
+	runCmd('mkdir /tmp/' + name)
+	runCmd('mount -o loop /tmp/' + name + '.img /tmp/' + name)
 	ubuntuLog.info('Mounted image')
 
 	#Mount proc and pts
-	runCmd('mount -t proc proc /tmp/'+name+'/proc')
-	runCmd('mount -t devpts devpts /tmp/'+name+'/dev/pts')
+	runCmd('mount -t proc proc /tmp/' + name + '/proc')
+	runCmd('mount -t devpts devpts /tmp/' + name + '/dev/pts')
 	ubuntuLog.info('Mounted proc and devpts')
 
 	#Setup networking
 	
-	runCmd('wget '+base_url+'/conf/ubuntu/interfaces -O /tmp/'+name+'/etc/network/interfaces')
-	os.system('echo localhost > /tmp/'+name+'/etc/hostname')
+	runCmd('wget ' + base_url + '/conf/ubuntu/interfaces -O /tmp/' + name + '/etc/network/interfaces')
+	os.system('echo localhost > /tmp/' + name + '/etc/hostname')
 	runCmd('hostname localhost')
 	ubuntuLog.info('Injected networking configuration')
 
@@ -209,8 +210,8 @@ def buildUbuntu(name, version, arch, pkgs):
 	#TODO: Set mirros to IU/FGt
 	ubuntuLog.info('Configuring repositories')
 	
-	runCmd('wget '+base_url+'/conf/ubuntu/'+version+'-sources.list -O /tmp/'+name+'/etc/apt/sources.list')
-	runCmd('chroot /tmp/'+name+' apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 98932BEC')
+	runCmd('wget ' + base_url + '/conf/ubuntu/' + version + '-sources.list -O /tmp/' + name + '/etc/apt/sources.list')
+	runCmd('chroot /tmp/' + name + ' apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 98932BEC')
 
 	#Set apt-get into noninteractive mode
 	#runCmd('chroot /tmp/'+name+' DEBIAN_FRONTEND=noninteractive')
@@ -218,22 +219,22 @@ def buildUbuntu(name, version, arch, pkgs):
 
 	# Install BCFG2 client
 	ubuntuLog.info('Installing BCFG2 client')
-	runCmd('chroot /tmp/'+name+' apt-get update')
+	runCmd('chroot /tmp/' + name + ' apt-get update')
 	#os.system('chroot /tmp/'+name+' apt-get update')
-	runCmd('chroot /tmp/'+name+' apt-get -y install bcfg2')
+	runCmd('chroot /tmp/' + name + ' apt-get -y install bcfg2')
 	#os.system('chroot /tmp/'+name+' apt-get -y install bcfg2')
 	ubuntuLog.info('Installed BCFG2 client')
 
 
 	#Configure BCFG2 client
 	ubuntuLog.info('Configuring BCFG2')
-	runCmd('wget '+base_url+'/bcfg2/bcfg2.conf -O /tmp/'+name+'/etc/bcfg2.conf')
-	runCmd('wget '+base_url+'/bcfg2/bcfg2.ca -O /tmp/'+name+'/etc/bcfg2.ca')
-	runCmd('wget '+base_url+'/bcfg2/default -O /tmp/'+name+'/etc/default/bcfg2')
+	runCmd('wget ' + base_url + '/bcfg2/bcfg2.conf -O /tmp/' + name + '/etc/bcfg2.conf')
+	runCmd('wget ' + base_url + '/bcfg2/bcfg2.ca -O /tmp/' + name + '/etc/bcfg2.ca')
+	runCmd('wget ' + base_url + '/bcfg2/default -O /tmp/' + name + '/etc/default/bcfg2')
 	ubuntuLog.info('Injected FG deployment files')
 
 	#Inject group info for Probes
-	os.system('echo '+name+' > /tmp/'+name+'/etc/bcfg2.group')
+	os.system('echo ' + name + ' > /tmp/' + name + '/etc/bcfg2.group')
 	ubuntuLog.info('Injected probes hook for unique group')
 	
 	ubuntuLog.info('Configured BCFG2 client settings')
@@ -241,7 +242,7 @@ def buildUbuntu(name, version, arch, pkgs):
 	#Install packages
 	if pkgs != None:
 		ubuntuLog.info('Installing user-defined packages')
-		runCmd('chroot /tmp/'+name+' apt-get -y install '+pkgs)
+		runCmd('chroot /tmp/' + name + ' apt-get -y install ' + pkgs)
 		ubuntuLog.info('Installed user-defined packages')
 
 
@@ -251,7 +252,7 @@ def buildUbuntu(name, version, arch, pkgs):
 	ubuntuLog.info('Setup new BCFG2 group')
 
 	#Finished, now clean up
-	ubuntuLog.info('Genereated Ubuntu image '+name+' successfully!')
+	ubuntuLog.info('Genereated Ubuntu image ' + name + ' successfully!')
 
 	cleanup(name)
 
@@ -286,12 +287,12 @@ def runCmd(cmd):
 	p = Popen(cmd.split(' '), stdout=PIPE, stderr=PIPE) 
 	std = p.communicate()
 	if len(std[0]) > 0: 
-		cmdLog.debug('stdout: '+std[0])
+		cmdLog.debug('stdout: ' + std[0])
 	#cmdLog.debug('stderr: '+std[1])
 
 	#cmdLog.debug('Ret status: '+str(p.returncode))
 	if p.returncode != 0:
-		cmdLog.error('Command: '+cmd+' failed, status: '+str(p.returncode)+' --- '+std[1])
+		cmdLog.error('Command: ' + cmd + ' failed, status: ' + str(p.returncode) + ' --- ' + std[1])
 		sys.exit(p.returncode)
 
 
@@ -300,11 +301,11 @@ def cleanup(name):
 	#Cleanup
 	cleanupLog = logging.getLogger('cleanup')
 
-	os.system('umount /tmp/'+name+'/proc')
-	os.system('umount /tmp/'+name+'/dev/pts')
+	os.system('umount /tmp/' + name + '/proc')
+	os.system('umount /tmp/' + name + '/dev/pts')
 	
-	cmd = 'umount /tmp/'+name
-	cleanupLog.debug('Executing: '+cmd)
+	cmd = 'umount /tmp/' + name
+	cleanupLog.debug('Executing: ' + cmd)
 	os.system(cmd)
 	 
 	cleanupLog.debug('Cleaned up mount points')
@@ -369,7 +370,7 @@ def manifest(user, name, os, version, arch, pkgs, givenname, description):
 	
 	head.appendChild(packagesNode)
 
-	filename = '/tmp/'+name+'.manifest.xml'
+	filename = '/tmp/' + name + '.manifest.xml'
 	file = open(filename, 'w')
 	#Document.PrettyPrint(manifest, file)
 	#manifest.writexml(file, indent='	', addindent='	', newl='\n')
@@ -377,7 +378,7 @@ def manifest(user, name, os, version, arch, pkgs, givenname, description):
 	output = manifest.toprettyxml()
 	file.write(output)
 	
-	manifestLog.info('Genereated manifest file: '+filename)
+	manifestLog.info('Genereated manifest file: ' + filename)
 	
 def push_bcfg2_group(name, pkgs, os, version):
 	#Push the group information to the BCFG2 server via a socket connection
@@ -389,24 +390,24 @@ def push_bcfg2_group(name, pkgs, os, version):
 	bcfg2.send(name)
 	ret = bcfg2.recv(100)
 	if ret != 'OK':
-		logging.error('Incorrect reply from the server:'+ret)
+		logging.error('Incorrect reply from the server:' + ret)
 		sys.exit(1)
 	#Send OS 
 	bcfg2.send(os)
 	ret = bcfg2.recv(100)
 	if ret != 'OK':
-		logging.error('Incorrect reply from the server:'+ret)
+		logging.error('Incorrect reply from the server:' + ret)
 		sys.exit(1)
 	#Send OS Version
 	bcfg2.send(version)
 	ret = bcfg2.recv(100)
 	if ret != 'OK':
-		logging.error('Incorrect reply from the server:'+ret)
+		logging.error('Incorrect reply from the server:' + ret)
 	#Send package information
 	bcfg2.send(pkgs)
 	ret = bcfg2.recv(100)
 	if ret != 'OK':
-		logging.error('Incorrect reply from the server:'+ret)
+		logging.error('Incorrect reply from the server:' + ret)
 		sys.exit(1)
 
 

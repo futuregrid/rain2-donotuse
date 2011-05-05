@@ -1,3 +1,4 @@
+#!/bin/bash
 #This must be executed in a CentOS machine
 
 #version can be 5.6 or 5.5
@@ -14,10 +15,10 @@ mount -o loop $IMG_FILE $DEST
 
 if [ $VER =='5.5' ] 
 then
-    wget http://mirror.centos.org/centos/5.5/os/x86_64/CentOS/centos-release-5-5.el5.centos.x86_64.rpm -o centos-release.rpm
+    wget http://mirror.centos.org/centos/5.5/os/x86_64/CentOS/centos-release-5-5.el5.centos.x86_64.rpm -O centos-release.rpm
 elif [ $VER == '5.6' ]
 then
-    wget http://mirror.centos.org/centos/5.6/os/x86_64/CentOS/centos-release-5-6.el5.centos.1.x86_64.rpm -o centos-release.rpm
+    wget http://mirror.centos.org/centos/5.6/os/x86_64/CentOS/centos-release-5-6.el5.centos.1.x86_64.rpm -O centos-release.rpm
 fi
 
 rpm -ihv --nodeps --root $DEST centos-release.rpm
