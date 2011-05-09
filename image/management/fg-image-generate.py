@@ -24,7 +24,7 @@ from xml.dom.minidom import Document, parse
 base_url = "http://fg-gravel3.futuregrid.iu.edu/"
 bcfg2_url = 'fg-gravel3.futuregrid.iu.edu'
 bcfg2_port = 45678
-namedir = "" #this is to clean up when something fails
+namedir = "" #this == name is to clean up when something fails
 tempdir="/tmp/"  #directory to do create temporal files
 
 def main():    
@@ -183,6 +183,8 @@ def main():
     if type(ops.desc) is NoneType:
         ops.desc = " "
     
+    
+    
     manifest(user, img, ops.os, version, arch, packs, ops.givenname, ops.desc)
 
 
@@ -192,6 +194,8 @@ def main():
 #END MAIN
 
 def buildUbuntu(name, version, arch, pkgs):
+
+    
 
     ubuntuLog = logging.getLogger('ubuntu')
 
@@ -322,7 +326,7 @@ def buildCentos(name, version, arch, pkgs, base_os):
         centosLog.info('Copying configuration files')
         
         if (os.path.isfile("/etc/resolv.conf")):
-            runCmd('cp /etc/resolv.conf $DEST/etc/')
+            runCmd('cp /etc/resolv.conf '+tempdir+''+name +'/etc/')
         
         runCmd('cp /etc/sysconfig/network '+tempdir+''+name+'/etc/sysconfig/')
         
@@ -337,6 +341,7 @@ def buildCentos(name, version, arch, pkgs, base_os):
     #Setup networking
     
     runCmd('wget ' + base_url + '/conf/centos/ifcfg-eth0 -O '+tempdir+''+name + '/etc/sysconfig/network-scripts/ifcfg-eth0')    
+    runCmd('wget ' + base_url + '/conf/centos/ifcfg-eth1 -O '+tempdir+''+name + '/etc/sysconfig/network-scripts/ifcfg-eth1')
     #os.system('echo localhost > '+tempdir+''+name + '/etc/hostname')
     #runCmd('hostname localhost')
     centosLog.info('Injected networking configuration')
