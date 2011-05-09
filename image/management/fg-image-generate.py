@@ -289,8 +289,7 @@ def buildCentos(name, version, arch, pkgs, base_os):
         centosLog.info('Generation Image: centos-' + version + '-' + arch + '-base.img')
      
         #to create base_os    
-        centosLog.info('Creating Disk for the image')
-        print 'dd if=/dev/zero of='+tempdir+' '+ name +'.img bs=1024k seek=2048 count=0'
+        centosLog.info('Creating Disk for the image')        
         runCmd('dd if=/dev/zero of='+tempdir+''+name+'.img bs=1024k seek=2048 count=0')
         runCmd('mke2fs -F -j '+tempdir+''+name+'.img')
     
@@ -303,7 +302,7 @@ def buildCentos(name, version, arch, pkgs, base_os):
     if base_os:
         #to create base_os
         centosLog.info('Create directories image')
-        runCmd('mkdir -p '+tempdir+''+name+'/var/lib/rpm '+tempdir+''+name+'/var/log '+tempdir+''+name+'/dev/pts ')
+        runCmd('mkdir -p '+tempdir+''+name+'/var/lib/rpm '+tempdir+''+name+'/var/log '+tempdir+''+name+'/dev/pts')
         runCmd('touch '+tempdir+''+name+'/var/log/yum.log')    
     
         #to create base_os
