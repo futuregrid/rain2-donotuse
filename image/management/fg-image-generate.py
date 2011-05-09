@@ -201,19 +201,19 @@ def buildUbuntu(name, version, arch, pkgs):
     
     #Mount the new image
     ubuntuLog.info('Mounting new image')
-    runCmd('mkdir '+tempdir+' ' + name)
-    runCmd('mount -o loop '+tempdir+' ' + name + '.img '+tempdir+' ' + name)
+    runCmd('mkdir '+tempdir+''+name)
+    runCmd('mount -o loop '+tempdir+''+name + '.img '+tempdir+''+name)
     ubuntuLog.info('Mounted image')
 
     #Mount proc and pts
-    runCmd('mount -t proc proc '+tempdir+' ' + name + '/proc')
-    runCmd('mount -t devpts devpts '+tempdir+' ' + name + '/dev/pts')
+    runCmd('mount -t proc proc '+tempdir+''+name + '/proc')
+    runCmd('mount -t devpts devpts '+tempdir+''+name + '/dev/pts')
     ubuntuLog.info('Mounted proc and devpts')
 
     #Setup networking
     
-    runCmd('wget ' + base_url + '/conf/ubuntu/interfaces -O '+tempdir+' ' + name + '/etc/network/interfaces')
-    os.system('echo localhost > '+tempdir+' ' + name + '/etc/hostname')
+    runCmd('wget ' + base_url + '/conf/ubuntu/interfaces -O '+tempdir+''+name + '/etc/network/interfaces')
+    os.system('echo localhost > '+tempdir+''+name + '/etc/hostname')
     runCmd('hostname localhost')
     ubuntuLog.info('Injected networking configuration')
 
@@ -221,8 +221,8 @@ def buildUbuntu(name, version, arch, pkgs):
     #TODO: Set mirros to IU/FGt
     ubuntuLog.info('Configuring repositories')
     
-    runCmd('wget ' + base_url + '/conf/ubuntu/' + version + '-sources.list -O '+tempdir+' ' + name + '/etc/apt/sources.list')
-    runCmd('chroot '+tempdir+' ' + name + ' apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 98932BEC')
+    runCmd('wget ' + base_url + '/conf/ubuntu/' + version + '-sources.list -O '+tempdir+''+name + '/etc/apt/sources.list')
+    runCmd('chroot '+tempdir+''+name + ' apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 98932BEC')
 
     #Set apt-get into noninteractive mode
     #runCmd('chroot '+tempdir+' '+name+' DEBIAN_FRONTEND=noninteractive')
@@ -230,22 +230,22 @@ def buildUbuntu(name, version, arch, pkgs):
 
     # Install BCFG2 client
     ubuntuLog.info('Installing BCFG2 client')
-    runCmd('chroot '+tempdir+' ' + name + ' apt-get update')
+    runCmd('chroot '+tempdir+''+name + ' apt-get update')
     #os.system('chroot '+tempdir+' '+name+' apt-get update')
-    runCmd('chroot '+tempdir+' ' + name + ' apt-get -y install bcfg2')
+    runCmd('chroot '+tempdir+''+name + ' apt-get -y install bcfg2')
     #os.system('chroot '+tempdir+' '+name+' apt-get -y install bcfg2')
     ubuntuLog.info('Installed BCFG2 client')
 
 
     #Configure BCFG2 client
     ubuntuLog.info('Configuring BCFG2')
-    runCmd('wget ' + base_url + '/bcfg2/bcfg2.conf -O '+tempdir+' ' + name + '/etc/bcfg2.conf')
-    runCmd('wget ' + base_url + '/bcfg2/bcfg2.ca -O '+tempdir+' ' + name + '/etc/bcfg2.ca')
-    runCmd('wget ' + base_url + '/bcfg2/default -O '+tempdir+' ' + name + '/etc/default/bcfg2')
+    runCmd('wget ' + base_url + '/bcfg2/bcfg2.conf -O '+tempdir+''+name + '/etc/bcfg2.conf')
+    runCmd('wget ' + base_url + '/bcfg2/bcfg2.ca -O '+tempdir+''+name + '/etc/bcfg2.ca')
+    runCmd('wget ' + base_url + '/bcfg2/default -O '+tempdir+''+name + '/etc/default/bcfg2')
     ubuntuLog.info('Injected FG deployment files')
 
     #Inject group info for Probes
-    os.system('echo ' + name + ' > '+tempdir+' ' + name + '/etc/bcfg2.group')
+    os.system('echo ' + name + ' > '+tempdir+''+name + '/etc/bcfg2.group')
     ubuntuLog.info('Injected probes hook for unique group')
     
     ubuntuLog.info('Configured BCFG2 client settings')
@@ -253,7 +253,7 @@ def buildUbuntu(name, version, arch, pkgs):
     #Install packages
     if pkgs != None:
         ubuntuLog.info('Installing user-defined packages')
-        runCmd('chroot '+tempdir+' ' + name + ' apt-get -y install ' + pkgs)
+        runCmd('chroot '+tempdir+''+name + ' apt-get -y install ' + pkgs)
         ubuntuLog.info('Installed user-defined packages')
 
     #Setup BCFG2 server groups
@@ -284,7 +284,7 @@ def buildCentos(name, version, arch, pkgs, base_os):
     if not base_os:
         centosLog.info('Retrieving Image: centos-' + version + '-' + arch + '-base.img')
         #Download base image from repository
-        runCmd('wget ' + base_url + 'base_os/centos-' + version + '-' + arch + '-base.img -O '+tempdir+' ' + name + '.img')
+        runCmd('wget ' + base_url + 'base_os/centos-' + version + '-' + arch + '-base.img -O '+tempdir+''+name + '.img')
     elif base_os:
         centosLog.info('Generation Image: centos-' + version + '-' + arch + '-base.img')
      
@@ -292,19 +292,19 @@ def buildCentos(name, version, arch, pkgs, base_os):
         centosLog.info('Creating Disk for the image')
         print 'dd if=/dev/zero of='+tempdir+' '+ name +'.img bs=1024k seek=2048 count=0'
         runCmd('dd if=/dev/zero of='+tempdir+''+name+'.img bs=1024k seek=2048 count=0')
-        runCmd('mke2fs -F -j '+tempdir+' ' + name + '.img')
+        runCmd('mke2fs -F -j '+tempdir+''+name+'.img')
     
     #Mount the new image
     centosLog.info('Mounting new image')
-    runCmd('mkdir '+tempdir+' ' + name)
-    runCmd('mount -o loop '+tempdir+' ' + name + '.img '+tempdir+' ' + name)
+    runCmd('mkdir '+tempdir+''+name)
+    runCmd('mount -o loop '+tempdir+''+name + '.img '+tempdir+''+name)
     centosLog.info('Mounted image')
 
     if base_os:
         #to create base_os
         centosLog.info('Create directories image')
-        runCmd('mkdir -p '+tempdir+' ' + name+'/var/lib/rpm '+tempdir+' ' + name+'/var/log '+tempdir+' ' + name+'/dev/pts ')
-        runCmd('touch '+tempdir+' ' + name+'/var/log/yum.log')    
+        runCmd('mkdir -p '+tempdir+''+name+'/var/lib/rpm '+tempdir+''+name+'/var/log '+tempdir+''+name+'/dev/pts ')
+        runCmd('touch '+tempdir+''+name+'/var/log/yum.log')    
     
         #to create base_os
         centosLog.info('Getting appropiate release package')
@@ -313,32 +313,32 @@ def buildCentos(name, version, arch, pkgs, base_os):
         elif(version == "5.5"): #the 5.5 is not supported yet
             runCmd('wget http://mirror.centos.org/centos/5.5/os/x86_64/CentOS/centos-release-5-5.el5.centos.x86_64.rpm -O centos-release.rpm')
         
-        runCmd('rpm -ihv --nodeps --root '+tempdir+' ' + name+' centos-release.rpm')
+        runCmd('rpm -ihv --nodeps --root '+tempdir+''+name+' centos-release.rpm')
         
         #to create base_os
         #centosLog.info('Modifying repositories to match the version requested')
         centosLog.info('Installing base OS')
-        runCmd('yum --installroot='+tempdir+' ' + name+' -y groupinstall Core')
+        runCmd('yum --installroot='+tempdir+''+name+' -y groupinstall Core')
         
         centosLog.info('Copying configuration files')
         
         if (os.path.isfile("/etc/resolv.conf")):
             runCmd('cp /etc/resolv.conf $DEST/etc/')
         
-        runCmd('cp /etc/sysconfig/network '+tempdir+' ' + name+'/etc/sysconfig/')
+        runCmd('cp /etc/sysconfig/network '+tempdir+''+name+'/etc/sysconfig/')
         
-        runCmd('echo "127.0.0.1 localhost.localdomain localhost" > '+tempdir+' ' + name+'/etc/hosts')    
+        runCmd('echo "127.0.0.1 localhost.localdomain localhost" > '+tempdir+''+name+'/etc/hosts')    
         #base_os done
     
     #Mount proc and pts
-    #runCmd('mount -t proc proc '+tempdir+' ' + name + '/proc')
-    #runCmd('mount -t devpts devpts '+tempdir+' ' + name + '/dev/pts')
+    #runCmd('mount -t proc proc '+tempdir+''+name + '/proc')
+    #runCmd('mount -t devpts devpts '+tempdir+''+name + '/dev/pts')
     #centosLog.info('Mounted proc and devpts')
 
     #Setup networking
     
-    runCmd('wget ' + base_url + '/conf/centos/ifcfg-eth0 -O '+tempdir+' ' + name + '/etc/sysconfig/network-scripts/ifcfg-eth0')    
-    #os.system('echo localhost > '+tempdir+' ' + name + '/etc/hostname')
+    runCmd('wget ' + base_url + '/conf/centos/ifcfg-eth0 -O '+tempdir+''+name + '/etc/sysconfig/network-scripts/ifcfg-eth0')    
+    #os.system('echo localhost > '+tempdir+''+name + '/etc/hostname')
     #runCmd('hostname localhost')
     centosLog.info('Injected networking configuration')
 
@@ -351,22 +351,22 @@ def buildCentos(name, version, arch, pkgs, base_os):
     # Install BCFG2 client
     
     centosLog.info('Installing BCFG2 client')
-    runCmd('chroot '+tempdir+' ' + name + ' rpm -ivh http://download.fedora.redhat.com/pub/epel/5/i386/epel-release-5-4.noarch.rpm')
+    runCmd('chroot '+tempdir+''+name + ' rpm -ivh http://download.fedora.redhat.com/pub/epel/5/i386/epel-release-5-4.noarch.rpm')
     """"    
-    runCmd('chroot '+tempdir+' ' + name + ' yum -y install bcfg2')
+    runCmd('chroot '+tempdir+''+name + ' yum -y install bcfg2')
     #os.system('chroot '+tempdir+' '+name+' apt-get -y install bcfg2')
     centosLog.info('Installed BCFG2 client')
 
     
     #Configure BCFG2 client
     centosLog.info('Configuring BCFG2')
-    runCmd('wget ' + base_url + '/bcfg2/bcfg2.conf -O '+tempdir+' ' + name + '/etc/bcfg2.conf')
-    runCmd('wget ' + base_url + '/bcfg2/bcfg2.ca -O '+tempdir+' ' + name + '/etc/bcfg2.ca')
-    runCmd('wget ' + base_url + '/bcfg2/default -O '+tempdir+' ' + name + '/etc/default/bcfg2')
+    runCmd('wget ' + base_url + '/bcfg2/bcfg2.conf -O '+tempdir+''+name + '/etc/bcfg2.conf')
+    runCmd('wget ' + base_url + '/bcfg2/bcfg2.ca -O '+tempdir+''+name + '/etc/bcfg2.ca')
+    runCmd('wget ' + base_url + '/bcfg2/default -O '+tempdir+''+name + '/etc/default/bcfg2')
     centosLog.info('Injected FG deployment files')
 
     #Inject group info for Probes
-    os.system('echo ' + name + ' > '+tempdir+' ' + name + '/etc/bcfg2.group')
+    os.system('echo ' + name + ' > '+tempdir+''+name + '/etc/bcfg2.group')
     centosLog.info('Injected probes hook for unique group')
     
     centosLog.info('Configured BCFG2 client settings')
@@ -374,7 +374,7 @@ def buildCentos(name, version, arch, pkgs, base_os):
     #Install packages
     if pkgs != None:
         centosLog.info('Installing user-defined packages')
-        runCmd('chroot '+tempdir+' ' + name + ' yum -y install ' + pkgs)
+        runCmd('chroot '+tempdir+''+name + ' yum -y install ' + pkgs)
         centosLog.info('Installed user-defined packages')
 
     #Setup BCFG2 server groups
@@ -419,10 +419,10 @@ def cleanup(name):
     #Cleanup
     cleanupLog = logging.getLogger('cleanup')
 
-    os.system('umount '+tempdir+' ' + name + '/proc')
-    os.system('umount '+tempdir+' ' + name + '/dev/pts')
+    os.system('umount '+tempdir+''+name + '/proc')
+    os.system('umount '+tempdir+''+name + '/dev/pts')
     
-    cmd = 'umount '+tempdir+' ' + name
+    cmd = 'umount '+tempdir+''+name
     cleanupLog.debug('Executing: ' + cmd)
     os.system(cmd)
      
@@ -488,7 +488,7 @@ def manifest(user, name, os, version, arch, pkgs, givenname, description):
     
     head.appendChild(packagesNode)
 
-    filename = ''+tempdir+' ' + name + '.manifest.xml'
+    filename = ''+tempdir+''+name + '.manifest.xml'
     file = open(filename, 'w')
     #Document.PrettyPrint(manifest, file)
     #manifest.writexml(file, indent='    ', addindent='    ', newl='\n')
