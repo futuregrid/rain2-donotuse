@@ -18,7 +18,8 @@ from subprocess import *
 #from xml.dom.ext import *
 from xml.dom.minidom import Document, parse
 
-
+#This enable some extra config for the mini-cluster
+TEST_MODE=True
 
 #global vars
 base_url = "http://fg-gravel3.futuregrid.iu.edu/"
@@ -83,7 +84,7 @@ def main():
     parser.add_option("-u", "--user", dest="user", help="FutureGrid username")
     parser.add_option("-n", "--name", dest="givenname", help="Desired recognizable name of the image")
     parser.add_option("-e", "--description", dest="desc", help="Short description of the image and its purpose")
-    
+        
     (ops, args) = parser.parse_args()
     
     
@@ -94,12 +95,21 @@ def main():
     
     #Parse user
     user = ''
-    if type(os.getenv('FG_USER')) is not NoneType:
-        user = os.getenv('FG_USER')
-    elif type(ops.user) is not NoneType:
-        user = ops.user
-    else:
-        user = "default"
+    try:
+        user = os.environ['FG_USER']
+    except KeyError:
+        if type(ops.user) is not NoneType:
+            user = ops.user
+        else:
+            print "FG_USER is not defined, we are using default user name"
+            user = "default"
+    
+    #if type(os.getenv('FG_USER')) is not NoneType:
+    #    user = os.getenv('FG_USER')
+    #elif type(ops.user) is not NoneType:
+    #    user = ops.user
+    #else:
+        #user = "default"
     #TODO: authenticate user via promting for CERT or password to auth against LDAP db
     
     logging.debug('FG User: ' + user)
@@ -166,7 +176,9 @@ def main():
             version = latest_centos        
                 
         logging.info('Building Centos ' + version + ' image')        
-        img = buildCentos(user + '-' + randid, version, arch, packs, True)
+        create_base_os=True
+        config_ldap=True
+        img = buildCentos(user + '-' + randid, version, arch, packs, create_base_os, config_ldap)
         
     elif ops.os == "Fedora" or ops.os == "fedora":
         base_os = base_os + "fedora" + spacer
@@ -281,7 +293,7 @@ def buildRHEL(name, version, arch):
     runCmd('')
 
 
-def buildCentos(name, version, arch, pkgs, base_os):
+def buildCentos(name, version, arch, pkgs, base_os, ldap):
 
     centosLog = logging.getLogger('centos')
     
@@ -325,13 +337,29 @@ def buildCentos(name, version, arch, pkgs, base_os):
         
         centosLog.info('Copying configuration files')
         
-        if (os.path.isfile("/etc/resolv.conf")):
-            runCmd('cp /etc/resolv.conf '+tempdir+''+name +'/etc/')
+        runCmd('echo "search idpm" > '+tempdir+''+name+'/etc/resolv.conf')
+        runCmd('echo "nameserver 129.79.1.1" > '+tempdir+''+name+'/etc/resolv.conf')
+        runCmd('echo "nameserver 172.29.202.149" > '+tempdir+''+name+'/etc/resolv.conf')
         
         runCmd('cp /etc/sysconfig/network '+tempdir+''+name+'/etc/sysconfig/')
         
         runCmd('echo "127.0.0.1 localhost.localdomain localhost" > '+tempdir+''+name+'/etc/hosts')    
         #base_os done
+    
+    if (ldap):
+        #this is for LDAP auth and mount home dirs. Later, we may control if we install this or not.
+        centosLog.info('Installing some util packages')
+        runCmd('chroot '+tempdir+''+name+' yum -y install openldap-clients wget nfs-utils')
+        
+        centosLog.info('Configuring LDAP access')        
+        runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/nsswitch.conf -O '+tempdir+''+name+'/etc/nsswitch.conf')
+        runCmd('mkdir -p '+tempdir+''+name+'/etc/openldap/cacerts '+tempdir+''+name+'/N/u')
+        runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/cacerts/12d3b66a.0 -O '+tempdir+''+name+'/etc/openldap/cacerts/12d3b66a.0')
+        runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/cacerts/cacert.pem -O '+tempdir+''+name+'/etc/openldap/cacerts/cacert.pem')
+        runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/sshd -O '+tempdir+''+name+'/usr/sbin/sshd')
+        runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/ldap.conf -O '+tempdir+''+name+'/etc/ldap.conf')
+        runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/openldap/ldap.conf -O '+tempdir+''+name+'/etc/openldap/ldap.conf')
+        runCmd('sed -i \'s/enforcing/disabled/g\' '+tempdir+''+name+'/etc/selinux/config')        
     
     #Mount proc and pts
     #runCmd('mount -t proc proc '+tempdir+''+name + '/proc')
@@ -340,8 +368,19 @@ def buildCentos(name, version, arch, pkgs, base_os):
 
     #Setup networking
     
-    runCmd('wget ' + base_url + '/conf/centos/ifcfg-eth0 -O '+tempdir+''+name + '/etc/sysconfig/network-scripts/ifcfg-eth0')    
-    runCmd('wget ' + base_url + '/conf/centos/ifcfg-eth1 -O '+tempdir+''+name + '/etc/sysconfig/network-scripts/ifcfg-eth1')
+    runCmd('wget ' + base_url + '/conf/centos/ifcfg-eth0 -O '+tempdir+''+name + '/etc/sysconfig/network-scripts/ifcfg-eth0')
+    if(TEST_MODE):
+        #this eth1 is just for miniclusetr. comment this and uncomment the next one for india  
+        runCmd('wget ' + base_url + '/conf/centos/ifcfg-eth1_minicluster -O '+tempdir+''+name + '/etc/sysconfig/network-scripts/ifcfg-eth1')
+        runCmd('echo "172.29.200.3 tc1" >> '+tempdir+''+name+'/etc/hosts')
+        runCmd('echo "149.165.145.35 tc1r.tidp.iu.futuregrid.org tc1r" >> '+tempdir+''+name+'/etc/hosts')
+        runCmd('echo "172.29.200.4 tc2" >> '+tempdir+''+name+'/etc/hosts')
+        runCmd('echo "149.165.145.36 tc2r.tidp.iu.futuregrid.org tc2r" >> '+tempdir+''+name+'/etc/hosts')
+
+    else:    
+        runCmd('wget ' + base_url + '/conf/centos/ifcfg-eth1 -O '+tempdir+''+name + '/etc/sysconfig/network-scripts/ifcfg-eth1')
+        runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/hosts -O '+tempdir+''+name+'/etc/hosts')
+    
     #os.system('echo localhost > '+tempdir+''+name + '/etc/hostname')
     #runCmd('hostname localhost')
     centosLog.info('Injected networking configuration')

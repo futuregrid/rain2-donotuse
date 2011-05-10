@@ -216,6 +216,7 @@ devpts  /dev/pts devpts   gid=5,mode=620 0 0
 tmpfs   /dev/shm tmpfs    defaults       0 0
 proc    /proc    proc     defaults       0 0
 sysfs   /sys     sysfs    defaults       0 0
+149.165.145.50:/users /N/u      nfs     rw,rsize=1048576,wsize=1048576,intr,nosuid
  '''
         os.system('sudo echo \"'+fstab+'\" > /tmp/rootimg/etc/fstab')
         logger.info('Injected fstab')
