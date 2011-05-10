@@ -351,7 +351,7 @@ def buildCentos(name, version, arch, pkgs, base_os, ldap):
     if (ldap):
         #this is for LDAP auth and mount home dirs. Later, we may control if we install this or not.
         centosLog.info('Installing some util packages')
-        runCmd('chroot '+tempdir+''+name+' yum -y install openldap-clients wget nfs-utils')
+        runCmd('chroot '+tempdir+''+name+' yum -y install openldap-clients nss_ldap wget nfs-utils')
         
         centosLog.info('Configuring LDAP access')        
         runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/nsswitch.conf -O '+tempdir+''+name+'/etc/nsswitch.conf')
