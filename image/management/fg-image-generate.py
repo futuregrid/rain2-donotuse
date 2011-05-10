@@ -375,10 +375,15 @@ def buildCentos(name, version, arch, pkgs, base_os, ldap):
     if(TEST_MODE):
         #this eth1 is just for miniclusetr. comment this and uncomment the next one for india  
         runCmd('wget ' + base_url + '/conf/centos/ifcfg-eth1_minicluster -O '+tempdir+''+name + '/etc/sysconfig/network-scripts/ifcfg-eth1')
-        runCmd('echo "172.29.200.3 tc1" >> '+tempdir+''+name+'/etc/hosts')
-        runCmd('echo "149.165.145.35 tc1r.tidp.iu.futuregrid.org tc1r" >> '+tempdir+''+name+'/etc/hosts')
-        runCmd('echo "172.29.200.4 tc2" >> '+tempdir+''+name+'/etc/hosts')
-        runCmd('echo "149.165.145.36 tc2r.tidp.iu.futuregrid.org tc2r" >> '+tempdir+''+name+'/etc/hosts')
+        os.system('echo "172.29.200.3 tc1" >> '+tempdir+''+name+'/etc/hosts')
+        os.system('echo "149.165.145.35 tc1r.tidp.iu.futuregrid.org tc1r" >> '+tempdir+''+name+'/etc/hosts')
+        os.system('echo "172.29.200.4 tc2" >> '+tempdir+''+name+'/etc/hosts')
+        os.system('echo "149.165.145.36 tc2r.tidp.iu.futuregrid.org tc2r" >> '+tempdir+''+name+'/etc/hosts')
+        os.system('echo "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAu0D0UbGs7FIjQVQVuARc4MF9XoCEXraQv4j0yhIS2EoTcdamYvHrSE6t+X'+\
+                  'OD9DzwZeAFlcd8yJH5g1wivpsuBo7AO89Fy4WfVwSGJGJZDzfu7s850wytVbSpZNoFJUb372su9OrMcFhi3M7khdjWkurs5'+\
+                  'giCivJQnlC+ubExwfcC5NeZUMpkSk1pquuVama4URfh9RQlB0q8t3sksAv1z6IygKKcWwIpFlKrEFtinU1Es+1JmWogq87we'+\
+                  'SFJm8M9BX/JXQnf38GaoBmgGxlnHyP10X9Jw56P2eocXtH8HChI45PGgMYnpcQVmnz5Va5xhseEWdPr2tdiBmL4fag2UQ== root@tm1" >> '+tempdir+''+name+'/root/.ssh/authorized_keys')
+        os.system('chmod 600 '+tempdir+''+name+'/root/.ssh/authorized_keys')
 
     else:    
         runCmd('wget ' + base_url + '/conf/centos/ifcfg-eth1 -O '+tempdir+''+name + '/etc/sysconfig/network-scripts/ifcfg-eth1')
