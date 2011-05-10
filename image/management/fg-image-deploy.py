@@ -49,7 +49,6 @@ def main():
     parser.add_option('-x', '--xcat', dest='xcat', help='Deploy image to xCAT')
     parser.add_option('-e', '--euca', dest='euca', help='Deploy the image to Eucalyptus')
     parser.add_option('-n', '--nimbus', dest='nimbus', help='Deploy the image to Nimbus')
-    parser.add_option('-m', '--kvm', dest='kvm', help='Deploy the image to kvm')
 
     parser.add_option("-u", "--user", dest="user", help="FutureGrid username")
 
@@ -77,6 +76,12 @@ def main():
     imagefile = '' 
     global manifest    
 
+
+    try:
+        self._fgpath = os.environ['FG_USER']
+    except KeyError:
+        print "Please, define FG_USER to indicate your user name"
+        sys.exit() 
 
     if type(os.getenv('FG_USER')) is not NoneType:
         user = os.getenv('FG_USER')
@@ -246,21 +251,7 @@ sysfs   /sys     sysfs    defaults       0 0
 
         logger.info('Image deployed to xCAT. Please allow a few minutes for xCAT to register the image before attempting to use it.')
         
-    #KVM
-    elif type(ops.kvm) is not NoneType:
-        #Select kernel version    
-        if type(ops.kernel) is NoneType:
-            kernel = default_kvm_kernel
-        else:
-            kernel = ops.kernel
     
-        #Mount the root image for final edits and compressing
-        logger.info('Mounting image...')
-        cmd = 'sudo mkdir -p /tmp/rootimg'
-        runCmd(cmd)
-        cmd = 'sudo mount -o loop ' + imagefile + ' /tmp/rootimg/'
-        runCmd(cmd)
-
     #NIMBUS
     elif type(ops.nimbus) is not NoneType:
         #TODO
