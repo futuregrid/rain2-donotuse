@@ -78,15 +78,18 @@ def main():
 
 
     try:
-        self._fgpath = os.environ['FG_USER']
+        user = os.environ['FG_USER']
     except KeyError:
-        print "Please, define FG_USER to indicate your user name"
-        sys.exit() 
+    	if type(ops.user) is not NoneType:
+            user = ops.user
+        else:
+            print "Please, define FG_USER to indicate your user name"
+            sys.exit() 
 
-    if type(os.getenv('FG_USER')) is not NoneType:
-        user = os.getenv('FG_USER')
-    elif type(ops.user) is not NoneType:
-        user = ops.user
+    #if type(os.getenv('FG_USER')) is not NoneType:
+    #    user = os.getenv('FG_USER')
+    #elif type(ops.user) is not NoneType:
+    #   user = ops.user
     #TODO: authenticate user via promting for CERT or password to auth against LDAP 
 
     #Get image destination
