@@ -295,6 +295,8 @@ def buildRHEL(name, version, arch):
 
 def buildCentos(name, version, arch, pkgs, base_os, ldap):
 
+    namedir=name
+
     centosLog = logging.getLogger('centos')
     
     if not base_os:
@@ -337,13 +339,13 @@ def buildCentos(name, version, arch, pkgs, base_os, ldap):
         
         centosLog.info('Copying configuration files')
         
-        runCmd('echo "search idpm" > '+tempdir+''+name+'/etc/resolv.conf')
-        runCmd('echo "nameserver 129.79.1.1" > '+tempdir+''+name+'/etc/resolv.conf')
-        runCmd('echo "nameserver 172.29.202.149" > '+tempdir+''+name+'/etc/resolv.conf')
+        os.system('echo "search idpm" > '+tempdir+''+name+'/etc/resolv.conf')
+        os.system('echo "nameserver 129.79.1.1" >> '+tempdir+''+name+'/etc/resolv.conf')
+        os.system('echo "nameserver 172.29.202.149" >> '+tempdir+''+name+'/etc/resolv.conf')
         
         runCmd('cp /etc/sysconfig/network '+tempdir+''+name+'/etc/sysconfig/')
         
-        runCmd('echo "127.0.0.1 localhost.localdomain localhost" > '+tempdir+''+name+'/etc/hosts')    
+        os.system('echo "127.0.0.1 localhost.localdomain localhost" > '+tempdir+''+name+'/etc/hosts')    
         #base_os done
     
     if (ldap):
@@ -359,7 +361,7 @@ def buildCentos(name, version, arch, pkgs, base_os, ldap):
         runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/sshd -O '+tempdir+''+name+'/usr/sbin/sshd')
         runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/ldap.conf -O '+tempdir+''+name+'/etc/ldap.conf')
         runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/openldap/ldap.conf -O '+tempdir+''+name+'/etc/openldap/ldap.conf')
-        runCmd('sed -i \'s/enforcing/disabled/g\' '+tempdir+''+name+'/etc/selinux/config')        
+        os.system('sed -i \'s/enforcing/disabled/g\' '+tempdir+''+name+'/etc/selinux/config')        
     
     #Mount proc and pts
     #runCmd('mount -t proc proc '+tempdir+''+name + '/proc')
@@ -369,6 +371,7 @@ def buildCentos(name, version, arch, pkgs, base_os, ldap):
     #Setup networking
     
     runCmd('wget ' + base_url + '/conf/centos/ifcfg-eth0 -O '+tempdir+''+name + '/etc/sysconfig/network-scripts/ifcfg-eth0')
+    
     if(TEST_MODE):
         #this eth1 is just for miniclusetr. comment this and uncomment the next one for india  
         runCmd('wget ' + base_url + '/conf/centos/ifcfg-eth1_minicluster -O '+tempdir+''+name + '/etc/sysconfig/network-scripts/ifcfg-eth1')
