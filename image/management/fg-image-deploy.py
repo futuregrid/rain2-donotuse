@@ -206,14 +206,14 @@ def main():
 
         logger.info('Installing torque')
         if(TEST_MODE):
-            centosLog.info('Torque for minicluster')
+            logger.info('Torque for minicluster')
             runCmd('wget fg-gravel3.futuregrid.iu.edu/torque/torque-2.5.1_minicluster/torque-2.5.1.tgz '+\
                    'fg-gravel3.futuregrid.iu.edu/torque/torque-2.5.1_minicluster/var.tgz ')   
             runCmd('tar xfz torque-2.5.1.tgz -C '+tempdir+'/rootimg/usr/local/')
             runCmd('tar xfz var.tgz -C '+tempdir+'/rootimg/')
             
         else:#Later we should be able to chose the cluster where is deployed
-            centosLog.info('Torque for India')    
+            logger.info('Torque for India')    
             runCmd('wget fg-gravel3.futuregrid.iu.edu/conf/hosts_india -O '+tempdir+'/rootimg/etc/hosts')
             runCmd('wget fg-gravel3.futuregrid.iu.edu/torque/torque-2.4.8_india/opt.tgz '+\
                    'fg-gravel3.futuregrid.iu.edu/torque/torque-2.4.8_india/var.tgz ')   
