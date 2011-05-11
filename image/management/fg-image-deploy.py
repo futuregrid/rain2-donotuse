@@ -229,6 +229,7 @@ def main():
             runCmd('sudo wget fg-gravel3.futuregrid.iu.edu/torque/torque-2.4.8_india/pbs_mom -O '+tempdir+'/rootimg/etc/init.d/pbs_mom')
             runCmd('sudo chmod +x '+tempdir+'/rootimg/etc/init.d/pbs_mom')
             runCmd('sudo chroot '+tempdir+'/rootimg/ /sbin/chkconfig --add pbs_mom')
+            runCmd('sudo chroot '+tempdir+'/rootimg/ /sbin/chkconfig pbs_mom on')
 
         #Inject the kernel
         logger.info('Retrieving kernel '+kernel)
