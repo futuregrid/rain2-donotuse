@@ -23,8 +23,11 @@ base_url = "http://fg-gravel3.futuregrid.iu.edu/"
 default_xcat_kernel = '2.6.18-164.el5'
 default_euca_kernel = '2.6.27.21-0.1-xen'
 
-def main():
+TEST_MODE=True
+tempdir="/tmp/"
 
+def main():
+    
     #Set up logging
     log_filename = 'fg-image-deploy.log'
     logger = logging.getLogger()
@@ -131,9 +134,9 @@ def main():
     
         #Mount the root image for final edits and compressing
         logger.info('Mounting image...')
-        cmd = 'sudo mkdir -p /tmp/' + name
+        cmd = 'sudo mkdir -p '+tempdir+''+ name
         runCmd(cmd)
-        cmd = 'sudo mount -o loop ' + imagefile + ' /tmp/'+ name
+        cmd = 'sudo mount -o loop ' + imagefile + ' '+tempdir+''+ name
         runCmd(cmd)
 
         #TODO: Pick kernel and ramdisk from available eki and eri
@@ -145,8 +148,8 @@ def main():
 
         #Inject the kernel
         logger.info('Retrieving kernel '+kernel)
-        runCmd('sudo wget '+base_url+'kernel/'+kernel+'.modules.tar.gz -O /tmp/'+kernel+'.modules.tar.gz')
-        runCmd('sudo tar xfz /tmp/'+kernel+'.modules.tar.gz --directory /tmp/'+name+'/lib/modules/')
+        runCmd('sudo wget '+base_url+'kernel/'+kernel+'.modules.tar.gz -O '+tempdir+''+kernel+'.modules.tar.gz')
+        runCmd('sudo tar xfz '+tempdir+''+kernel+'.modules.tar.gz --directory '+tempdir+''+name+'/lib/modules/')
         logger.info('Injected kernel '+kernel)
 
 
@@ -159,28 +162,28 @@ def main():
  devpts          /dev/pts      devpts   gid=5,mode=620             0 0
  '''
 
-        os.system('sudo echo \"'+fstab+'\" > /tmp/'+name+'/etc/fstab')
+        os.system('sudo echo \"'+fstab+'\" > '+tempdir+''+name+'/etc/fstab')
         logger.info('Injected fstab')
 
         #Done making changes to root fs
-        runCmd('sudo umount /tmp/'+name)
+        runCmd('sudo umount '+tempdir+''+name)
         
         print 'Name-User: ' +name + '-'+ user
 
 
         #Bucket folder
-        runCmd('mkdir -p /tmp/'+ user)
+        runCmd('mkdir -p '+tempdir+''+ user)
 
         #Bundle Image
-        cmd = 'euca-bundle-image --image /tmp/' + name +'.img --destination /tmp/'+user+ ' --kernel ' + eki + ' --ramdisk ' + eri
+        cmd = 'euca-bundle-image --image '+tempdir+'' + name +'.img --destination '+tempdir+''+user+ ' --kernel ' + eki + ' --ramdisk ' + eri
         runCmd(cmd)
 
         #Upload bundled image
-        cmd = 'bash -c \" cd /tmp; euca-upload-bundle --bucket ' + user + ' --manifest '+user+'/'+name+'.img.manifest.xml \"'
+        cmd = 'bash -c \" cd '+tempdir+'; euca-upload-bundle --bucket ' + user + ' --manifest '+user+'/'+name+'.img.manifest.xml \"'
         os.system(cmd)    
 
         #Register image
-        cmd = 'bash -c \" cd /tmp; euca-register '+user+'/'+name+'.img.manifest.xml \"'
+        cmd = 'bash -c \" cd '+tempdir+'; euca-register '+user+'/'+name+'.img.manifest.xml \"'
         os.system(cmd)
     
 
@@ -195,17 +198,34 @@ def main():
     
         #Mount the root image for final edits and compressing
         logger.info('Mounting image...')
-        cmd = 'sudo mkdir -p /tmp/rootimg'
+        cmd = 'sudo mkdir -p '+tempdir+'/rootimg'
         runCmd(cmd)
-        cmd = 'sudo mount -o loop ' + imagefile + ' /tmp/rootimg/'
+        cmd = 'sudo mount -o loop ' + imagefile + ' '+tempdir+'/rootimg/'
         runCmd(cmd)
 
 
+        logger.info('Installing torque')
+        if(TEST_MODE):
+            centosLog.info('Torque for minicluster')
+            runCmd('wget fg-gravel3.futuregrid.iu.edu/torque/torque-2.5.1_minicluster/torque-2.5.1.tgz '+\
+                   'fg-gravel3.futuregrid.iu.edu/torque/torque-2.5.1_minicluster/var.tgz ')   
+            runCmd('tar xfz torque-2.5.1.tgz -C '+tempdir+'/rootimg/usr/local/')
+            runCmd('tar xfz var.tgz -C '+tempdir+'/rootimg/')
+            
+        else:#Later we should be able to chose the cluster where is deployed
+            centosLog.info('Torque for India')    
+            runCmd('wget fg-gravel3.futuregrid.iu.edu/conf/hosts_india -O '+tempdir+'/rootimg/etc/hosts')
+            runCmd('wget fg-gravel3.futuregrid.iu.edu/torque/torque-2.4.8_india/opt.tgz '+\
+                   'fg-gravel3.futuregrid.iu.edu/torque/torque-2.4.8_india/var.tgz ')   
+            runCmd('tar xfz opt.tgz -C '+tempdir+'/rootimg/')
+            runCmd('tar xfz var.tgz -C '+tempdir+'/rootimg/')
+            os.system('echo "opsys '+ operatingsystem + '-' + name +'" > '+tempdir+'/rootimg/var/spool/torque/mom_priv/config') 
+            os.system('echo "arch '+ arch +'" >> '+tempdir+'/rootimg/var/spool/torque/mom_priv/config')
 
         #Inject the kernel
         logger.info('Retrieving kernel '+kernel)
-        runCmd('sudo wget '+base_url+'kernel/'+kernel+'.modules.tar.gz -O /tmp/'+kernel+'.modules.tar.gz')
-        runCmd('sudo tar xfz /tmp/'+kernel+'.modules.tar.gz --directory /tmp/rootimg/lib/modules/')
+        runCmd('sudo wget '+base_url+'kernel/'+kernel+'.modules.tar.gz -O '+tempdir+''+kernel+'.modules.tar.gz')
+        runCmd('sudo tar xfz '+tempdir+''+kernel+'.modules.tar.gz --directory '+tempdir+'/rootimg/lib/modules/')
         logger.info('Injected kernel '+kernel)
 
 
@@ -218,25 +238,27 @@ proc    /proc    proc     defaults       0 0
 sysfs   /sys     sysfs    defaults       0 0
 149.165.145.50:/users /N/u      nfs     rw,rsize=1048576,wsize=1048576,intr,nosuid
  '''
-        os.system('sudo echo \"'+fstab+'\" > /tmp/rootimg/etc/fstab')
+        os.system('sudo echo \"'+fstab+'\" > '+tempdir+'rootimg/etc/fstab')
         logger.info('Injected fstab')
 
         #NOTE: May move to an image repository system in the future
         logger.info('Compressing image')
         #Its xCAT, so use gzip with cpio compression.
-        cmd = 'sudo bash -c \" cd /tmp; find rootimg/. | cpio -H newc -o | gzip -9 > /tmp/rootimg.gz\"'
+        cmd = 'sudo bash -c \" cd '+tmpdir+'; find rootimg/. | cpio -H newc -o | gzip -9 > '+tempdir+'rootimg.gz\"'
         os.system(cmd) #use system because of the pipes
 
-        #cmd = 'sudo tar cfz /tmp/' + name + '.tar.gz --directory /tmp/ ' + name 
+        #cmd = 'sudo tar cfz '+tempdir+'' + name + '.tar.gz --directory '+tempdir+' ' + name 
 
-        cmd = 'sudo umount /tmp/rootimg'
+        cmd = 'sudo umount '+tempdir+'rootimg'
         runCmd(cmd)
         
         #Copy the image to the xCAT deployment
         dest = ops.xcat
         logger.info('Uploading image')
-        cmd = 'scp /tmp/rootimg.gz ' + user + '@' + dest + ':/tmp/rootimg.gz'
+        cmd = 'scp '+tempdir+'rootimg.gz ' + user + '@' + dest + ':'+tempdir+'rootimg.gz'
         runCmd(cmd)
+
+
 
         logger.info('Connecting to xCAT server')
 

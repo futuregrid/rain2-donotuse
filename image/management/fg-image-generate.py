@@ -177,7 +177,8 @@ def main():
                 
         logging.info('Building Centos ' + version + ' image')        
         create_base_os=True
-        config_ldap=True
+        config_ldap=True       
+        
         img = buildCentos(user + '-' + randid, version, arch, packs, create_base_os, config_ldap)
         
     elif ops.os == "Fedora" or ops.os == "fedora":
@@ -348,10 +349,13 @@ def buildCentos(name, version, arch, pkgs, base_os, ldap):
         os.system('echo "127.0.0.1 localhost.localdomain localhost" > '+tempdir+''+name+'/etc/hosts')    
         #base_os done
     
+    centosLog.info('Installing some util packages')
+    runCmd('chroot '+tempdir+''+name+' yum -y install wget nfs-utils gcc make') 
+    
     if (ldap):
         #this is for LDAP auth and mount home dirs. Later, we may control if we install this or not.
-        centosLog.info('Installing some util packages')
-        runCmd('chroot '+tempdir+''+name+' yum -y install openldap-clients nss_ldap wget nfs-utils gcc make')
+        centosLog.info('Installing LDAP packages')
+        runCmd('chroot '+tempdir+''+name+' yum -y install openldap-clients nss_ldap')
         
         centosLog.info('Configuring LDAP access')        
         runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/nsswitch.conf -O '+tempdir+''+name+'/etc/nsswitch.conf')
@@ -361,7 +365,8 @@ def buildCentos(name, version, arch, pkgs, base_os, ldap):
         runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/sshd -O '+tempdir+''+name+'/usr/sbin/sshd')
         runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/ldap.conf -O '+tempdir+''+name+'/etc/ldap.conf')
         runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/openldap/ldap.conf -O '+tempdir+''+name+'/etc/openldap/ldap.conf')
-        os.system('sed -i \'s/enforcing/disabled/g\' '+tempdir+''+name+'/etc/selinux/config')        
+        os.system('sed -i \'s/enforcing/disabled/g\' '+tempdir+''+name+'/etc/selinux/config')
+    
     
     #Mount proc and pts
     #runCmd('mount -t proc proc '+tempdir+''+name + '/proc')
@@ -390,11 +395,12 @@ def buildCentos(name, version, arch, pkgs, base_os, ldap):
 
     else:    
         runCmd('wget ' + base_url + '/conf/centos/ifcfg-eth1 -O '+tempdir+''+name + '/etc/sysconfig/network-scripts/ifcfg-eth1')
-        runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/hosts -O '+tempdir+''+name+'/etc/hosts')
+        
     
     #os.system('echo localhost > '+tempdir+''+name + '/etc/hostname')
     #runCmd('hostname localhost')
     centosLog.info('Injected networking configuration')
+
 
     # Setup package repositories 
     #TODO: Set mirros to IU/FGt
