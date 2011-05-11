@@ -215,6 +215,7 @@ def main():
             runCmd('sudo wget fg-gravel3.futuregrid.iu.edu/torque/torque-2.5.1_minicluster/pbs_mom -O '+tempdir+'/rootimg/etc/init.d/pbs_mom')
             runCmd('sudo chmod +x '+tempdir+'/rootimg/etc/init.d/pbs_mom')
             runCmd('sudo chroot '+tempdir+'/rootimg/ /sbin/chkconfig --add pbs_mom')
+            runCmd('sudo chroot '+tempdir+'/rootimg/ /sbin/chkconfig pbs_mom on')
             
         else:#Later we should be able to chose the cluster where is deployed
             logger.info('Torque for India')    
