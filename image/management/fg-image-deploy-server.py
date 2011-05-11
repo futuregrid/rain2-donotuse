@@ -14,7 +14,7 @@ import logging.handlers
 
 #Global vars
 port = 56789
-numparams = 5   #name,os,version,arch,kernel
+numparams = 6   #name,os,version,arch,kernel,dir
 xcatInstallPath = '/install/netboot/'
 moabInstallPath = '/opt/moab/'
 
@@ -57,6 +57,7 @@ def main():
 	    #params[2] is version
 	    #params[3] is arch
 	    #params[4] is kernel
+	    #params[5] is dir where img is placed
 	
 	    #Fix name so that it removes dashes
 	    oldName = params[0]
