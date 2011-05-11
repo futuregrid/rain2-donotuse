@@ -18,6 +18,8 @@ numparams = 5   #name,os,version,arch,kernel
 xcatInstallPath = '/install/netboot/'
 moabInstallPath = '/opt/moab/'
 
+TEST_MODE=True
+
 def main():
 
 	#Setup logging
@@ -100,11 +102,10 @@ def main():
 	    #runCmd(cmd)
 	
 	
-	    #TODO: Pull initrd and kernel from central repository (fg-gravel3)
-	    cmd = 'cp /install/kernels/initrd.gz ' + path
+	    cmd = 'wget fg-gravel3.futuregrid.iu.edu/kernel/initrd.gz -O ' + path+'/initrd.gz'
 	    runCmd(cmd)
 	
-	    cmd = 'cp /install/kernels/kernel ' + path
+	    cmd = 'wget fg-gravel3.futuregrid.iu.edu/kernel/kernel -O ' + path+'/kernel'
 	    runCmd(cmd)
 	
 	    #Add entry to the osimage table
@@ -115,11 +116,12 @@ def main():
 	    cmd = 'packimage -o ' + prefix + params[1] + '.' + params[0] + ' -p compute -a ' + params[3]
 	    runCmd(cmd)
 	
-	
-	    #TODO: Testing only, will remove in the future
-	    #Do a nodeset
-	    cmd = 'nodeset tc1 netboot=' + prefix + params[1] + '.' + params[0] + '-' + params[3] + '-compute'
-	    runCmd(cmd)
+	    if (TEST_MODE):
+		    #TODO: Testing only, will remove in the future
+		    #Do a nodeset
+		    cmd = 'nodeset tc1 netboot=' + prefix + params[1] + '.' + params[0] + '-' + params[3] + '-compute'
+		    runCmd(cmd)
+		    runCmd('rpower tc1 boot')
 	
 	    #Configure Moab
 	
