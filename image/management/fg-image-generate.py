@@ -332,7 +332,7 @@ def buildCentos(name, version, arch, pkgs, base_os, ldap):
             runCmd('wget http://mirror.centos.org/centos/5.5/os/x86_64/CentOS/centos-release-5-5.el5.centos.x86_64.rpm -O centos-release.rpm')
         
         runCmd('rpm -ihv --nodeps --root '+tempdir+''+name+' centos-release.rpm')
-        
+        runCmd('rm -f '+tempdir+''+name+' centos-release.rpm')
         #to create base_os
         #centosLog.info('Modifying repositories to match the version requested')
         centosLog.info('Installing base OS')
@@ -433,7 +433,7 @@ def buildCentos(name, version, arch, pkgs, base_os, ldap):
     """    
     #Install packages
     if pkgs != None:
-        centosLog.info('Installing user-defined packages')
+        centosLog.info('Installing user-defined packages')        
         runCmd('chroot '+tempdir+''+name + ' yum -y install ' + pkgs)
         centosLog.info('Installed user-defined packages')
 
