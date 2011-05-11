@@ -207,8 +207,8 @@ def main():
         logger.info('Installing torque')
         if(TEST_MODE):
             logger.info('Torque for minicluster')
-            runCmd('wget fg-gravel3.futuregrid.iu.edu/torque/torque-2.5.1_minicluster/torque-2.5.1.tgz '+\
-                   'fg-gravel3.futuregrid.iu.edu/torque/torque-2.5.1_minicluster/var.tgz ')   
+            runCmd('wget fg-gravel3.futuregrid.iu.edu/torque/torque-2.5.1_minicluster/torque-2.5.1.tgz')
+            runCmd('fg-gravel3.futuregrid.iu.edu/torque/torque-2.5.1_minicluster/var.tgz ')   
             runCmd('tar xfz torque-2.5.1.tgz -C '+tempdir+'/rootimg/usr/local/')
             runCmd('tar xfz var.tgz -C '+tempdir+'/rootimg/')
             
