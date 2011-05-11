@@ -351,7 +351,7 @@ def buildCentos(name, version, arch, pkgs, base_os, ldap):
     if (ldap):
         #this is for LDAP auth and mount home dirs. Later, we may control if we install this or not.
         centosLog.info('Installing some util packages')
-        runCmd('chroot '+tempdir+''+name+' yum -y install openldap-clients nss_ldap wget nfs-utils')
+        runCmd('chroot '+tempdir+''+name+' yum -y install openldap-clients nss_ldap wget nfs-utils gcc make')
         
         centosLog.info('Configuring LDAP access')        
         runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/nsswitch.conf -O '+tempdir+''+name+'/etc/nsswitch.conf')
@@ -376,6 +376,7 @@ def buildCentos(name, version, arch, pkgs, base_os, ldap):
         #this eth1 is just for miniclusetr. comment this and uncomment the next one for india  
         #runCmd('wget ' + base_url + '/conf/centos/ifcfg-eth1_minicluster_tc1 -O '+tempdir+''+name + '/etc/sysconfig/network-scripts/ifcfg-eth1')
         runCmd('wget ' + base_url + '/conf/centos/ifcfg-eth1_minicluster_tc2 -O '+tempdir+''+name + '/etc/sysconfig/network-scripts/ifcfg-eth1')
+        os.system('echo "172.29.200.1 t1 tm1" >> '+tempdir+''+name+'/etc/hosts')
         os.system('echo "172.29.200.3 tc1" >> '+tempdir+''+name+'/etc/hosts')
         os.system('echo "149.165.145.35 tc1r.tidp.iu.futuregrid.org tc1r" >> '+tempdir+''+name+'/etc/hosts')
         os.system('echo "172.29.200.4 tc2" >> '+tempdir+''+name+'/etc/hosts')        
