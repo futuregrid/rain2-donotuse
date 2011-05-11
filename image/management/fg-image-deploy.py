@@ -208,7 +208,7 @@ def main():
         if(TEST_MODE):
             logger.info('Torque for minicluster')
             runCmd('wget fg-gravel3.futuregrid.iu.edu/torque/torque-2.5.1_minicluster/torque-2.5.1.tgz')
-            runCmd('fg-gravel3.futuregrid.iu.edu/torque/torque-2.5.1_minicluster/var.tgz ')   
+            runCmd('wget fg-gravel3.futuregrid.iu.edu/torque/torque-2.5.1_minicluster/var.tgz ')   
             runCmd('tar xfz torque-2.5.1.tgz -C '+tempdir+'/rootimg/usr/local/')
             runCmd('tar xfz var.tgz -C '+tempdir+'/rootimg/')
             runCmd('rm -f var.tgz torque-2.5.1.tgz')
@@ -216,8 +216,8 @@ def main():
         else:#Later we should be able to chose the cluster where is deployed
             logger.info('Torque for India')    
             runCmd('wget fg-gravel3.futuregrid.iu.edu/conf/hosts_india -O '+tempdir+'/rootimg/etc/hosts')
-            runCmd('wget fg-gravel3.futuregrid.iu.edu/torque/torque-2.4.8_india/opt.tgz '+\
-                   'fg-gravel3.futuregrid.iu.edu/torque/torque-2.4.8_india/var.tgz ')   
+            runCmd('wget fg-gravel3.futuregrid.iu.edu/torque/torque-2.4.8_india/opt.tgz ')
+            runCmd('wget fg-gravel3.futuregrid.iu.edu/torque/torque-2.4.8_india/var.tgz ')   
             runCmd('tar xfz opt.tgz -C '+tempdir+'/rootimg/')
             runCmd('tar xfz var.tgz -C '+tempdir+'/rootimg/')
             runCmd('rm -f var.tgz opt.tgz')
