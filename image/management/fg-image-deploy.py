@@ -246,7 +246,7 @@ sysfs   /sys     sysfs    defaults       0 0
         #NOTE: May move to an image repository system in the future
         logger.info('Compressing image')
         #Its xCAT, so use gzip with cpio compression.
-        cmd = 'sudo bash -c \" cd '+tmpdir+'; find rootimg/. | cpio -H newc -o | gzip -9 > '+tempdir+'rootimg.gz\"'
+        cmd = 'sudo bash -c \" cd '+tempdir+'; find rootimg/. | cpio -H newc -o | gzip -9 > '+tempdir+'rootimg.gz\"'
         os.system(cmd) #use system because of the pipes
 
         #cmd = 'sudo tar cfz '+tempdir+'' + name + '.tar.gz --directory '+tempdir+' ' + name 
