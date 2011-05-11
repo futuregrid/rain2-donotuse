@@ -212,6 +212,8 @@ def main():
             runCmd('tar xfz torque-2.5.1.tgz -C '+tempdir+'/rootimg/usr/local/')
             runCmd('tar xfz var.tgz -C '+tempdir+'/rootimg/')
             runCmd('rm -f var.tgz torque-2.5.1.tgz')
+            runCmd('wget fg-gravel3.futuregrid.iu.edu/torque/torque-2.5.1_minicluster/pbs_mom -O '+tempdir+'/rootimg/etc/init.d/pbs_mom')
+            runCmd('chmod +x '+tempdir+'/rootimg/etc/init.d/pbs_mom')
             
         else:#Later we should be able to chose the cluster where is deployed
             logger.info('Torque for India')    
@@ -223,6 +225,8 @@ def main():
             runCmd('rm -f var.tgz opt.tgz')
             os.system('echo "opsys '+ operatingsystem + '-' + name +'" > '+tempdir+'/rootimg/var/spool/torque/mom_priv/config') 
             os.system('echo "arch '+ arch +'" >> '+tempdir+'/rootimg/var/spool/torque/mom_priv/config')
+            runCmd('wget fg-gravel3.futuregrid.iu.edu/torque/torque-2.4.8_india/pbs_mom -O '+tempdir+'/rootimg/etc/init.d/pbs_mom')
+            runCmd('chmod +x '+tempdir+'/rootimg/etc/init.d/pbs_mom')
 
         #Inject the kernel
         logger.info('Retrieving kernel '+kernel)
