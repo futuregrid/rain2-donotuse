@@ -327,12 +327,12 @@ def buildCentos(name, version, arch, pkgs, base_os, ldap):
         #to create base_os
         centosLog.info('Getting appropiate release package')
         if (version == "5.6"):
-            runCmd('wget http://mirror.centos.org/centos/5.6/os/x86_64/CentOS/centos-release-5-6.el5.centos.1.x86_64.rpm -O '+tempdir+''+name+'centos-release.rpm')
+            runCmd('wget http://mirror.centos.org/centos/5.6/os/x86_64/CentOS/centos-release-5-6.el5.centos.1.x86_64.rpm -O '+tempdir+'centos-release.rpm')
         elif(version == "5.5"): #the 5.5 is not supported yet
-            runCmd('wget http://mirror.centos.org/centos/5.5/os/x86_64/CentOS/centos-release-5-5.el5.centos.x86_64.rpm -O '+tempdir+''+name+'centos-release.rpm')
+            runCmd('wget http://mirror.centos.org/centos/5.5/os/x86_64/CentOS/centos-release-5-5.el5.centos.x86_64.rpm -O '+tempdir+'centos-release.rpm')
         
-        runCmd('rpm -ihv --nodeps --root '+tempdir+''+name+'centos-release.rpm')
-        runCmd('rm -f '+tempdir+''+name+'centos-release.rpm')
+        runCmd('rpm -ihv --nodeps --root '+tempdir+''+name+' '+tempdir+'centos-release.rpm')
+        runCmd('rm -f '+tempdir+'centos-release.rpm')
         #to create base_os
         #centosLog.info('Modifying repositories to match the version requested')
         centosLog.info('Installing base OS')
