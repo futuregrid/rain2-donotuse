@@ -309,7 +309,7 @@ def buildCentos(name, version, arch, pkgs, base_os, ldap):
      
         #to create base_os    
         centosLog.info('Creating Disk for the image')        
-        runCmd('dd if=/dev/zero of='+tempdir+''+name+'.img bs=1024k seek=2048 count=0')
+        runCmd('dd if=/dev/zero of='+tempdir+''+name+'.img bs=1024k seek=1496 count=0')
         runCmd('mke2fs -F -j '+tempdir+''+name+'.img')
     
     #Mount the new image
