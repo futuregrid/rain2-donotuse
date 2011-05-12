@@ -139,7 +139,7 @@ def main():
         packs = ' '.join(packages)
         logging.debug('Selected software packages: ' + packs)
     else:
-        packs = None 
+        packs = 'wget' 
     
     #TODO: Authorization mechanism TBD
     if type(ops.auth) is not NoneType:
