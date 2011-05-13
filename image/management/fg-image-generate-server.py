@@ -127,10 +127,10 @@ def main():
     
     logging.info("Sending fg-image-generate.py to the VM")
     cmdscp = "scp "+serverdir+'/fg-image-generate.py  ' + userId + "@" + vmaddr + ":"+vmdir
-    looging.info(cmdscp)
+    logging.info(cmdscp)
     stat = os.system(cmdscp)
     if (stat != 0):
-        looging.error("Error sending fg-image-generate.py to the VM. Exit status " + str(stat))
+        logging.error("Error sending fg-image-generate.py to the VM. Exit status " + str(stat))
         
                 
     options+="-a "+ops.arch+" -o "+ops.os+" -v "+ops.version+" -u "+user+" -t "+tempdir
