@@ -49,6 +49,9 @@ def main():
     
     parser.add_option('-i', '--image', dest='image', help='Name of image manifest file')
 
+    parser.add_option('-n', '--nas', dest='nasaddr', help='Address to upload image file with a shared dir')
+    parser.add_option("-t", "--tempdir", dest="tempdir", help="shared dir to upload the image")
+    
     parser.add_option('-x', '--xcat', dest='xcat', help='Deploy image to xCAT')
     parser.add_option('-e', '--euca', dest='euca', help='Deploy the image to Eucalyptus')
     parser.add_option('-n', '--nimbus', dest='nimbus', help='Deploy the image to Nimbus')
