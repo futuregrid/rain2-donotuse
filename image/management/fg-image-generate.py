@@ -94,6 +94,8 @@ def main():
         logging.basicConfig(level=logging.INFO)
         #ch.setLevel(logging.INFO)
     
+    global tempdir
+    
     if type(ops.tempdir) is not NoneType: 
         tempdir=ops.tempdir
     else:
@@ -479,6 +481,7 @@ def cleanup(name):
     cmd = 'umount '+tempdir+''+name
     cleanupLog.debug('Executing: ' + cmd)
     os.system(cmd)
+    os.system("rm -rf "+tempdir+''+name)
      
     cleanupLog.debug('Cleaned up mount points')
 
