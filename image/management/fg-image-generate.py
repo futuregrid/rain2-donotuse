@@ -26,7 +26,7 @@ base_url = "http://fg-gravel3.futuregrid.iu.edu/"
 bcfg2_url = 'fg-gravel3.futuregrid.iu.edu'
 bcfg2_port = 45678
 namedir = "" #this == name is to clean up when something fails
-tempdir="/tmp/"  #directory to do create temporal files
+tempdir=""  #directory to do create temporal files
 
 def main():    
     #Set up logging
@@ -39,10 +39,11 @@ def main():
     handler.setLevel(logging.DEBUG)
     handler.setFormatter(formatter)
     logger.addHandler(handler)
-    ch = logging.StreamHandler()
-    ch.setLevel(logging.DEBUG)
-    ch.setFormatter(formatter)
-    logger.addHandler(ch)
+    
+    #ch = logging.StreamHandler()
+    #ch.setLevel(logging.DEBUG)
+    #ch.setFormatter(formatter)
+    #logger.addHandler(ch)
     
     #Set up random string    
     random.seed()
@@ -84,6 +85,8 @@ def main():
     parser.add_option("-u", "--user", dest="user", help="FutureGrid username")
     parser.add_option("-n", "--name", dest="givenname", help="Desired recognizable name of the image")
     parser.add_option("-e", "--description", dest="desc", help="Short description of the image and its purpose")
+    parser.add_option("-t", "--tempdir", dest="tempdir", help="directory to be use in to generate the image")
+    
         
     (ops, args) = parser.parse_args()
     
@@ -93,16 +96,17 @@ def main():
         logging.basicConfig(level=logging.INFO)
         ch.setLevel(logging.INFO)
     
-    #Parse user
-    user = ''
-    try:
-        user = os.environ['FG_USER']
-    except KeyError:
-        if type(ops.user) is not NoneType:
-            user = ops.user
-        else:
-            print "FG_USER is not defined, we are using default user name"
-            user = "default"
+    if type(ops.tempdir) is not NoneType: 
+        tempdir=ops.tempdir
+    else:
+        tempdir="/tmp/"
+    
+    #the if-else is not needed, but can be useful to execute this script alone
+    #user = ops.user
+    if type(ops.user) is not NoneType:
+        user = ops.user
+    else:        
+        user = "default"
     
     #if type(os.getenv('FG_USER')) is not NoneType:
     #    user = os.getenv('FG_USER')
@@ -115,7 +119,7 @@ def main():
     logging.debug('FG User: ' + user)
     
     
-    
+    """Already controlled...delete..    
     arch = "x86_64" #Default to 64-bit
     
     #Parse arch command line arg
@@ -127,7 +131,7 @@ def main():
         else:    
             parser.error("Incorrect architecture type specified (i386|x86_64)")
             sys.exit(1)
-    
+    """
     logging.debug('Selected Architecture: ' + arch)
     
     #Parse Software stack list
@@ -141,39 +145,28 @@ def main():
     else:
         packs = 'wget' 
     
+    """at this level we are already authenticated...delete..
     #TODO: Authorization mechanism TBD
     if type(ops.auth) is not NoneType:
         auth = ""
+    """
     
     # Build the image
-    #Parse OS and version command line args
-    if ops.os == "Ubuntu" or ops.os == "ubuntu":
-        base_os = base_os + "ubuntu" + spacer
-    
-        #Set base version
-        if type(ops.version) is NoneType:
-            version = latest_ubuntu
-        elif ops.version == "10.04" or ops.version == "lucid":
-            version = "lucid"
-        elif ops.version == "9.10" or ops.version == "karmic":
-            version = "karmic"
-        #TODO: can support older if necessary        
+    #OS and Version already parsed in client side, just assign it
+    version=ops.version
+    if ops.os == "ubuntu":
+        base_os = base_os + "ubuntu" + spacer    
+        
         logging.info('Building Ubuntu ' + version + ' image')
         
         img = buildUbuntu(user + '-' + randid, version, arch, packs)
     
-    elif ops.os == "Debian" or ops.os == "debian":
+    elif ops.os == "debian":
         base_os = base_os + "debian" + spacer
-    elif ops.os == "Redhat" or ops.os == "redhat" or ops.os == "rhel":
+    elif ops.os == "rhel":
         base_os = base_os + "rhel" + spacer
-    elif ops.os == "CentOS" or ops.os == "Centos" or ops.os == "centos":
+    elif ops.os == "centos":
         base_os = base_os + "centos" + spacer
-        
-        if type(ops.version) is NoneType:
-            version = latest_centos
-        #later control supported versions
-        else: 
-            version = latest_centos        
                 
         logging.info('Building Centos ' + version + ' image')        
         create_base_os=True
@@ -181,12 +174,8 @@ def main():
         
         img = buildCentos(user + '-' + randid, version, arch, packs, create_base_os, config_ldap)
         
-    elif ops.os == "Fedora" or ops.os == "fedora":
-        base_os = base_os + "fedora" + spacer
-    else:
-        parser.error("Incorrect OS type specified")
-        sys.exit(1)
-    
+    elif ops.os == "fedora":
+        base_os = base_os + "fedora" + spacer    
     
     logging.info('Generated image is available at '+tempdir+' ' + img + '.img.  Please be aware that this FutureGrid image is packaged without a kernel and fstab and is not built for any deployment type.  To deploy the new image, use the fg-image-deploy command.')
     
@@ -195,8 +184,6 @@ def main():
     
     if type(ops.desc) is NoneType:
         ops.desc = " "
-    
-    
     
     manifest(user, img, ops.os, version, arch, packs, ops.givenname, ops.desc)
 
@@ -208,7 +195,7 @@ def main():
 
 def buildUbuntu(name, version, arch, pkgs):
 
-    
+    output=""
 
     ubuntuLog = logging.getLogger('ubuntu')
 
@@ -274,11 +261,14 @@ def buildUbuntu(name, version, arch, pkgs):
         ubuntuLog.info('Installed user-defined packages')
 
     #Setup BCFG2 server groups
-    push_bcfg2_group(name, pkgs, 'ubuntu', version) 
-    ubuntuLog.info('Setup new BCFG2 group')
-
-    #Finished, now clean up
-    ubuntuLog.info('Genereated Ubuntu image ' + name + ' successfully!')
+    success=push_bcfg2_group(name, pkgs, 'ubuntu', version)
+    if success: 
+        ubuntuLog.info('Setup new BCFG2 group')
+        #Finished, now clean up
+        ubuntuLog.info('Genereated Ubuntu image ' + name + ' successfully!')
+        output=name
+    else:
+        output="Error generating bcfg2 group configuration"
 
     cleanup(name)
 
@@ -296,6 +286,7 @@ def buildRHEL(name, version, arch):
 
 def buildCentos(name, version, arch, pkgs, base_os, ldap):
 
+    output=""
     namedir=name
 
     centosLog = logging.getLogger('centos')
@@ -438,11 +429,14 @@ def buildCentos(name, version, arch, pkgs, base_os, ldap):
         centosLog.info('Installed user-defined packages')
 
     #Setup BCFG2 server groups
-    push_bcfg2_group(name, pkgs, 'centos', version) 
-    centosLog.info('Setup new BCFG2 group')
-
-    #Finished, now clean up
-    centosLog.info('Genereated centos image ' + name + ' successfully!')
+    success=push_bcfg2_group(name, pkgs, 'centos', version)
+    if success: 
+        centosLog.info('Setup new BCFG2 group')    
+        #Finished, now clean up
+        centosLog.info('Genereated centos image ' + name + ' successfully!')
+        output=name
+    else:
+        output="Error generating bcfg2 group configuration"
 
     cleanup(name)
 
@@ -470,7 +464,7 @@ def runCmd(cmd):
     #cmdLog.debug('Ret status: '+str(p.returncode))
     if p.returncode != 0:
         cmdLog.error('Command: ' + cmd + ' failed, status: ' + str(p.returncode) + ' --- ' + std[1])
-        cleanup(namedir)
+        cleanup(namedir)        
         sys.exit(p.returncode)
 
 
@@ -563,31 +557,38 @@ def push_bcfg2_group(name, pkgs, os, version):
 
     bcfg2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     bcfg2.connect((bcfg2_url, bcfg2_port))
-
+    
+    success=True
+    
     #Send group name
     bcfg2.send(name)
     ret = bcfg2.recv(100)
     if ret != 'OK':
         logging.error('Incorrect reply from the server:' + ret)
-        sys.exit(1)
-    #Send OS 
-    bcfg2.send(os)
-    ret = bcfg2.recv(100)
-    if ret != 'OK':
-        logging.error('Incorrect reply from the server:' + ret)
-        sys.exit(1)
-    #Send OS Version
-    bcfg2.send(version)
-    ret = bcfg2.recv(100)
-    if ret != 'OK':
-        logging.error('Incorrect reply from the server:' + ret)
-    #Send package information
-    bcfg2.send(pkgs)
-    ret = bcfg2.recv(100)
-    if ret != 'OK':
-        logging.error('Incorrect reply from the server:' + ret)
-        sys.exit(1)
-
+        success=False
+    else:
+        #Send OS 
+        bcfg2.send(os)
+        ret = bcfg2.recv(100)
+        if ret != 'OK':
+            logging.error('Incorrect reply from the server:' + ret)
+            success=False
+        else:
+            #Send OS Version
+            bcfg2.send(version)
+            ret = bcfg2.recv(100)
+            if ret != 'OK':
+                logging.error('Incorrect reply from the server:' + ret)
+                success=False
+            else:
+                #Send package information
+                bcfg2.send(pkgs)
+                ret = bcfg2.recv(100)
+                if ret != 'OK':
+                    logging.error('Incorrect reply from the server:' + ret)
+                    success=False
+                    
+    return success
 
 
 

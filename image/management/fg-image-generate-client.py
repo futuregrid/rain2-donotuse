@@ -79,7 +79,16 @@ def main():
     
     
     #user = os.popen('whoami', 'r').read().strip()
-    user='oneadmin'
+    userId='oneadmin'
+    
+    try:
+        user = os.environ['FG_USER']
+    except KeyError:
+        if type(ops.user) is not NoneType:
+            user = ops.user
+        else:
+            logging.info("FG_USER is not defined, we are using default user name")
+            user = "default"
     
     
     #Turn debugging off
@@ -103,19 +112,43 @@ def main():
     
     logging.debug('Selected Architecture: ' + arch)
     
-    #Parse Software stack list
-    if type(ops.software) is not NoneType:
-        packs = ops.software
-        logging.debug('Selected software packages: ' + str(acks))
-    else:
-        packs = 'wget' 
     
     #TODO: Authorization mechanism TBD
     if type(ops.auth) is not NoneType:
         auth = ""
     
     # Build the image
+    version=""
     #Parse OS and version command line args
+    os=""
+    if ops.os == "Ubuntu" or ops.os == "ubuntu":     
+        os="ubuntu"   
+        if type(ops.version) is NoneType:
+            version = latest_ubuntu
+        elif ops.version == "10.04" or ops.version == "lucid":
+            version = "lucid"
+        elif ops.version == "9.10" or ops.version == "karmic":
+            version = "karmic"                    
+    elif ops.os == "Debian" or ops.os == "debian":
+        os="debian"
+        version = latest_debian
+    elif ops.os == "Redhat" or ops.os == "redhat" or ops.os == "rhel":
+        os="rhel"
+        version = latest_rhel
+    elif ops.os == "CentOS" or ops.os == "Centos" or ops.os == "centos":
+        os="centos"                
+        if type(ops.version) is NoneType:
+            version = latest_centos
+        #later control supported versions
+        else: 
+            version = latest_centos  
+    elif ops.os == "Fedora" or ops.os == "fedora":
+        os="fedora"
+        version = latest_fedora
+    else:
+        parser.error("Incorrect OS type specified")
+        sys.exit(1)
+        
     if (ops.os == "Ubuntu" or ops.os == "ubuntu" or         
        ops.os == "Debian" or ops.os == "debian" or     
        ops.os == "Redhat" or ops.os == "redhat" or ops.os == "rhel" or
@@ -128,7 +161,17 @@ def main():
 
     #generate string with options in the previous ifs
     
-    options+="-a "+ops.arch+" -s "+packs+" -o "+ops.os
+    options+="-a "+ops.arch+" -o "+ops.os+" -v "+version+" -u "+user
+    
+    
+    if type(ops.givenname) is not NoneType:
+        options+=" -n "+ops.givenname
+    if type(ops.desc) is not NoneType:
+        options+=" -e "+ops.desc
+    if type(ops.auth) is not NoneType:
+        options+" -l "+ops.auth    
+    if type(ops.software) is not NoneType:
+        options+" -s "+ops.software
     
     cmdexec = " '" + serverdir + "fg-image-generate-server.py "+options
     

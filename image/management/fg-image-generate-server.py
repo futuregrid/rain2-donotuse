@@ -22,10 +22,19 @@ from xml.dom.minidom import Document, parse
 
 def main():    
     
-    ##configuration
-    vmaddr = "192.168.1.23" #this should be given by the method that deploy the VM on demand.
+    
+    #the ips should be given by the method that deploy the VM on demand.
+    vmaddr_centos = "192.168.1.23"
+    vmaddr_rhel= ""
+    vmaddr_ubuntu= ""
+    vmaddr_debian= ""
+    vmaddr=""
+    ####
+    
+    ##server configuration
     vmdir="/root/"     
     serverdir="/srv/cloud/one/fg-management"
+    tempdir="/media/"
     ####
     
     options=''
@@ -40,10 +49,10 @@ def main():
     handler.setLevel(logging.DEBUG)
     handler.setFormatter(formatter)
     logger.addHandler(handler)
-    ch = logging.StreamHandler()
-    ch.setLevel(logging.DEBUG)
-    ch.setFormatter(formatter)
-    logger.addHandler(ch)
+    #ch = logging.StreamHandler()
+    #ch.setLevel(logging.DEBUG)
+    #ch.setFormatter(formatter)
+    #logger.addHandler(ch)
 
     parser = OptionParser()
     
@@ -78,8 +87,11 @@ def main():
         
     (ops, args) = parser.parse_args()
     
-    #user = os.popen('whoami', 'r').read().strip()
-    user='root'
+    #this is to log in in the VM 
+    userId='root'
+    
+    #this is the user name
+    user = ops.user
     
     #Turn debugging off
     if not ops.debug:
@@ -88,18 +100,22 @@ def main():
     
     #TODO: authenticate user via promting for CERT or password to auth against LDAP db
     
-    #arch
-    arch = ops.arch
-    #Parse Software stack list
-    packs=ops.software
-    #os is also there
-    
-    
+        
     #TODO. METHOD THAT BOOT A VM, inject the public key of the user in the root user AND GIVE ME THE IP
+    #Here we have to call other method that boot an image with the OS required and give me the ip
+    
+    if ops.os == "ubuntu":        
+        vmaddr=vmaddr_ubuntu
+    elif ops.os == "debian":
+        vmaddr=vmaddr_debian
+    elif ops.os == "rhel":
+        vmaddr=vmaddr_rhel
+    elif ops.os == "centos":
+        vmaddr=vmaddr_centos
     
     
     logging.info("The VM deployed is in "+vmaddr)
-    #mount
+    
     logging.info("Mount scratch directory in the VM")
     cmdmount="mount -t nfs 192.168.1.6:/srv/scratch /media"
     uid = self._rExec(userId, cmdexec, logging, vmaddr)
@@ -112,16 +128,26 @@ def main():
         looging.error("Error sending fg-image-generate.py to the VM. Exit status " + str(stat))
         
                 
-    options+="-a "+ops.arch+" -s "+packs+" -o "+ops.os
+    options+="-a "+ops.arch+" -o "+ops.os+" -v "+ops.version+" -u "+user
     
+    if type(ops.givenname) is not NoneType:
+        options+=" -n "+ops.givenname
+    if type(ops.desc) is not NoneType:
+        options+=" -e "+ops.desc
+    if type(ops.auth) is not NoneType:
+        options+" -l "+ops.auth
+    if type(ops.software) is not NoneType:
+        options+" -s "+ops.software
+        
     cmdexec = " '" + vmdir + "fg-image-generate.py "+options
     
     uid = self._rExec(userId, cmdexec, logging, vmaddr)
     
-    #call server with options
-    #server return addr of the img and metafeile compressed in a tgz or None
-    #get tgz 
-    #delete remote files
+    cmdssh = "ssh " + userId + "@" + vmaddr
+    
+    #return output, to be interpreted in client
+    print os.popen(cmdssh).read().strip()
+    
 
 ############################################################
 # _rExec
