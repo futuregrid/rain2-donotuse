@@ -38,7 +38,7 @@ def main():
     serverdir="/srv/cloud/one/fg-management"
     
     addrnfs="192.168.1.6"  #ip of the machine that shares the directory tempserver
-    tempdirserver="/srv/scratch" #name of the shared dir in the server
+    tempdirserver="/srv/scratch/" #name of the shared dir in the server
     tempdir="/media/"  #name of the shared dir in the VM
     ####
     
@@ -158,7 +158,7 @@ def main():
         if status=="error":
             print uid
         else:         
-            out=os.system("tar cfz "+tempdirserver+""+status+".tgz -C "+tempdirserver+" "+status+".manifest.xml "+status+".img")
+            out=os.system("tar cfz "+tempdirserver+"/"+status+".tgz -C "+tempdirserver+" "+status+".manifest.xml "+status+".img")
             if out == 0:
                 os.system("rm -f "+tempdirserver+""+status+".manifest.xml "+tempdirserver+""+status+".img")
                 
