@@ -122,7 +122,7 @@ def main():
     logging.info("The VM deployed is in "+vmaddr)
     
     logging.info("Mount scratch directory in the VM")
-    cmd="ssh " + userId + "@" + vmaddr
+    cmd="ssh -q " + userId + "@" + vmaddr
     cmdmount=" mount -t nfs "+addrnfs+":"+tempdirserver+" "+tempdir
     stat=os.system(cmd+cmdmount)
     
@@ -146,7 +146,7 @@ def main():
         if type(ops.software) is not NoneType:
             options+" -s "+ops.software
         
-        cmdexec = " '" + vmdir + "fg-image-generate.py "+options+" '"
+        cmdexec = " -q '" + vmdir + "fg-image-generate.py "+options+" '"
         
         print cmdexec
         
@@ -163,7 +163,7 @@ def main():
             print tempdirserver+""+status+".tgz"
             
         logging.info("Umount scratch directory in the VM")
-        cmd="ssh " + userId + "@" + vmaddr
+        cmd="ssh -q " + userId + "@" + vmaddr
         cmdmount=" umount "+tempdir
         stat=os.system(cmd+cmdmount)
     
