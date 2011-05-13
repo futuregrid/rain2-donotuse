@@ -17,7 +17,7 @@ import socket
 from subprocess import *
 #from xml.dom.ext import *
 from xml.dom.minidom import Document, parse
-
+from time import time
 
 
 def main():    
