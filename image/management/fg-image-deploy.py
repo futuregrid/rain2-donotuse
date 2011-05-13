@@ -194,6 +194,14 @@ def main():
     #XCAT
     elif type(ops.xcat) is not NoneType:
 
+		if type(ops.nasaddr) is NoneType:
+			
+		
+		if type(ops.tempdir) is NoneType:
+			tempdirserver=ops.tempdir
+		else:
+			print "You need to specify"
+		
         #Select kernel version    
         if type(ops.kernel) is NoneType:
             kernel = default_xcat_kernel
@@ -268,17 +276,18 @@ sysfs   /sys     sysfs    defaults       0 0
         cmd = 'sudo umount '+tempdir+'rootimg'
         runCmd(cmd)
         
-        #Copy the image to the xCAT deployment
-        dest = ops.xcat
+        #Copy the image to the Shared directory.        
         logger.info('Uploading image')
-        cmd = 'scp '+tempdir+'rootimg.gz ' + user + '@' + dest + ':'+tempdir+'rootimg.gz'
+        cmd = 'scp '+tempdir+'rootimg.gz ' + user + '@' + nasaddr + ':'+tempdirserver+'rootimg.gz'
         runCmd(cmd)
 
 
-
+		#xCAT server
+		dest = ops.xcat
+		
         logger.info('Connecting to xCAT server')
 
-        msg = name+','+operatingsystem+','+version+','+arch+','+kernel+','+tempdir
+        msg = name+','+operatingsystem+','+version+','+arch+','+kernel+','+tempdirserver
         logging.debug('Sending message: ' + msg)
 
         #Notify xCAT deployment to finish the job

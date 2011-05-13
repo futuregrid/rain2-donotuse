@@ -235,7 +235,7 @@ def _retrieveImg(userId, imgURI, logging):
             cmdrm = " rm -f " + imgURI
             logging.info("Post processing")
             logging.info(cmdrm)
-            _rExec(userId, cmdrm)
+            stat = os.system(cmdrm)
         else:
             logging.error("Error retrieving the image. Exit status " + str(stat))
             #remove the temporal file
