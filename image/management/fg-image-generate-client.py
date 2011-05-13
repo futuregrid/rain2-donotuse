@@ -177,7 +177,8 @@ def main():
     
     uid = self._rExec(userId, cmdexec, logging, serveraddr)
     
-    #call server with options
+    print uid[0].strip()
+    
     #server return addr of the img and metafeile compressed in a tgz or None
     #get tgz 
     #delete remote files

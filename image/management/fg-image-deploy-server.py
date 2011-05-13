@@ -20,6 +20,9 @@ moabInstallPath = '/opt/moab/'
 
 TEST_MODE=True
 
+
+#TODO. Modify this to have a generic server that also deploy eucalyptus
+
 def main():
 
 	#Setup logging

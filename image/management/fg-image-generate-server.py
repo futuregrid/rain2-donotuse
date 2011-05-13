@@ -101,8 +101,8 @@ def main():
     #TODO: authenticate user via promting for CERT or password to auth against LDAP db
     
         
-    #TODO. METHOD THAT BOOT A VM, inject the public key of the user in the root user AND GIVE ME THE IP
-    #Here we have to call other method that boot an image with the OS required and give me the ip
+#TODO. METHOD THAT BOOT A VM, inject the public key of the user in the root user AND GIVE ME THE IP
+#Here we have to call other method that boot an image with the OS required and give me the ip
     
     if ops.os == "ubuntu":        
         vmaddr=vmaddr_ubuntu
@@ -128,7 +128,7 @@ def main():
         looging.error("Error sending fg-image-generate.py to the VM. Exit status " + str(stat))
         
                 
-    options+="-a "+ops.arch+" -o "+ops.os+" -v "+ops.version+" -u "+user
+    options+="-a "+ops.arch+" -o "+ops.os+" -v "+ops.version+" -u "+user+" -t "+tempdir
     
     if type(ops.givenname) is not NoneType:
         options+=" -n "+ops.givenname
@@ -138,15 +138,18 @@ def main():
         options+" -l "+ops.auth
     if type(ops.software) is not NoneType:
         options+" -s "+ops.software
-        
+    
     cmdexec = " '" + vmdir + "fg-image-generate.py "+options
     
     uid = self._rExec(userId, cmdexec, logging, vmaddr)
     
-    cmdssh = "ssh " + userId + "@" + vmaddr
+    status = uid[0].strip()
+    if status=="error":
+        print uid
+    else:   
+        print tempdir+""+status
     
-    #return output, to be interpreted in client
-    print os.popen(cmdssh).read().strip()
+    
     
 
 ############################################################

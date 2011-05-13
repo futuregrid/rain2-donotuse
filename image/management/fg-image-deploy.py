@@ -170,6 +170,7 @@ def main():
         
         print 'Name-User: ' +name + '-'+ user
 
+##TODO. I think that this should be in deploy-server
 
         #Bucket folder
         runCmd('mkdir -p '+tempdir+''+ user)

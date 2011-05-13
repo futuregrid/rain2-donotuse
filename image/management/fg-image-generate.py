@@ -464,7 +464,9 @@ def runCmd(cmd):
     #cmdLog.debug('Ret status: '+str(p.returncode))
     if p.returncode != 0:
         cmdLog.error('Command: ' + cmd + ' failed, status: ' + str(p.returncode) + ' --- ' + std[1])
-        cleanup(namedir)        
+        cleanup(namedir)
+        print "error"       
+        print "p.returncode"
         sys.exit(p.returncode)
 
 
