@@ -173,7 +173,7 @@ def main():
     if type(ops.software) is not NoneType:
         options+" -s "+ops.software
     
-    cmdexec = " '" + serverdir + "fg-image-generate-server.py "+options
+    cmdexec = " '" + serverdir + "fg-image-generate-server.py "+options+" '"
     
     uid = _rExec(userId, cmdexec, logging, serveraddr)
     

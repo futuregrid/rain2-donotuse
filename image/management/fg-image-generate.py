@@ -26,7 +26,6 @@ base_url = "http://fg-gravel3.futuregrid.iu.edu/"
 bcfg2_url = 'fg-gravel3.futuregrid.iu.edu'
 bcfg2_port = 45678
 namedir = "" #this == name is to clean up when something fails
-tempdir=""  #directory to do create temporal files
 
 def main():    
     #Set up logging
@@ -117,7 +116,7 @@ def main():
     
     logging.debug('FG User: ' + user)
     
-    
+    arch=ops.arch
     """Already controlled...delete..    
     arch = "x86_64" #Default to 64-bit
     
@@ -158,7 +157,7 @@ def main():
         
         logging.info('Building Ubuntu ' + version + ' image')
         
-        img = buildUbuntu(user + '-' + randid, version, arch, packs)
+        img = buildUbuntu(user + '-' + randid, version, arch, packs, tempdir)
     
     elif ops.os == "debian":
         base_os = base_os + "debian" + spacer
@@ -171,7 +170,7 @@ def main():
         create_base_os=True
         config_ldap=True       
         
-        img = buildCentos(user + '-' + randid, version, arch, packs, create_base_os, config_ldap)
+        img = buildCentos(user + '-' + randid, version, arch, packs,tempdir, create_base_os, config_ldap)
         
     elif ops.os == "fedora":
         base_os = base_os + "fedora" + spacer    
@@ -184,7 +183,7 @@ def main():
     if type(ops.desc) is NoneType:
         ops.desc = " "
     
-    manifest(user, img, ops.os, version, arch, packs, ops.givenname, ops.desc)
+    manifest(user, img, ops.os, version, arch, packs, ops.givenname, ops.desc, tempdir)
 
 
     # Cleanup
@@ -484,7 +483,7 @@ def cleanup(name):
     cleanupLog.debug('Cleaned up mount points')
 
 
-def manifest(user, name, os, version, arch, pkgs, givenname, description):
+def manifest(user, name, os, version, arch, pkgs, givenname, description, tempdir):
 
     manifestLog = logging.getLogger('manifest')
 

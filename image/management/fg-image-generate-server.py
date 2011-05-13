@@ -144,7 +144,7 @@ def main():
     if type(ops.software) is not NoneType:
         options+" -s "+ops.software
     
-    cmdexec = " '" + vmdir + "fg-image-generate.py "+options
+    cmdexec = " '" + vmdir + "fg-image-generate.py "+options+" '"
     
     print cmdexec
     
