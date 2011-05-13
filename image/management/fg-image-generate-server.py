@@ -31,7 +31,9 @@ def main():
     vmaddr=""
     ####
     
-    ##server configuration
+    ######################
+    #Server configuration
+    ######################
     vmdir="/root/"
     serverdir="/srv/cloud/one/fg-management"
     
@@ -143,6 +145,8 @@ def main():
         options+" -s "+ops.software
     
     cmdexec = " '" + vmdir + "fg-image-generate.py "+options
+    
+    print cmdexec
     
     uid = self._rExec(userId, cmdexec, logging, vmaddr)
     
