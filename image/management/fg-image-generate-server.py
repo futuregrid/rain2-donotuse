@@ -38,7 +38,7 @@ def main():
     serverdir="/srv/cloud/one/fg-management"
     
     addrnfs="192.168.1.6"  #ip of the machine that shares the directory tempserver
-    tempserver="/srv/scratch" #name of the shared dir in the server
+    tempdirserver="/srv/scratch" #name of the shared dir in the server
     tempdir="/media/"  #name of the shared dir in the VM
     ####
     
