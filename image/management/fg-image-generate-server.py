@@ -128,7 +128,7 @@ def main():
     
     if (stat == 0):        
         logging.info("Sending fg-image-generate.py to the VM")
-        cmdscp = "scp "+serverdir+'/fg-image-generate.py  ' + userId + "@" + vmaddr + ":"+vmdir
+        cmdscp = "scp -q "+serverdir+'/fg-image-generate.py  ' + userId + "@" + vmaddr + ":"+vmdir
         logging.info(cmdscp)
         stat = os.system(cmdscp)
         if (stat != 0):
