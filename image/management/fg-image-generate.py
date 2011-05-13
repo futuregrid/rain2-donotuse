@@ -191,7 +191,7 @@ def main():
 
 #END MAIN
 
-def buildUbuntu(name, version, arch, pkgs):
+def buildUbuntu(name, version, arch, pkgs, tempdir):
 
     output=""
 
@@ -272,17 +272,17 @@ def buildUbuntu(name, version, arch, pkgs):
 
     return name
 
-def buildDebian(name, version, arch):
+def buildDebian(name, version, arch, pkgs, tempdir):
 
     runCmd('')
 
 
-def buildRHEL(name, version, arch):
+def buildRHEL(name, version, arch, pkgs, tempdir):
 
     runCmd('')
 
 
-def buildCentos(name, version, arch, pkgs, base_os, ldap):
+def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
 
     output=""
     namedir=name
@@ -442,7 +442,7 @@ def buildCentos(name, version, arch, pkgs, base_os, ldap):
 
 
 
-def buildFedora(name, version, arch):
+def buildFedora(name, version, arch, pkgs, tempdir):
 
     runCmd('')
 
