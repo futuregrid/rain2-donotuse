@@ -175,7 +175,7 @@ def main():
     
     cmdexec = " '" + serverdir + "fg-image-generate-server.py "+options
     
-    uid = self._rExec(userId, cmdexec, logging, serveraddr)
+    uid = _rExec(userId, cmdexec, logging, serveraddr)
     
     status = uid[0].strip()#it contains error or filename
     if status=="error":

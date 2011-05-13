@@ -148,7 +148,7 @@ def main():
     
     print cmdexec
     
-    uid = self._rExec(userId, cmdexec, logging, vmaddr)
+    uid = _rExec(userId, cmdexec, logging, vmaddr)
     
     status = uid[0].strip() #it contains error or filename
     if status=="error":
