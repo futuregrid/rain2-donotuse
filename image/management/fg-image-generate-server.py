@@ -124,7 +124,9 @@ def main():
     logging.info("Mount scratch directory in the VM")
     cmd="ssh -q " + userId + "@" + vmaddr
     cmdmount=" mount -t nfs "+addrnfs+":"+tempdirserver+" "+tempdir
+    logging.info(cmd+cmdmount)
     stat=os.system(cmd+cmdmount)
+    
     
     if (stat == 0):        
         logging.info("Sending fg-image-generate.py to the VM")
@@ -148,7 +150,7 @@ def main():
         
         cmdexec = " -q '" + vmdir + "fg-image-generate.py "+options+" '"
         
-        print cmdexec
+        logging.info(cmdexec)
         
         uid = _rExec(userId, cmdexec, logging, vmaddr)
         

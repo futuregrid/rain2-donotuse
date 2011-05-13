@@ -187,7 +187,7 @@ def main():
     
     manifest(user, img, ops.os, version, arch, packs, ops.givenname, ops.desc, tempdir)
 
-
+    print img
     # Cleanup
     #TODO: verify everything is unmounted, delete temporary folder
 
