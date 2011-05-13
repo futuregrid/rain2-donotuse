@@ -93,7 +93,7 @@ def main():
     (ops, args) = parser.parse_args()
     
     #this is to log in in the VM 
-    userId='root'
+    userId='root' #this MUST be root
     
     #this is the user name
     user = ops.user
@@ -122,10 +122,11 @@ def main():
     logging.info("The VM deployed is in "+vmaddr)
     
     logging.info("Mount scratch directory in the VM")
+    cmd="ssh " + userId + "@" + vmaddr
     cmdmount=" mount -t nfs "+addrnfs+":"+tempdirserver+" "+tempdir
-    uid = _rExec(userId, cmdmount, logging, vmaddr)
+    stat=os.system(cmd+cmdmount)
     
-    if (uid[0].strip() == 0):        
+    if (stat == 0):        
         logging.info("Sending fg-image-generate.py to the VM")
         cmdscp = "scp "+serverdir+'/fg-image-generate.py  ' + userId + "@" + vmaddr + ":"+vmdir
         logging.info(cmdscp)
@@ -162,8 +163,9 @@ def main():
             print tempdirserver+""+status+".tgz"
             
         logging.info("Umount scratch directory in the VM")
+        cmd="ssh " + userId + "@" + vmaddr
         cmdmount=" umount "+tempdir
-        uid = _rExec(userId, cmdmount, logging, vmaddr)
+        stat=os.system(cmd+cmdmount)
     
     #destroy VM
     
