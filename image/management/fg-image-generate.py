@@ -478,9 +478,8 @@ def cleanup(name):
     #Cleanup
     cleanupLog = logging.getLogger('cleanup')
 
-    #ingone output next two cmds
-    s=os.popen('umount '+tempdir+''+name + '/proc', 'r').read()
-    s=os.popen('umount '+tempdir+''+name + '/dev/pts', 'r').read()    
+    os.system('umount '+tempdir+''+name + '/proc')
+    os.system('umount '+tempdir+''+name + '/dev/pts')
     
     cmd = 'umount '+tempdir+''+name
     cleanupLog.debug('Executing: ' + cmd)
