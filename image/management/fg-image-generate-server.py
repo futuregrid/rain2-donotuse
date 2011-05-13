@@ -123,7 +123,7 @@ def main():
     
     logging.info("Mount scratch directory in the VM")
     cmdmount="mount -t nfs "+addrnfs+":"+tempdirserver+" "+tempdir
-    uid = self._rExec(userId, cmdexec, logging, vmaddr)
+    uid = _rExec(userId, cmdexec, logging, vmaddr)
     
     logging.info("Sending fg-image-generate.py to the VM")
     cmdscp = "scp "+serverdir+'/fg-image-generate.py  ' + userId + "@" + vmaddr + ":"+vmdir
