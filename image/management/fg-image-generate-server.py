@@ -122,47 +122,48 @@ def main():
     logging.info("The VM deployed is in "+vmaddr)
     
     logging.info("Mount scratch directory in the VM")
-    cmdmount="mount -t nfs "+addrnfs+":"+tempdirserver+" "+tempdir
+    cmdmount=" mount -t nfs "+addrnfs+":"+tempdirserver+" "+tempdir
     uid = _rExec(userId, cmdmount, logging, vmaddr)
     
-    logging.info("Sending fg-image-generate.py to the VM")
-    cmdscp = "scp "+serverdir+'/fg-image-generate.py  ' + userId + "@" + vmaddr + ":"+vmdir
-    logging.info(cmdscp)
-    stat = os.system(cmdscp)
-    if (stat != 0):
-        logging.error("Error sending fg-image-generate.py to the VM. Exit status " + str(stat))
-        
-                
-    options+="-a "+ops.arch+" -o "+ops.os+" -v "+ops.version+" -u "+user+" -t "+tempdir
-    
-    if type(ops.givenname) is not NoneType:
-        options+=" -n "+ops.givenname
-    if type(ops.desc) is not NoneType:
-        options+=" -e "+ops.desc
-    if type(ops.auth) is not NoneType:
-        options+" -l "+ops.auth
-    if type(ops.software) is not NoneType:
-        options+" -s "+ops.software
-    
-    cmdexec = " '" + vmdir + "fg-image-generate.py "+options+" '"
-    
-    print cmdexec
-    
-    uid = _rExec(userId, cmdexec, logging, vmaddr)
-    
-    status = uid[0].strip() #it contains error or filename
-    if status=="error":
-        print uid
-    else:         
-        out=os.system("tar cfz "+tempdirserver+""+status+".tgz -C "+tempdirserver+" "+status+".manifest.xml "+status+".img")
-        if out == 0:
-            os.system("rm -f "+tempdirserver+""+status+".manifest.xml "+tempdirserver+""+status+".img")
+    if (uid[0].strip() == 0):        
+        logging.info("Sending fg-image-generate.py to the VM")
+        cmdscp = "scp "+serverdir+'/fg-image-generate.py  ' + userId + "@" + vmaddr + ":"+vmdir
+        logging.info(cmdscp)
+        stat = os.system(cmdscp)
+        if (stat != 0):
+            logging.error("Error sending fg-image-generate.py to the VM. Exit status " + str(stat))
             
-        print tempdirserver+""+status+".tgz"
+                    
+        options+="-a "+ops.arch+" -o "+ops.os+" -v "+ops.version+" -u "+user+" -t "+tempdir
         
-    logging.info("Umount scratch directory in the VM")
-    cmdmount="umount "+tempdir
-    uid = _rExec(userId, cmdmount, logging, vmaddr)
+        if type(ops.givenname) is not NoneType:
+            options+=" -n "+ops.givenname
+        if type(ops.desc) is not NoneType:
+            options+=" -e "+ops.desc
+        if type(ops.auth) is not NoneType:
+            options+" -l "+ops.auth
+        if type(ops.software) is not NoneType:
+            options+" -s "+ops.software
+        
+        cmdexec = " '" + vmdir + "fg-image-generate.py "+options+" '"
+        
+        print cmdexec
+        
+        uid = _rExec(userId, cmdexec, logging, vmaddr)
+        
+        status = uid[0].strip() #it contains error or filename
+        if status=="error":
+            print uid
+        else:         
+            out=os.system("tar cfz "+tempdirserver+""+status+".tgz -C "+tempdirserver+" "+status+".manifest.xml "+status+".img")
+            if out == 0:
+                os.system("rm -f "+tempdirserver+""+status+".manifest.xml "+tempdirserver+""+status+".img")
+                
+            print tempdirserver+""+status+".tgz"
+            
+        logging.info("Umount scratch directory in the VM")
+        cmdmount=" umount "+tempdir
+        uid = _rExec(userId, cmdmount, logging, vmaddr)
     
     #destroy VM
     
