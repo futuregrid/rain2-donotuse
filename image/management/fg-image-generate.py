@@ -93,7 +93,7 @@ def main():
     #Turn debugging off
     if not ops.debug:
         logging.basicConfig(level=logging.INFO)
-        ch.setLevel(logging.INFO)
+        #ch.setLevel(logging.INFO)
     
     if type(ops.tempdir) is not NoneType: 
         tempdir=ops.tempdir
