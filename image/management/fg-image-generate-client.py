@@ -177,11 +177,11 @@ def main():
     
     uid = self._rExec(userId, cmdexec, logging, serveraddr)
     
-    status = uid[0].strip()
+    status = uid[0].strip()#it contains error or filename
     if status=="error":
         print "The image has not been generated properly. Exit error:"+uid[1]
     else:
-        _retrieveImg(userId)
+        _retrieveImg(userId, serveraddr+":"+status, logging)
     
     #server return addr of the img and metafeile compressed in a tgz or None
     #get tgz 
@@ -225,7 +225,7 @@ def _rExec(userId, cmdexec, logging, serveraddr):
 def _retrieveImg(userId, imgURI, logging):
     imgIds=imgURI.split("/")
     imgId=imgIds[len(imgIds-1)]
-    
+        
     cmdscp = "scp " + userId + "@" + imgURI + " ."    
     output = ""
     try:
@@ -234,7 +234,7 @@ def _retrieveImg(userId, imgURI, logging):
         stat = os.system(cmdscp)
         if (stat == 0):
             output = "The image " + imgId + " is located in " + os.popen('pwd', 'r').read().strip() + "/" + imgId            
-            cmdrm = " rm -rf " + (imgURI).split(".")[0]+"*"
+            cmdrm = " rm -f " + (imgURI).split(".")[0]
             logging.info("Post processing")
             logging.info(cmdrm)
             #_rExec(userId, cmdrm)

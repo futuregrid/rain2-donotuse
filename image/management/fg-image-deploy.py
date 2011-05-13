@@ -49,12 +49,12 @@ def main():
     
     parser.add_option('-i', '--image', dest='image', help='Name of image manifest file')
 
-    parser.add_option('-n', '--nas', dest='nasaddr', help='Address to upload image file with a shared dir')
+    parser.add_option('-n', '--nas', dest='nasaddr', help='Address to upload the image file')
     parser.add_option("-t", "--tempdir", dest="tempdir", help="shared dir to upload the image")
     
-    parser.add_option('-x', '--xcat', dest='xcat', help='Deploy image to xCAT')
-    parser.add_option('-e', '--euca', dest='euca', help='Deploy the image to Eucalyptus')
-    parser.add_option('-n', '--nimbus', dest='nimbus', help='Deploy the image to Nimbus')
+    parser.add_option('-x', '--xcat', dest='xcat', help='Deploy image to xCAT, which is in the specified addr')
+    parser.add_option('-e', '--euca', dest='euca', help='Deploy the image to Eucalyptus, which is in the specified addr')
+    parser.add_option('-n', '--nimbus', dest='nimbus', help='Deploy the image to Nimbus, which is in the specified addr')
 
     parser.add_option("-u", "--user", dest="user", help="FutureGrid username")
 
@@ -120,7 +120,7 @@ def main():
         arch = manifest.getElementsByTagName('arch')[0].firstChild.nodeValue.strip()
         #kernel = manifest.getElementsByTagName('kernel')[0].firstChild.nodeValue.strip()
 
-        logger.debug(name + operatingsystem + version + arch)
+        logger.debug(name + " "+ operatingsystem+ " " + version +" "+ arch)
 
     else:
         parser.error('You must specify the image manifest file to deploy')

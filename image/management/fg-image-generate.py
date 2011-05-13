@@ -86,8 +86,7 @@ def main():
     parser.add_option("-n", "--name", dest="givenname", help="Desired recognizable name of the image")
     parser.add_option("-e", "--description", dest="desc", help="Short description of the image and its purpose")
     parser.add_option("-t", "--tempdir", dest="tempdir", help="directory to be use in to generate the image")
-    
-        
+            
     (ops, args) = parser.parse_args()
     
     

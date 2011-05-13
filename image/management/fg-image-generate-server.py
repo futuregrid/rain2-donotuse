@@ -32,9 +32,12 @@ def main():
     ####
     
     ##server configuration
-    vmdir="/root/"     
+    vmdir="/root/"
     serverdir="/srv/cloud/one/fg-management"
-    tempdir="/media/"
+    
+    addrnfs="192.168.1.6"  #ip of the machine that shares the directory tempserver
+    tempserver="/srv/scratch" #name of the shared dir in the server
+    tempdir="/media/"  #name of the shared dir in the VM
     ####
     
     options=''
@@ -117,7 +120,7 @@ def main():
     logging.info("The VM deployed is in "+vmaddr)
     
     logging.info("Mount scratch directory in the VM")
-    cmdmount="mount -t nfs 192.168.1.6:/srv/scratch /media"
+    cmdmount="mount -t nfs "+addrnfs+":"+tempdirserver+" "+tempdir
     uid = self._rExec(userId, cmdexec, logging, vmaddr)
     
     logging.info("Sending fg-image-generate.py to the VM")
@@ -143,12 +146,16 @@ def main():
     
     uid = self._rExec(userId, cmdexec, logging, vmaddr)
     
-    status = uid[0].strip()
+    status = uid[0].strip() #it contains error or filename
     if status=="error":
         print uid
-    else:   
-        print tempdir+""+status
-    
+    else:         
+        out=os.system("tar cfz "+tempdirserver+""+status+".tgz -C "+tempdirserver+" "+status+".manifest.xml "+status+".img")
+        if out == 0:
+            os.system("rm -f "+tempdirserver+""+status+".manifest.xml "+tempdirserver+""+status+".img")
+            
+        print tempdirserver+""+status+".tgz"
+        
     
     
 
