@@ -194,3 +194,8 @@ def _rExec(userId, cmdexec, logging, vmaddr):
     #    output += line.strip()
     #print outputs
     return outputs
+
+
+if __name__ == "__main__":
+    main()
+#END
