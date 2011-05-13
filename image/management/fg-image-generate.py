@@ -331,6 +331,7 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
         
         centosLog.info('Copying configuration files')
         
+#Move next 3 to deploy        
         os.system('echo "search idpm" > '+tempdir+''+name+'/etc/resolv.conf')
         os.system('echo "nameserver 129.79.1.1" >> '+tempdir+''+name+'/etc/resolv.conf')
         os.system('echo "nameserver 172.29.202.149" >> '+tempdir+''+name+'/etc/resolv.conf')
@@ -341,8 +342,9 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
         #base_os done
     
     centosLog.info('Installing some util packages')
-    runCmd('chroot '+tempdir+''+name+' yum -y install wget nfs-utils gcc make') 
-    
+    runCmd('chroot '+tempdir+''+name+' yum -y install wget nfs-utils gcc make')
+     
+#Move ldap to deploy    
     if (ldap):
         #this is for LDAP auth and mount home dirs. Later, we may control if we install this or not.
         centosLog.info('Installing LDAP packages')
@@ -367,7 +369,8 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
     #Setup networking
     
     runCmd('wget ' + base_url + '/conf/centos/ifcfg-eth0 -O '+tempdir+''+name + '/etc/sysconfig/network-scripts/ifcfg-eth0')
-    
+
+#Move all /etc/hosts and ssh key to deploy     
     if(TEST_MODE):
         #this eth1 is just for miniclusetr. comment this and uncomment the next one for india  
         #runCmd('wget ' + base_url + '/conf/centos/ifcfg-eth1_minicluster_tc1 -O '+tempdir+''+name + '/etc/sysconfig/network-scripts/ifcfg-eth1')
@@ -475,8 +478,9 @@ def cleanup(name):
     #Cleanup
     cleanupLog = logging.getLogger('cleanup')
 
-    os.system('umount '+tempdir+''+name + '/proc')
-    os.system('umount '+tempdir+''+name + '/dev/pts')
+    #ingone output next two cmds
+    s=os.popen('umount '+tempdir+''+name + '/proc', 'r').read()
+    s=os.popen('umount '+tempdir+''+name + '/dev/pts', 'r').read()    
     
     cmd = 'umount '+tempdir+''+name
     cleanupLog.debug('Executing: ' + cmd)

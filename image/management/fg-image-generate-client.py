@@ -24,7 +24,7 @@ def main():
     
     ##configuration
     serveraddr = "fg-gravel6.futuregrid.iu.edu"     
-    serverdir="/srv/cloud/one/fg-management"   
+    serverdir="/srv/cloud/one/fg-management/"   
     ####
     
     options=''
@@ -65,7 +65,7 @@ def main():
 
         
     #help is auto-generated
-    parser.add_option("-o", "--os", dest="os", help="specify destination Operating System")
+    parser.add_option("-o", "--os", dest="OS", help="specify destination Operating System")
     parser.add_option("-v", "--version", dest="version", help="Operating System version")
     parser.add_option("-a", "--arch", dest="arch", help="Destination hardware architecture")
     parser.add_option("-l", "--auth", dest="auth", help="Authentication mechanism")
@@ -120,48 +120,40 @@ def main():
     # Build the image
     version=""
     #Parse OS and version command line args
-    os=""
-    if ops.os == "Ubuntu" or ops.os == "ubuntu":     
-        os="ubuntu"   
+    OS=""
+    if ops.OS == "Ubuntu" or ops.OS == "ubuntu":     
+        OS="ubuntu"   
         if type(ops.version) is NoneType:
             version = latest_ubuntu
         elif ops.version == "10.04" or ops.version == "lucid":
             version = "lucid"
         elif ops.version == "9.10" or ops.version == "karmic":
             version = "karmic"                    
-    elif ops.os == "Debian" or ops.os == "debian":
-        os="debian"
+    elif ops.OS == "Debian" or ops.OS == "debian":
+        OS="debian"
         version = latest_debian
-    elif ops.os == "Redhat" or ops.os == "redhat" or ops.os == "rhel":
-        os="rhel"
+    elif ops.OS == "Redhat" or ops.OS == "redhat" or ops.OS == "rhel":
+        OS="rhel"
         version = latest_rhel
-    elif ops.os == "CentOS" or ops.os == "Centos" or ops.os == "centos":
-        os="centos"                
+    elif ops.OS == "CentOS" or ops.OS == "CentOS" or ops.OS == "centos":
+        OS="centos"                
         if type(ops.version) is NoneType:
             version = latest_centos
         #later control supported versions
         else: 
             version = latest_centos  
-    elif ops.os == "Fedora" or ops.os == "fedora":
-        os="fedora"
+    elif ops.OS == "Fedora" or ops.OS == "fedora":
+        OS="fedora"
         version = latest_fedora
     else:
         parser.error("Incorrect OS type specified")
         sys.exit(1)
         
-    if (ops.os == "Ubuntu" or ops.os == "ubuntu" or         
-       ops.os == "Debian" or ops.os == "debian" or     
-       ops.os == "Redhat" or ops.os == "redhat" or ops.os == "rhel" or
-       ops.os == "CentOS" or ops.os == "Centos" or ops.os == "centos" or       
-       ops.os == "Fedora" or ops.os == "fedora"):
-       pass 
-    else:
-        parser.error("Incorrect OS type specified")
-        sys.exit(1)
+    
 
     #generate string with options in the previous ifs
     
-    options+="-a "+ops.arch+" -o "+ops.os+" -v "+version+" -u "+user
+    options+="-a "+ops.arch+" -o "+ops.OS+" -v "+version+" -u "+user
     
     
     if type(ops.givenname) is not NoneType:
@@ -175,9 +167,14 @@ def main():
     
     cmdexec = " '" + serverdir + "fg-image-generate-server.py "+options+" '"
     
+    logging.info("Generating the image")
+    
     uid = _rExec(userId, cmdexec, logging, serveraddr)
     
     status = uid[0].strip()#it contains error or filename
+    
+    logging.info("Status: "+str(status))
+    
     if status=="error":
         print "The image has not been generated properly. Exit error:"+uid[1]
     else:
@@ -205,7 +202,7 @@ def _rExec(userId, cmdexec, logging, serveraddr):
     
     logging.info(str(cmd))
     
-    stat = os.system(cmd)
+    stat = os.system(cmd)    
     if (str(stat) != "0"):
         #print stat
         logging.info(str(stat))
@@ -224,7 +221,7 @@ def _rExec(userId, cmdexec, logging, serveraddr):
 ############################################################
 def _retrieveImg(userId, imgURI, logging):
     imgIds=imgURI.split("/")
-    imgId=imgIds[len(imgIds-1)]
+    imgId=imgIds[len(imgIds)-1]
         
     cmdscp = "scp " + userId + "@" + imgURI + " ."    
     output = ""
@@ -232,12 +229,13 @@ def _retrieveImg(userId, imgURI, logging):
         logging.info("Retrieving the image")
         logging.info(cmdscp)
         stat = os.system(cmdscp)
+        stat=0
         if (stat == 0):
             output = "The image " + imgId + " is located in " + os.popen('pwd', 'r').read().strip() + "/" + imgId            
-            cmdrm = " rm -f " + (imgURI).split(".")[0]
+            cmdrm = " rm -f " + imgURI
             logging.info("Post processing")
             logging.info(cmdrm)
-            #_rExec(userId, cmdrm)
+            _rExec(userId, cmdrm)
         else:
             logging.error("Error retrieving the image. Exit status " + str(stat))
             #remove the temporal file
