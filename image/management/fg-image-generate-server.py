@@ -160,7 +160,11 @@ def main():
             
         print tempdirserver+""+status+".tgz"
         
+    logging.info("Umount scratch directory in the VM")
+    cmdmount="umount "+tempdir
+    uid = _rExec(userId, cmdmount, logging, vmaddr)
     
+    #destroy VM
     
 
 ############################################################
