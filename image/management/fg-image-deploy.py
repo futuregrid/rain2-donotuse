@@ -257,9 +257,13 @@ def main():
             runCmd('sudo rm -f var.tgz torque-2.5.1.tgz')
             runCmd('sudo wget fg-gravel3.futuregrid.iu.edu/torque/torque-2.5.1_minicluster/pbs_mom -O '+tempdir+'/rootimg/etc/init.d/pbs_mom')
             
-            f= open(tempdir+'/etc/inittab', 'a')
-            f.write("\n"+"pbs:3,5:respawn:/etc/init.d/pbs_mom start")        
+            os.system('touch ./inittab')
+            os.system('cat '+tempdir+'/rootimg/etc/inittab'+' > ./inittab')            
+            f= open('./inittab', 'a')
+            f.write("\n"+"pbs:35:respawn:/etc/init.d/pbs_mom start")        
             f.close()          
+            os.system('sudo mv -f ./inittab '+tempdir+'/rootimg/etc/inittab')
+            os.system('sudo chown root:root '+tempdir+'/rootimg/etc/inittab')
             
             
         else:#Later we should be able to chose the cluster where is deployed

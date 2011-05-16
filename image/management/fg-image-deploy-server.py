@@ -96,19 +96,19 @@ def main():
 	    #/install/netboot/<name>/<arch>/compute/
 	    path = xcatInstallPath + prefix + operatingsystem + '.' + name + '/' + arch + '/compute/'
 	    cmd = 'mkdir -p ' + path
-	    runCmd(cmd)
-	
-	    
-	    
+	    status=runCmd(cmd)
 	    
 	    cmd = 'mv '+tempdir+'/'+oldName+'.gz ' + path + 'rootimg.gz'
-	    runCmd(cmd)
+	    status=runCmd(cmd)
+	
+	    if status != 0:
+	    	break
 	
 	    cmd = 'mkdir -p ' + path + 'rootimg'
-	    runCmd(cmd)
+	    status=runCmd(cmd)
 	
 	    cmd = 'cd ' + path + '; gunzip -c rootimg.gz | cpio -i'
-	    os.system(cmd) #because of the pipe
+	    status=os.system(cmd) #because of the pipe
 	
 	
 	    #cmd = 'tar xfz '+path + 'rootimg.tar.gz --directory ' + path
@@ -119,18 +119,18 @@ def main():
 	
 	
 	    cmd = 'wget fg-gravel3.futuregrid.iu.edu/kernel/initrd.gz -O ' + path+'/initrd.gz'
-	    runCmd(cmd)
+	    status=runCmd(cmd)
 	
 	    cmd = 'wget fg-gravel3.futuregrid.iu.edu/kernel/kernel -O ' + path+'/kernel'
-	    runCmd(cmd)
+	    status=runCmd(cmd)
 	
 	    #Add entry to the osimage table
 	    cmd = 'chtab osimage.imagename=\"' + operatingsystem + '.' + name + '\" osimage.profile=\"compute\" osimage.imagetype=\"linux\" osimage.provmethod=\"netboot\" osimage.osname=\"' + operatingsystem + '\" osimage.osvers=\"' + prefix + operatingsystem + '.' + name + '\" osimage.osarch=\"' + arch + '\"'
-	    runCmd(cmd)
+	    status=runCmd(cmd)
 	
 	    #Pack image
 	    cmd = 'packimage -o ' + prefix + operatingsystem + '.' + name + ' -p compute -a ' + arch
-	    runCmd(cmd)
+	    status=runCmd(cmd)
 	
 	    if (TEST_MODE):
 		    #TODO: Testing only, will remove in the future
@@ -143,23 +143,25 @@ def main():
 	
 	    cmd = 'echo \"' + operatingsystem + '-' + name + ' ' + arch + ' ' + operatingsystem + '-' + version + ' compute netboot\" >> ' + moabInstallPath + 'images.txt'
 	    print cmd
-	    os.system(cmd)
+	    status=os.system(cmd)
 	
 	    cmd = 'mschedctl -R'
-	    runCmd(cmd)
+	    status=runCmd(cmd)
 
 def runCmd(cmd):
     cmdLog = logging.getLogger('exec')
     cmdLog.debug(cmd)
     p = Popen(cmd.split(' '), stdout=PIPE, stderr=PIPE)
     std = p.communicate()
+    status=0
     if len(std[0]) > 0:
 	    cmdLog.debug('stdout: ' + std[0])
 	    cmdLog.debug('stderr: ' + std[1])
     if p.returncode != 0:
         cmdLog.error('Command: ' + cmd + ' failed, status: ' + str(p.returncode) + ' --- ' + std[1])
-        sys.exit(p.returncode)
-
+        status=1
+        #sys.exit(p.returncode)
+    return status
 
 if __name__ == "__main__":
                 main()

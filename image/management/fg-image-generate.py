@@ -159,7 +159,10 @@ def main():
         
         logging.info('Building Ubuntu ' + version + ' image')
         
-        img = buildUbuntu(user + '-' + randid, version, arch, packs, tempdir)
+        create_base_os=True
+        config_ldap=True 
+        
+        img = buildUbuntu(user + '-' + randid, version, arch, packs, tempdir, create_base_os, config_ldap)
     
     elif ops.os == "debian":
         base_os = base_os + "debian" + spacer
@@ -193,15 +196,25 @@ def main():
 
 #END MAIN
 
-def buildUbuntu(name, version, arch, pkgs, tempdir):
+def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
 
     output=""
 
     ubuntuLog = logging.getLogger('ubuntu')
 
-    ubuntuLog.info('Retrieving Image: ubuntu-' + version + '-' + arch + '-base.img')
-    #Download base image from repository
-    runCmd('wget ' + base_url + 'base_os/ubuntu-' + version + '-' + arch + '-base.img -O '+tempdir+' '+ name + '.img')
+
+    if not base_os:
+        ubuntuLog.info('Retrieving Image: ubuntu-' + version + '-' + arch + '-base.img')
+        #Download base image from repository
+        runCmd('wget ' + base_url + 'base_os/ubuntu-' + version + '-' + arch + '-base.img -O '+tempdir+' '+ name + '.img')
+    elif base_os:
+        ubuntuLog.info('Generation Image: centos-' + version + '-' + arch + '-base.img')
+     
+        #to create base_os    
+        ubuntuLog.info('Creating Disk for the image')        
+        runCmd('dd if=/dev/zero of='+tempdir+''+name+'.img bs=1024k seek=1496 count=0')
+        runCmd('mke2fs -F -j '+tempdir+''+name+'.img')
+    
     
     #Mount the new image
     ubuntuLog.info('Mounting new image')
@@ -209,16 +222,72 @@ def buildUbuntu(name, version, arch, pkgs, tempdir):
     runCmd('mount -o loop '+tempdir+''+name + '.img '+tempdir+''+name)
     ubuntuLog.info('Mounted image')
 
+    
+    if base_os:
+                
+        #to create base_os
+        #centosLog.info('Modifying repositories to match the version requested')
+        ubuntuLog.info('Installing base OS')
+        runCmd('yum --installroot='+tempdir+''+name+' -y groupinstall Core')
+        runCmd('debootstrap --include=grub,language-pack-en,openssh-server --components=main,universe,multiverse '+version+' '+tempdir+''+name)
+
+        ubuntuLog.info('Copying configuration files')
+        
+#Move next 3 to deploy        
+        os.system('echo "search idpm" > '+tempdir+''+name+'/etc/resolv.conf')
+        os.system('echo "nameserver 129.79.1.1" >> '+tempdir+''+name+'/etc/resolv.conf')
+        os.system('echo "nameserver 172.29.202.149" >> '+tempdir+''+name+'/etc/resolv.conf')
+        
+        os.system('echo "127.0.0.1 localhost.localdomain localhost" > '+tempdir+''+name+'/etc/hosts')    
+        #base_os done
+
     #Mount proc and pts
     runCmd('mount -t proc proc '+tempdir+''+name + '/proc')
     runCmd('mount -t devpts devpts '+tempdir+''+name + '/dev/pts')
     ubuntuLog.info('Mounted proc and devpts')
 
+    ubuntuLog.info('Installing some util packages')
+    runCmd('chroot '+tempdir+''+name+' apt-get -y install wget nfs-common gcc make')
+     
+#Move ldap to deploy    
+    if (ldap):
+        #this is for LDAP auth and mount home dirs. Later, we may control if we install this or not.
+        ubuntuLog.info('Installing LDAP packages')
+        runCmd('chroot '+tempdir+''+name+' apt-get --force-yes -y install ldap-utils libpam-ldap libnss-ldap nss-updatedb libnss-db')
+        
+        ubuntuLog.info('Configuring LDAP access')        
+        runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/nsswitch.conf -O '+tempdir+''+name+'/etc/nsswitch.conf')
+        runCmd('mkdir -p '+tempdir+''+name+'/etc/ldap/cacerts '+tempdir+''+name+'/N/u')
+        runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/cacerts/12d3b66a.0 -O '+tempdir+''+name+'/etc/ldap/cacerts/12d3b66a.0')
+        runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/cacerts/cacert.pem -O '+tempdir+''+name+'/etc/ldap/cacerts/cacert.pem')
+        runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/sshd -O '+tempdir+''+name+'/usr/sbin/sshd')
+        runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/ldap.conf -O '+tempdir+''+name+'/etc/ldap.conf')
+        runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/openldap/ldap.conf -O '+tempdir+''+name+'/etc/ldap/ldap.conf')
+
     #Setup networking
-    
-    runCmd('wget ' + base_url + '/conf/ubuntu/interfaces -O '+tempdir+''+name + '/etc/network/interfaces')
     os.system('echo localhost > '+tempdir+''+name + '/etc/hostname')
     runCmd('hostname localhost')
+    
+
+    if(TEST_MODE):
+        #this eth1 is just for miniclusetr. comment this and uncomment the next one for india
+        runCmd('wget ' + base_url + '/conf/ubuntu/interfaces_minicluster_tc2 -O '+tempdir+''+name + '/etc/network/interfaces')
+        #runCmd('wget ' + base_url + '/conf/ubuntu/interfaces_minicluster_tc1 -O '+tempdir+''+name + '/etc/network/interfaces')
+        os.system('echo "172.29.200.1 t1 tm1" >> '+tempdir+''+name+'/etc/hosts')
+        os.system('echo "172.29.200.3 tc1" >> '+tempdir+''+name+'/etc/hosts')
+        os.system('echo "149.165.145.35 tc1r.tidp.iu.futuregrid.org tc1r" >> '+tempdir+''+name+'/etc/hosts')
+        os.system('echo "172.29.200.4 tc2" >> '+tempdir+''+name+'/etc/hosts')        
+        os.system('echo "149.165.145.36 tc2r.tidp.iu.futuregrid.org tc2r" >> '+tempdir+''+name+'/etc/hosts')
+        runCmd('mkdir -p '+tempdir+''+name+'/root/.ssh')
+        os.system('echo "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAu0D0UbGs7FIjQVQVuARc4MF9XoCEXraQv4j0yhIS2EoTcdamYvHrSE6t+X'+\
+                  'OD9DzwZeAFlcd8yJH5g1wivpsuBo7AO89Fy4WfVwSGJGJZDzfu7s850wytVbSpZNoFJUb372su9OrMcFhi3M7khdjWkurs5'+\
+                  'giCivJQnlC+ubExwfcC5NeZUMpkSk1pquuVama4URfh9RQlB0q8t3sksAv1z6IygKKcWwIpFlKrEFtinU1Es+1JmWogq87we'+\
+                  'SFJm8M9BX/JXQnf38GaoBmgGxlnHyP10X9Jw56P2eocXtH8HChI45PGgMYnpcQVmnz5Va5xhseEWdPr2tdiBmL4fag2UQ== root@tm1" >> '+tempdir+''+name+'/root/.ssh/authorized_keys')
+        os.system('chmod 600 '+tempdir+''+name+'/root/.ssh/authorized_keys')
+
+    else:    
+        runCmd('wget ' + base_url + '/conf/ubuntu/interfaces -O '+tempdir+''+name + '/etc/network/interfaces')
+        
     ubuntuLog.info('Injected networking configuration')
 
     # Setup package repositories 
