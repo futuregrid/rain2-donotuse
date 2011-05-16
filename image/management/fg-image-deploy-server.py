@@ -64,7 +64,17 @@ def main():
 	
 	    #Fix name so that it removes dashes
 	    oldName = params[0]
-	    params[0] = params[0].replace('-', '.')
+	    name = params[0].replace('-', '.')
+	
+	
+	    operatingsystem=params[1]
+	    
+	    version=params[2]
+	    
+	    arch=params[3]
+	    kernel=params[4]
+	    tempdir=params[5]    
+	
 	
 	    if len(params) == numparams:
 	        channel.send('OK')
@@ -77,18 +87,18 @@ def main():
 	
 	    #Hook for Debian based systems to work in xCAT
 	    prefix = ''
-	    if params[1] == 'ubuntu' or params[1] == 'debian':
+	    if operatingsystem == 'ubuntu' or operatingsystem == 'debian':
 	        prefix = 'rhels5.4'
 	
 	    #Build filesystem
 	
 	    #Create Directory structure
 	    #/install/netboot/<name>/<arch>/compute/
-	    path = xcatInstallPath + prefix + params[1] + '.' + params[0] + '/' + params[3] + '/compute/'
+	    path = xcatInstallPath + prefix + operatingsystem + '.' + name + '/' + arch + '/compute/'
 	    cmd = 'mkdir -p ' + path
 	    runCmd(cmd)
 	
-	    tempdir=params[5]
+	    
 	    
 	    
 	    cmd = 'mv '+tempdir+'/'+oldName+'.gz ' + path + 'rootimg.gz'
@@ -115,23 +125,23 @@ def main():
 	    runCmd(cmd)
 	
 	    #Add entry to the osimage table
-	    cmd = 'chtab osimage.imagename=\"' + params[1] + '.' + params[0] + '\" osimage.profile=\"compute\" osimage.imagetype=\"linux\" osimage.provmethod=\"netboot\" osimage.osname=\"' + params[1] + '\" osimage.osvers=\"' + prefix + params[1] + '.' + params[0] + '\" osimage.osarch=\"' + params[3] + '\"'
+	    cmd = 'chtab osimage.imagename=\"' + operatingsystem + '.' + name + '\" osimage.profile=\"compute\" osimage.imagetype=\"linux\" osimage.provmethod=\"netboot\" osimage.osname=\"' + operatingsystem + '\" osimage.osvers=\"' + prefix + operatingsystem + '.' + name + '\" osimage.osarch=\"' + arch + '\"'
 	    runCmd(cmd)
 	
 	    #Pack image
-	    cmd = 'packimage -o ' + prefix + params[1] + '.' + params[0] + ' -p compute -a ' + params[3]
+	    cmd = 'packimage -o ' + prefix + operatingsystem + '.' + name + ' -p compute -a ' + arch
 	    runCmd(cmd)
 	
 	    if (TEST_MODE):
 		    #TODO: Testing only, will remove in the future
 		    #Do a nodeset
-		    cmd = 'nodeset tc1 netboot=' + prefix + params[1] + '.' + params[0] + '-' + params[3] + '-compute'
+		    cmd = 'nodeset tc1 netboot=' + prefix + operatingsystem + '.' + name + '-' + arch + '-compute'
 		    runCmd(cmd)
 		    runCmd('rpower tc1 boot')
 	
 	    #Configure Moab
 	
-	    cmd = 'echo \"' + params[1] + '-' + params[0] + ' ' + params[3] + ' ' + params[1] + '-' + params[2] + ' compute netboot\" >> ' + moabInstallPath + 'images.txt'
+	    cmd = 'echo \"' + operatingsystem + '-' + name + ' ' + arch + ' ' + operatingsystem + '-' + version + ' compute netboot\" >> ' + moabInstallPath + 'images.txt'
 	    print cmd
 	    os.system(cmd)
 	
