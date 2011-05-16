@@ -270,13 +270,14 @@ def main():
             
         runCmd('sudo chmod +x '+tempdir+'/rootimg/etc/init.d/pbs_mom')
         runCmd('sudo chroot '+tempdir+'/rootimg/ /sbin/chkconfig --add pbs_mom')
-        runCmd('sudo chroot '+tempdir+'/rootimg/ /sbin/chkconfig pbs_mom on')  
+        runCmd('sudo chroot '+tempdir+'/rootimg/ /sbin/chkconfig pbs_mom on --level 2,3,5')  
         
         f= open(tempdir+'/config', 'w')
-        f.write("opsys "+ operatingsystem + "-" + name)
-        f.write("arch "+ arch)
+        f.write("opsys "+ operatingsystem + "-" + name+"\n arch "+ arch)
+        
         f.close()  
         os.system('sudo mv '+tempdir+'/config '+tempdir+'/rootimg/var/spool/torque/mom_priv/')
+        os.system('sudo chown root:root '+tempdir+'/rootimg/var/spool/torque/mom_priv/config')
 
         #Inject the kernel
         logger.info('Retrieving kernel '+kernel)
