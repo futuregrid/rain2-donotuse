@@ -90,8 +90,8 @@ def main():
 	
 	    tempdir=params[5]
 	    
-	    #make assumption that the img file has been uploaded to /tmp
-	    cmd = 'mv '+tempdir+'/rootimg.gz ' + path + 'rootimg.gz'
+	    
+	    cmd = 'mv '+tempdir+'/'+params[0]+'.gz ' + path + 'rootimg.gz'
 	    runCmd(cmd)
 	
 	    cmd = 'mkdir -p ' + path + 'rootimg'

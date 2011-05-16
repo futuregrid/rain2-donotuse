@@ -178,7 +178,7 @@ def main():
     if status=="error":
         print "The image has not been generated properly. Exit error:"+uid[1]
     else:
-        _retrieveImg(userId, serveraddr+":"+status, logging)
+        _retrieveImg(userId, status, logging, serveraddr)
     
     #server return addr of the img and metafeile compressed in a tgz or None
     #get tgz 
@@ -219,7 +219,8 @@ def _rExec(userId, cmdexec, logging, serveraddr):
 ############################################################
 # _retrieveImg
 ############################################################
-def _retrieveImg(userId, imgURI, logging):
+def _retrieveImg(userId, dir, logging, serveraddr):
+    imgURI=serveraddr+":"+dir
     imgIds=imgURI.split("/")
     imgId=imgIds[len(imgIds)-1]
         
@@ -232,10 +233,10 @@ def _retrieveImg(userId, imgURI, logging):
         stat=0
         if (stat == 0):
             output = "The image " + imgId + " is located in " + os.popen('pwd', 'r').read().strip() + "/" + imgId            
-            cmdrm = " rm -f " + imgURI
+            cmdrm = " rm -f " + dir
             logging.info("Post processing")
             logging.info(cmdrm)
-            stat = os.system(cmdrm)
+            _rExec(userId, cmdrm, logging, serveraddr)
         else:
             logging.error("Error retrieving the image. Exit status " + str(stat))
             #remove the temporal file

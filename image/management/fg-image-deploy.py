@@ -24,7 +24,6 @@ default_xcat_kernel = '2.6.18-164.el5'
 default_euca_kernel = '2.6.27.21-0.1-xen'
 
 TEST_MODE=True
-tempdir="/tmp/"
 
 def main():
     
@@ -47,9 +46,9 @@ def main():
 
     logger.info('Starting image deployer...')
     
-    parser.add_option('-i', '--image', dest='image', help='Name of image manifest file')
+    parser.add_option('-i', '--image', dest='image', help='Name of tgz file that contains manifest and img')
 
-    parser.add_option('-n', '--nas', dest='nasaddr', help='Address to upload the image file')
+    parser.add_option('-s', '--nasaddr', dest='nasaddr', help='Address to upload the image file')
     parser.add_option("-t", "--tempdir", dest="tempdir", help="shared dir to upload the image")
     
     parser.add_option('-x', '--xcat', dest='xcat', help='Deploy image to xCAT, which is in the specified addr')
@@ -81,12 +80,15 @@ def main():
     global manifestfile
     imagefile = '' 
     global manifest    
-
-
+    nasaddr=''
+    tempdirserver=''
+    tempdir="/tmp/"
+    name=""
+    
     try:
         user = os.environ['FG_USER']
     except KeyError:
-    	if type(ops.user) is not NoneType:
+        if type(ops.user) is not NoneType:
             user = ops.user
         else:
             print "Please, define FG_USER to indicate your user name"
@@ -98,19 +100,35 @@ def main():
     #   user = ops.user
     #TODO: authenticate user via promting for CERT or password to auth against LDAP 
 
+	
     #Get image destination
     if type(ops.image) is not NoneType:
-        manifestfile = open(ops.image, 'r')
+    	
+    	logger.info('untar file with image and manifest')
+    	stat=os.system("tar xvfz "+ops.image)
+    	
+    	if (stat!=0):
+            print "Error: the files were not extracted"
+    	    sys.exit(1)
+    	
+    	
+    	name=(ops.image).split(".")[0]
+    	tempdir+=name+"/"
+    	
+    	manifestname=name+".manifest.xml"
+    	
+        manifestfile = open(manifestname, 'r')
         manifest = parse(manifestfile)
 
         #Determine where image filename, assuming same directory
         parts = ops.image.split('.')
-        for i in range(0,len(parts)-2):
-            if i == 0:
-                imagefile = parts[i]
-            else:
-                imagefile = imagefile + '.' + parts[i]
-        imagefile = imagefile + '.img'
+        
+        #for i in range(0,len(parts)-2):
+        #    if i == 0:
+        #        imagefile = parts[i]
+        #    else:
+        #        imagefile = imagefile + '.' + parts[i]
+        imagefile = name+'.img'
         logger.info('Using image: '+imagefile)    
         
         name = manifest.getElementsByTagName('name')[0].firstChild.nodeValue.strip()
@@ -137,7 +155,7 @@ def main():
     
         #Mount the root image for final edits and compressing
         logger.info('Mounting image...')
-        cmd = 'sudo mkdir -p '+tempdir+''+ name
+        cmd = 'mkdir -p '+tempdir+''+ name
         runCmd(cmd)
         cmd = 'sudo mount -o loop ' + imagefile + ' '+tempdir+''+ name
         runCmd(cmd)
@@ -165,7 +183,10 @@ def main():
  devpts          /dev/pts      devpts   gid=5,mode=620             0 0
  '''
 
-        os.system('sudo echo \"'+fstab+'\" > '+tempdir+''+name+'/etc/fstab')
+        f= open(tempdir+'/fstab', 'w')
+        f.write(fstab)
+        f.close()
+        os.system('sudo mv -f '+tempdir+'/fstab '+tempdir+'rootimg/etc/fstab')
         logger.info('Injected fstab')
 
         #Done making changes to root fs
@@ -193,15 +214,25 @@ def main():
 
     #XCAT
     elif type(ops.xcat) is not NoneType:
-
-		if type(ops.nasaddr) is NoneType:
-			
-		
-		if type(ops.tempdir) is NoneType:
-			tempdirserver=ops.tempdir
-		else:
-			print "You need to specify"
-		
+        
+        if type(ops.nasaddr) is not NoneType:
+            nasaddr=ops.nasaddr
+        else:
+            print "You need to specify the machine where you are going to upload the image"
+            print "This is the login machine if the cluster"
+            sys.exit(1)
+        
+        logger.info("server "+nasaddr)
+           
+        if type(ops.tempdir) is not NoneType:
+            tempdirserver=ops.tempdir
+        else:
+            print "You need to specify a directory to upload the image"
+            print "This is a directory in the login machine that is shared with the xCAT server machine"
+            sys.exit(1)
+        
+        logger.info("server dir "+tempdirserver)
+        
         #Select kernel version    
         if type(ops.kernel) is NoneType:
             kernel = default_xcat_kernel
@@ -210,7 +241,7 @@ def main():
     
         #Mount the root image for final edits and compressing
         logger.info('Mounting image...')
-        cmd = 'sudo mkdir -p '+tempdir+'/rootimg'
+        cmd = 'mkdir -p '+tempdir+'/rootimg'
         runCmd(cmd)
         cmd = 'sudo mount -o loop ' + imagefile + ' '+tempdir+'/rootimg/'
         runCmd(cmd)
@@ -224,12 +255,8 @@ def main():
             runCmd('sudo tar xfz torque-2.5.1.tgz -C '+tempdir+'/rootimg/usr/local/')
             runCmd('sudo tar xfz var.tgz -C '+tempdir+'/rootimg/')
             runCmd('sudo rm -f var.tgz torque-2.5.1.tgz')
-            os.system('sudo echo "opsys '+ operatingsystem + '-' + name +'" > '+tempdir+'/rootimg/var/spool/torque/mom_priv/config') 
-            os.system('sudo echo "arch '+ arch +'" >> '+tempdir+'/rootimg/var/spool/torque/mom_priv/config')
             runCmd('sudo wget fg-gravel3.futuregrid.iu.edu/torque/torque-2.5.1_minicluster/pbs_mom -O '+tempdir+'/rootimg/etc/init.d/pbs_mom')            
-            runCmd('sudo chmod +x '+tempdir+'/rootimg/etc/init.d/pbs_mom')
-            runCmd('sudo chroot '+tempdir+'/rootimg/ /sbin/chkconfig --add pbs_mom')
-            runCmd('sudo chroot '+tempdir+'/rootimg/ /sbin/chkconfig pbs_mom on')
+            
             
         else:#Later we should be able to chose the cluster where is deployed
             logger.info('Torque for India')    
@@ -238,13 +265,18 @@ def main():
                    ' fg-gravel3.futuregrid.iu.edu/torque/torque-2.4.8_india/var.tgz')   
             runCmd('sudo tar xfz opt.tgz -C '+tempdir+'/rootimg/')
             runCmd('sudo tar xfz var.tgz -C '+tempdir+'/rootimg/')
-            runCmd('sudo rm -f var.tgz opt.tgz')
-            os.system('sudo echo "opsys '+ operatingsystem + '-' + name +'" > '+tempdir+'/rootimg/var/spool/torque/mom_priv/config') 
-            os.system('sudo echo "arch '+ arch +'" >> '+tempdir+'/rootimg/var/spool/torque/mom_priv/config')
+            runCmd('sudo rm -f var.tgz opt.tgz')            
             runCmd('sudo wget fg-gravel3.futuregrid.iu.edu/torque/torque-2.4.8_india/pbs_mom -O '+tempdir+'/rootimg/etc/init.d/pbs_mom')
-            runCmd('sudo chmod +x '+tempdir+'/rootimg/etc/init.d/pbs_mom')
-            runCmd('sudo chroot '+tempdir+'/rootimg/ /sbin/chkconfig --add pbs_mom')
-            runCmd('sudo chroot '+tempdir+'/rootimg/ /sbin/chkconfig pbs_mom on')
+            
+        runCmd('sudo chmod +x '+tempdir+'/rootimg/etc/init.d/pbs_mom')
+        runCmd('sudo chroot '+tempdir+'/rootimg/ /sbin/chkconfig --add pbs_mom')
+        runCmd('sudo chroot '+tempdir+'/rootimg/ /sbin/chkconfig pbs_mom on')  
+        
+        f= open(tempdir+'/config', 'w')
+        f.write("opsys "+ operatingsystem + "-" + name)
+        f.write("arch "+ arch)
+        f.close()  
+        os.system('sudo mv '+tempdir+'/config '+tempdir+'/rootimg/var/spool/torque/mom_priv/')
 
         #Inject the kernel
         logger.info('Retrieving kernel '+kernel)
@@ -262,13 +294,16 @@ proc    /proc    proc     defaults       0 0
 sysfs   /sys     sysfs    defaults       0 0
 149.165.145.50:/users /N/u      nfs     rw,rsize=1048576,wsize=1048576,intr,nosuid
  '''
-        os.system('sudo echo \"'+fstab+'\" > '+tempdir+'rootimg/etc/fstab')
+        f= open(tempdir+'/fstab', 'w')
+        f.write(fstab)
+        f.close()
+        os.system('sudo mv -f '+tempdir+'/fstab '+tempdir+'rootimg/etc/fstab')
         logger.info('Injected fstab')
 
         #NOTE: May move to an image repository system in the future
         logger.info('Compressing image')
         #Its xCAT, so use gzip with cpio compression.
-        cmd = 'sudo bash -c \" cd '+tempdir+'; find rootimg/. | cpio -H newc -o | gzip -9 > '+tempdir+'rootimg.gz\"'
+        cmd = 'sudo bash -c \" cd '+tempdir+'; find rootimg/. | cpio -H newc -o | gzip -9 > '+tempdir+'/'+name+'.gz\"'
         os.system(cmd) #use system because of the pipes
 
         #cmd = 'sudo tar cfz '+tempdir+'' + name + '.tar.gz --directory '+tempdir+' ' + name 
@@ -277,14 +312,22 @@ sysfs   /sys     sysfs    defaults       0 0
         runCmd(cmd)
         
         #Copy the image to the Shared directory.        
-        logger.info('Uploading image')
-        cmd = 'scp '+tempdir+'rootimg.gz ' + user + '@' + nasaddr + ':'+tempdirserver+'rootimg.gz'
+        logger.info('Uploading image. You may be asked for ssh/paraphrase password')
+        cmd = 'scp '+tempdir+'rootimg.gz ' + user + '@' + nasaddr + ':'+tempdirserver+'/rootimg.gz'
+        logger.info(cmd)
         runCmd(cmd)
+        
+        
+        #if name is in tempdir string then del tempdir, else only rootimg
+        logger.info('sudo rm -rf '+tempdir)
+        runCmd("sudo rm -rf "+tempdir)
+        
+        #remove local img and manifest
+        runCmd("rm -f "+manifestname+" "+imagefile)
 
-
-		#xCAT server
-		dest = ops.xcat
-		
+        #xCAT server
+        dest = ops.xcat
+        
         logger.info('Connecting to xCAT server')
 
         msg = name+','+operatingsystem+','+version+','+arch+','+kernel+','+tempdirserver
@@ -338,6 +381,5 @@ def runCmd(cmd):
 if __name__ == "__main__":
     main()
 #END
-
 
 
