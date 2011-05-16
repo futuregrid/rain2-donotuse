@@ -91,7 +91,7 @@ def main():
 	    tempdir=params[5]
 	    
 	    
-	    cmd = 'mv '+tempdir+'/'+params[0]+'.gz ' + path + 'rootimg.gz'
+	    cmd = 'mv '+tempdir+'/'+oldName+'.gz ' + path + 'rootimg.gz'
 	    runCmd(cmd)
 	
 	    cmd = 'mkdir -p ' + path + 'rootimg'

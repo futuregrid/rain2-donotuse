@@ -303,7 +303,7 @@ sysfs   /sys     sysfs    defaults       0 0
         #NOTE: May move to an image repository system in the future
         logger.info('Compressing image')
         #Its xCAT, so use gzip with cpio compression.
-        cmd = 'sudo bash -c \" cd '+tempdir+'; find rootimg/. | cpio -H newc -o | gzip -9 > '+tempdir+'/'+name+'.gz\"'
+        cmd = 'sudo bash -c \" cd '+tempdir+'; find rootimg/. | cpio -H newc -o | gzip -9 > '+tempdir+'/rootimg.gz\"'
         os.system(cmd) #use system because of the pipes
 
         #cmd = 'sudo tar cfz '+tempdir+'' + name + '.tar.gz --directory '+tempdir+' ' + name 
@@ -313,7 +313,7 @@ sysfs   /sys     sysfs    defaults       0 0
         
         #Copy the image to the Shared directory.        
         logger.info('Uploading image. You may be asked for ssh/paraphrase password')
-        cmd = 'scp '+tempdir+'rootimg.gz ' + user + '@' + nasaddr + ':'+tempdirserver+'/rootimg.gz'
+        cmd = 'scp '+tempdir+'rootimg.gz ' + user + '@' + nasaddr + ':'+tempdirserver+'/'+name+'.gz'
         logger.info(cmd)
         runCmd(cmd)
         
