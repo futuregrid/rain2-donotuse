@@ -463,6 +463,7 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
         runCmd('wget ' + base_url + '/conf/centos/ifcfg-eth1 -O '+tempdir+''+name + '/etc/sysconfig/network-scripts/ifcfg-eth1')
         runCmd('wget ' + base_url + '/conf/hosts_india -O '+tempdir+''+name + '/etc/hosts')
         #temporal
+        runCmd('mkdir -p '+tempdir+''+name+'/root/.ssh')
         os.system('echo "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAsAaCJFcGUXSmA2opcQk/HeuiJu417a69KbuWNjf1UqarP7t0hUpMXQnlc8+yfi'+\
                   'fI8FpoXtNCai8YEPmpyynqgF9VFSDwTp8use61hBPJn2isZha1JvkuYJX4n3FCHOeDlb2Y7M90DvdYHwhfPDa/jIy8PvFGiFkRLSt1kghY'+\
                   'xZSleiikl0OxFcjaI8N8EiEZK66HAwOiDHAn2k3oJDBTD69jydJsjExOwlqZoJ4G9ScfY0rpzNnjE9sdxpJMCWcj20y/2T/oeppLmkq7aQtu'+\
