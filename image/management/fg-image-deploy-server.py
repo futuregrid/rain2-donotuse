@@ -46,107 +46,108 @@ def main():
 	sock.bind(('', port))
 	sock.listen(1)
 	while True:
-	
-	    channel, details = sock.accept()
-	
-	    logging.info('Accepted new connection')
-	
-	    #receive the message
-	    data = channel.recv(2048)
-	    params = data.split(',')
-	
-	    #params[0] is name
-	    #params[1] is operating system
-	    #params[2] is version
-	    #params[3] is arch
-	    #params[4] is kernel
-	    #params[5] is dir where img is placed
-	
-	    #Fix name so that it removes dashes
-	    oldName = params[0]
-	    name = params[0].replace('-', '.')
-	
-	
-	    operatingsystem=params[1]
-	    
-	    version=params[2]
-	    
-	    arch=params[3]
-	    kernel=params[4]
-	    tempdir=params[5]
-	
-	
-	    if len(params) == numparams:
-	        channel.send('OK')
-	        channel.close()
-	    else:
-	        print "ERROR: incorrect message"
-	        channel.send('ERROR')
-	        channel.close()
-	        sys.exit(1)
-	
-	    #Hook for Debian based systems to work in xCAT
-	    prefix = ''
-	    if operatingsystem == 'ubuntu' or operatingsystem == 'debian':
-	        prefix = 'rhels5.4'
-	
-	    #Build filesystem
-	
-	    #Create Directory structure
-	    #/install/netboot/<name>/<arch>/compute/
-	    path = xcatInstallPath + prefix + operatingsystem + '.' + name + '/' + arch + '/compute/'
-	    cmd = 'mkdir -p ' + path
-	    status=runCmd(cmd)
-	    
-	    cmd = 'mv '+tempdir+'/'+oldName+'.gz ' + path + 'rootimg.gz'
-	    status=runCmd(cmd)
-	
-	    if status != 0:
-	    	break
-	
-	    cmd = 'mkdir -p ' + path + 'rootimg'
-	    status=runCmd(cmd)
-	
-	    cmd = 'cd ' + path + '; gunzip -c rootimg.gz | cpio -i'
-	    status=os.system(cmd) #because of the pipe
-	
-	
-	    #cmd = 'tar xfz '+path + 'rootimg.tar.gz --directory ' + path
-	    #runCmd(cmd)
-	
-	    #cmd = 'mv ' +path + oldName + ' '+ path + 'rootimg'
-	    #runCmd(cmd)
-	
-	
-	    cmd = 'wget fg-gravel3.futuregrid.iu.edu/kernel/initrd.gz -O ' + path+'/initrd.gz'
-	    status=runCmd(cmd)
-	
-	    cmd = 'wget fg-gravel3.futuregrid.iu.edu/kernel/kernel -O ' + path+'/kernel'
-	    status=runCmd(cmd)
-	
-	    #Add entry to the osimage table
-	    cmd = 'chtab osimage.imagename=\"' + operatingsystem + '.' + name + '\" osimage.profile=\"compute\" osimage.imagetype=\"linux\" osimage.provmethod=\"netboot\" osimage.osname=\"' + operatingsystem + '\" osimage.osvers=\"' + prefix + operatingsystem + '.' + name + '\" osimage.osarch=\"' + arch + '\"'
-	    status=runCmd(cmd)
-	
-	    #Pack image
-	    cmd = 'packimage -o ' + prefix + operatingsystem + '.' + name + ' -p compute -a ' + arch
-	    status=runCmd(cmd)
-	
-	    if (TEST_MODE):
-		    #TODO: Testing only, will remove in the future
-		    #Do a nodeset
-		    cmd = 'nodeset tc1 netboot=' + prefix + operatingsystem + '.' + name + '-' + arch + '-compute'
-		    runCmd(cmd)
-		    runCmd('rpower tc1 boot')
-	
-	    #Configure Moab
-	
-	    cmd = 'echo \"' + operatingsystem + '-' + name + ' ' + arch + ' ' + operatingsystem + '-' + version + ' compute netboot\" >> ' + moabInstallPath + 'images.txt'
-	    print cmd
-	    status=os.system(cmd)
-	
-	    cmd = 'mschedctl -R'
-	    status=runCmd(cmd)
+		while True:
+		
+		    channel, details = sock.accept()
+		
+		    logging.info('Accepted new connection')
+		
+		    #receive the message
+		    data = channel.recv(2048)
+		    params = data.split(',')
+		
+		    #params[0] is name
+		    #params[1] is operating system
+		    #params[2] is version
+		    #params[3] is arch
+		    #params[4] is kernel
+		    #params[5] is dir where img is placed
+		
+		    #Fix name so that it removes dashes
+		    oldName = params[0]
+		    name = params[0].replace('-', '.')
+		
+		
+		    operatingsystem=params[1]
+		    
+		    version=params[2]
+		    
+		    arch=params[3]
+		    kernel=params[4]
+		    tempdir=params[5]
+		
+		
+		    if len(params) == numparams:
+		        channel.send('OK')
+		        channel.close()
+		    else:
+		        print "ERROR: incorrect message"
+		        channel.send('ERROR')
+		        channel.close()
+		        sys.exit(1)
+		
+		    #Hook for Debian based systems to work in xCAT
+		    prefix = ''
+		    if operatingsystem == 'ubuntu' or operatingsystem == 'debian':
+		        prefix = 'rhels5.4'
+		
+		    #Build filesystem
+		
+		    #Create Directory structure
+		    #/install/netboot/<name>/<arch>/compute/
+		    path = xcatInstallPath + prefix + operatingsystem + '.' + name + '/' + arch + '/compute/'
+		    cmd = 'mkdir -p ' + path
+		    status=runCmd(cmd)
+		    
+		    cmd = 'mv '+tempdir+'/'+oldName+'.gz ' + path + 'rootimg.gz'
+		    status=runCmd(cmd)
+		
+		    if status != 0:
+		    	break
+		
+		    cmd = 'mkdir -p ' + path + 'rootimg'
+		    status=runCmd(cmd)
+		
+		    cmd = 'cd ' + path + '; gunzip -c rootimg.gz | cpio -i'
+		    status=os.system(cmd) #because of the pipe
+		
+		
+		    #cmd = 'tar xfz '+path + 'rootimg.tar.gz --directory ' + path
+		    #runCmd(cmd)
+		
+		    #cmd = 'mv ' +path + oldName + ' '+ path + 'rootimg'
+		    #runCmd(cmd)
+		
+		
+		    cmd = 'wget fg-gravel3.futuregrid.iu.edu/kernel/initrd.gz -O ' + path+'/initrd.gz'
+		    status=runCmd(cmd)
+		
+		    cmd = 'wget fg-gravel3.futuregrid.iu.edu/kernel/kernel -O ' + path+'/kernel'
+		    status=runCmd(cmd)
+		
+		    #Add entry to the osimage table
+		    cmd = 'chtab osimage.imagename=\"' + operatingsystem + '.' + name + '\" osimage.profile=\"compute\" osimage.imagetype=\"linux\" osimage.provmethod=\"netboot\" osimage.osname=\"' + operatingsystem + '\" osimage.osvers=\"' + prefix + operatingsystem + '.' + name + '\" osimage.osarch=\"' + arch + '\"'
+		    status=runCmd(cmd)
+		
+		    #Pack image
+		    cmd = 'packimage -o ' + prefix + operatingsystem + '.' + name + ' -p compute -a ' + arch
+		    status=runCmd(cmd)
+		
+		    if (TEST_MODE):
+			    #TODO: Testing only, will remove in the future
+			    #Do a nodeset
+			    cmd = 'nodeset tc1 netboot=' + prefix + operatingsystem + '.' + name + '-' + arch + '-compute'
+			    runCmd(cmd)
+			    runCmd('rpower tc1 boot')
+		
+		    #Configure Moab
+		
+		    cmd = 'echo \"' + operatingsystem + '-' + name + ' ' + arch + ' ' + operatingsystem + '-' + version + ' compute netboot\" >> ' + moabInstallPath + 'images.txt'
+		    print cmd
+		    status=os.system(cmd)
+		
+		    cmd = 'mschedctl -R'
+		    status=runCmd(cmd)
 
 def runCmd(cmd):
     cmdLog = logging.getLogger('exec')
