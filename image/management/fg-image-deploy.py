@@ -239,7 +239,100 @@ def main():
         else:
             kernel = ops.kernel
     
+        #Mount the root image for final edits and compressing
+        logger.info('Mounting image...')
+        cmd = 'mkdir -p '+tempdir+'/rootimg'
+        runCmd(cmd)
+        cmd = 'sudo mount -o loop ' + imagefile + ' '+tempdir+'/rootimg/'
+        runCmd(cmd)
 
+
+        logger.info('Installing torque')
+        if(TEST_MODE):
+            logger.info('Torque for minicluster')
+            runCmd('sudo wget fg-gravel3.futuregrid.iu.edu/torque/torque-2.5.1_minicluster/torque-2.5.1.tgz'+\
+                   ' fg-gravel3.futuregrid.iu.edu/torque/torque-2.5.1_minicluster/var.tgz')   
+            runCmd('sudo tar xfz torque-2.5.1.tgz -C '+tempdir+'/rootimg/usr/local/')
+            runCmd('sudo tar xfz var.tgz -C '+tempdir+'/rootimg/')
+            runCmd('sudo rm -f var.tgz torque-2.5.1.tgz')
+            runCmd('sudo wget fg-gravel3.futuregrid.iu.edu/torque/torque-2.5.1_minicluster/pbs_mom -O '+tempdir+'/rootimg/etc/init.d/pbs_mom')
+            
+            os.system('touch ./inittab')
+            os.system('cat '+tempdir+'/rootimg/etc/inittab'+' > ./inittab')            
+            f= open('./inittab', 'a')
+            f.write("\n"+"pbs:35:respawn:/etc/init.d/pbs_mom start")        
+            f.close()          
+            os.system('sudo mv -f ./inittab '+tempdir+'/rootimg/etc/inittab')
+            os.system('sudo chown root:root '+tempdir+'/rootimg/etc/inittab')
+            
+            
+        else:#Later we should be able to chose the cluster where is deployed
+            logger.info('Torque for India')    
+            runCmd('sudo wget fg-gravel3.futuregrid.iu.edu/conf/hosts_india -O '+tempdir+'/rootimg/etc/hosts')
+            runCmd('sudo wget fg-gravel3.futuregrid.iu.edu/torque/torque-2.4.8_india/opt.tgz'+\
+                   ' fg-gravel3.futuregrid.iu.edu/torque/torque-2.4.8_india/var.tgz')   
+            runCmd('sudo tar xfz opt.tgz -C '+tempdir+'/rootimg/')
+            runCmd('sudo tar xfz var.tgz -C '+tempdir+'/rootimg/')
+            runCmd('sudo rm -f var.tgz opt.tgz')            
+            runCmd('sudo wget fg-gravel3.futuregrid.iu.edu/torque/torque-2.4.8_india/pbs_mom -O '+tempdir+'/rootimg/etc/init.d/pbs_mom')
+            
+        runCmd('sudo chmod +x '+tempdir+'/rootimg/etc/init.d/pbs_mom')
+        runCmd('sudo chroot '+tempdir+'/rootimg/ /sbin/chkconfig --add pbs_mom')
+        runCmd('sudo chroot '+tempdir+'/rootimg/ /sbin/chkconfig pbs_mom on')  
+        
+        f= open(tempdir+'/config', 'w')
+        f.write("opsys "+ operatingsystem + "-" + name+"\n"+"arch "+ arch)        
+        f.close()
+        
+        os.system('sudo mv '+tempdir+'/config '+tempdir+'/rootimg/var/spool/torque/mom_priv/')
+        os.system('sudo chown root:root '+tempdir+'/rootimg/var/spool/torque/mom_priv/config')
+
+        #Inject the kernel
+        logger.info('Retrieving kernel '+kernel)
+        runCmd('sudo wget '+base_url+'kernel/'+kernel+'.modules.tar.gz -O '+tempdir+''+kernel+'.modules.tar.gz')
+        runCmd('sudo tar xfz '+tempdir+''+kernel+'.modules.tar.gz --directory '+tempdir+'/rootimg/lib/modules/')
+        logger.info('Injected kernel '+kernel)
+
+
+        #Setup fstab
+        fstab = '''
+# xCAT fstab 
+devpts  /dev/pts devpts   gid=5,mode=620 0 0
+tmpfs   /dev/shm tmpfs    defaults       0 0
+proc    /proc    proc     defaults       0 0
+sysfs   /sys     sysfs    defaults       0 0
+149.165.145.50:/users /N/u      nfs     rw,rsize=1048576,wsize=1048576,intr,nosuid
+ '''
+        f= open(tempdir+'/fstab', 'w')
+        f.write(fstab)
+        f.close()
+        os.system('sudo mv -f '+tempdir+'/fstab '+tempdir+'rootimg/etc/fstab')
+        logger.info('Injected fstab')
+
+        #NOTE: May move to an image repository system in the future
+        logger.info('Compressing image')
+        #Its xCAT, so use gzip with cpio compression.
+        cmd = 'sudo bash -c \" cd '+tempdir+'; find rootimg/. | cpio -H newc -o | gzip -9 > '+tempdir+'/rootimg.gz\"'
+        os.system(cmd) #use system because of the pipes
+
+        #cmd = 'sudo tar cfz '+tempdir+'' + name + '.tar.gz --directory '+tempdir+' ' + name 
+
+        cmd = 'sudo umount '+tempdir+'rootimg'
+        runCmd(cmd)
+        
+        #Copy the image to the Shared directory.        
+        logger.info('Uploading image. You may be asked for ssh/paraphrase password')
+        cmd = 'scp '+tempdir+'rootimg.gz ' + user + '@' + nasaddr + ':'+tempdirserver+'/'+name+'.gz'
+        logger.info(cmd)
+        runCmd(cmd)
+        
+        
+        #if name is in tempdir string then del tempdir, else only rootimg
+        logger.info('sudo rm -rf '+tempdir)
+        runCmd("sudo rm -rf "+tempdir)
+        
+        #remove local img and manifest
+        runCmd("rm -f "+manifestname+" "+imagefile)
 
         #xCAT server
         dest = ops.xcat

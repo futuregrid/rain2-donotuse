@@ -248,7 +248,10 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
 
     ubuntuLog.info('Installing some util packages')
     runCmd('chroot '+tempdir+''+name+' apt-get -y install wget nfs-common gcc make')
-     
+
+
+#NOT FINISH. look into ldap part
+
 #Move ldap to deploy    
     if (ldap):
         #this is for LDAP auth and mount home dirs. Later, we may control if we install this or not.
@@ -458,8 +461,13 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
 
     else:    
         runCmd('wget ' + base_url + '/conf/centos/ifcfg-eth1 -O '+tempdir+''+name + '/etc/sysconfig/network-scripts/ifcfg-eth1')
-        
-    
+        runCmd('wget ' + base_url + '/conf/hosts_india -O '+tempdir+''+name + '/etc/hosts')
+        #temporal
+        os.system('echo "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAsAaCJFcGUXSmA2opcQk/HeuiJu417a69KbuWNjf1UqarP7t0hUpMXQnlc8+yfi'+\
+                  'fI8FpoXtNCai8YEPmpyynqgF9VFSDwTp8use61hBPJn2isZha1JvkuYJX4n3FCHOeDlb2Y7M90DvdYHwhfPDa/jIy8PvFGiFkRLSt1kghY'+\
+                  'xZSleiikl0OxFcjaI8N8EiEZK66HAwOiDHAn2k3oJDBTD69jydJsjExOwlqZoJ4G9ScfY0rpzNnjE9sdxpJMCWcj20y/2T/oeppLmkq7aQtu'+\
+                  'p8JMPptL+kTz5psnjozTNQgLYtYHAcfy66AKELnLuGbOFQdYxnINhX3e0iQCDDI5YQ== jdiaz@india.futuregrid.org" >> '+tempdir+''+name+'/root/.ssh/authorized_keys')
+        os.system('chmod 600 '+tempdir+''+name+'/root/.ssh/authorized_keys')
     #os.system('echo localhost > '+tempdir+''+name + '/etc/hostname')
     #runCmd('hostname localhost')
     centosLog.info('Injected networking configuration')
