@@ -73,7 +73,7 @@ def main():
 	    
 	    arch=params[3]
 	    kernel=params[4]
-	    tempdir=params[5]    
+	    tempdir=params[5]
 	
 	
 	    if len(params) == numparams:

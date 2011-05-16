@@ -255,7 +255,11 @@ def main():
             runCmd('sudo tar xfz torque-2.5.1.tgz -C '+tempdir+'/rootimg/usr/local/')
             runCmd('sudo tar xfz var.tgz -C '+tempdir+'/rootimg/')
             runCmd('sudo rm -f var.tgz torque-2.5.1.tgz')
-            runCmd('sudo wget fg-gravel3.futuregrid.iu.edu/torque/torque-2.5.1_minicluster/pbs_mom -O '+tempdir+'/rootimg/etc/init.d/pbs_mom')            
+            runCmd('sudo wget fg-gravel3.futuregrid.iu.edu/torque/torque-2.5.1_minicluster/pbs_mom -O '+tempdir+'/rootimg/etc/init.d/pbs_mom')
+            
+            f= open(tempdir+'/etc/inittab', 'a')
+            f.write("\n"+"pbs:3,5:respawn:/etc/init.d/pbs_mom start")        
+            f.close()          
             
             
         else:#Later we should be able to chose the cluster where is deployed
@@ -273,9 +277,9 @@ def main():
         runCmd('sudo chroot '+tempdir+'/rootimg/ /sbin/chkconfig pbs_mom on')  
         
         f= open(tempdir+'/config', 'w')
-        f.write("opsys "+ operatingsystem + "-" + name+"\n arch "+ arch)
+        f.write("opsys "+ operatingsystem + "-" + name+"\n"+"arch "+ arch)        
+        f.close()
         
-        f.close()  
         os.system('sudo mv '+tempdir+'/config '+tempdir+'/rootimg/var/spool/torque/mom_priv/')
         os.system('sudo chown root:root '+tempdir+'/rootimg/var/spool/torque/mom_priv/config')
 
