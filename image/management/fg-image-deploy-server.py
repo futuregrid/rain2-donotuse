@@ -11,6 +11,7 @@ import os
 from subprocess import *
 import logging
 import logging.handlers
+import time
 
 #Global vars
 port = 56789
@@ -167,12 +168,14 @@ def main():
                 break
             
             if not os.path.isfile('/tmp/image-deploy-fork.lock'):
+            	os.system('touch /tmp/image-deploy-fork.lock')
                 child_pid = os.fork()
                 if child_pid == 0:
                     print "Child Process: PID# %s" % os.getpid()
-                    os.system('sleep 300')
+                    time.sleep(300)
                     cmd = 'mschedctl -R'
                     status=runCmd(cmd)
+                    os.system('/tmp/image-deploy-fork.lock')
                 else:
                     print "Parent Process: PID# %s" % os.getpid()                    
             
