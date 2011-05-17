@@ -175,7 +175,7 @@ def main():
                     time.sleep(300)
                     cmd = 'mschedctl -R'
                     status=runCmd(cmd)
-                    os.system('/tmp/image-deploy-fork.lock')
+                    os.system('rm -f /tmp/image-deploy-fork.lock')
                 else:
                     print "Parent Process: PID# %s" % os.getpid()                    
             
