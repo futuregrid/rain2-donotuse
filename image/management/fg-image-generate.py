@@ -519,9 +519,10 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
     else:
         output="Error generating bcfg2 group configuration"
 
+    
     cleanup(name)
 
-    return name
+    return output
 
 
 
