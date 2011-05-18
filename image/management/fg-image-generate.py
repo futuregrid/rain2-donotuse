@@ -175,7 +175,7 @@ def main():
         create_base_os=True
         config_ldap=True       
         
-        img = buildCentos(user + '-' + randid, version, arch, packs,tempdir, create_base_os, config_ldap)
+        img = buildCentos(user + '' + randid, version, arch, packs,tempdir, create_base_os, config_ldap)
         
     elif ops.os == "fedora":
         base_os = base_os + "fedora" + spacer    
