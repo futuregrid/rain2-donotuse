@@ -23,7 +23,7 @@ base_url = "http://fg-gravel3.futuregrid.iu.edu/"
 default_xcat_kernel = '2.6.18-164.el5'
 default_euca_kernel = '2.6.27.21-0.1-xen'
 
-TEST_MODE=False
+TEST_MODE=True
 
 def main():
     
