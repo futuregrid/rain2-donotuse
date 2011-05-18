@@ -311,7 +311,7 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
     runCmd('chroot '+tempdir+''+name + ' apt-get -y install bcfg2')
     #os.system('chroot '+tempdir+' '+name+' apt-get -y install bcfg2')
     ubuntuLog.info('Installed BCFG2 client')
-
+    """
 
     #Configure BCFG2 client
     ubuntuLog.info('Configuring BCFG2')
@@ -325,7 +325,7 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
     ubuntuLog.info('Injected probes hook for unique group')
     
     ubuntuLog.info('Configured BCFG2 client settings')
-    
+    """
     #Install packages
     if pkgs != None:
         ubuntuLog.info('Installing user-defined packages')

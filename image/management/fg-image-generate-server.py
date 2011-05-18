@@ -144,9 +144,9 @@ def main():
         if type(ops.desc) is not NoneType:
             options+=" -e "+ops.desc
         if type(ops.auth) is not NoneType:
-            options+" -l "+ops.auth
+            options+=" -l "+ops.auth
         if type(ops.software) is not NoneType:
-            options+" -s "+ops.software
+            options+=" -s "+ops.software
         
         cmdexec = " -q '" + vmdir + "fg-image-generate.py "+options+" '"
         
