@@ -162,7 +162,7 @@ def main():
         create_base_os=True
         config_ldap=True 
         
-        img = buildUbuntu(user + '-' + randid, version, arch, packs, tempdir, create_base_os, config_ldap)
+        img = buildUbuntu(user + '' + randid, version, arch, packs, tempdir, create_base_os, config_ldap)
     
     elif ops.os == "debian":
         base_os = base_os + "debian" + spacer
@@ -246,8 +246,17 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
     runCmd('mount -t devpts devpts '+tempdir+''+name + '/dev/pts')
     ubuntuLog.info('Mounted proc and devpts')
 
+    # Setup package repositories 
+    #TODO: Set mirros to IU/FGt
+    ubuntuLog.info('Configuring repositories')
+    
+    runCmd('wget ' + base_url + '/conf/ubuntu/' + version + '-sources.list -O '+tempdir+''+name + '/etc/apt/sources.list')
+    runCmd('chroot '+tempdir+''+name + ' apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 98932BEC')
+    runCmd('chroot '+tempdir+''+name + ' apt-get update')
+
+
     ubuntuLog.info('Installing some util packages')
-    runCmd('chroot '+tempdir+''+name+' apt-get -y install wget nfs-common gcc make')
+    runCmd('chroot '+tempdir+''+name+' apt-get --force-yes -y install wget nfs-common gcc make')
 
 
 #NOT FINISH. look into ldap part
@@ -293,12 +302,7 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
         
     ubuntuLog.info('Injected networking configuration')
 
-    # Setup package repositories 
-    #TODO: Set mirros to IU/FGt
-    ubuntuLog.info('Configuring repositories')
     
-    runCmd('wget ' + base_url + '/conf/ubuntu/' + version + '-sources.list -O '+tempdir+''+name + '/etc/apt/sources.list')
-    runCmd('chroot '+tempdir+''+name + ' apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 98932BEC')
 
     #Set apt-get into noninteractive mode
     #runCmd('chroot '+tempdir+' '+name+' DEBIAN_FRONTEND=noninteractive')
@@ -306,7 +310,7 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
 
     # Install BCFG2 client
     ubuntuLog.info('Installing BCFG2 client')
-    runCmd('chroot '+tempdir+''+name + ' apt-get update')
+    
     #os.system('chroot '+tempdir+' '+name+' apt-get update')
     runCmd('chroot '+tempdir+''+name + ' apt-get -y install bcfg2')
     #os.system('chroot '+tempdir+' '+name+' apt-get -y install bcfg2')

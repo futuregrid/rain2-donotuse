@@ -278,7 +278,8 @@ def main():
             
         runCmd('sudo chmod +x '+tempdir+'/rootimg/etc/init.d/pbs_mom')
         runCmd('sudo chroot '+tempdir+'/rootimg/ /sbin/chkconfig --add pbs_mom')
-        runCmd('sudo chroot '+tempdir+'/rootimg/ /sbin/chkconfig pbs_mom on')  
+        runCmd('sudo chroot '+tempdir+'/rootimg/ /sbin/chkconfig pbs_mom on')
+          
         
         f= open(tempdir+'/config', 'w')
         f.write("opsys "+ operatingsystem + "-" + name+"\n"+"arch "+ arch)        
