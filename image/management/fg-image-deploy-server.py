@@ -66,7 +66,7 @@ def main():
         
             #Fix name so that it removes dashes
             oldName = params[0]
-            name = params[0].replace('-', '.')
+            name = params[0]#.replace('-', '.')
         
         
             operatingsystem=params[1]

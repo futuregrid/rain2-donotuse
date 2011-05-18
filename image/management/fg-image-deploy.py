@@ -282,7 +282,7 @@ def main():
           
         
         f= open(tempdir+'/config', 'w')
-        f.write("opsys "+ operatingsystem + "-" + name+"\n"+"arch "+ arch)        
+        f.write("opsys "+ operatingsystem + "" + name+"\n"+"arch "+ arch)        
         f.close()
         
         os.system('sudo mv '+tempdir+'/config '+tempdir+'/rootimg/var/spool/torque/mom_priv/')
