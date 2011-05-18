@@ -96,7 +96,7 @@ def main():
         
             #Create Directory structure
             #/install/netboot/<name>/<arch>/compute/
-            path = xcatInstallPath + prefix + operatingsystem + '.' + name + '/' + arch + '/compute/'
+            path = xcatInstallPath + prefix + operatingsystem + '' + name + '/' + arch + '/compute/'
             cmd = 'mkdir -p ' + path
             status=runCmd(cmd)
             
@@ -138,7 +138,7 @@ def main():
         
             #Add entry to the osimage table
             #this it seems to be done by packimage
-            #cmd = 'chtab osimage.imagename=\"' + operatingsystem + '.' + name + '\" osimage.profile=\"compute\" osimage.imagetype=\"linux\" osimage.provmethod=\"netboot\" osimage.osname=\"' + operatingsystem + '\" osimage.osvers=\"' + prefix + operatingsystem + '.' + name + '\" osimage.osarch=\"' + arch + '\"'
+            #cmd = 'chtab osimage.imagename=\"' + operatingsystem + '' + name + '\" osimage.profile=\"compute\" osimage.imagetype=\"linux\" osimage.provmethod=\"netboot\" osimage.osname=\"' + operatingsystem + '\" osimage.osvers=\"' + prefix + operatingsystem + '.' + name + '\" osimage.osarch=\"' + arch + '\"'
             #status=runCmd(cmd)
             
 #include row in linuximage table?
@@ -147,7 +147,7 @@ def main():
             #    break
             
             #Pack image
-            cmd = 'packimage -o ' + prefix + operatingsystem + '.' + name + ' -p compute -a ' + arch
+            cmd = 'packimage -o ' + prefix + operatingsystem + '' + name + ' -p compute -a ' + arch
             status=runCmd(cmd)
         
             if status != 0:
@@ -163,7 +163,7 @@ def main():
             #Configure Moab
         
             #cmd = 'echo \"' + operatingsystem + '-' + name + ' ' + arch + ' ' + operatingsystem + '-' + version + ' compute netboot\" >> ' + moabInstallPath + 'images.txt'
-            cmd = 'echo \"' + operatingsystem + '-' + name + ' ' + arch + ' ' + operatingsystem + '-' + version + ' compute netboot\" >> ' + moabInstallPath + '/tools/msm/images.txt'
+            cmd = 'echo \"' + operatingsystem + '' + name + ' ' + arch + ' ' + operatingsystem + '-' + version + ' compute netboot\" >> ' + moabInstallPath + '/tools/msm/images.txt'
             print cmd
             status=os.system(cmd)
             
