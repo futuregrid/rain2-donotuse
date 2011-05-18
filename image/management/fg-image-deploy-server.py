@@ -150,7 +150,7 @@ def main():
             cmd = 'packimage -o ' + prefix + operatingsystem + '' + name + ' -p compute -a ' + arch
             status=runCmd(cmd)
         
-            if status != 0:
+            if status != 0:            	
                 break
         
             if (TEST_MODE):
@@ -168,6 +168,7 @@ def main():
             status=os.system(cmd)
             
             if status != 0:
+            	logging.debug('error including image name in image.txt file')
                 break
             
             if TEST_MODE:
