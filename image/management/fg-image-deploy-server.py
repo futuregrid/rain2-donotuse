@@ -170,17 +170,21 @@ def main():
             if status != 0:
                 break
             
-            if not os.path.isfile('/tmp/image-deploy-fork.lock'):
-            	os.system('touch /tmp/image-deploy-fork.lock')
-                child_pid = os.fork()
-                if child_pid == 0:
-                    print "Child Process: PID# %s" % os.getpid()
-                    time.sleep(300)
-                    cmd = 'mschedctl -R'
-                    status=runCmd(cmd)
-                    os.system('rm -f /tmp/image-deploy-fork.lock')
-                else:
-                    print "Parent Process: PID# %s" % os.getpid()                    
+            if TEST_MODE:
+                cmd = 'mschedctl -R'
+                status=runCmd(cmd)
+            else:
+	            if not os.path.isfile('/tmp/image-deploy-fork.lock'):
+	            	os.system('touch /tmp/image-deploy-fork.lock')
+	                child_pid = os.fork()
+	                if child_pid == 0:
+	                    print "Child Process: PID# %s" % os.getpid()
+	                    time.sleep(300)
+	                    cmd = 'mschedctl -R'
+	                    status=runCmd(cmd)
+	                    os.system('rm -f /tmp/image-deploy-fork.lock')
+	                else:
+	                    print "Parent Process: PID# %s" % os.getpid()                    
             
 
 def runCmd(cmd):
