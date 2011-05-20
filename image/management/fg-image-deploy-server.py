@@ -138,13 +138,13 @@ def main():
         
             #Add entry to the osimage table
             #this it seems to be done by packimage
-            #cmd = 'chtab osimage.imagename=\"' + operatingsystem + '' + name + '\" osimage.profile=\"compute\" osimage.imagetype=\"linux\" osimage.provmethod=\"netboot\" osimage.osname=\"' + operatingsystem + '\" osimage.osvers=\"' + prefix + operatingsystem + '' + name + '\" osimage.osarch=\"' + arch + '\"'
-            #status=runCmd(cmd)
+            cmd = 'chtab osimage.imagename=\"' + operatingsystem + '' + name + '\" osimage.profile=\"compute\" osimage.imagetype=\"linux\" osimage.provmethod=\"netboot\" osimage.osname=\"' + operatingsystem + '\" osimage.osvers=\"' + prefix + operatingsystem + '' + name + '\" osimage.osarch=\"' + arch + '\"'
+            status=runCmd(cmd)
             
 #include row in linuximage table?
         
-            #if status != 0:
-            #    break
+            if status != 0:
+                break
             
             #Pack image
             cmd = 'packimage -o ' + prefix + operatingsystem + '' + name + ' -p compute -a ' + arch
