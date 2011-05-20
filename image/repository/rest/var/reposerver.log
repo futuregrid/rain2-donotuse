@@ -1,0 +1,326 @@
+2011-05-19 12:22:05,969 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:sfdadfas}
+2011-05-19 12:24:02,843 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:mlewis}
+2011-05-19 12:24:02,843 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:mlewis}
+2011-05-19 12:24:35,033 - Img Repo Server - INFO - user:mlewis command:userDel args={userIdtoDel:justin}
+2011-05-19 12:24:35,033 - Img Repo Server - INFO - user:mlewis command:userDel args={userIdtoDel:justin}
+2011-05-19 12:24:35,033 - Img Repo Server - INFO - user:mlewis command:userDel args={userIdtoDel:justin}
+2011-05-19 12:26:58,808 - Img Repo Server - INFO - user:mlewis command:put args={imgId:huy, metadata:adasfdas,                       size:41943040}
+2011-05-19 12:26:58,808 - Img Repo Server - INFO - user:mlewis command:put args={imgId:huy, metadata:adasfdas,                       size:41943040}
+2011-05-19 12:26:58,808 - Img Repo Server - INFO - user:mlewis command:put args={imgId:huy, metadata:adasfdas,                       size:41943040}
+2011-05-19 12:26:58,808 - Img Repo Server - INFO - user:mlewis command:put args={imgId:huy, metadata:adasfdas,                       size:41943040}
+2011-05-19 12:27:00,600 - Img Repo Server - ERROR - TypeError in IRUserStoreMongo - updateAccounting
+2011-05-19 12:27:00,600 - Img Repo Server - ERROR - TypeError in IRUserStoreMongo - updateAccounting
+2011-05-19 12:27:00,600 - Img Repo Server - ERROR - TypeError in IRUserStoreMongo - updateAccounting
+2011-05-19 12:27:00,600 - Img Repo Server - ERROR - TypeError in IRUserStoreMongo - updateAccounting
+2011-05-19 12:27:00,601 - Img Repo Server - ERROR - File size must be higher than 0
+2011-05-19 12:27:00,601 - Img Repo Server - ERROR - File size must be higher than 0
+2011-05-19 12:27:00,601 - Img Repo Server - ERROR - File size must be higher than 0
+2011-05-19 12:27:00,601 - Img Repo Server - ERROR - File size must be higher than 0
+2011-05-19 12:28:17,938 - Img Repo Server - INFO - user:mlewis command:put args={imgId:huy, metadata:adsrfadf,                       size:41943040}
+2011-05-19 12:28:17,938 - Img Repo Server - INFO - user:mlewis command:put args={imgId:huy, metadata:adsrfadf,                       size:41943040}
+2011-05-19 12:28:17,938 - Img Repo Server - INFO - user:mlewis command:put args={imgId:huy, metadata:adsrfadf,                       size:41943040}
+2011-05-19 12:28:17,938 - Img Repo Server - INFO - user:mlewis command:put args={imgId:huy, metadata:adsrfadf,                       size:41943040}
+2011-05-19 12:28:17,938 - Img Repo Server - INFO - user:mlewis command:put args={imgId:huy, metadata:adsrfadf,                       size:41943040}
+2011-05-19 12:28:17,979 - Img Repo Server - ERROR - TypeError in IRUserStoreMongo - updateAccounting
+2011-05-19 12:28:17,979 - Img Repo Server - ERROR - TypeError in IRUserStoreMongo - updateAccounting
+2011-05-19 12:28:17,979 - Img Repo Server - ERROR - TypeError in IRUserStoreMongo - updateAccounting
+2011-05-19 12:28:17,979 - Img Repo Server - ERROR - TypeError in IRUserStoreMongo - updateAccounting
+2011-05-19 12:28:17,979 - Img Repo Server - ERROR - TypeError in IRUserStoreMongo - updateAccounting
+2011-05-19 12:28:17,979 - Img Repo Server - ERROR - File size must be higher than 0
+2011-05-19 12:28:17,979 - Img Repo Server - ERROR - File size must be higher than 0
+2011-05-19 12:28:17,979 - Img Repo Server - ERROR - File size must be higher than 0
+2011-05-19 12:28:17,979 - Img Repo Server - ERROR - File size must be higher than 0
+2011-05-19 12:28:17,979 - Img Repo Server - ERROR - File size must be higher than 0
+2011-05-19 14:36:24,851 - Img Repo Server - INFO - user:(None, None, None) command:userAdd args={userIdtoAdd:sflsdfkdja}
+2011-05-19 14:37:48,589 - Img Repo Server - INFO - user:(None, None, None) command:userAdd args={userIdtoAdd:jKdjakdjfakdja}
+2011-05-19 14:37:48,589 - Img Repo Server - INFO - user:(None, None, None) command:userAdd args={userIdtoAdd:jKdjakdjfakdja}
+2011-05-19 14:40:09,117 - Img Repo Server - INFO - user:(None, None, None) command:list args={queryString:adfafds}
+2011-05-19 14:40:09,117 - Img Repo Server - INFO - user:(None, None, None) command:list args={queryString:adfafds}
+2011-05-19 14:40:09,117 - Img Repo Server - INFO - user:(None, None, None) command:list args={queryString:adfafds}
+2011-05-19 14:41:08,951 - Img Repo Server - INFO - user:(None, None, None) command:histImg args={imgId:4dcd6deec61d5cc275000000}
+2011-05-19 14:41:08,951 - Img Repo Server - INFO - user:(None, None, None) command:histImg args={imgId:4dcd6deec61d5cc275000000}
+2011-05-19 14:41:08,951 - Img Repo Server - INFO - user:(None, None, None) command:histImg args={imgId:4dcd6deec61d5cc275000000}
+2011-05-19 14:41:08,951 - Img Repo Server - INFO - user:(None, None, None) command:histImg args={imgId:4dcd6deec61d5cc275000000}
+2011-05-19 14:54:56,326 - Img Repo Server - INFO - user:(None, None, None) command:histImg args={imgId:ssfsdf}
+2011-05-19 15:19:45,071 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:adfafdsdfs}
+2011-05-19 15:19:45,094 - Img Repo Server - ERROR - Connection failed for localhost:23000
+2011-05-19 15:19:45,094 - Img Repo Server - ERROR - Could not get access to the database. The user has not been stored
+2011-05-19 15:24:38,816 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:adfsfafdafda}
+2011-05-19 15:48:35,393 - Img Repo Server - INFO - user:mlewis command:histImg args={imgId:4dd36265c61d5c0814000000}
+2011-05-19 15:56:01,655 - Img Repo Server - INFO - user:mlewis command:histImg args={imgId:4dcd6deec61d5cc275000000}
+2011-05-19 15:56:19,806 - Img Repo Server - INFO - user:mlewis command:histImg args={imgId:4dcd6deec61d5cc275000000}
+2011-05-19 15:56:19,806 - Img Repo Server - INFO - user:mlewis command:histImg args={imgId:4dcd6deec61d5cc275000000}
+2011-05-19 15:56:58,266 - Img Repo Server - INFO - user:mlewis command:histImg args={imgId:4dd36356c61d5c0853000000}
+2011-05-19 15:56:58,266 - Img Repo Server - INFO - user:mlewis command:histImg args={imgId:4dd36356c61d5c0853000000}
+2011-05-19 15:56:58,266 - Img Repo Server - INFO - user:mlewis command:histImg args={imgId:4dd36356c61d5c0853000000}
+2011-05-19 16:07:18,942 - Img Repo Server - INFO - user:mlewis command:userlist
+2011-05-19 17:17:36,140 - Img Repo Server - INFO - user:mlewis command:list args={queryString:sadfadfa}
+2011-05-19 17:42:37,854 - Img Repo Server - INFO - user:mlewis command:put args={imgId:huy, metadata:sdkflskdsl,                       size:41943040}
+2011-05-19 17:42:41,775 - Img Repo Server - ERROR - TypeError in IRUserStoreMongo - updateAccounting
+2011-05-19 17:42:41,775 - Img Repo Server - ERROR - File size must be higher than 0
+2011-05-19 17:44:09,385 - Img Repo Server - INFO - user:mlewis command:put args={imgId:huy, metadata:newAttributeString,                       size:41943040}
+2011-05-19 17:44:09,385 - Img Repo Server - INFO - user:mlewis command:put args={imgId:huy, metadata:newAttributeString,                       size:41943040}
+2011-05-19 17:44:09,421 - Img Repo Server - ERROR - TypeError in IRUserStoreMongo - updateAccounting
+2011-05-19 17:44:09,421 - Img Repo Server - ERROR - TypeError in IRUserStoreMongo - updateAccounting
+2011-05-19 17:44:09,421 - Img Repo Server - ERROR - File size must be higher than 0
+2011-05-19 17:44:09,421 - Img Repo Server - ERROR - File size must be higher than 0
+2011-05-19 17:45:38,907 - Img Repo Server - INFO - user:mlewis command:put args={imgId:huy, metadata:newAttributeString,                       size:41943040}
+2011-05-19 17:45:38,907 - Img Repo Server - INFO - user:mlewis command:put args={imgId:huy, metadata:newAttributeString,                       size:41943040}
+2011-05-19 17:45:38,907 - Img Repo Server - INFO - user:mlewis command:put args={imgId:huy, metadata:newAttributeString,                       size:41943040}
+2011-05-19 17:45:38,917 - Img Repo Server - ERROR - TypeError in IRUserStoreMongo - updateAccounting
+2011-05-19 17:45:38,917 - Img Repo Server - ERROR - TypeError in IRUserStoreMongo - updateAccounting
+2011-05-19 17:45:38,917 - Img Repo Server - ERROR - TypeError in IRUserStoreMongo - updateAccounting
+2011-05-19 17:45:38,924 - Img Repo Server - ERROR - File size must be higher than 0
+2011-05-19 17:45:38,924 - Img Repo Server - ERROR - File size must be higher than 0
+2011-05-19 17:45:38,924 - Img Repo Server - ERROR - File size must be higher than 0
+2011-05-19 18:06:00,526 - Img Repo Server - INFO - user:mlewis command:put args={imgId:huy, metadata:newAttributeString,                       size:41943040}
+2011-05-19 18:06:00,526 - Img Repo Server - INFO - user:mlewis command:put args={imgId:huy, metadata:newAttributeString,                       size:41943040}
+2011-05-19 18:06:00,526 - Img Repo Server - INFO - user:mlewis command:put args={imgId:huy, metadata:newAttributeString,                       size:41943040}
+2011-05-19 18:06:00,526 - Img Repo Server - INFO - user:mlewis command:put args={imgId:huy, metadata:newAttributeString,                       size:41943040}
+2011-05-19 18:06:00,674 - Img Repo Server - ERROR - TypeError in IRUserStoreMongo - updateAccounting
+2011-05-19 18:06:00,674 - Img Repo Server - ERROR - TypeError in IRUserStoreMongo - updateAccounting
+2011-05-19 18:06:00,674 - Img Repo Server - ERROR - TypeError in IRUserStoreMongo - updateAccounting
+2011-05-19 18:06:00,674 - Img Repo Server - ERROR - TypeError in IRUserStoreMongo - updateAccounting
+2011-05-19 18:06:00,674 - Img Repo Server - ERROR - File size must be higher than 0
+2011-05-19 18:06:00,674 - Img Repo Server - ERROR - File size must be higher than 0
+2011-05-19 18:06:00,674 - Img Repo Server - ERROR - File size must be higher than 0
+2011-05-19 18:06:00,674 - Img Repo Server - ERROR - File size must be higher than 0
+2011-05-19 18:14:30,498 - Img Repo Server - INFO - user:mlewis command:put args={imgId:huy, metadata:newAttributeString,                       size:41943040}
+2011-05-19 18:14:30,498 - Img Repo Server - INFO - user:mlewis command:put args={imgId:huy, metadata:newAttributeString,                       size:41943040}
+2011-05-19 18:14:30,498 - Img Repo Server - INFO - user:mlewis command:put args={imgId:huy, metadata:newAttributeString,                       size:41943040}
+2011-05-19 18:14:30,498 - Img Repo Server - INFO - user:mlewis command:put args={imgId:huy, metadata:newAttributeString,                       size:41943040}
+2011-05-19 18:14:30,498 - Img Repo Server - INFO - user:mlewis command:put args={imgId:huy, metadata:newAttributeString,                       size:41943040}
+2011-05-19 18:14:30,538 - Img Repo Server - ERROR - TypeError in IRUserStoreMongo - updateAccounting
+2011-05-19 18:14:30,538 - Img Repo Server - ERROR - TypeError in IRUserStoreMongo - updateAccounting
+2011-05-19 18:14:30,538 - Img Repo Server - ERROR - TypeError in IRUserStoreMongo - updateAccounting
+2011-05-19 18:14:30,538 - Img Repo Server - ERROR - TypeError in IRUserStoreMongo - updateAccounting
+2011-05-19 18:14:30,538 - Img Repo Server - ERROR - TypeError in IRUserStoreMongo - updateAccounting
+2011-05-19 18:14:30,539 - Img Repo Server - ERROR - File size must be higher than 0
+2011-05-19 18:14:30,539 - Img Repo Server - ERROR - File size must be higher than 0
+2011-05-19 18:14:30,539 - Img Repo Server - ERROR - File size must be higher than 0
+2011-05-19 18:14:30,539 - Img Repo Server - ERROR - File size must be higher than 0
+2011-05-19 18:14:30,539 - Img Repo Server - ERROR - File size must be higher than 0
+2011-05-19 18:15:37,376 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:mlsewi}
+2011-05-19 18:15:37,376 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:mlsewi}
+2011-05-19 18:15:37,376 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:mlsewi}
+2011-05-19 18:15:37,376 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:mlsewi}
+2011-05-19 18:15:37,376 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:mlsewi}
+2011-05-19 18:15:37,376 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:mlsewi}
+2011-05-19 18:41:42,094 - Img Repo Server - INFO - user:mlewis command:list args={queryString:Some query String}
+2011-05-19 19:06:22,735 - Img Repo Server - INFO - user:mlewis command:list args={queryString:Some query String}
+2011-05-19 19:08:25,485 - Img Repo Server - INFO - user:mlewis command:remove args={imgId:4dd3657bc61d5c08f6000000}
+2011-05-19 19:08:25,485 - Img Repo Server - INFO - user:mlewis command:remove args={imgId:4dd3657bc61d5c08f6000000}
+2011-05-19 19:08:25,485 - Img Repo Server - INFO - user:mlewis command:remove args={imgId:4dd3657bc61d5c08f6000000}
+2011-05-19 19:08:25,485 - Img Repo Server - INFO - user:mlewis command:remove args={imgId:4dd3657bc61d5c08f6000000}
+2011-05-19 19:08:25,644 - Img Repo Server - ERROR - TypeError in IRUserStoreMongo - updateAccounting
+2011-05-19 19:08:25,644 - Img Repo Server - ERROR - TypeError in IRUserStoreMongo - updateAccounting
+2011-05-19 19:08:25,644 - Img Repo Server - ERROR - TypeError in IRUserStoreMongo - updateAccounting
+2011-05-19 19:08:25,644 - Img Repo Server - ERROR - TypeError in IRUserStoreMongo - updateAccounting
+2011-05-19 19:09:31,869 - Img Repo Server - INFO - user:mlewis command:histImg args={imgId:4dd3657bc61d5c08f6000000}
+2011-05-19 19:09:31,869 - Img Repo Server - INFO - user:mlewis command:histImg args={imgId:4dd3657bc61d5c08f6000000}
+2011-05-19 19:09:31,869 - Img Repo Server - INFO - user:mlewis command:histImg args={imgId:4dd3657bc61d5c08f6000000}
+2011-05-19 19:09:31,869 - Img Repo Server - INFO - user:mlewis command:histImg args={imgId:4dd3657bc61d5c08f6000000}
+2011-05-19 19:09:31,869 - Img Repo Server - INFO - user:mlewis command:histImg args={imgId:4dd3657bc61d5c08f6000000}
+2011-05-19 19:32:43,428 - Img Repo Server - INFO - user:mlewis command:list args={queryString:Some query String}
+2011-05-19 19:33:13,463 - Img Repo Server - INFO - user:mlewis command:remove args={imgId:4dd3657bc61d5c08f6000000}
+2011-05-19 19:33:13,463 - Img Repo Server - INFO - user:mlewis command:remove args={imgId:4dd3657bc61d5c08f6000000}
+2011-05-19 19:33:13,463 - Img Repo Server - INFO - user:mlewis command:remove args={imgId:4dd3657bc61d5c08f6000000}
+2011-05-19 19:33:13,463 - Img Repo Server - INFO - user:mlewis command:remove args={imgId:4dd3657bc61d5c08f6000000}
+2011-05-19 19:33:13,611 - Img Repo Server - ERROR - The Image does not exist or the user is not the owner
+2011-05-19 19:33:13,611 - Img Repo Server - ERROR - The Image does not exist or the user is not the owner
+2011-05-19 19:33:13,611 - Img Repo Server - ERROR - The Image does not exist or the user is not the owner
+2011-05-19 19:33:13,611 - Img Repo Server - ERROR - The Image does not exist or the user is not the owner
+2011-05-19 19:33:16,660 - Img Repo Server - INFO - user:mlewis command:histImg args={imgId:4dd3657bc61d5c08f6000000}
+2011-05-19 19:33:16,660 - Img Repo Server - INFO - user:mlewis command:histImg args={imgId:4dd3657bc61d5c08f6000000}
+2011-05-19 19:33:16,660 - Img Repo Server - INFO - user:mlewis command:histImg args={imgId:4dd3657bc61d5c08f6000000}
+2011-05-19 19:33:16,660 - Img Repo Server - INFO - user:mlewis command:histImg args={imgId:4dd3657bc61d5c08f6000000}
+2011-05-19 19:33:16,660 - Img Repo Server - INFO - user:mlewis command:histImg args={imgId:4dd3657bc61d5c08f6000000}
+2011-05-19 19:33:22,265 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:}
+2011-05-19 19:33:22,265 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:}
+2011-05-19 19:33:22,265 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:}
+2011-05-19 19:33:22,265 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:}
+2011-05-19 19:33:22,265 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:}
+2011-05-19 19:33:22,265 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:}
+2011-05-19 19:33:27,021 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:adminUser}
+2011-05-19 19:33:27,021 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:adminUser}
+2011-05-19 19:33:27,021 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:adminUser}
+2011-05-19 19:33:27,021 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:adminUser}
+2011-05-19 19:33:27,021 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:adminUser}
+2011-05-19 19:33:27,021 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:adminUser}
+2011-05-19 19:33:27,021 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:adminUser}
+2011-05-19 19:33:28,707 - Img Repo Server - INFO - user:mlewis command:userlist
+2011-05-19 19:33:28,707 - Img Repo Server - INFO - user:mlewis command:userlist
+2011-05-19 19:33:28,707 - Img Repo Server - INFO - user:mlewis command:userlist
+2011-05-19 19:33:28,707 - Img Repo Server - INFO - user:mlewis command:userlist
+2011-05-19 19:33:28,707 - Img Repo Server - INFO - user:mlewis command:userlist
+2011-05-19 19:33:28,707 - Img Repo Server - INFO - user:mlewis command:userlist
+2011-05-19 19:33:28,707 - Img Repo Server - INFO - user:mlewis command:userlist
+2011-05-19 19:33:28,707 - Img Repo Server - INFO - user:mlewis command:userlist
+2011-05-19 19:35:41,062 - Img Repo Server - INFO - user:mlewis command:list args={queryString:Some query String}
+2011-05-19 19:35:41,062 - Img Repo Server - INFO - user:mlewis command:list args={queryString:Some query String}
+2011-05-19 19:35:41,062 - Img Repo Server - INFO - user:mlewis command:list args={queryString:Some query String}
+2011-05-19 19:35:41,062 - Img Repo Server - INFO - user:mlewis command:list args={queryString:Some query String}
+2011-05-19 19:35:41,062 - Img Repo Server - INFO - user:mlewis command:list args={queryString:Some query String}
+2011-05-19 19:35:41,062 - Img Repo Server - INFO - user:mlewis command:list args={queryString:Some query String}
+2011-05-19 19:35:41,062 - Img Repo Server - INFO - user:mlewis command:list args={queryString:Some query String}
+2011-05-19 19:35:41,062 - Img Repo Server - INFO - user:mlewis command:list args={queryString:Some query String}
+2011-05-19 19:35:41,062 - Img Repo Server - INFO - user:mlewis command:list args={queryString:Some query String}
+2011-05-19 19:35:43,705 - Img Repo Server - INFO - user:mlewis command:remove args={imgId:4dd3657bc61d5c08f6000000}
+2011-05-19 19:35:43,705 - Img Repo Server - INFO - user:mlewis command:remove args={imgId:4dd3657bc61d5c08f6000000}
+2011-05-19 19:35:43,705 - Img Repo Server - INFO - user:mlewis command:remove args={imgId:4dd3657bc61d5c08f6000000}
+2011-05-19 19:35:43,705 - Img Repo Server - INFO - user:mlewis command:remove args={imgId:4dd3657bc61d5c08f6000000}
+2011-05-19 19:35:43,705 - Img Repo Server - INFO - user:mlewis command:remove args={imgId:4dd3657bc61d5c08f6000000}
+2011-05-19 19:35:43,705 - Img Repo Server - INFO - user:mlewis command:remove args={imgId:4dd3657bc61d5c08f6000000}
+2011-05-19 19:35:43,705 - Img Repo Server - INFO - user:mlewis command:remove args={imgId:4dd3657bc61d5c08f6000000}
+2011-05-19 19:35:43,705 - Img Repo Server - INFO - user:mlewis command:remove args={imgId:4dd3657bc61d5c08f6000000}
+2011-05-19 19:35:43,705 - Img Repo Server - INFO - user:mlewis command:remove args={imgId:4dd3657bc61d5c08f6000000}
+2011-05-19 19:35:43,705 - Img Repo Server - INFO - user:mlewis command:remove args={imgId:4dd3657bc61d5c08f6000000}
+2011-05-19 19:35:43,705 - Img Repo Server - INFO - user:mlewis command:remove args={imgId:4dd3657bc61d5c08f6000000}
+2011-05-19 19:35:43,705 - Img Repo Server - INFO - user:mlewis command:remove args={imgId:4dd3657bc61d5c08f6000000}
+2011-05-19 19:35:43,710 - Img Repo Server - ERROR - The Image does not exist or the user is not the owner
+2011-05-19 19:35:43,710 - Img Repo Server - ERROR - The Image does not exist or the user is not the owner
+2011-05-19 19:35:43,710 - Img Repo Server - ERROR - The Image does not exist or the user is not the owner
+2011-05-19 19:35:43,710 - Img Repo Server - ERROR - The Image does not exist or the user is not the owner
+2011-05-19 19:35:43,710 - Img Repo Server - ERROR - The Image does not exist or the user is not the owner
+2011-05-19 19:35:43,710 - Img Repo Server - ERROR - The Image does not exist or the user is not the owner
+2011-05-19 19:35:43,710 - Img Repo Server - ERROR - The Image does not exist or the user is not the owner
+2011-05-19 19:35:43,710 - Img Repo Server - ERROR - The Image does not exist or the user is not the owner
+2011-05-19 19:35:43,710 - Img Repo Server - ERROR - The Image does not exist or the user is not the owner
+2011-05-19 19:35:43,710 - Img Repo Server - ERROR - The Image does not exist or the user is not the owner
+2011-05-19 19:35:43,710 - Img Repo Server - ERROR - The Image does not exist or the user is not the owner
+2011-05-19 19:35:43,710 - Img Repo Server - ERROR - The Image does not exist or the user is not the owner
+2011-05-19 19:35:44,739 - Img Repo Server - INFO - user:mlewis command:histImg args={imgId:4dd3657bc61d5c08f6000000}
+2011-05-19 19:35:44,739 - Img Repo Server - INFO - user:mlewis command:histImg args={imgId:4dd3657bc61d5c08f6000000}
+2011-05-19 19:35:44,739 - Img Repo Server - INFO - user:mlewis command:histImg args={imgId:4dd3657bc61d5c08f6000000}
+2011-05-19 19:35:44,739 - Img Repo Server - INFO - user:mlewis command:histImg args={imgId:4dd3657bc61d5c08f6000000}
+2011-05-19 19:35:44,739 - Img Repo Server - INFO - user:mlewis command:histImg args={imgId:4dd3657bc61d5c08f6000000}
+2011-05-19 19:35:44,739 - Img Repo Server - INFO - user:mlewis command:histImg args={imgId:4dd3657bc61d5c08f6000000}
+2011-05-19 19:35:44,739 - Img Repo Server - INFO - user:mlewis command:histImg args={imgId:4dd3657bc61d5c08f6000000}
+2011-05-19 19:35:44,739 - Img Repo Server - INFO - user:mlewis command:histImg args={imgId:4dd3657bc61d5c08f6000000}
+2011-05-19 19:35:44,739 - Img Repo Server - INFO - user:mlewis command:histImg args={imgId:4dd3657bc61d5c08f6000000}
+2011-05-19 19:35:44,739 - Img Repo Server - INFO - user:mlewis command:histImg args={imgId:4dd3657bc61d5c08f6000000}
+2011-05-19 19:35:44,739 - Img Repo Server - INFO - user:mlewis command:histImg args={imgId:4dd3657bc61d5c08f6000000}
+2011-05-19 19:35:44,739 - Img Repo Server - INFO - user:mlewis command:histImg args={imgId:4dd3657bc61d5c08f6000000}
+2011-05-19 19:35:44,739 - Img Repo Server - INFO - user:mlewis command:histImg args={imgId:4dd3657bc61d5c08f6000000}
+2011-05-19 19:35:46,719 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:}
+2011-05-19 19:35:46,719 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:}
+2011-05-19 19:35:46,719 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:}
+2011-05-19 19:35:46,719 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:}
+2011-05-19 19:35:46,719 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:}
+2011-05-19 19:35:46,719 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:}
+2011-05-19 19:35:46,719 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:}
+2011-05-19 19:35:46,719 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:}
+2011-05-19 19:35:46,719 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:}
+2011-05-19 19:35:46,719 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:}
+2011-05-19 19:35:46,719 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:}
+2011-05-19 19:35:46,719 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:}
+2011-05-19 19:35:46,719 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:}
+2011-05-19 19:35:46,719 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:}
+2011-05-19 19:36:48,893 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:adminUser}
+2011-05-19 19:36:48,893 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:adminUser}
+2011-05-19 19:36:48,893 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:adminUser}
+2011-05-19 19:36:48,893 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:adminUser}
+2011-05-19 19:36:48,893 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:adminUser}
+2011-05-19 19:36:48,893 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:adminUser}
+2011-05-19 19:36:48,893 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:adminUser}
+2011-05-19 19:36:48,893 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:adminUser}
+2011-05-19 19:36:48,893 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:adminUser}
+2011-05-19 19:36:48,893 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:adminUser}
+2011-05-19 19:36:48,893 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:adminUser}
+2011-05-19 19:36:48,893 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:adminUser}
+2011-05-19 19:36:48,893 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:adminUser}
+2011-05-19 19:36:48,893 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:adminUser}
+2011-05-19 19:36:48,893 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:adminUser}
+2011-05-19 19:36:52,513 - Img Repo Server - INFO - user:mlewis command:userlist
+2011-05-19 19:36:52,513 - Img Repo Server - INFO - user:mlewis command:userlist
+2011-05-19 19:36:52,513 - Img Repo Server - INFO - user:mlewis command:userlist
+2011-05-19 19:36:52,513 - Img Repo Server - INFO - user:mlewis command:userlist
+2011-05-19 19:36:52,513 - Img Repo Server - INFO - user:mlewis command:userlist
+2011-05-19 19:36:52,513 - Img Repo Server - INFO - user:mlewis command:userlist
+2011-05-19 19:36:52,513 - Img Repo Server - INFO - user:mlewis command:userlist
+2011-05-19 19:36:52,513 - Img Repo Server - INFO - user:mlewis command:userlist
+2011-05-19 19:36:52,513 - Img Repo Server - INFO - user:mlewis command:userlist
+2011-05-19 19:36:52,513 - Img Repo Server - INFO - user:mlewis command:userlist
+2011-05-19 19:36:52,513 - Img Repo Server - INFO - user:mlewis command:userlist
+2011-05-19 19:36:52,513 - Img Repo Server - INFO - user:mlewis command:userlist
+2011-05-19 19:36:52,513 - Img Repo Server - INFO - user:mlewis command:userlist
+2011-05-19 19:36:52,513 - Img Repo Server - INFO - user:mlewis command:userlist
+2011-05-19 19:36:52,513 - Img Repo Server - INFO - user:mlewis command:userlist
+2011-05-19 19:36:52,513 - Img Repo Server - INFO - user:mlewis command:userlist
+2011-05-19 19:38:55,886 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:klfakfdlaad}
+2011-05-19 19:38:55,886 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:klfakfdlaad}
+2011-05-19 19:38:55,886 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:klfakfdlaad}
+2011-05-19 19:38:55,886 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:klfakfdlaad}
+2011-05-19 19:38:55,886 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:klfakfdlaad}
+2011-05-19 19:38:55,886 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:klfakfdlaad}
+2011-05-19 19:38:55,886 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:klfakfdlaad}
+2011-05-19 19:38:55,886 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:klfakfdlaad}
+2011-05-19 19:38:55,886 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:klfakfdlaad}
+2011-05-19 19:38:55,886 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:klfakfdlaad}
+2011-05-19 19:38:55,886 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:klfakfdlaad}
+2011-05-19 19:38:55,886 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:klfakfdlaad}
+2011-05-19 19:38:55,886 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:klfakfdlaad}
+2011-05-19 19:38:55,886 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:klfakfdlaad}
+2011-05-19 19:38:55,886 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:klfakfdlaad}
+2011-05-19 19:38:55,886 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:klfakfdlaad}
+2011-05-19 19:38:55,886 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:klfakfdlaad}
+2011-05-19 20:19:22,065 - Img Repo Server - INFO - user:mlewis command:list args={queryString:Some query String}
+2011-05-19 20:19:31,772 - Img Repo Server - INFO - user:mlewis command:remove args={imgId:4dd3657bc61d5c08f6000000}
+2011-05-19 20:19:31,772 - Img Repo Server - INFO - user:mlewis command:remove args={imgId:4dd3657bc61d5c08f6000000}
+2011-05-19 20:19:31,772 - Img Repo Server - INFO - user:mlewis command:remove args={imgId:4dd3657bc61d5c08f6000000}
+2011-05-19 20:19:31,772 - Img Repo Server - INFO - user:mlewis command:remove args={imgId:4dd3657bc61d5c08f6000000}
+2011-05-19 20:19:31,802 - Img Repo Server - ERROR - The Image does not exist or the user is not the owner
+2011-05-19 20:19:31,802 - Img Repo Server - ERROR - The Image does not exist or the user is not the owner
+2011-05-19 20:19:31,802 - Img Repo Server - ERROR - The Image does not exist or the user is not the owner
+2011-05-19 20:19:31,802 - Img Repo Server - ERROR - The Image does not exist or the user is not the owner
+2011-05-19 20:19:35,401 - Img Repo Server - INFO - user:mlewis command:histImg args={imgId:4dd3657bc61d5c08f6000000}
+2011-05-19 20:19:35,401 - Img Repo Server - INFO - user:mlewis command:histImg args={imgId:4dd3657bc61d5c08f6000000}
+2011-05-19 20:19:35,401 - Img Repo Server - INFO - user:mlewis command:histImg args={imgId:4dd3657bc61d5c08f6000000}
+2011-05-19 20:19:35,401 - Img Repo Server - INFO - user:mlewis command:histImg args={imgId:4dd3657bc61d5c08f6000000}
+2011-05-19 20:19:35,401 - Img Repo Server - INFO - user:mlewis command:histImg args={imgId:4dd3657bc61d5c08f6000000}
+2011-05-19 20:19:37,451 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:}
+2011-05-19 20:19:37,451 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:}
+2011-05-19 20:19:37,451 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:}
+2011-05-19 20:19:37,451 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:}
+2011-05-19 20:19:37,451 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:}
+2011-05-19 20:19:37,451 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:}
+2011-05-19 20:19:40,579 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:adminUser}
+2011-05-19 20:19:40,579 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:adminUser}
+2011-05-19 20:19:40,579 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:adminUser}
+2011-05-19 20:19:40,579 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:adminUser}
+2011-05-19 20:19:40,579 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:adminUser}
+2011-05-19 20:19:40,579 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:adminUser}
+2011-05-19 20:19:40,579 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:adminUser}
+2011-05-19 20:19:42,030 - Img Repo Server - INFO - user:mlewis command:userlist
+2011-05-19 20:19:42,030 - Img Repo Server - INFO - user:mlewis command:userlist
+2011-05-19 20:19:42,030 - Img Repo Server - INFO - user:mlewis command:userlist
+2011-05-19 20:19:42,030 - Img Repo Server - INFO - user:mlewis command:userlist
+2011-05-19 20:19:42,030 - Img Repo Server - INFO - user:mlewis command:userlist
+2011-05-19 20:19:42,030 - Img Repo Server - INFO - user:mlewis command:userlist
+2011-05-19 20:19:42,030 - Img Repo Server - INFO - user:mlewis command:userlist
+2011-05-19 20:19:42,030 - Img Repo Server - INFO - user:mlewis command:userlist
+2011-05-19 20:44:48,754 - Img Repo Server - INFO - user:mlewis command:list args={queryString:Some query String}
+2011-05-19 20:49:00,976 - Img Repo Server - INFO - user:mlewis command:list args={queryString:Some query String}
+2011-05-19 20:52:29,758 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:mlewis}
+2011-05-19 20:52:29,758 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:mlewis}
+2011-05-19 20:52:29,761 - Img Repo Server - WARNING - First User inserted is mlewis. He is admin
+2011-05-19 20:52:29,761 - Img Repo Server - WARNING - First User inserted is mlewis. He is admin
+2011-05-19 20:52:58,305 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:huy}
+2011-05-19 20:52:58,305 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:huy}
+2011-05-19 20:52:58,305 - Img Repo Server - INFO - user:mlewis command:userAdd args={userIdtoAdd:huy}
+2011-05-19 20:53:16,447 - Img Repo Server - INFO - user:mlewis command:userDel args={userIdtoDel:huy}
+2011-05-19 20:53:16,447 - Img Repo Server - INFO - user:mlewis command:userDel args={userIdtoDel:huy}
+2011-05-19 20:53:16,447 - Img Repo Server - INFO - user:mlewis command:userDel args={userIdtoDel:huy}
+2011-05-19 20:53:16,447 - Img Repo Server - INFO - user:mlewis command:userDel args={userIdtoDel:huy}
+2011-05-19 20:54:37,083 - Img Repo Server - INFO - user:mlewis command:put args={imgId:mlewis, metadata:newString,                       size:41943040}
+2011-05-19 20:54:37,083 - Img Repo Server - INFO - user:mlewis command:put args={imgId:mlewis, metadata:newString,                       size:41943040}
+2011-05-19 20:54:37,083 - Img Repo Server - INFO - user:mlewis command:put args={imgId:mlewis, metadata:newString,                       size:41943040}
+2011-05-19 20:54:37,083 - Img Repo Server - INFO - user:mlewis command:put args={imgId:mlewis, metadata:newString,                       size:41943040}
+2011-05-19 20:54:37,083 - Img Repo Server - INFO - user:mlewis command:put args={imgId:mlewis, metadata:newString,                       size:41943040}
+2011-05-19 20:55:06,520 - Img Repo Server - INFO - user:mlewis command:list args={queryString:sfada}
+2011-05-19 20:55:06,520 - Img Repo Server - INFO - user:mlewis command:list args={queryString:sfada}
+2011-05-19 20:55:06,520 - Img Repo Server - INFO - user:mlewis command:list args={queryString:sfada}
+2011-05-19 20:55:06,520 - Img Repo Server - INFO - user:mlewis command:list args={queryString:sfada}
+2011-05-19 20:55:06,520 - Img Repo Server - INFO - user:mlewis command:list args={queryString:sfada}
+2011-05-19 20:55:06,520 - Img Repo Server - INFO - user:mlewis command:list args={queryString:sfada}
+2011-05-19 21:00:18,696 - Img Repo Server - INFO - user:mlewis command:list args={queryString:Some query String}
