@@ -1,0 +1,78 @@
+REST
+
+The REST interface implements the IRService API from unique URLs.
+For example going to the URL http://<root>/list  would execute
+the IRService : list(). For the REST put function there is no 
+need to specify a tmp directory for uploading. The file 
+retrieved from the client gets uploaded in the request object
+and put directly within MongoDB from the request object.With the 
+REST get function, the binary file data is retrieved from 
+MongoDB and is downloaded to a filepath according to the 
+users specification. 
+
+
+
+REQUIREMENTS:
+
+In order to execute the REST server you must have CherryPy installed.
+To run the REST server through the imageTest.py and the userTest.py 
+scripts you must additionally install twill. The REST interface connects
+with the FUTURE Grid server tools i.e IRService.py, IRDataAccessMongo.py
+and UTIL (fglog.py) , thus  MongoDB must also be installed.
+
+
+Installing CherryPy
+You need a working version of Python 2.3 or later. If using the 
+repository, type the following command: svn co http://svn.cherrypy.org.
+or go to http://www.cherrypy.org/wiki/CherryPyInstall to download
+the latest version of CherryPy. Once downloaded, go to the 'trunk'
+directory and type:  python setup.py install
+
+
+Installing Twill
+Mac: Works with easy_install so just type:  sudo easy_install twill. Twill
+gets install in the /usr/local/bin directory.  To check you have twill 
+working, execute the shell option by typing twill-sh.
+
+
+Installing MongoDb
+Go to:  http://www.mongodb.org/downloads to download Mongo. You can also 
+use curl.  
+To install the 32 bit binary:
+curl http://downloads.mongodb.org/osx/mongodb-osx-i386-x.y.z.tgz > mongo.tgz
+tar xzf mongo.tgz
+For the 64 bit binary:
+curl http://downloads.mongodb.org/osx/mongodb-osx-x86_64-x.y.z.tgz > mongo.tgz
+tar xzf mongo.tgz
+To start the server:  ./mongodb-xxxxxxx/bin/mongod  <--port> <port number>
+For client access:  ./mongodb-xxxxxx/bin/mongo <--port> <port number> 
+
+
+PyMongo  (Mongo driver for Python)
+the Python driver for MongoDB type: https://github.com/mongodb/mongo-python-driver.git
+to obtain read access to the pymongo driver. Easy install is prefered to 
+install mongo. Type sudo easy_install pymongo
+
+
+STARTING CHERRY PY AND MONGO DB.
+To start you must execute the Mongo server first. Type: mongod --port 23000.
+To start the REST service, from the rest directory type:  ./restFrontEnd.py
+this will start up the CherryPy server running on the port specified in the
+CherryPy.conf directory.  The REST API is now ready to use.
+
+You can also execute MongDB and restFrontEnd from a script. To execute 
+the script type ./startServer. The mongoDb automatically gets executed,
+hitting return would then start the CherryPy server.  Hitting return 
+again would the exit the program and kill the MongoDb server and 
+CherryPy server. 
+
+
+RUNNING CHERRY PY FROM THE SCRIPT
+
+To test out the user portion of the REST api, you must run the userTest.py script.
+The batch of image based queries are made by typing:  ./imageTest.py
+
+UPCOMING FEATURES
+With the next version of REST, authentication via https and possible html based security  
+(DIGEST) will be  added. In addition error dispatching and adding a cURL for directly retrieving a
+file straight from the address. SImple session management will be added as well.
