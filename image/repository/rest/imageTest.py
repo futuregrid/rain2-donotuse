@@ -30,27 +30,27 @@ submit('0')
 
 
 #----------------- GET --------------------------
-#print "GET:  <enter> "
-#subprocess.call("read line",shell=True)
-#go('http://localhost:8080/get')
-#formclear('1')
-#fv("1","imgId","4dd3657bc61d5c08f6000000")
-#fv("1","option","img")
-#showforms()
-#submit('0')
-#show()
+print "GET:  <enter> "
+subprocess.call("read line",shell=True)
+go('http://localhost:8080/get')
+formclear('1')
+fv("1","imgId","4dd3657bc61d5c08f6000000")
+fv("1","option","img")
+showforms()
+submit('0')
+show()
 
 
 #---------------- PUT COMMAND ----------------
-#print "To execute the put command hit ennter"
-#subprocess.call("read line",shell=True)
-#go('http://localhost:8080/put')
-#formclear('1')
-#formfile("1","imageFileName","/Users/mlewis/downloads/ttylinux/ttylinux.img" )
-#fv("1","userId","huy")
-#fv("1","attributeString","newAttributeString")
-#showforms()
-#submit('0')
+print "To execute the put command hit ennter"
+subprocess.call("read line",shell=True)
+go('http://localhost:8080/put')
+formclear('1')
+formfile("1","imageFileName","/Users/mlewis/downloads/ttylinux/ttylinux.img" )
+fv("1","userId","huy")
+fv("1","attributeString","newAttributeString")
+showforms()
+submit('0')
 
 #----------------- MODIFY --------------------------
 print "MODIFY:  <enter> "
