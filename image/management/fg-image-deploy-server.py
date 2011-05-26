@@ -156,7 +156,7 @@ def main():
 
             #create directory that contains initrd.img and vmlinuz
             tftpimgdir='/tftp/xcat/'+ operatingsystem + '' + name+'/'+arch
-            cmd = 'mkdir -p 'tftpimgdir
+            cmd = 'mkdir -p '+tftpimgdir
             status=runCmd(cmd)
 
             if status != 0:
