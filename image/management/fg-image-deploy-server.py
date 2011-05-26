@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # Description: xCAT image deployment server.  Deploys images given by fg-image-deploy onto xCAT bare metal
 #
-# Author: Andrew J. Younge
+# Author: Andrew J. Younge, Javier Diaz
 #
 
 
@@ -138,7 +138,7 @@ def main():
         
             #Add entry to the osimage table
             #this it seems to be done by packimage
-            cmd = 'chtab osimage.imagename=' + operatingsystem + '' + name + '-'+arch+'-compute osimage.profile=compute osimage.imagetype=linux osimage.provmethod=netboot osimage.osname=linux osimage.osvers=' + prefix + operatingsystem + '' + name + ' osimage.osarch=' + arch + ''
+            cmd = 'chtab osimage.imagename=' + operatingsystem + '' + name + '-'+arch+'-netboot-compute osimage.profile=compute osimage.imagetype=linux osimage.provmethod=netboot osimage.osname=linux osimage.osvers=' + prefix + operatingsystem + '' + name + ' osimage.osarch=' + arch + ''
             
             status=os.system(cmd)
             
@@ -155,7 +155,7 @@ def main():
                 break
 
             #create directory that contains initrd.img and vmlinuz
-            tftpimgdir='/tftp/xcat/'+ operatingsystem + '' + name+'/'+arch
+            tftpimgdir='/tftpboot/xcat/'+ operatingsystem + '' + name+'/'+arch
             cmd = 'mkdir -p '+tftpimgdir
             status=runCmd(cmd)
 
