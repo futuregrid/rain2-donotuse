@@ -25,9 +25,12 @@ TEST_MODE=True
 base_url = "http://fg-gravel3.futuregrid.iu.edu/"
 bcfg2_url = 'fg-gravel3.futuregrid.iu.edu'
 bcfg2_port = 45678
-global namedir #this == name is to clean up when something fails
+
 
 def main():    
+    global tempdir
+    global namedir #this == name is to clean up when something fails
+    
     #Set up logging
     log_filename = 'fg-image-generate.log'
     logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",datefmt='%a, %d %b %Y %H:%M:%S',filemode='w',filename=log_filename,level=logging.DEBUG)
@@ -94,7 +97,7 @@ def main():
         logging.basicConfig(level=logging.INFO)
         #ch.setLevel(logging.INFO)
     
-    global tempdir
+    
     
     if type(ops.tempdir) is not NoneType: 
         tempdir=ops.tempdir
@@ -119,6 +122,8 @@ def main():
     #TODO: authenticate user via promting for CERT or password to auth against LDAP db
     
     logging.debug('FG User: ' + user)
+    
+    namedir=user + '' + randid
     
     arch=ops.arch
     """Already controlled...delete..    
@@ -164,7 +169,7 @@ def main():
         create_base_os=True
         config_ldap=True 
         
-        img = buildUbuntu(user + '' + randid, version, arch, packs, tempdir, create_base_os, config_ldap)
+        img = buildUbuntu(namedir, version, arch, packs, tempdir, create_base_os, config_ldap)
     
     elif ops.os == "debian":
         base_os = base_os + "debian" + spacer
@@ -177,7 +182,7 @@ def main():
         create_base_os=True
         config_ldap=True       
         
-        img = buildCentos(user + '' + randid, version, arch, packs,tempdir, create_base_os, config_ldap)
+        img = buildCentos(namedir, version, arch, packs,tempdir, create_base_os, config_ldap)
         
     elif ops.os == "fedora":
         base_os = base_os + "fedora" + spacer    
