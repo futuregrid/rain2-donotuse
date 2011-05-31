@@ -143,9 +143,9 @@ def main():
             status=os.system(cmd)
             
 #include row in linuximage table?
-        
-            if status != 0:
-                break
+            #if the row exists it will give an error
+            #if status != 0:
+            #    break
             
             #Pack image
             cmd = 'packimage -o ' + prefix + operatingsystem + '' + name + ' -p compute -a ' + arch

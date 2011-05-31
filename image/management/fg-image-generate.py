@@ -98,6 +98,8 @@ def main():
     
     if type(ops.tempdir) is not NoneType: 
         tempdir=ops.tempdir
+        if(tempdir[len(tempdir)-1:]!="/"):
+            tempdir+="/"
     else:
         tempdir="/tmp/"
     
@@ -228,13 +230,13 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
         #to create base_os
         #centosLog.info('Modifying repositories to match the version requested')
         ubuntuLog.info('Installing base OS')
-        runCmd('yum --installroot='+tempdir+''+name+' -y groupinstall Core')
+        #runCmd('yum --installroot='+tempdir+''+name+' -y groupinstall Core')
         runCmd('debootstrap --include=grub,language-pack-en,openssh-server --components=main,universe,multiverse '+version+' '+tempdir+''+name)
 
         ubuntuLog.info('Copying configuration files')
         
 #Move next 3 to deploy        
-        os.system('echo "search idpm" > '+tempdir+''+name+'/etc/resolv.conf')
+        #os.system('echo "search idpm" > '+tempdir+''+name+'/etc/resolv.conf')
         os.system('echo "nameserver 129.79.1.1" >> '+tempdir+''+name+'/etc/resolv.conf')
         os.system('echo "nameserver 172.29.202.149" >> '+tempdir+''+name+'/etc/resolv.conf')
         
