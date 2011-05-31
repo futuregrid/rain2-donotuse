@@ -276,8 +276,8 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
         ldapexec="/tmp/ldap.install"
         os.system('echo "!#/bin/bash \nexport DEBIAN_FRONTEND=noninteractive \napt-get --force-yes '+\
                   '-y install ldap-utils libpam-ldap libnss-ldap nss-updatedb libnss-db" >' +tempdir+''+name+''+ldapexec)
-                
-        runCmd('chroot '+tempdir+''+name+' /tmp/ldap.install')
+        os.system('chmod +x '+tempdir+''+name+''+ldapexec)
+        runCmd('chroot '+tempdir+''+name+' '+ldapexec)
         
         ubuntuLog.info('Configuring LDAP access')        
         runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/nsswitch.conf -O '+tempdir+''+name+'/etc/nsswitch.conf')
