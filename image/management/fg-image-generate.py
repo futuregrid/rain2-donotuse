@@ -25,12 +25,12 @@ TEST_MODE=True
 base_url = "http://fg-gravel3.futuregrid.iu.edu/"
 bcfg2_url = 'fg-gravel3.futuregrid.iu.edu'
 bcfg2_port = 45678
-namedir = "" #this == name is to clean up when something fails
+global namedir #this == name is to clean up when something fails
 
 def main():    
     #Set up logging
     log_filename = 'fg-image-generate.log'
-    #logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",datefmt='%a, %d %b %Y %H:%M:%S',filemode='w',filename=log_filename,level=logging.DEBUG)
+    logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",datefmt='%a, %d %b %Y %H:%M:%S',filemode='w',filename=log_filename,level=logging.DEBUG)
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
     formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -201,7 +201,8 @@ def main():
 def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
 
     output=""
-
+    namedir=name
+    
     ubuntuLog = logging.getLogger('ubuntu')
 
 
@@ -258,7 +259,7 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
 
 
     ubuntuLog.info('Installing some util packages')
-    runCmd('chroot '+tempdir+''+name+' apt-get --force-yes -y install wget nfs-common gcc make')
+    runCmd('chroot '+tempdir+''+name+' apt-get -y install wget nfs-common gcc make')
 
 
 #NOT FINISH. look into ldap part
@@ -267,7 +268,11 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
     if (ldap):
         #this is for LDAP auth and mount home dirs. Later, we may control if we install this or not.
         ubuntuLog.info('Installing LDAP packages')
-        runCmd('chroot '+tempdir+''+name+' apt-get --force-yes -y install ldap-utils libpam-ldap libnss-ldap nss-updatedb libnss-db')
+        ldapexec="/tmp/ldap.install"
+        os.system('echo "!#/bin/bash \nexport DEBIAN_FRONTEND=noninteractive \napt-get --force-yes '+\
+                  '-y install ldap-utils libpam-ldap libnss-ldap nss-updatedb libnss-db" >' +tempdir+''+name+''+ldapexec)
+                
+        runCmd('chroot '+tempdir+''+name+' /tmp/ldap.install')
         
         ubuntuLog.info('Configuring LDAP access')        
         runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/nsswitch.conf -O '+tempdir+''+name+'/etc/nsswitch.conf')
@@ -353,12 +358,15 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
     return name
 
 def buildDebian(name, version, arch, pkgs, tempdir):
-
+  
+  
+    namedir=name
     runCmd('')
 
 
 def buildRHEL(name, version, arch, pkgs, tempdir):
-
+    
+    namedir=name
     runCmd('')
 
 
@@ -562,14 +570,20 @@ def runCmd(cmd):
 def cleanup(name):
     #Cleanup
     cleanupLog = logging.getLogger('cleanup')
-
-    os.system('umount '+tempdir+''+name + '/proc')
-    os.system('umount '+tempdir+''+name + '/dev/pts')
+    if (name.strip()!=""):
+        os.system('umount '+tempdir+''+name + '/proc')
+        os.system('umount '+tempdir+''+name + '/dev/pts')
+        
+        cmd = 'umount '+tempdir+''+name
+        cleanupLog.debug('Executing: ' + cmd)
+        os.system(cmd)
     
-    cmd = 'umount '+tempdir+''+name
-    cleanupLog.debug('Executing: ' + cmd)
-    os.system(cmd)
-    os.system("rm -rf "+tempdir+''+name)
+    
+        cmd="rm -rf "+tempdir+''+name
+        cleanupLog.debug('Executing: ' + cmd)
+        os.system(cmd)
+    else:
+        cleanupLog.error("error in clean up")
      
     cleanupLog.debug('Cleaned up mount points')
 
