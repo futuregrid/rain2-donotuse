@@ -20,7 +20,7 @@ xcatInstallPath = '/install/netboot/'
 moabInstallPath = '/opt/moab/'
 
 TEST_MODE=True
-RESTARTMOAB=300  #time that we wait to get the moab scheduler restarted (mschedctl -R)
+RESTARTMOAB=10  #time that we wait to get the moab scheduler restarted (mschedctl -R)
 
 #TODO. Modify this to have a generic server that also deploy eucalyptus
 
