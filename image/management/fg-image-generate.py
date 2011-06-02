@@ -437,7 +437,7 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
         #base_os done
     
     centosLog.info('Installing some util packages')
-    runCmd('chroot '+tempdir+''+name+' yum -y install wget nfs-utils gcc make')
+    runCmd('chroot '+tempdir+''+name+' yum -y install wget nfs-utils gcc make man')
      
 #Move ldap to deploy    
     if (ldap):

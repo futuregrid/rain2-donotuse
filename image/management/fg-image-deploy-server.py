@@ -20,7 +20,7 @@ xcatInstallPath = '/install/netboot/'
 moabInstallPath = '/opt/moab/'
 
 TEST_MODE=True
-RESTARTMOAB=10  #time that we wait to get the moab scheduler restarted (mschedctl -R)
+RESTARTMOAB=5  #time that we wait to get the moab scheduler restarted (mschedctl -R)
 
 #TODO. Modify this to have a generic server that also deploy eucalyptus
 
@@ -36,10 +36,10 @@ def main():
     handler.setLevel(logging.DEBUG)
     handler.setFormatter(formatter)
     logger.addHandler(handler)
-    #ch = logging.StreamHandler()
-    #ch.setLevel(logging.DEBUG)
-    #ch.setFormatter(formatter)
-    #logger.addHandler(ch)
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.DEBUG)
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
     
     
     logging.info('Starting Server on port ' + str(port))
@@ -77,6 +77,9 @@ def main():
             kernel=params[4]
             tempdir=params[5]
         
+            if not os.path.isfile(tempdir+'/'+oldName+'.gz'):
+                logging.error('file not found')
+                break
         
             if len(params) == numparams:
                 channel.send('OK')
