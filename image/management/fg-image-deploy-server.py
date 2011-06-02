@@ -20,7 +20,7 @@ xcatInstallPath = '/install/netboot/'
 moabInstallPath = '/opt/moab/'
 
 TEST_MODE=True
-
+RESTARTMOAB=300  #time that we wait to get the moab scheduler restarted (mschedctl -R)
 
 #TODO. Modify this to have a generic server that also deploy eucalyptus
 
@@ -123,22 +123,34 @@ def main():
         
             #cmd = 'mv ' +path + oldName + ' '+ path + 'rootimg'
             #runCmd(cmd)        
-        
-            cmd = 'wget fg-gravel3.futuregrid.iu.edu/kernel/initrd.gz -O ' + path+'/initrd.gz'
-            status=runCmd(cmd)
-        
-            if status != 0:
-                break
-        
-            cmd = 'wget fg-gravel3.futuregrid.iu.edu/kernel/kernel -O ' + path+'/kernel'
-            status=runCmd(cmd)
+            if (operatingsystem=="ubuntu"):
+                cmd = 'wget fg-gravel3.futuregrid.iu.edu/kernel/specialubuntu/initrd.gz -O ' + path+'/initrd.gz'
+                status=runCmd(cmd)
             
-            if status != 0:
-                break
+                if status != 0:
+                    break
+            
+                cmd = 'wget fg-gravel3.futuregrid.iu.edu/kernel/specialubuntu/kernel -O ' + path+'/kernel'
+                status=runCmd(cmd)
+                
+                if status != 0:
+                    break
+            else:
+                cmd = 'wget fg-gravel3.futuregrid.iu.edu/kernel/initrd.gz -O ' + path+'/initrd.gz'
+                status=runCmd(cmd)
+            
+                if status != 0:
+                    break
+            
+                cmd = 'wget fg-gravel3.futuregrid.iu.edu/kernel/kernel -O ' + path+'/kernel'
+                status=runCmd(cmd)
+                
+                if status != 0:
+                    break
         
             #Add entry to the osimage table
             #this it seems to be done by packimage
-            cmd = 'chtab osimage.imagename=' + operatingsystem + '' + name + '-'+arch+'-netboot-compute osimage.profile=compute osimage.imagetype=linux osimage.provmethod=netboot osimage.osname=linux osimage.osvers=' + prefix + operatingsystem + '' + name + ' osimage.osarch=' + arch + ''
+            cmd = 'chtab osimage.imagename=' + prefix + operatingsystem + '' + name + '-'+arch+'-netboot-compute osimage.profile=compute osimage.imagetype=linux osimage.provmethod=netboot osimage.osname=linux osimage.osvers=' + prefix + operatingsystem + '' + name + ' osimage.osarch=' + arch + ''
             
             status=os.system(cmd)
             
@@ -155,7 +167,7 @@ def main():
                 break
 
             #create directory that contains initrd.img and vmlinuz
-            tftpimgdir='/tftpboot/xcat/'+ operatingsystem + '' + name+'/'+arch
+            tftpimgdir='/tftpboot/xcat/'+ prefix + operatingsystem + '' + name+'/'+arch
             cmd = 'mkdir -p '+tftpimgdir
             status=runCmd(cmd)
 
@@ -184,9 +196,11 @@ def main():
                 runCmd('rpower tc1 boot')
             """        
             #Configure Moab
-        
-            cmd = 'echo \"' + operatingsystem + '' + name + ' ' + arch + ' ' + operatingsystem + '' + name + ' compute netboot\" >> ' + moabInstallPath + '/tools/msm/images.txt'
-            print cmd
+            if TEST_MODE:
+                cmd = 'echo \"' + prefix + operatingsystem + '' + name + ' ' + arch + ' ' + prefix + operatingsystem + '' + name + ' compute netboot\" >> ' + moabInstallPath + '/tools/msm/images.txt'
+            else:
+                cmd = 'echo \"' + prefix + operatingsystem + '' + name + ' ' + arch + ' boottarget compute netboot\" >> ' + moabInstallPath + '/tools/msm/images.txt'
+            logging.debug(cmd)
             status=os.system(cmd)
             
             if status != 0:
@@ -202,7 +216,7 @@ def main():
 	                child_pid = os.fork()
 	                if child_pid == 0:
 	                    print "Child Process: PID# %s" % os.getpid()
-	                    time.sleep(300)
+	                    time.sleep(RESTARTMOAB)
 	                    cmd = 'mschedctl -R'
 	                    status=runCmd(cmd)
 	                    os.system('rm -f /tmp/image-deploy-fork.lock')

@@ -100,23 +100,23 @@ def main():
     #   user = ops.user
     #TODO: authenticate user via promting for CERT or password to auth against LDAP 
 
-	
+    
     #Get image destination
     if type(ops.image) is not NoneType:
-    	
-    	logger.info('untar file with image and manifest')
-    	stat=os.system("tar xvfz "+ops.image)
-    	
-    	if (stat!=0):
+        
+        logger.info('untar file with image and manifest')
+        stat=os.system("tar xvfz "+ops.image)
+        
+        if (stat!=0):
             print "Error: the files were not extracted"
-    	    sys.exit(1)
-    	
-    	
-    	name=(ops.image).split(".")[0]
-    	tempdir+=name+"/"
-    	
-    	manifestname=name+".manifest.xml"
-    	
+            sys.exit(1)
+        
+        
+        name=(ops.image).split(".")[0]
+        tempdir+=name+"/"
+        
+        manifestname=name+".manifest.xml"
+        
         manifestfile = open(manifestname, 'r')
         manifest = parse(manifestfile)
 
@@ -246,47 +246,46 @@ def main():
         cmd = 'sudo mount -o loop ' + imagefile + ' '+tempdir+'/rootimg/'
         runCmd(cmd)
 
-
-        logger.info('Installing torque')
-        if(TEST_MODE):
-            logger.info('Torque for minicluster')
-            runCmd('sudo wget fg-gravel3.futuregrid.iu.edu/torque/torque-2.5.1_minicluster/torque-2.5.1.tgz'+\
-                   ' fg-gravel3.futuregrid.iu.edu/torque/torque-2.5.1_minicluster/var.tgz')   
-            runCmd('sudo tar xfz torque-2.5.1.tgz -C '+tempdir+'/rootimg/usr/local/')
-            runCmd('sudo tar xfz var.tgz -C '+tempdir+'/rootimg/')
-            runCmd('sudo rm -f var.tgz torque-2.5.1.tgz')
-            runCmd('sudo wget fg-gravel3.futuregrid.iu.edu/torque/torque-2.5.1_minicluster/pbs_mom -O '+tempdir+'/rootimg/etc/init.d/pbs_mom')
+        if (operatingsystem!="ubuntu"):
+            logger.info('Installing torque')
+            if(TEST_MODE):
+                logger.info('Torque for minicluster')
+                runCmd('sudo wget fg-gravel3.futuregrid.iu.edu/torque/torque-2.5.1_minicluster/torque-2.5.1.tgz'+\
+                       ' fg-gravel3.futuregrid.iu.edu/torque/torque-2.5.1_minicluster/var.tgz')   
+                runCmd('sudo tar xfz torque-2.5.1.tgz -C '+tempdir+'/rootimg/usr/local/')
+                runCmd('sudo tar xfz var.tgz -C '+tempdir+'/rootimg/')
+                runCmd('sudo rm -f var.tgz torque-2.5.1.tgz')
+                runCmd('sudo wget fg-gravel3.futuregrid.iu.edu/torque/torque-2.5.1_minicluster/pbs_mom -O '+tempdir+'/rootimg/etc/init.d/pbs_mom')
+                
+                os.system('touch ./inittab')
+                os.system('cat '+tempdir+'/rootimg/etc/inittab'+' > ./inittab')            
+                f= open('./inittab', 'a')
+                f.write("\n"+"pbs:35:respawn:/etc/init.d/pbs_mom start")        
+                f.close()          
+                os.system('sudo mv -f ./inittab '+tempdir+'/rootimg/etc/inittab')
+                os.system('sudo chown root:root '+tempdir+'/rootimg/etc/inittab')
+                
+                
+            else:#Later we should be able to chose the cluster where is deployed
+                logger.info('Torque for India')    
+                runCmd('sudo wget fg-gravel3.futuregrid.iu.edu/conf/hosts_india -O '+tempdir+'/rootimg/etc/hosts')
+                runCmd('sudo wget fg-gravel3.futuregrid.iu.edu/torque/torque-2.4.8_india/opt.tgz'+\
+                       ' fg-gravel3.futuregrid.iu.edu/torque/torque-2.4.8_india/var.tgz')   
+                runCmd('sudo tar xfz opt.tgz -C '+tempdir+'/rootimg/')
+                runCmd('sudo tar xfz var.tgz -C '+tempdir+'/rootimg/')
+                runCmd('sudo rm -f var.tgz opt.tgz')            
+                runCmd('sudo wget fg-gravel3.futuregrid.iu.edu/torque/torque-2.4.8_india/pbs_mom -O '+tempdir+'/rootimg/etc/init.d/pbs_mom')
+                
+            runCmd('sudo chmod +x '+tempdir+'/rootimg/etc/init.d/pbs_mom')
+            runCmd('sudo chroot '+tempdir+'/rootimg/ /sbin/chkconfig --add pbs_mom')
+            runCmd('sudo chroot '+tempdir+'/rootimg/ /sbin/chkconfig pbs_mom on')          
             
-            os.system('touch ./inittab')
-            os.system('cat '+tempdir+'/rootimg/etc/inittab'+' > ./inittab')            
-            f= open('./inittab', 'a')
-            f.write("\n"+"pbs:35:respawn:/etc/init.d/pbs_mom start")        
-            f.close()          
-            os.system('sudo mv -f ./inittab '+tempdir+'/rootimg/etc/inittab')
-            os.system('sudo chown root:root '+tempdir+'/rootimg/etc/inittab')
+            f= open(tempdir+'/config', 'w')
+            f.write("opsys "+ operatingsystem + "" + name+"\n"+"arch "+ arch)        
+            f.close()
             
-            
-        else:#Later we should be able to chose the cluster where is deployed
-            logger.info('Torque for India')    
-            runCmd('sudo wget fg-gravel3.futuregrid.iu.edu/conf/hosts_india -O '+tempdir+'/rootimg/etc/hosts')
-            runCmd('sudo wget fg-gravel3.futuregrid.iu.edu/torque/torque-2.4.8_india/opt.tgz'+\
-                   ' fg-gravel3.futuregrid.iu.edu/torque/torque-2.4.8_india/var.tgz')   
-            runCmd('sudo tar xfz opt.tgz -C '+tempdir+'/rootimg/')
-            runCmd('sudo tar xfz var.tgz -C '+tempdir+'/rootimg/')
-            runCmd('sudo rm -f var.tgz opt.tgz')            
-            runCmd('sudo wget fg-gravel3.futuregrid.iu.edu/torque/torque-2.4.8_india/pbs_mom -O '+tempdir+'/rootimg/etc/init.d/pbs_mom')
-            
-        runCmd('sudo chmod +x '+tempdir+'/rootimg/etc/init.d/pbs_mom')
-        runCmd('sudo chroot '+tempdir+'/rootimg/ /sbin/chkconfig --add pbs_mom')
-        runCmd('sudo chroot '+tempdir+'/rootimg/ /sbin/chkconfig pbs_mom on')
-          
-        
-        f= open(tempdir+'/config', 'w')
-        f.write("opsys "+ operatingsystem + "" + name+"\n"+"arch "+ arch)        
-        f.close()
-        
-        os.system('sudo mv '+tempdir+'/config '+tempdir+'/rootimg/var/spool/torque/mom_priv/')
-        os.system('sudo chown root:root '+tempdir+'/rootimg/var/spool/torque/mom_priv/config')
+            os.system('sudo mv '+tempdir+'/config '+tempdir+'/rootimg/var/spool/torque/mom_priv/')
+            os.system('sudo chown root:root '+tempdir+'/rootimg/var/spool/torque/mom_priv/config')
 
         #Inject the kernel
         logger.info('Retrieving kernel '+kernel)
@@ -391,5 +390,4 @@ def runCmd(cmd):
 if __name__ == "__main__":
     main()
 #END
-
 

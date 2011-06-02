@@ -279,6 +279,10 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
         os.system('chmod +x '+tempdir+''+name+''+ldapexec)
         runCmd('chroot '+tempdir+''+name+' '+ldapexec)
         
+        #try this other way
+        #chroot maverick-vm /bin/bash -c 'DEBIAN_FRONTEND=noninteractive apt-get -y --force-yes install linux-image-server'
+        #env DEBIAN_FRONTEND="noninteractive" chroot /tmp/javi3789716749 /bin/bash -c 'apt-get --force-yes -y install ldap-utils libpam-ldap libpam-ldap libnss-ldap nss-updatedb libnss-db'
+        
         ubuntuLog.info('Configuring LDAP access')        
         runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/nsswitch.conf -O '+tempdir+''+name+'/etc/nsswitch.conf')
         runCmd('mkdir -p '+tempdir+''+name+'/etc/ldap/cacerts '+tempdir+''+name+'/N/u')
