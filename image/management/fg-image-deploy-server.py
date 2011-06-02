@@ -36,10 +36,10 @@ def main():
     handler.setLevel(logging.DEBUG)
     handler.setFormatter(formatter)
     logger.addHandler(handler)
-    ch = logging.StreamHandler()
-    ch.setLevel(logging.DEBUG)
-    ch.setFormatter(formatter)
-    logger.addHandler(ch)
+    #ch = logging.StreamHandler()
+    #ch.setLevel(logging.DEBUG)
+    #ch.setFormatter(formatter)
+    #ogger.addHandler(ch)
     
     
     logging.info('Starting Server on port ' + str(port))
