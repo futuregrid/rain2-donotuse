@@ -85,7 +85,7 @@ def main():
                 channel.send('OK')
                 channel.close()
             else:
-                print "ERROR: incorrect message"
+                logging.error("ERROR: incorrect message")
                 channel.send('ERROR')
                 channel.close()
                 sys.exit(1)
@@ -218,13 +218,13 @@ def main():
 	            	os.system('touch /tmp/image-deploy-fork.lock')
 	                child_pid = os.fork()
 	                if child_pid == 0:
-	                    print "Child Process: PID# %s" % os.getpid()
+	                    logging.debug("Child Process: PID# %s" % os.getpid())
 	                    time.sleep(RESTARTMOAB)
 	                    cmd = 'mschedctl -R'
 	                    status=runCmd(cmd)
 	                    os.system('rm -f /tmp/image-deploy-fork.lock')
 	                else:
-	                    print "Parent Process: PID# %s" % os.getpid()                    
+	                    logging.debug( "Parent Process: PID# %s" % os.getpid())                    
             
 
 def runCmd(cmd):
