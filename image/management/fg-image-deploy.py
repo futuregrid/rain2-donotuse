@@ -21,6 +21,7 @@ base_url = "http://fg-gravel3.futuregrid.iu.edu/"
 
 #Default Kernels to use for each deployment
 default_xcat_kernel = '2.6.18-164.el5'
+default_xcat_kernel_ubuntu = '2.6.35-22-server'
 default_euca_kernel = '2.6.27.21-0.1-xen'
 
 TEST_MODE=True
@@ -48,10 +49,10 @@ def main():
     
     parser.add_option('-i', '--image', dest='image', help='Name of tgz file that contains manifest and img')
 
-    parser.add_option('-s', '--nasaddr', dest='nasaddr', help='Address to upload the image file')
+    parser.add_option('-s', '--nasaddr', dest='nasaddr', help='Address to upload the image file. Login machine')
     parser.add_option("-t", "--tempdir", dest="tempdir", help="shared dir to upload the image")
     
-    parser.add_option('-x', '--xcat', dest='xcat', help='Deploy image to xCAT, which is in the specified addr')
+    parser.add_option('-x', '--xcat', dest='xcat', help='Deploy image to xCAT, which is in the specified addr. Management machine')
     parser.add_option('-e', '--euca', dest='euca', help='Deploy the image to Eucalyptus, which is in the specified addr')
     parser.add_option('-n', '--nimbus', dest='nimbus', help='Deploy the image to Nimbus, which is in the specified addr')
 
@@ -235,13 +236,17 @@ def main():
         
         #Select kernel version    
         if type(ops.kernel) is NoneType:
-            kernel = default_xcat_kernel
+            if (operatingsystem!="ubuntu"):
+                kernel = default_xcat_kernel
+            elif (operatingsystem == "ubuntu"):
+                kernel = default_xcat_kernel_ubuntu
+                
         else:
             kernel = ops.kernel
     
         #Mount the root image for final edits and compressing
         logger.info('Mounting image...')
-        cmd = 'mkdir -p '+tempdir+'/rootimg'
+        cmd = 'sudo mkdir -p '+tempdir+'/rootimg'
         runCmd(cmd)
         cmd = 'sudo mount -o loop ' + imagefile + ' '+tempdir+'/rootimg/'
         runCmd(cmd)

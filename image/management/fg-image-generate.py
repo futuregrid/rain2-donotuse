@@ -264,7 +264,7 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
 
 
     ubuntuLog.info('Installing some util packages')
-    runCmd('chroot '+tempdir+''+name+' apt-get -y install wget nfs-common gcc make')
+    runCmd('chroot '+tempdir+''+name+' apt-get -y install wget nfs-common gcc make openssh-server')
 
 
 #NOT FINISH. look into ldap part
@@ -349,7 +349,7 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
     #Install packages
     if pkgs != None:
         ubuntuLog.info('Installing user-defined packages')
-        runCmd('chroot '+tempdir+''+name + ' apt-get -y install ' + pkgs)
+        runCmd('chroot '+tempdir+''+name + ' apt-get -y install ' + pkgs)  #NON_INTERACTIVE
         ubuntuLog.info('Installed user-defined packages')
 
     #Setup BCFG2 server groups

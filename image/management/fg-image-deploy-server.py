@@ -125,7 +125,9 @@ def main():
             #runCmd(cmd)
         
             #cmd = 'mv ' +path + oldName + ' '+ path + 'rootimg'
-            #runCmd(cmd)        
+            #runCmd(cmd)     
+
+#This should be done in the image-deploy.py part   
             if (operatingsystem=="ubuntu"):
                 cmd = 'wget fg-gravel3.futuregrid.iu.edu/kernel/specialubuntu/initrd.gz -O ' + path+'/initrd.gz'
                 status=runCmd(cmd)
@@ -176,7 +178,7 @@ def main():
 
             if status != 0:
                 break
-
+#WE MAY NEED TO INCLUDE THE initrd.img and vmlinuz from Ubuntu
             cmd = 'wget fg-gravel3.futuregrid.iu.edu/kernel/tftp/xcat/centos5/'+arch+'/initrd.img -O ' +tftpimgdir+'/initrd.img'
             status=runCmd(cmd)
 
@@ -203,6 +205,9 @@ def main():
                 cmd = 'echo \"' + prefix + operatingsystem + '' + name + ' ' + arch + ' ' + prefix + operatingsystem + '' + name + ' compute netboot\" >> ' + moabInstallPath + '/tools/msm/images.txt'
             else:
                 cmd = 'echo \"' + prefix + operatingsystem + '' + name + ' ' + arch + ' boottarget compute netboot\" >> ' + moabInstallPath + '/tools/msm/images.txt'
+                #INSERT row in boottarget??
+                
+                
             logging.debug(cmd)
             status=os.system(cmd)
             
