@@ -178,18 +178,30 @@ def main():
 
             if status != 0:
                 break
-#WE MAY NEED TO INCLUDE THE initrd.img and vmlinuz from Ubuntu
-            cmd = 'wget fg-gravel3.futuregrid.iu.edu/kernel/tftp/xcat/centos5/'+arch+'/initrd.img -O ' +tftpimgdir+'/initrd.img'
-            status=runCmd(cmd)
+            if (operatingsystem=="ubuntu"):
+                cmd = 'wget fg-gravel3.futuregrid.iu.edu/kernel/tftp/xcat/ubuntu10/'+arch+'/initrd.img -O ' +tftpimgdir+'/initrd.img'
+                status=runCmd(cmd)
+    
+                if status != 0:
+                    break
+    
+                cmd = 'wget fg-gravel3.futuregrid.iu.edu/kernel/tftp/xcat/ubuntu10/'+arch+'/vmlinuz -O ' +tftpimgdir+'/vmlinuz'
+                status=runCmd(cmd)
 
-            if status != 0:
-                break
+                if status != 0:
+                    break
+            else:
+                cmd = 'wget fg-gravel3.futuregrid.iu.edu/kernel/tftp/xcat/centos5/'+arch+'/initrd.img -O ' +tftpimgdir+'/initrd.img'
+                status=runCmd(cmd)
+    
+                if status != 0:
+                    break
+    
+                cmd = 'wget fg-gravel3.futuregrid.iu.edu/kernel/tftp/xcat/centos5/'+arch+'/vmlinuz -O ' +tftpimgdir+'/vmlinuz'
+                status=runCmd(cmd)
 
-            cmd = 'wget fg-gravel3.futuregrid.iu.edu/kernel/tftp/xcat/centos5/'+arch+'/vmlinuz -O ' +tftpimgdir+'/vmlinuz'
-            status=runCmd(cmd)
-
-            if status != 0:
-                break
+                if status != 0:
+                    break
 
 
             """        

@@ -246,7 +246,7 @@ def main():
     
         #Mount the root image for final edits and compressing
         logger.info('Mounting image...')
-        cmd = 'sudo mkdir -p '+tempdir+'/rootimg'
+        cmd = 'mkdir -p '+tempdir+'/rootimg' #to have write access in this directory as normal user. Needed to create files with open
         runCmd(cmd)
         cmd = 'sudo mount -o loop ' + imagefile + ' '+tempdir+'/rootimg/'
         runCmd(cmd)
@@ -314,10 +314,12 @@ sysfs   /sys     sysfs    defaults       0 0
         os.system('sudo mv -f '+tempdir+'/fstab '+tempdir+'rootimg/etc/fstab')
         logger.info('Injected fstab')
 
+#SUDO does not work well from my UBUNTU desktop
+
         #NOTE: May move to an image repository system in the future
         logger.info('Compressing image')
         #Its xCAT, so use gzip with cpio compression.
-        cmd = 'sudo bash -c \" cd '+tempdir+'; find rootimg/. | cpio -H newc -o | gzip -9 > '+tempdir+'/rootimg.gz\"'
+        cmd = 'sudo bash -c \" cd '+tempdir+'; find rootimg/. | cpio -H newc -o | gzip > '+tempdir+'/rootimg.gz\"'        
         os.system(cmd) #use system because of the pipes
 
         #cmd = 'sudo tar cfz '+tempdir+'' + name + '.tar.gz --directory '+tempdir+' ' + name 

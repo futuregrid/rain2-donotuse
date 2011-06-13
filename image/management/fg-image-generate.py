@@ -264,7 +264,7 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
 
 
     ubuntuLog.info('Installing some util packages')
-    runCmd('chroot '+tempdir+''+name+' apt-get -y install wget nfs-common gcc make openssh-server')
+    runCmd('chroot '+tempdir+''+name+' apt-get -y install wget nfs-common gcc make libcrypto++8 openssh-client openssh-server')
 
 
 #NOT FINISH. look into ldap part
