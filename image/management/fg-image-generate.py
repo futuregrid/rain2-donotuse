@@ -264,7 +264,7 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
 
 
     ubuntuLog.info('Installing some util packages')
-    runCmd('chroot '+tempdir+''+name+' apt-get -y install wget nfs-common gcc make libcrypto++8 openssh-client openssh-server man')
+    runCmd('chroot '+tempdir+''+name+' apt-get --force-yes -y install wget nfs-common gcc make libcrypto++8 openssh-client openssh-server man')
 
 
 #NOT FINISH. look into ldap part
@@ -279,7 +279,7 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
         os.system('chmod +x '+tempdir+''+name+''+ldapexec)
         runCmd('chroot '+tempdir+''+name+' '+ldapexec)
         
-        runCmd('chroot '+tempdir+''+name+' apt-get -y install nscd') 
+        #runCmd('chroot '+tempdir+''+name+' apt-get --force-yes -y install nscd') 
         
         #try this other way
         #chroot maverick-vm /bin/bash -c 'DEBIAN_FRONTEND=noninteractive apt-get -y --force-yes install linux-image-server'
@@ -588,12 +588,13 @@ def cleanup(name):
         
         cmd = 'umount '+tempdir+''+name
         cleanupLog.debug('Executing: ' + cmd)
-        os.system(cmd)
+        stat=os.system(cmd)
     
-    
-        cmd="rm -rf "+tempdir+''+name
-        cleanupLog.debug('Executing: ' + cmd)
-        os.system(cmd)
+        if (stat==0):
+            cmd="rm -rf "+tempdir+''+name
+            cleanupLog.debug('Executing: ' + cmd)
+            os.system(cmd)
+        
     else:
         cleanupLog.error("error in clean up")
      
