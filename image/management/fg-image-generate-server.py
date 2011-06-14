@@ -24,9 +24,9 @@ def main():
     
     
     #the ips should be given by the method that deploy the VM on demand.
-    vmaddr_centos = "192.168.1.25"
+    vmaddr_centos = "192.168.1.12"
     vmaddr_rhel= ""
-    vmaddr_ubuntu= "192.168.1.11"
+    vmaddr_ubuntu= "192.168.1.15"
     vmaddr_debian= ""
     vmaddr=""
     ####
