@@ -293,7 +293,8 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
         runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/sshd -O '+tempdir+''+name+'/usr/sbin/sshd')
         runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/ldap.conf -O '+tempdir+''+name+'/etc/ldap.conf')
         runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/openldap/ldap.conf -O '+tempdir+''+name+'/etc/ldap/ldap.conf')
-
+        runCmd('sed -i \'s/openldap/ldap/g\' '+tempdir+''+name+'/etc/ldap/ldap.conf')
+        runCmd('sed -i \'s/openldap/ldap/g\' '+tempdir+''+name+'/etc/ldap.conf')
     #Setup networking
     os.system('echo localhost > '+tempdir+''+name + '/etc/hostname')
     runCmd('hostname localhost')
