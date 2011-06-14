@@ -21,7 +21,7 @@ base_url = "http://fg-gravel3.futuregrid.iu.edu/"
 
 #Default Kernels to use for each deployment
 default_xcat_kernel = '2.6.18-164.el5'
-default_xcat_kernel_ubuntu = '2.6.35-22-server'
+default_xcat_kernel_ubuntu = '2.6.35-22-generic'
 default_euca_kernel = '2.6.27.21-0.1-xen'
 
 TEST_MODE=True
