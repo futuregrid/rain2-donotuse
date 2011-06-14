@@ -264,7 +264,7 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
 
 
     ubuntuLog.info('Installing some util packages')
-    runCmd('chroot '+tempdir+''+name+' apt-get -y install wget nfs-common gcc make libcrypto++8 openssh-client openssh-server')
+    runCmd('chroot '+tempdir+''+name+' apt-get -y install wget nfs-common gcc make libcrypto++8 openssh-client openssh-server man')
 
 
 #NOT FINISH. look into ldap part
@@ -293,8 +293,8 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
         runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/sshd -O '+tempdir+''+name+'/usr/sbin/sshd')
         runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/ldap.conf -O '+tempdir+''+name+'/etc/ldap.conf')
         runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/openldap/ldap.conf -O '+tempdir+''+name+'/etc/ldap/ldap.conf')
-        runCmd('sed -i \'s/openldap/ldap/g\' '+tempdir+''+name+'/etc/ldap/ldap.conf')
-        runCmd('sed -i \'s/openldap/ldap/g\' '+tempdir+''+name+'/etc/ldap.conf')
+        os.system('sed -i \'s/openldap/ldap/g\' '+tempdir+''+name+'/etc/ldap/ldap.conf')
+        os.system('sed -i \'s/openldap/ldap/g\' '+tempdir+''+name+'/etc/ldap.conf')
     #Setup networking
     os.system('echo localhost > '+tempdir+''+name + '/etc/hostname')
     runCmd('hostname localhost')
