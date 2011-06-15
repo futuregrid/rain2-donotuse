@@ -103,11 +103,11 @@ def main():
             cmd = 'mkdir -p ' + path
             status=runCmd(cmd)
             
-            cmd = 'mv '+tempdir+'/'+oldName+'.img.tgz ' + path
-            status=runCmd(cmd)
+            #cmd = 'mv '+tempdir+'/'+oldName+'.img.tgz ' + path
+            #status=runCmd(cmd)
         
-            if status != 0:
-                break
+            #if status != 0:
+            #    break
         
             cmd = 'mkdir -p ' + path + 'rootimg '+ path + 'temp'
             status=runCmd(cmd)
@@ -118,13 +118,13 @@ def main():
             #cmd = 'cd ' + path + '; gunzip -c rootimg.gz | cpio -i'
             
             
-            cmd =  'tar xfz '+ path +''+oldName+'.img.tgz -C '+ path
+            cmd =  'tar xfz '+ tempdir +'/'+oldName+'.img.tgz -C '+ path
             status=runCmd(cmd) 
         
             if status != 0:
                 break
             
-            cmd =  'rm -f '+ path +''+oldName+'.img.tgz'
+            cmd =  'rm -f '+ tempdir +'/'+oldName+'.img.tgz'
             status=runCmd(cmd) 
         
             if status != 0:
