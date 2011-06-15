@@ -1,8 +1,13 @@
 #!/usr/bin/python
 # Description: Command line front end for image generator
 #
-# Author: Andrew J. Younge
+# Author: Andrew J. Younge and Javier Diaz
 #
+
+##########################
+#SUDO does not work well from my UBUNTU desktop. Some files are not readable from sudo.
+#WE need to execute this with ROOT user or give more permission to sudo
+###########################
 
 from optparse import OptionParser
 import sys
@@ -314,7 +319,6 @@ sysfs   /sys     sysfs    defaults       0 0
         os.system('sudo mv -f '+tempdir+'/fstab '+tempdir+'rootimg/etc/fstab')
         logger.info('Injected fstab')
 
-#SUDO does not work well from my UBUNTU desktop
 
         #NOTE: May move to an image repository system in the future
         logger.info('Compressing image')

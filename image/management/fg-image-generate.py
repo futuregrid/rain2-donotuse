@@ -267,7 +267,7 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
     runCmd('chroot '+tempdir+''+name+' apt-get --force-yes -y install wget nfs-common gcc make libcrypto++8 man')
 
     
-#NOT FINISH. look into ldap part
+
 
 #Move ldap to deploy    
     if (ldap):
@@ -291,7 +291,7 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
         runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/cacerts/cacert.pem -O '+tempdir+''+name+'/etc/ldap/cacerts/cacert.pem')
         
         ubuntuLog.info('Installing ssh+lpk server')
-        runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/lucid_ldap/openssh-server_5.3p1-3ubuntu6_amd64.deb -O '+tempdir+''+name+'/tmp')
+        runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/lucid_ldap/openssh-server_5.3p1-3ubuntu6_amd64.deb -O '+tempdir+''+name+'/tmp/openssh-server_5.3p1-3ubuntu6_amd64.deb')
         runCmd('chroot '+tempdir+''+name + ' dpkg -i /tmp/openssh-server_5.3p1-3ubuntu6_amd64.deb')
         
         runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/ldap.conf -O '+tempdir+''+name+'/etc/ldap.conf')
