@@ -337,9 +337,13 @@ sysfs   /sys     sysfs    defaults       0 0
         cmd = 'sudo umount '+tempdir+'rootimg'
         runCmd(cmd)
         
+        logger.info('Compressing image')
+        cmd = ('sudo tar cvfz '+imagefile+'.tgz '+imagefile)
+        runCmd(cmd)
+        
         #Copy the image to the Shared directory.        
         logger.info('Uploading image. You may be asked for ssh/paraphrase password')
-        cmd = 'scp '+imagefile+' '+ user + '@' + nasaddr + ':'+tempdirserver+'/'
+        cmd = 'scp '+imagefile+'.tgz '+ user + '@' + nasaddr + ':'+tempdirserver+'/'
         logger.info(cmd)
         runCmd(cmd)
         
