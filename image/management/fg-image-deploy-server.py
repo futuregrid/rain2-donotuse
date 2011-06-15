@@ -118,7 +118,7 @@ def main():
             #cmd = 'cd ' + path + '; gunzip -c rootimg.gz | cpio -i'
             
             
-            cmd =  'tar xfz '+ path +''+oldName+'.img'
+            cmd =  'tar xfz '+ path +''+oldName+'.img.tgz -C '+ path
             status=runCmd(cmd) 
         
             if status != 0:
