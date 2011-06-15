@@ -77,7 +77,7 @@ def main():
             kernel=params[4]
             tempdir=params[5]
         
-            if not os.path.isfile(tempdir+'/'+oldName+'.gz'):
+            if not os.path.isfile(tempdir+'/'+oldName+'.img'):
                 logging.error('file not found')
                 break
         
@@ -103,20 +103,33 @@ def main():
             cmd = 'mkdir -p ' + path
             status=runCmd(cmd)
             
-            cmd = 'mv '+tempdir+'/'+oldName+'.gz ' + path + 'rootimg.gz'
+            cmd = 'mv '+tempdir+'/'+oldName+'.img ' + path
             status=runCmd(cmd)
         
             if status != 0:
                 break
         
-            cmd = 'mkdir -p ' + path + 'rootimg'
+            cmd = 'mkdir -p ' + path + 'rootimg '+ path + 'temp'
             status=runCmd(cmd)
         
             if status != 0:
                 break
         
-            cmd = 'cd ' + path + '; gunzip -c rootimg.gz | cpio -i'
-            status=os.system(cmd) #because of the pipe
+            #cmd = 'cd ' + path + '; gunzip -c rootimg.gz | cpio -i'
+            cmd =  'cd ' + path + '; mount -o loop '+oldName+'.img temp'
+            status=runCmd(cmd) 
+        
+            if status != 0:
+                break
+            
+            cmd =  'cp -rf temp/* rootimg/'
+            status=runCmd(cmd) 
+        
+            if status != 0:
+                break
+            
+            cmd =  'umount temp; rm -rf temp '+oldName+'.img'
+            status=runCmd(cmd) 
         
             if status != 0:
                 break
