@@ -238,7 +238,7 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
         ubuntuLog.info('Installing base OS')
         #runCmd('yum --installroot='+tempdir+''+name+' -y groupinstall Core')
         runCmd('debootstrap --include=grub,language-pack-en,openssh-server --components=main,universe,multiverse '+version+' '+tempdir+''+name)
-
+        
         ubuntuLog.info('Copying configuration files')
         
 #Move next 3 to deploy        
@@ -264,9 +264,9 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
 
 
     ubuntuLog.info('Installing some util packages')
-    runCmd('chroot '+tempdir+''+name+' apt-get --force-yes -y install wget nfs-common gcc make libcrypto++8 openssh-client openssh-server man')
+    runCmd('chroot '+tempdir+''+name+' apt-get --force-yes -y install wget nfs-common gcc make libcrypto++8 man')
 
-
+    
 #NOT FINISH. look into ldap part
 
 #Move ldap to deploy    
@@ -278,9 +278,7 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
                   '-y install ldap-utils libpam-ldap libnss-ldap nss-updatedb libnss-db" >' +tempdir+''+name+''+ldapexec)
         os.system('chmod +x '+tempdir+''+name+''+ldapexec)
         runCmd('chroot '+tempdir+''+name+' '+ldapexec)
-        
-       # runCmd('chroot '+tempdir+''+name+' apt-get -y install nscd') 
-       # runCmd('chroot '+tempdir+''+name+' /etc/init.d/nscd stop')
+    
         
         #try this other way
         #chroot maverick-vm /bin/bash -c 'DEBIAN_FRONTEND=noninteractive apt-get -y --force-yes install linux-image-server'
@@ -291,7 +289,11 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
         runCmd('mkdir -p '+tempdir+''+name+'/etc/ldap/cacerts '+tempdir+''+name+'/N/u')
         runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/cacerts/12d3b66a.0 -O '+tempdir+''+name+'/etc/ldap/cacerts/12d3b66a.0')
         runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/cacerts/cacert.pem -O '+tempdir+''+name+'/etc/ldap/cacerts/cacert.pem')
-        runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/sshd -O '+tempdir+''+name+'/usr/sbin/sshd')
+        
+        ubuntuLog.info('Installing ssh+lpk server')
+        runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/lucid_ldap/openssh-server_5.3p1-3ubuntu6_amd64.deb -O '+tempdir+''+name+'/tmp')
+        runCmd('chroot '+tempdir+''+name + ' dpkg -i /tmp/openssh-server_5.3p1-3ubuntu6_amd64.deb')
+        
         runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/ldap.conf -O '+tempdir+''+name+'/etc/ldap.conf')
         runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/openldap/ldap.conf -O '+tempdir+''+name+'/etc/ldap/ldap.conf')
         os.system('sed -i \'s/openldap/ldap/g\' '+tempdir+''+name+'/etc/ldap/ldap.conf')
