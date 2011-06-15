@@ -279,8 +279,8 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
         os.system('chmod +x '+tempdir+''+name+''+ldapexec)
         runCmd('chroot '+tempdir+''+name+' '+ldapexec)
         
-        runCmd('chroot '+tempdir+''+name+' apt-get -y install nscd') 
-        runCmd('chroot '+tempdir+''+name+' /etc/init.d/nscd stop')
+       # runCmd('chroot '+tempdir+''+name+' apt-get -y install nscd') 
+       # runCmd('chroot '+tempdir+''+name+' /etc/init.d/nscd stop')
         
         #try this other way
         #chroot maverick-vm /bin/bash -c 'DEBIAN_FRONTEND=noninteractive apt-get -y --force-yes install linux-image-server'
