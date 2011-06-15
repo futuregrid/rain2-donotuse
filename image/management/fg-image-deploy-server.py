@@ -77,7 +77,7 @@ def main():
             kernel=params[4]
             tempdir=params[5]
         
-            if not os.path.isfile(tempdir+'/'+oldName+'.img'):
+            if not os.path.isfile(tempdir+'/'+oldName+'.img.tgz'):
                 logging.error('file not found')
                 break
         

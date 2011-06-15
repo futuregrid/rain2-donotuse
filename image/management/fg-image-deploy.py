@@ -245,7 +245,7 @@ def main():
                 
         else:
             kernel = ops.kernel
-    
+        """    
         #Mount the root image for final edits and compressing
         logger.info('Mounting image...')
         cmd = 'mkdir -p '+tempdir+'/rootimg' #to have write access in this directory as normal user. Needed to create files with open
@@ -351,10 +351,11 @@ sysfs   /sys     sysfs    defaults       0 0
         #if name is in tempdir string then del tempdir, else only rootimg
         logger.info('sudo rm -rf '+tempdir)
         runCmd("sudo rm -rf "+tempdir)
+        runCmd("sudo rm -rf "+imagefile+'.tgz')
         
         #remove local img and manifest
         runCmd("rm -f "+manifestname+" "+imagefile)
-
+        """
         #xCAT server
         dest = ops.xcat
         
