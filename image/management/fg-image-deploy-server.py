@@ -136,7 +136,7 @@ def main():
             if status != 0:
                 break
                                 
-            cmd =  'cp -rf temp/* rootimg/'
+            cmd =  'cp -rf '+ path +'temp/* '+ path +'rootimg/'
             status=runCmd(cmd) 
         
             if status != 0:
