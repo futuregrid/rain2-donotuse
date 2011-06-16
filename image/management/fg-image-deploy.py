@@ -355,7 +355,7 @@ sysfs   /sys     sysfs    defaults       0 0
         
         #remove local img and manifest
         runCmd("rm -f "+manifestname+" "+imagefile)
-"""
+
         #xCAT server
         dest = ops.xcat
         
