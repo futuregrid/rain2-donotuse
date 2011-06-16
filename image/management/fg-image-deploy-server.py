@@ -146,8 +146,10 @@ def main():
             if status != 0:
                 break
             
-            cmd =  'umount '+ path +'temp; rm -rf '+ path +'temp '+ path +''+oldName+'.img'
+            cmd =  'umount '+ path +'temp' 
             status=runCmd(cmd) 
+            cmd= 'rm -rf '+ path +'temp '+ path +''+oldName+'.img'
+            status=runCmd(cmd)
         
             if status != 0:
                 break
