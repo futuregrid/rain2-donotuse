@@ -289,15 +289,16 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
         runCmd('mkdir -p '+tempdir+''+name+'/etc/ldap/cacerts '+tempdir+''+name+'/N/u')
         runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/cacerts/12d3b66a.0 -O '+tempdir+''+name+'/etc/ldap/cacerts/12d3b66a.0')
         runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/cacerts/cacert.pem -O '+tempdir+''+name+'/etc/ldap/cacerts/cacert.pem')
-        
-        ubuntuLog.info('Installing ssh+lpk server')
-        runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/lucid_ldap/openssh-server_5.3p1-3ubuntu6_amd64.deb -O '+tempdir+''+name+'/tmp/openssh-server_5.3p1-3ubuntu6_amd64.deb')
-        runCmd('chroot '+tempdir+''+name + ' dpkg -i /tmp/openssh-server_5.3p1-3ubuntu6_amd64.deb')
-        
         runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/ldap.conf -O '+tempdir+''+name+'/etc/ldap.conf')
         runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/openldap/ldap.conf -O '+tempdir+''+name+'/etc/ldap/ldap.conf')
         os.system('sed -i \'s/openldap/ldap/g\' '+tempdir+''+name+'/etc/ldap/ldap.conf')
         os.system('sed -i \'s/openldap/ldap/g\' '+tempdir+''+name+'/etc/ldap.conf')
+        
+        runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/sshd_ubuntu -O '+tempdir+''+name+'/usr/sbin/sshd')
+        runCmd('echo UseLPK yes >> '+tempdir+''+name+'/etc/ssh/sshd_config')
+        runCmd('echo LpkLdapConf /etc/ldap.conf >> '+tempdir+''+name+'/etc/ssh/sshd_config')
+         
+        
     #Setup networking
     os.system('echo localhost > '+tempdir+''+name + '/etc/hostname')
     runCmd('hostname localhost')
@@ -455,12 +456,14 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
         runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/nsswitch.conf -O '+tempdir+''+name+'/etc/nsswitch.conf')
         runCmd('mkdir -p '+tempdir+''+name+'/etc/openldap/cacerts '+tempdir+''+name+'/N/u')
         runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/cacerts/12d3b66a.0 -O '+tempdir+''+name+'/etc/openldap/cacerts/12d3b66a.0')
-        runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/cacerts/cacert.pem -O '+tempdir+''+name+'/etc/openldap/cacerts/cacert.pem')
-        runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/sshd -O '+tempdir+''+name+'/usr/sbin/sshd')
+        runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/cacerts/cacert.pem -O '+tempdir+''+name+'/etc/openldap/cacerts/cacert.pem')        
         runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/ldap.conf -O '+tempdir+''+name+'/etc/ldap.conf')
         runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/openldap/ldap.conf -O '+tempdir+''+name+'/etc/openldap/ldap.conf')
         os.system('sed -i \'s/enforcing/disabled/g\' '+tempdir+''+name+'/etc/selinux/config')
-    
+        
+        runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/sshd_centos -O '+tempdir+''+name+'/usr/sbin/sshd')
+        runCmd('echo UseLPK yes >> '+tempdir+''+name+'/etc/ssh/sshd_config')
+        runCmd('echo LpkLdapConf /etc/ldap.conf >> '+tempdir+''+name+'/etc/ssh/sshd_config')
     
     #Mount proc and pts
     #runCmd('mount -t proc proc '+tempdir+''+name + '/proc')
