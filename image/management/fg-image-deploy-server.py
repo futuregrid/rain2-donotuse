@@ -103,11 +103,6 @@ def main():
             cmd = 'mkdir -p ' + path
             status=runCmd(cmd)
             
-            #cmd = 'mv '+tempdir+'/'+oldName+'.img.tgz ' + path
-            #status=runCmd(cmd)
-        
-            #if status != 0:
-            #    break
         
             cmd = 'mkdir -p ' + path + 'rootimg '+ path + 'temp'
             status=runCmd(cmd)
@@ -124,11 +119,11 @@ def main():
             if status != 0:
                 break
             
-            #cmd =  'rm -f '+ tempdir +'/'+oldName+'.img.tgz'
-            #status=runCmd(cmd) 
+            cmd =  'rm -f '+ tempdir +'/'+oldName+'.img.tgz'
+            status=runCmd(cmd) 
         
-            #if status != 0:
-            #    break
+            if status != 0:
+                break
             
             cmd =  'mount -o loop '+ path +''+oldName+'.img '+ path +'temp'
             status=runCmd(cmd) 
@@ -136,8 +131,8 @@ def main():
             if status != 0:
                 break
             
-            if os.path.isdir(path +'temp'):
-                print 'the directory exists'
+            #if os.path.isdir(path +'temp'):
+            #    print 'the directory exists'
                              
             cmd =  'cp -r '+ path +'temp/* '+ path +'rootimg/'
             print cmd
@@ -160,7 +155,7 @@ def main():
             #cmd = 'mv ' +path + oldName + ' '+ path + 'rootimg'
             #runCmd(cmd)     
 
-#This should be done in the image-deploy.py part   
+  
             if (operatingsystem=="ubuntu"):
                 cmd = 'wget fg-gravel3.futuregrid.iu.edu/kernel/specialubuntu/initrd.gz -O ' + path+'/initrd.gz'
                 status=runCmd(cmd)
