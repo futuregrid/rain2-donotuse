@@ -295,8 +295,8 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
         os.system('sed -i \'s/openldap/ldap/g\' '+tempdir+''+name+'/etc/ldap.conf')
         
         runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/sshd_ubuntu -O '+tempdir+''+name+'/usr/sbin/sshd')
-        runCmd('echo "UseLPK yes" >> '+tempdir+''+name+'/etc/ssh/sshd_config')
-        runCmd('echo "LpkLdapConf /etc/ldap.conf" >> '+tempdir+''+name+'/etc/ssh/sshd_config')
+        os.system('echo "UseLPK yes" >> '+tempdir+''+name+'/etc/ssh/sshd_config')
+        os.system('echo "LpkLdapConf /etc/ldap.conf" >> '+tempdir+''+name+'/etc/ssh/sshd_config')
          
         
     #Setup networking
@@ -462,8 +462,8 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
         os.system('sed -i \'s/enforcing/disabled/g\' '+tempdir+''+name+'/etc/selinux/config')
         
         runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/sshd_centos -O '+tempdir+''+name+'/usr/sbin/sshd')
-        runCmd('echo "UseLPK yes" >> '+tempdir+''+name+'/etc/ssh/sshd_config')
-        runCmd('echo "LpkLdapConf /etc/ldap.conf" >> '+tempdir+''+name+'/etc/ssh/sshd_config')
+        os.system('echo "UseLPK yes" >> '+tempdir+''+name+'/etc/ssh/sshd_config')
+        os.system('echo "LpkLdapConf /etc/ldap.conf" >> '+tempdir+''+name+'/etc/ssh/sshd_config')
     
     #Mount proc and pts
     #runCmd('mount -t proc proc '+tempdir+''+name + '/proc')
