@@ -273,13 +273,12 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
     if (ldap):
         #this is for LDAP auth and mount home dirs. Later, we may control if we install this or not.
         ubuntuLog.info('Installing LDAP packages')
-        #ldapexec="/tmp/ldap.install"
-        #os.system('echo "!#/bin/bash \nexport DEBIAN_FRONTEND=noninteractive \napt-get --force-yes '+\
-        #          '-y install ldap-utils libpam-ldap libnss-ldap nss-updatedb libnss-db" >' +tempdir+''+name+''+ldapexec)
-        #os.system('chmod +x '+tempdir+''+name+''+ldapexec)
-        #runCmd('chroot '+tempdir+''+name+' '+ldapexec)
-        ubuntuLog.info('chroot '+tempdir+''+name+' /bin/bash -c "DEBIAN_FRONTEND=noninteractive apt-get -y install ldap-utils libpam-ldap libnss-ldap nss-updatedb libnss-db"')
-        runCmd('chroot '+tempdir+''+name+' /bin/bash -c \'DEBIAN_FRONTEND=noninteractive apt-get -y install ldap-utils libpam-ldap libnss-ldap nss-updatedb libnss-db\'')
+        ldapexec="/tmp/ldap.install"
+        os.system('echo "!#/bin/bash \nexport DEBIAN_FRONTEND=noninteractive \napt-get '+\
+                  '-y install ldap-utils libpam-ldap libnss-ldap nss-updatedb libnss-db" >' +tempdir+''+name+''+ldapexec)
+        os.system('chmod +x '+tempdir+''+name+''+ldapexec)
+        runCmd('chroot '+tempdir+''+name+' '+ldapexec)
+    
         
         #try this other way
         #chroot maverick-vm /bin/bash -c 'DEBIAN_FRONTEND=noninteractive apt-get -y --force-yes install linux-image-server'
