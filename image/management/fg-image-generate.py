@@ -605,7 +605,7 @@ def cleanup(name):
         cleanupLog.error("error in clean up")
      
     cleanupLog.debug('Cleaned up mount points')
-
+    os.system('sleep 20')
 
 def manifest(user, name, os, version, arch, pkgs, givenname, description, tempdir):
 
@@ -673,7 +673,7 @@ def manifest(user, name, os, version, arch, pkgs, givenname, description, tempdi
 
     output = manifest.toprettyxml()
     file.write(output)
-    
+    file.close()
     manifestLog.info('Genereated manifest file: ' + filename)
     
 def push_bcfg2_group(name, pkgs, os, version):
