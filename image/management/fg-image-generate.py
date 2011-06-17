@@ -279,7 +279,7 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
         #os.system('chmod +x '+tempdir+''+name+''+ldapexec)
         #runCmd('chroot '+tempdir+''+name+' '+ldapexec)
         ubuntuLog.info('chroot '+tempdir+''+name+' /bin/bash -c "DEBIAN_FRONTEND=noninteractive apt-get -y install ldap-utils libpam-ldap libnss-ldap nss-updatedb libnss-db"')
-        runCmd('chroot '+tempdir+''+name+' /bin/bash -c "DEBIAN_FRONTEND=noninteractive apt-get -y install ldap-utils libpam-ldap libnss-ldap nss-updatedb libnss-db"')
+        runCmd('chroot '+tempdir+''+name+' /bin/bash -c \'DEBIAN_FRONTEND=noninteractive apt-get -y install ldap-utils libpam-ldap libnss-ldap nss-updatedb libnss-db\'')
         
         #try this other way
         #chroot maverick-vm /bin/bash -c 'DEBIAN_FRONTEND=noninteractive apt-get -y --force-yes install linux-image-server'
