@@ -254,7 +254,7 @@ class RepositoryService:
         self.msg = """ <form method=get action=actionUserDel>
                 User Id: <input type=string name=userId> <br>
                 <input type=submit> </form> """
-
+        return self.msg
     userdel.exposed = True
     
     def actionUserQuota (self,userId, quota) :
