@@ -4,6 +4,8 @@
 """
 
 import cherrypy
+from cherrypy import _cpserver
+from cherrypy import _cpwsgi_server
 import os, sys
 import cherrypy.lib.sessions
 import pycurl
@@ -11,6 +13,14 @@ sys.path.append('/opt/futuregrid/futuregrid/image/repository/server')
 #sys.path.append('/opt/cherryPyRest/rest/server')
 from IRService import IRService
 from cherrypy.lib.static import serve_file
+
+localDir = os.path.abspath(os.path.dirname(__file__))
+
+httpconfig = os.path.join(localDir, 'httpconfig.conf')
+httpsconfig = os.path.join(localDir, 'httpsconfig.conf')
+
+CA = os.path.join(localDir, 'server.crt')
+KEY = os.path.join(localDir, 'server.key')
 
 
 class RepositoryService:
@@ -157,6 +167,7 @@ class RepositoryService:
         raise cherrypy.HTTPRedirect("/results")
     auth.exposed = True;
 
+    @cherrypy.tools.json_out()
     def userlist(self):
         fname = sys._getframe().f_code.co_name
         service = IRService()
@@ -179,18 +190,19 @@ class RepositoryService:
         raise cherrypy.HTTPRedirect("/results")
     userlist.exposed = True;
     
-    def actionHistUser (self, userIdto):
+    def actionHistUser (self, userId):
         fname = sys._getframe().f_code.co_name
         service = IRService()
-        
-        if (len(userIdto) > 0):
-            userList = service.histUser(os.popen('whoami', 'r').read().strip(), userIdto)
+        self.msg = None
+        if (len(userId) > 0):
+            userList = service.histUser(os.popen('whoami', 'r').read().strip(), userId)
         else:
             userList = service.histUser(os.popen('whoami', 'r').read().strip(), "None")
                                 
         try:
             users = userList            
             self.msg = users['head']    
+            self.msg = "<br>"
             for key in users.keys():
                 if key != 'head':
                     self.msg = self.msg + users[key]     
@@ -202,9 +214,9 @@ class RepositoryService:
 
     def histuser (self) :
         self.msg = """ <form method=get action=actionHistUser>
-                User Id: <input type=string name=userIdto> <br>
+                User Id: <input type=string name=userId> <br>
                 <input type=submit> </form> """
-        return self.msg;
+        return self.msg
     histuser.exposed = True;
     
     def actionUserAdd (self, userId):
@@ -578,7 +590,20 @@ import os.path
 configurationFile = os.path.join(os.path.dirname(__file__), 'repository.conf')
 
 if __name__ == '__main__':
-    cherrypy.quickstart(RepositoryService(), config=configurationFile)
+
+
+    cherrypy.config.update(httpsconfig)
+    ip = cherrypy.config.get("server.socket_host")
+    port = cherrypy.config.get("server.socket_port")
+    secure_server = _cpwsgi_server.CPWSGIServer()
+    secure_server.bind_addr = (ip, port)
+    secure_server.ssl_certificate = CA
+    secure_server.ssl_private_key = KEY
+
+    adapter = _cpserver.ServerAdapter(cherrypy.engine, secure_server, secure_server.bind_addr)
+    adapter.subscribe()
+    cherrypy.quickstart(RepositoryService(), config=httpconfig)
+
     curlObject = pycurl.Curl()
 else:
     # This branch is for the test suite; you can ignore it.
