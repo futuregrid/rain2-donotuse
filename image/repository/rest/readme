@@ -11,15 +11,85 @@ MongoDB and is downloaded to a filepath according to the
 users specification. 
 
 
+FILECOMPOSITION :
+REST includes restFrontEnd.py for the web front end, IRService as
+the controller end, and the files IRDataAccessMongo.py and fglog.py 
+for the database access end. All files are written in Python. 
+
 
 REQUIREMENTS:
 
-In order to execute the REST server you must have CherryPy installed.
-To run the REST server through the imageTest.py and the userTest.py 
-scripts you must additionally install twill. The REST interface connects
-with the FUTURE Grid server tools i.e IRService.py, IRDataAccessMongo.py
-and UTIL (fglog.py) , thus  MongoDB must also be installed.
+In order to execute the REST server you must have  installed CherryPy, OpenSSl 
+MongoDb, and twill  in order to activate the WebServer, HTTPS server, 
+database server and user testing respectively.
 
+
+EXECUTING THE SCRIPTS
+
+REST uses the following  scripts:  startServer, userTest and adminTest.
+
+StartServer:
+
+Running the startServer script will first check the MONGO_DB variable to ensure
+the path variable exists, then it will check if MONGO_DB/mongod and MONGO_DB/mongo
+exist.. If it does not exist will download the mongo distribution. Next the program 
+will look for HTTPS_PATH path and the keys/server.key, keys/server.csr and 
+keys.server.crt files. If one does not exist then the script will dowload the 
+OpenSSL distribution. The script would then generate or insure that all 3 files are there.. 
+
+The OpenSSL commands to generate the keys are the following:
+
+To generate the server server.key with passphrase:
+openssl genrsa -des3 -out server.key 2048
+
+Remove pssphrase from the key :
+openssl rsa -in server.key -out server.key
+
+Generate the certificate:
+openssl req -new -key server.key -out server.csr
+
+To sign by private key:
+openssl x509 -req -days 60 -in server.csr -signkey server.key -out server.crt
+
+StarServer args:
+
+Here are the following command line options
+
+-d --dbserver <PORT> :
+	   Reads the designated port for the mongod server. Default port 23000
+-a --adminport < PORT> :
+	    Reads the specified admin port for the cherryPy http server. Default port 8081
+-s --adminsecureport <PORT> :
+            Reads he specified admin port connected to the cherryPy https server. Default port 8444
+-u --userport < PORT> :
+	    Reads the specified user port for the cherryPy http server. Default port 8080
+-p --usersecureport <PORT> :
+            Reads he specified admin port connected to the cherryPy https server. Default port 8443
+-n --username < name > :
+	   Reads the username corresponding to the non admin privledges.
+-r --useradmin < name > :
+	   Reads the username corresponding to the admin privledges.
+	 
+Note if the port or user name is not specified in the commands then REST will look for the 
+parameter in the REST.config file.
+
+If debuging information is on , StartServer will generate a StartServer.log file and put this 
+file in the debug directory.
+
+UserTest.py:
+
+This twill based script executes the REST API specific to normal user privledges.
+Ouput is found in debug/userTest.log
+
+AdminTest.py :
+
+This twill based script executes the REST API specific to the admin user privledges.
+Output is found in the debug/adminTest.log for any errors.
+
+
+
+
+GENERAL INSTALL INFORMATION:
 
 Installing CherryPy
 You need a working version of Python 2.3 or later. If using the 
@@ -30,8 +100,8 @@ directory and type:  python setup.py install
 
 
 Installing Twill
-Mac: Works with easy_install so just type:  sudo easy_install twill. Twill
-gets install in the /usr/local/bin directory.  To check you have twill 
+Works with easy_install so just type:  sudo easy_install twill. Twill
+gets instaledl in the /usr/local/bin directory.  To check you have twill 
 working, execute the shell option by typing twill-sh.
 
 
@@ -48,31 +118,9 @@ To start the server:  ./mongodb-xxxxxxx/bin/mongod  <--port> <port number>
 For client access:  ./mongodb-xxxxxx/bin/mongo <--port> <port number> 
 
 
-PyMongo  (Mongo driver for Python)
+PyMongo   (Mongo driver for Python)
 the Python driver for MongoDB type: https://github.com/mongodb/mongo-python-driver.git
 to obtain read access to the pymongo driver. Easy install is prefered to 
 install mongo. Type sudo easy_install pymongo
 
 
-STARTING CHERRY PY AND MONGO DB.
-To start you must execute the Mongo server first. Type: mongod --port 23000.
-To start the REST service, from the rest directory type:  ./restFrontEnd.py
-this will start up the CherryPy server running on the port specified in the
-CherryPy.conf directory.  The REST API is now ready to use.
-
-You can also execute MongDB and restFrontEnd from a script. To execute 
-the script type ./startServer. The mongoDb automatically gets executed,
-hitting return would then start the CherryPy server.  Hitting return 
-again would the exit the program and kill the MongoDb server and 
-CherryPy server. 
-
-
-RUNNING CHERRY PY FROM THE SCRIPT
-
-To test out the user portion of the REST api, you must run the userTest.py script.
-The batch of image based queries are made by typing:  ./imageTest.py
-
-UPCOMING FEATURES
-With the next version of REST, authentication via https and possible html based security  
-(DIGEST) will be  added. In addition error dispatching and adding a cURL for directly retrieving a
-file straight from the address. SImple session management will be added as well.
