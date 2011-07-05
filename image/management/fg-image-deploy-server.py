@@ -15,14 +15,13 @@ import time
 
 #Global vars
 port = 56789
-numparams = 6   #name,os,version,arch,kernel,dir
 xcatInstallPath = '/install/netboot/'
 moabInstallPath = '/opt/moab/'
 
 TEST_MODE=True
 RESTARTMOAB=5  #time that we wait to get the moab scheduler restarted (mschedctl -R)
 
-#TODO. Modify this to have a generic server that also deploy eucalyptus
+numparams = 6   #name,os,version,arch,kernel,dir
 
 def main():
 
@@ -242,7 +241,8 @@ def main():
             """        
             #Configure Moab
             if TEST_MODE:
-                cmd = 'echo \"' + prefix + operatingsystem + '' + name + ' ' + arch + ' ' + prefix + operatingsystem + '' + name + ' compute netboot\" >> ' + moabInstallPath + '/tools/msm/images.txt'
+                #cmd = 'echo \"' + prefix + operatingsystem + '' + name + ' ' + arch + ' ' + prefix + operatingsystem + '' + name + ' compute netboot\" >> ' + moabInstallPath + '/tools/msm/images.txt'
+                cmd = 'echo \"' + prefix + operatingsystem + '' + name + ' ' + arch + ' boottarget compute netboot\" >> ' + moabInstallPath + '/tools/msm/images.txt'
             else:
                 cmd = 'echo \"' + prefix + operatingsystem + '' + name + ' ' + arch + ' boottarget compute netboot\" >> ' + moabInstallPath + '/tools/msm/images.txt'
                 #INSERT row in boottarget??
@@ -270,7 +270,7 @@ def main():
 	                    os.system('rm -f /tmp/image-deploy-fork.lock')
 	                else:
 	                    logging.debug( "Parent Process: PID# %s" % os.getpid())                    
-            
+
 
 def runCmd(cmd):
     cmdLog = logging.getLogger('exec')
