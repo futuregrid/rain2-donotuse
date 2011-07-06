@@ -49,6 +49,8 @@ def main():
 
     logger.info('Starting image deployer...')
     
+    
+    
     parser.add_option('-i', '--image', dest='image', help='Name of tgz file that contains manifest and img')
 
     parser.add_option('-s', '--nasaddr', dest='nasaddr', help='Address to upload the image file. Login machine')
@@ -64,6 +66,10 @@ def main():
     parser.add_option("-k", "--kernel", dest="kernel", help="Specify the desired kernel (must be exact version and approved for use within FG")
 
     (ops, args) = parser.parse_args()
+    
+    if(len(args)== 0):
+        parser.print_help()
+        exit(0)
     
     
     #Turn debugging off
@@ -388,6 +394,26 @@ sysfs   /sys     sysfs    defaults       0 0
 
     #
 
+############################################################
+# usage
+############################################################
+def usage():
+    print "options:"
+    print '''
+        -h/--help: get help information
+        -l/--auth: login/authentication
+        -l/--auth    (not implemented)
+        --imgId <imgId> : Specify the image to be deployed (not implemented)
+        -i/--image <ImageName.tgz> : Specify the image file to be deployed. This is a tgz file that contains the manifest and the image files.
+        -x/--xcat <xCatServer> : Address of the xCAT management node to copy and register the image. 
+        -e/--euca <EucaServer>
+        -n/--nimbus <NimbusServer>
+        -s/--nasaddr <LoginMachine>
+        -t/--tempdir <SharedDir>
+        -k/--kernel <KernelName>
+        -u/--user <userName>
+        -d/--debug
+        '''
 
     
 
