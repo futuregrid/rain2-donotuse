@@ -156,7 +156,7 @@ def main():
 
   
             if (operatingsystem=="ubuntu"):
-                cmd = 'wget fg-gravel3.futuregrid.iu.edu/kernel/specialubuntu/initrd.gz -O ' + path+'/initrd.gz'
+                cmd = 'wget fg-gravel3.futuregrid.iu.edu/kernel/specialubuntu/initrd.gz -O ' + path+'/initrd-stateless.gz'
                 status=runCmd(cmd)
             
                 if status != 0:
@@ -168,7 +168,7 @@ def main():
                 if status != 0:
                     break
             else:
-                cmd = 'wget fg-gravel3.futuregrid.iu.edu/kernel/initrd.gz -O ' + path+'/initrd.gz'
+                cmd = 'wget fg-gravel3.futuregrid.iu.edu/kernel/initrd.gz -O ' + path+'/initrd-stateless.gz'
                 status=runCmd(cmd)
             
                 if status != 0:
@@ -242,9 +242,9 @@ def main():
             #Configure Moab
             if TEST_MODE:
                 #cmd = 'echo \"' + prefix + operatingsystem + '' + name + ' ' + arch + ' ' + prefix + operatingsystem + '' + name + ' compute netboot\" >> ' + moabInstallPath + '/tools/msm/images.txt'
-                cmd = 'echo \"' + prefix + operatingsystem + '' + name + ' ' + arch + ' boottarget compute netboot\" >> ' + moabInstallPath + '/tools/msm/images.txt'
+                cmd = 'echo \"' + prefix + operatingsystem + '' + name + ' ' + arch + ' boottarget ' + prefix + operatingsystem + '' + name + ' netboot\" >> ' + moabInstallPath + '/tools/msm/images.txt'
             else:
-                cmd = 'echo \"' + prefix + operatingsystem + '' + name + ' ' + arch + ' boottarget compute netboot\" >> ' + moabInstallPath + '/tools/msm/images.txt'
+                cmd = 'echo \"' + prefix + operatingsystem + '' + name + ' ' + arch + ' boottarget ' + prefix + operatingsystem + '' + name + ' netboot\" >> ' + moabInstallPath + '/tools/msm/images.txt'
                 #INSERT row in boottarget??
                 
                 
