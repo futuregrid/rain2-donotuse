@@ -241,8 +241,8 @@ def main():
             """        
             #Configure Moab
             if TEST_MODE:
-                #cmd = 'echo \"' + prefix + operatingsystem + '' + name + ' ' + arch + ' ' + prefix + operatingsystem + '' + name + ' compute netboot\" >> ' + moabInstallPath + '/tools/msm/images.txt'
-                cmd = 'echo \"' + prefix + operatingsystem + '' + name + ' ' + arch + ' boottarget ' + prefix + operatingsystem + '' + name + ' netboot\" >> ' + moabInstallPath + '/tools/msm/images.txt'
+                cmd = 'echo \"' + prefix + operatingsystem + '' + name + ' ' + arch + ' ' + prefix + operatingsystem + '' + name + ' compute netboot\" >> ' + moabInstallPath + '/tools/msm/images.txt'
+                #cmd = 'echo \"' + prefix + operatingsystem + '' + name + ' ' + arch + ' boottarget ' + prefix + operatingsystem + '' + name + ' netboot\" >> ' + moabInstallPath + '/tools/msm/images.txt'
             else:
                 cmd = 'echo \"' + prefix + operatingsystem + '' + name + ' ' + arch + ' boottarget ' + prefix + operatingsystem + '' + name + ' netboot\" >> ' + moabInstallPath + '/tools/msm/images.txt'
                 #INSERT row in boottarget??
