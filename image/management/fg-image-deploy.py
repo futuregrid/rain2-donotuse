@@ -274,17 +274,17 @@ def main():
                 logger.info('Configuring network')        
                 runCmd('sudo wget fg-gravel3.futuregrid.iu.edu/conf/centos/netsetup_minicluster.tgz')   
                 runCmd('sudo tar xfz netsetup_minicluster.tgz -C '+tempdir+'/rootimg/etc/')
-                os.system('echo "172.29.200.1 t1 tm1" >> '+tempdir+''+name+'/etc/hosts')
-                os.system('echo "172.29.200.3 tc1" >> '+tempdir+''+name+'/etc/hosts')
-                os.system('echo "149.165.145.35 tc1r.tidp.iu.futuregrid.org tc1r" >> '+tempdir+''+name+'/etc/hosts')
-                os.system('echo "172.29.200.4 tc2" >> '+tempdir+''+name+'/etc/hosts')        
-                os.system('echo "149.165.145.36 tc2r.tidp.iu.futuregrid.org tc2r" >> '+tempdir+''+name+'/etc/hosts')
-                runCmd('mkdir -p '+tempdir+''+name+'/root/.ssh')
+                os.system('echo "172.29.200.1 t1 tm1" >> '+tempdir+'/etc/hosts')
+                os.system('echo "172.29.200.3 tc1" >> '+tempdir+'/etc/hosts')
+                os.system('echo "149.165.145.35 tc1r.tidp.iu.futuregrid.org tc1r" >> '+tempdir+'/etc/hosts')
+                os.system('echo "172.29.200.4 tc2" >> '+tempdir+'/etc/hosts')        
+                os.system('echo "149.165.145.36 tc2r.tidp.iu.futuregrid.org tc2r" >> '+tempdir+'/etc/hosts')
+                runCmd('mkdir -p '+tempdir+'/root/.ssh')
                 os.system('echo "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAu0D0UbGs7FIjQVQVuARc4MF9XoCEXraQv4j0yhIS2EoTcdamYvHrSE6t+X'+\
                           'OD9DzwZeAFlcd8yJH5g1wivpsuBo7AO89Fy4WfVwSGJGJZDzfu7s850wytVbSpZNoFJUb372su9OrMcFhi3M7khdjWkurs5'+\
                           'giCivJQnlC+ubExwfcC5NeZUMpkSk1pquuVama4URfh9RQlB0q8t3sksAv1z6IygKKcWwIpFlKrEFtinU1Es+1JmWogq87we'+\
-                          'SFJm8M9BX/JXQnf38GaoBmgGxlnHyP10X9Jw56P2eocXtH8HChI45PGgMYnpcQVmnz5Va5xhseEWdPr2tdiBmL4fag2UQ== root@tm1" >> '+tempdir+''+name+'/root/.ssh/authorized_keys')
-                os.system('chmod 600 '+tempdir+''+name+'/root/.ssh/authorized_keys')
+                          'SFJm8M9BX/JXQnf38GaoBmgGxlnHyP10X9Jw56P2eocXtH8HChI45PGgMYnpcQVmnz5Va5xhseEWdPr2tdiBmL4fag2UQ== root@tm1" >> '+tempdir+'/root/.ssh/authorized_keys')
+                os.system('chmod 600 '+tempdir+'/root/.ssh/authorized_keys')
                 runCmd('sudo rm -f netsetup_minicluster.tgz')
                                 
             else:#Later we should be able to chose the cluster where is deployed
@@ -298,15 +298,15 @@ def main():
                 runCmd('sudo wget fg-gravel3.futuregrid.iu.edu/torque/torque-2.4.8_india/pbs_mom -O '+tempdir+'/rootimg/etc/init.d/pbs_mom')
                 
                 logger.info('Configuring network')                   
-                runCmd('wget ' + base_url + '/conf/centos/ifcfg-eth1 -O '+tempdir+''+name + '/etc/sysconfig/network-scripts/ifcfg-eth1')
-                runCmd('wget ' + base_url + '/conf/hosts_india -O '+tempdir+''+name + '/etc/hosts')
+                runCmd('wget ' + base_url + '/conf/centos/ifcfg-eth1 -O '+tempdir+'/etc/sysconfig/network-scripts/ifcfg-eth1')
+                runCmd('wget ' + base_url + '/conf/hosts_india -O '+tempdir+ '/etc/hosts')
                 #temporal
-                runCmd('mkdir -p '+tempdir+''+name+'/root/.ssh')
+                runCmd('mkdir -p '+tempdir+'/root/.ssh')
                 os.system('echo "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAsAaCJFcGUXSmA2opcQk/HeuiJu417a69KbuWNjf1UqarP7t0hUpMXQnlc8+yfi'+\
                           'fI8FpoXtNCai8YEPmpyynqgF9VFSDwTp8use61hBPJn2isZha1JvkuYJX4n3FCHOeDlb2Y7M90DvdYHwhfPDa/jIy8PvFGiFkRLSt1kghY'+\
                           'xZSleiikl0OxFcjaI8N8EiEZK66HAwOiDHAn2k3oJDBTD69jydJsjExOwlqZoJ4G9ScfY0rpzNnjE9sdxpJMCWcj20y/2T/oeppLmkq7aQtu'+\
-                          'p8JMPptL+kTz5psnjozTNQgLYtYHAcfy66AKELnLuGbOFQdYxnINhX3e0iQCDDI5YQ== jdiaz@india.futuregrid.org" >> '+tempdir+''+name+'/root/.ssh/authorized_keys')
-                os.system('chmod 600 '+tempdir+''+name+'/root/.ssh/authorized_keys')
+                          'p8JMPptL+kTz5psnjozTNQgLYtYHAcfy66AKELnLuGbOFQdYxnINhX3e0iQCDDI5YQ== jdiaz@india.futuregrid.org" >> '+tempdir+'/root/.ssh/authorized_keys')
+                os.system('chmod 600 '+tempdir+'/root/.ssh/authorized_keys')
                 
                 
             runCmd('sudo chmod +x '+tempdir+'/rootimg/etc/init.d/pbs_mom')
