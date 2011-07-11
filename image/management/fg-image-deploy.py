@@ -280,10 +280,11 @@ def main():
                 os.system('echo "172.29.200.4 tc2" >> '+tempdir+'/rootimg/etc/hosts')        
                 os.system('echo "149.165.145.36 tc2r.tidp.iu.futuregrid.org tc2r" >> '+tempdir+'/rootimg/etc/hosts')
                 runCmd('mkdir -p '+tempdir+'/rootimg/root/.ssh')
-                os.system('echo "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAu0D0UbGs7FIjQVQVuARc4MF9XoCEXraQv4j0yhIS2EoTcdamYvHrSE6t+X'+\
-                          'OD9DzwZeAFlcd8yJH5g1wivpsuBo7AO89Fy4WfVwSGJGJZDzfu7s850wytVbSpZNoFJUb372su9OrMcFhi3M7khdjWkurs5'+\
-                          'giCivJQnlC+ubExwfcC5NeZUMpkSk1pquuVama4URfh9RQlB0q8t3sksAv1z6IygKKcWwIpFlKrEFtinU1Es+1JmWogq87we'+\
-                          'SFJm8M9BX/JXQnf38GaoBmgGxlnHyP10X9Jw56P2eocXtH8HChI45PGgMYnpcQVmnz5Va5xhseEWdPr2tdiBmL4fag2UQ== root@tm1" >> '+tempdir+'/rootimg/root/.ssh/authorized_keys')
+                os.system('echo ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA5uo1oo4+/wzKl+4hfaD/cf4MF6WDrWnG8wtufSk4ThOvCfc4a1BiEUZ+O71'+\
+                          'u1qzgbvi0TnA+tc3fS9mU2zrBZeIL1eB2VkK4cjzltIS6pthm8tFUCtS1hHYupnftC/1Hbzo2zJB+nGAfIznmkYATiVvulwl6SudV'+\
+                          'RKM2SUahWsGXh4JkZqt4vAAuBVifFwE3axh3g9nji8wq4ITYjzTWDsogbcwsJNXpF9dkyuDg5xQmEszUsGSug3hA4aVrgs36cnLNG'+\
+                          '5i+zWlwmA31IV+6Yyx1+s6YYp6YG8GNiuL1vZUYrnvfmRbm24eUc7cU4Dz6hBfI2wqjDkCU15HRM0ZV3Q== root@tm1 >> '+tempdir+'/rootimg/root/.ssh/authorized_keys')
+                
                 os.system('chmod 600 '+tempdir+'/rootimg/root/.ssh/authorized_keys')
                 runCmd('sudo rm -f netsetup_minicluster.tgz')
                                 
@@ -314,12 +315,13 @@ def main():
             #runCmd('sudo chroot '+tempdir+'/rootimg/ /sbin/chkconfig pbs_mom on')
             
             os.system('touch ./rc.local')
-            os.system('cat '+tempdir+'/rootimg/etc/rc.local'+' > ./rc.local')            
+            os.system('cat '+tempdir+'/rootimg/etc/rc.d/rc.local'+' > ./rc.local')            
             f= open('./rc.local', 'a')
-            f.write("\n"+"/etc/netsetup/netsetup.sh"+"\n"+"sleep 10"+"\n"+"/etc/init.d/pbs_mom start")        
+            f.write("\n"+"/etc/netsetup/netsetup.sh"+"\n"+"sleep 10"+"\n"+"/etc/init.d/pbs_mom start"+'\n')        
             f.close()          
-            os.system('sudo mv -f ./rc.local '+tempdir+'/rootimg/etc/rc.local')
-            os.system('sudo chown root:root '+tempdir+'/rootimg/etc/rc.local')      
+            os.system('sudo mv -f ./rc.local '+tempdir+'/rootimg/etc/rc.d/rc.local')
+            os.system('sudo chown root:root '+tempdir+'/rootimg/etc/rc.d/rc.local')
+            os.system('sudo chmod 755 '+tempdir+'/rootimg/etc/rc.d/rc.local')      
             
             f= open(tempdir+'/config', 'w')
             f.write("opsys "+ operatingsystem + "" + name+"\n"+"arch "+ arch)        
