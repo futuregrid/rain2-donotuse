@@ -311,17 +311,10 @@ sysfs   /sys     sysfs    defaults       0 0
         os.system('sudo mv -f '+self.tempdir+'/fstab '+self.tempdir+'rootimg/etc/fstab')
         self.logger.info('Injected fstab')
     
-    
-        #NOTE: May move to an image repository system in the future
         
-    ##########################
-    #Some files are not readable from sudo.
-    #WE need to execute this with ROOT user or give more permission to sudo
-    ###########################
-    
-    ####################        
-    #We are going to send the image and then we copy there the files
-    #####################
+        ####################        
+        #We are going to send the image and then we copy there the files
+        #####################
         #self.logger.info('Compressing image')
         #Its xCAT, so use gzip with cpio compression.
         #cmd = 'sudo bash -c \" cd '+self.tempdir+'; find rootimg/. | cpio -H newc -o | gzip -9 > '+self.tempdir+'/rootimg.gz\"'        
