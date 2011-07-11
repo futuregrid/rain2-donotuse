@@ -257,7 +257,8 @@ def main():
         runCmd(cmd)
 
         if (operatingsystem!="ubuntu"):
-            logger.info('Installing torque')
+            logger.info('Installing torque')       
+                
             if(TEST_MODE):
                 logger.info('Torque for minicluster')
                 runCmd('sudo wget fg-gravel3.futuregrid.iu.edu/torque/torque-2.5.1_minicluster/torque-2.5.1.tgz'+\
@@ -267,15 +268,24 @@ def main():
                 runCmd('sudo rm -f var.tgz torque-2.5.1.tgz')
                 runCmd('sudo wget fg-gravel3.futuregrid.iu.edu/torque/torque-2.5.1_minicluster/pbs_mom -O '+tempdir+'/rootimg/etc/init.d/pbs_mom')
                 
-                os.system('touch ./inittab')
-                os.system('cat '+tempdir+'/rootimg/etc/inittab'+' > ./inittab')            
-                f= open('./inittab', 'a')
-                f.write("\n"+"pbs:35:respawn:/etc/init.d/pbs_mom start")        
-                f.close()          
-                os.system('sudo mv -f ./inittab '+tempdir+'/rootimg/etc/inittab')
-                os.system('sudo chown root:root '+tempdir+'/rootimg/etc/inittab')
-                
-                
+                #this eth1 is just for miniclusetr. comment this and uncomment the next one for india  
+                #runCmd('wget ' + base_url + '/conf/centos/ifcfg-eth1_minicluster_tc1 -O '+tempdir+''+name + '/etc/sysconfig/network-scripts/ifcfg-eth1')
+                #runCmd('wget ' + base_url + '/conf/centos/ifcfg-eth1_minicluster_tc2 -O '+tempdir+''+name + '/etc/sysconfig/network-scripts/ifcfg-eth1')
+                logger.info('Configuring network')        
+                runCmd('sudo wget fg-gravel3.futuregrid.iu.edu/config/centos/netsetup_minicluster.tgz')   
+                runCmd('sudo tar xfz netsetup_minicluster.tgz -C '+tempdir+'/rootimg/etc/')
+                os.system('echo "172.29.200.1 t1 tm1" >> '+tempdir+''+name+'/etc/hosts')
+                os.system('echo "172.29.200.3 tc1" >> '+tempdir+''+name+'/etc/hosts')
+                os.system('echo "149.165.145.35 tc1r.tidp.iu.futuregrid.org tc1r" >> '+tempdir+''+name+'/etc/hosts')
+                os.system('echo "172.29.200.4 tc2" >> '+tempdir+''+name+'/etc/hosts')        
+                os.system('echo "149.165.145.36 tc2r.tidp.iu.futuregrid.org tc2r" >> '+tempdir+''+name+'/etc/hosts')
+                runCmd('mkdir -p '+tempdir+''+name+'/root/.ssh')
+                os.system('echo "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAu0D0UbGs7FIjQVQVuARc4MF9XoCEXraQv4j0yhIS2EoTcdamYvHrSE6t+X'+\
+                          'OD9DzwZeAFlcd8yJH5g1wivpsuBo7AO89Fy4WfVwSGJGJZDzfu7s850wytVbSpZNoFJUb372su9OrMcFhi3M7khdjWkurs5'+\
+                          'giCivJQnlC+ubExwfcC5NeZUMpkSk1pquuVama4URfh9RQlB0q8t3sksAv1z6IygKKcWwIpFlKrEFtinU1Es+1JmWogq87we'+\
+                          'SFJm8M9BX/JXQnf38GaoBmgGxlnHyP10X9Jw56P2eocXtH8HChI45PGgMYnpcQVmnz5Va5xhseEWdPr2tdiBmL4fag2UQ== root@tm1" >> '+tempdir+''+name+'/root/.ssh/authorized_keys')
+                os.system('chmod 600 '+tempdir+''+name+'/root/.ssh/authorized_keys')
+                                
             else:#Later we should be able to chose the cluster where is deployed
                 logger.info('Torque for India')    
                 runCmd('sudo wget fg-gravel3.futuregrid.iu.edu/conf/hosts_india -O '+tempdir+'/rootimg/etc/hosts')
@@ -286,9 +296,29 @@ def main():
                 runCmd('sudo rm -f var.tgz opt.tgz')            
                 runCmd('sudo wget fg-gravel3.futuregrid.iu.edu/torque/torque-2.4.8_india/pbs_mom -O '+tempdir+'/rootimg/etc/init.d/pbs_mom')
                 
+                logger.info('Configuring network')                   
+                runCmd('wget ' + base_url + '/conf/centos/ifcfg-eth1 -O '+tempdir+''+name + '/etc/sysconfig/network-scripts/ifcfg-eth1')
+                runCmd('wget ' + base_url + '/conf/hosts_india -O '+tempdir+''+name + '/etc/hosts')
+                #temporal
+                runCmd('mkdir -p '+tempdir+''+name+'/root/.ssh')
+                os.system('echo "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAsAaCJFcGUXSmA2opcQk/HeuiJu417a69KbuWNjf1UqarP7t0hUpMXQnlc8+yfi'+\
+                          'fI8FpoXtNCai8YEPmpyynqgF9VFSDwTp8use61hBPJn2isZha1JvkuYJX4n3FCHOeDlb2Y7M90DvdYHwhfPDa/jIy8PvFGiFkRLSt1kghY'+\
+                          'xZSleiikl0OxFcjaI8N8EiEZK66HAwOiDHAn2k3oJDBTD69jydJsjExOwlqZoJ4G9ScfY0rpzNnjE9sdxpJMCWcj20y/2T/oeppLmkq7aQtu'+\
+                          'p8JMPptL+kTz5psnjozTNQgLYtYHAcfy66AKELnLuGbOFQdYxnINhX3e0iQCDDI5YQ== jdiaz@india.futuregrid.org" >> '+tempdir+''+name+'/root/.ssh/authorized_keys')
+                os.system('chmod 600 '+tempdir+''+name+'/root/.ssh/authorized_keys')
+                
+                
             runCmd('sudo chmod +x '+tempdir+'/rootimg/etc/init.d/pbs_mom')
-            runCmd('sudo chroot '+tempdir+'/rootimg/ /sbin/chkconfig --add pbs_mom')
-            runCmd('sudo chroot '+tempdir+'/rootimg/ /sbin/chkconfig pbs_mom on')          
+            #runCmd('sudo chroot '+tempdir+'/rootimg/ /sbin/chkconfig --add pbs_mom')
+            #runCmd('sudo chroot '+tempdir+'/rootimg/ /sbin/chkconfig pbs_mom on')
+            
+            os.system('touch ./rc.local')
+            os.system('cat '+tempdir+'/rootimg/etc/rc.local'+' > ./rc.local')            
+            f= open('./rc.local', 'a')
+            f.write("\n"+"/etc/netsetup/netsetup.sh"+"\n"+"sleep 10"+"\n"+"/etc/init.d/pbs_mom start")        
+            f.close()          
+            os.system('sudo mv -f ./rc.local '+tempdir+'/rootimg/etc/rc.local')
+            os.system('sudo chown root:root '+tempdir+'/rootimg/etc/rc.local')      
             
             f= open(tempdir+'/config', 'w')
             f.write("opsys "+ operatingsystem + "" + name+"\n"+"arch "+ arch)        
@@ -311,7 +341,7 @@ devpts  /dev/pts devpts   gid=5,mode=620 0 0
 tmpfs   /dev/shm tmpfs    defaults       0 0
 proc    /proc    proc     defaults       0 0
 sysfs   /sys     sysfs    defaults       0 0
-149.165.146.145:/users /N/u      nfs     rw,rsize=1048576,wsize=1048576,intr,nosuid
+172.29.200.1:/export/users /N/u      nfs     rw,rsize=1048576,wsize=1048576,intr,nosuid
  '''
         f= open(tempdir+'/fstab', 'w')
         f.write(fstab)

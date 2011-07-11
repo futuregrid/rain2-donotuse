@@ -77,9 +77,6 @@ def main():
         
     (ops, args) = parser.parse_args()
     
-    if(len(args)== 0):
-        parser.print_help()
-        exit(0)
     
     #user = os.popen('whoami', 'r').read().strip()
     userId='oneadmin'
