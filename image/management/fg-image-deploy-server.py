@@ -133,7 +133,7 @@ def main():
             #if os.path.isdir(path +'temp'):
             #    print 'the directory exists'
                              
-            cmd =  'cp -r '+ path +'temp/* '+ path +'rootimg/'
+            cmd =  'cp -rp '+ path +'temp/* '+ path +'rootimg/'
             print cmd
             status=os.system(cmd) 
         
