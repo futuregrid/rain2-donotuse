@@ -272,7 +272,7 @@ def main():
                 #runCmd('wget ' + base_url + '/conf/centos/ifcfg-eth1_minicluster_tc1 -O '+tempdir+''+name + '/etc/sysconfig/network-scripts/ifcfg-eth1')
                 #runCmd('wget ' + base_url + '/conf/centos/ifcfg-eth1_minicluster_tc2 -O '+tempdir+''+name + '/etc/sysconfig/network-scripts/ifcfg-eth1')
                 logger.info('Configuring network')        
-                runCmd('sudo wget fg-gravel3.futuregrid.iu.edu/config/centos/netsetup_minicluster.tgz')   
+                runCmd('sudo wget fg-gravel3.futuregrid.iu.edu/conf/centos/netsetup_minicluster.tgz')   
                 runCmd('sudo tar xfz netsetup_minicluster.tgz -C '+tempdir+'/rootimg/etc/')
                 os.system('echo "172.29.200.1 t1 tm1" >> '+tempdir+''+name+'/etc/hosts')
                 os.system('echo "172.29.200.3 tc1" >> '+tempdir+''+name+'/etc/hosts')
@@ -285,6 +285,7 @@ def main():
                           'giCivJQnlC+ubExwfcC5NeZUMpkSk1pquuVama4URfh9RQlB0q8t3sksAv1z6IygKKcWwIpFlKrEFtinU1Es+1JmWogq87we'+\
                           'SFJm8M9BX/JXQnf38GaoBmgGxlnHyP10X9Jw56P2eocXtH8HChI45PGgMYnpcQVmnz5Va5xhseEWdPr2tdiBmL4fag2UQ== root@tm1" >> '+tempdir+''+name+'/root/.ssh/authorized_keys')
                 os.system('chmod 600 '+tempdir+''+name+'/root/.ssh/authorized_keys')
+                runCmd('sudo rm -f netsetup_minicluster.tgz')
                                 
             else:#Later we should be able to chose the cluster where is deployed
                 logger.info('Torque for India')    
