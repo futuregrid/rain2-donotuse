@@ -287,6 +287,15 @@ def main():
                 
                 os.system('chmod 600 '+tempdir+'/rootimg/root/.ssh/authorized_keys')
                 runCmd('sudo rm -f netsetup_minicluster.tgz')
+                
+                os.system('touch ./rc.local')
+                os.system('cat '+tempdir+'/rootimg/etc/rc.d/rc.local'+' > ./rc.local')            
+                f= open('./rc.local', 'a')
+                f.write("\n"+"/etc/netsetup/netsetup.sh"+"\n"+"sleep 10"+"\n"+"/etc/init.d/pbs_mom start"+'\n')        
+                f.close()          
+                os.system('sudo mv -f ./rc.local '+tempdir+'/rootimg/etc/rc.d/rc.local')
+                os.system('sudo chown root:root '+tempdir+'/rootimg/etc/rc.d/rc.local')
+                os.system('sudo chmod 755 '+tempdir+'/rootimg/etc/rc.d/rc.local')   
                                 
             else:#Later we should be able to chose the cluster where is deployed
                 logger.info('Torque for India')    
@@ -309,19 +318,12 @@ def main():
                           'p8JMPptL+kTz5psnjozTNQgLYtYHAcfy66AKELnLuGbOFQdYxnINhX3e0iQCDDI5YQ== jdiaz@india.futuregrid.org" >> '+tempdir+'/rootimg/root/.ssh/authorized_keys')
                 os.system('chmod 600 '+tempdir+'/rootimg/root/.ssh/authorized_keys')
                 
+                runCmd('sudo chroot '+tempdir+'/rootimg/ /sbin/chkconfig --add pbs_mom')
+                runCmd('sudo chroot '+tempdir+'/rootimg/ /sbin/chkconfig pbs_mom on')
+                
                 
             runCmd('sudo chmod +x '+tempdir+'/rootimg/etc/init.d/pbs_mom')
-            #runCmd('sudo chroot '+tempdir+'/rootimg/ /sbin/chkconfig --add pbs_mom')
-            #runCmd('sudo chroot '+tempdir+'/rootimg/ /sbin/chkconfig pbs_mom on')
-            
-            os.system('touch ./rc.local')
-            os.system('cat '+tempdir+'/rootimg/etc/rc.d/rc.local'+' > ./rc.local')            
-            f= open('./rc.local', 'a')
-            f.write("\n"+"/etc/netsetup/netsetup.sh"+"\n"+"sleep 10"+"\n"+"/etc/init.d/pbs_mom start"+'\n')        
-            f.close()          
-            os.system('sudo mv -f ./rc.local '+tempdir+'/rootimg/etc/rc.d/rc.local')
-            os.system('sudo chown root:root '+tempdir+'/rootimg/etc/rc.d/rc.local')
-            os.system('sudo chmod 755 '+tempdir+'/rootimg/etc/rc.d/rc.local')      
+               
             
             f= open(tempdir+'/config', 'w')
             f.write("opsys "+ operatingsystem + "" + name+"\n"+"arch "+ arch)        

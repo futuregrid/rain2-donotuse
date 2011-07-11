@@ -475,7 +475,7 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
     
     runCmd('wget ' + base_url + '/conf/centos/ifcfg-eth0 -O '+tempdir+''+name + '/etc/sysconfig/network-scripts/ifcfg-eth0')
 
-    centosLog.info('Injected networking configuration')
+    centosLog.info('Injected generic networking configuration')
 
 
     # Setup package repositories 
