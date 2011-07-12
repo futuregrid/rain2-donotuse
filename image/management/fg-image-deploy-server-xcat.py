@@ -187,8 +187,14 @@ def main():
 
             cmd = 'chtab osimage.imagename=' + prefix + operatingsystem + '' + name + '-'+arch+'-netboot-compute osimage.profile=compute osimage.imagetype=linux osimage.provmethod=netboot osimage.osname=linux osimage.osvers=' + prefix + operatingsystem + '' + name + ' osimage.osarch=' + arch + ''
             logging.debug(cmd)
-            status=os.system(cmd)
+            #status=os.system(cmd)
             
+            cmd = 'chtab boottarget.bprofile=' + prefix + operatingsystem + '' + name +' boottarget.kernel=\'xcat/netboot/'+ prefix + operatingsystem + '' + name +'/'+arch+\
+                  '/compute/kernel\' boottarget.initrd=\'xcat/netboot/'+ prefix + operatingsystem + '' + name +'/'+arch+'/compute/initrd-stateless.gz\' boottarget.kcmdline=\'imgurl=http://172.29.202.149/install/netboot/'+ prefix + operatingsystem + '' + name +'/'+arch+\
+                  '/compute/rootimg.gz console=ttyS0,115200n8r\''
+            
+            logging.debug(cmd)
+            #status=os.system(cmd)
             
             #include row in linuximage table?            
             #if the row exists it will give an error
@@ -198,7 +204,7 @@ def main():
             #Pack image
             cmd = 'packimage -o ' + prefix + operatingsystem + '' + name + ' -p compute -a ' + arch
             logging.debug(cmd)
-            status=runCmd(cmd)
+            #status=runCmd(cmd)
         
             if status != 0:
                 break

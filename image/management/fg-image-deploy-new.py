@@ -337,7 +337,7 @@ sysfs   /sys     sysfs    defaults       0 0
         
         #if name is in tempdir string then del tempdir, else only rootimg
         self.logger.info('sudo rm -rf '+self.tempdir)
-        self.logger.info('sudo rm -rf '+self.imagefile+'.tgz')
+        self.logger.info('sudo rm -f '+self.imagefile+'.tgz')
         self.runCmd("sudo rm -rf "+self.tempdir)
         self.runCmd("sudo rm -f "+self.imagefile+'.tgz')
         
