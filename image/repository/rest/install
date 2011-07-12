@@ -1,0 +1,85 @@
+#! /bin/sh
+
+# Downloading dependencies
+python getDistributions.py
+
+
+# echo " Return value " $? 
+
+
+#--------copyingg mongodb to /usr/local/monbodb ----------
+if [[ $? -eq 1 ]]; then
+    # This result shows that mongodb does not exist on /usr/local/mongodb
+
+    echo " Copying mongodb to /usr/local/mongodb "
+    # Check the local directory
+    if [ -d "mongodb" ]; then
+	sudo cp -rf mongodb /usr/local/mongodb
+    else
+	echo " Unable to install mongodb "
+	exit 1
+    fi
+
+    if [ ! -e "/usr/local/mongodb/bin/mongod" ]; then
+	echo "Unable to copy mongodb into /usr/local"
+	exit 1
+    else
+	echo " Able to copy mongodb into /usr/local, removing distribution "
+	sudo rm -rf mongodb*
+    fi
+elif [[ $? -eq 0 ]]; then
+	# unable to install either pymongo or cherrypy
+	echo " Installation error, please check if pymongo or cherrypy was setup appropriately " $?
+	exit 1
+fi
+
+
+# Download and generate keys from  openssl
+
+if  [ ! -e "/usr/local/ssl/bin/openssl" ]; then
+    if [ -d "ssl" ]; then 
+	echo "compiling ssl  distribution "
+	cd ssl
+	./config ; sudo make install
+	cd ..
+	if [ -e "/usr/local/ssl/bin/openssl" ]; then
+	    sudo rm -rf openssl* ssl
+	else
+	    echo " Unable to generate library for openssl distribution "
+	    exit 1
+	fi
+    else
+	echo "Unable to install openssl "
+	exit 1
+    fi
+fi
+
+
+#-------Generating keys and certificates ---------------
+
+    # Generating the public key of size 2048
+if [ ! -e "server.key" ]; then
+    echo "Generating the server key of size 2048"
+    /usr/local/ssl/bin/openssl genrsa -des3 -out server.key 2048
+fi
+
+    # Generating the certificate
+if [ ! -e server.key ]; then
+    echo "Unable to generate the public key "
+    exit 1
+else
+    if [ ! -e "server.csr" ]; then
+    echo "Generating the certificate"
+    /usr/local/ssl/bin/openssl req -new -key server.key -out server.csr
+    fi
+fi
+
+    # Generating the private key
+if [ ! -e "server.csr" ]; then
+    echo "Unable to generate the private key,  missing server.crt file "	
+else
+    if [ ! -e "server.crt" ]; then
+	echo "Getting private key"
+	/usr/local/ssl/bin/openssl x509 -req -days 60 -in server.csr -signkey server.key -out server.crt
+    fi
+fi
