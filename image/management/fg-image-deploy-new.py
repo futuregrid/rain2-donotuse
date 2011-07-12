@@ -29,7 +29,7 @@ default_euca_kernel = '2.6.27.21-0.1-xen'
 
 log_filename = 'fg-image-deploy.log'
 
-TEST_MODE=True
+TEST_MODE=False
 
 class ImageDeploy(object):
     ############################################################
@@ -198,7 +198,7 @@ class ImageDeploy(object):
         self.runCmd(cmd)
         cmd = 'sudo mount -o loop ' + self.imagefile + ' '+self.tempdir+'/rootimg/'
         self.runCmd(cmd)
-    
+        fstab=""
         if (self.operatingsystem!="ubuntu"):
             self.logger.info('Installing torque')
             if(TEST_MODE):
@@ -248,6 +248,15 @@ class ImageDeploy(object):
                 os.system('sudo mv -f ./_rc.local '+self.tempdir+'/rootimg/etc/rc.d/rc.local')
                 os.system('sudo chown root:root '+self.tempdir+'/rootimg/etc/rc.d/rc.local')
                 os.system('sudo chmod 755 '+self.tempdir+'/rootimg/etc/rc.d/rc.local')   
+                fstab = '''
+# xCAT fstab 
+devpts  /dev/pts devpts   gid=5,mode=620 0 0
+tmpfs   /dev/shm tmpfs    defaults       0 0
+proc    /proc    proc     defaults       0 0
+sysfs   /sys     sysfs    defaults       0 0
+172.29.200.1:/export/users /N/u      nfs     rw,rsize=1048576,wsize=1048576,intr,nosuid
+'''             
+                
                 
             else:#Later we should be able to chose the cluster where is deployed
                 self.logger.info('Torque for India')    
@@ -278,6 +287,14 @@ class ImageDeploy(object):
                 self.runCmd('sudo chroot '+self.tempdir+'/rootimg/ /sbin/chkconfig --add pbs_mom')
                 self.runCmd('sudo chroot '+self.tempdir+'/rootimg/ /sbin/chkconfig pbs_mom on')       
                 
+                fstab = '''
+# xCAT fstab 
+devpts  /dev/pts devpts   gid=5,mode=620 0 0
+tmpfs   /dev/shm tmpfs    defaults       0 0
+proc    /proc    proc     defaults       0 0
+sysfs   /sys     sysfs    defaults       0 0
+149.165.146.145:/users /N/u      nfs     rw,rsize=1048576,wsize=1048576,intr,nosuid
+'''
                 
             self.runCmd('sudo chmod +x '+self.tempdir+'/rootimg/etc/init.d/pbs_mom')                   
             
@@ -296,21 +313,12 @@ class ImageDeploy(object):
     
     
         #Setup fstab
-        fstab = '''
-# xCAT fstab 
-devpts  /dev/pts devpts   gid=5,mode=620 0 0
-tmpfs   /dev/shm tmpfs    defaults       0 0
-proc    /proc    proc     defaults       0 0
-sysfs   /sys     sysfs    defaults       0 0
-172.29.200.1:/export/users /N/u      nfs     rw,rsize=1048576,wsize=1048576,intr,nosuid
-'''
         f= open(self.tempdir+'/fstab', 'w')
         f.write(fstab)
         f.close()
         os.system('sudo mv -f '+self.tempdir+'/fstab '+self.tempdir+'rootimg/etc/fstab')
         self.logger.info('Injected fstab')
-    
-        
+           
         ####################        
         #We are going to send the image and then we copy there the files
         #####################
