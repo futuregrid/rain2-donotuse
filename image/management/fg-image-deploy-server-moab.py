@@ -66,14 +66,15 @@ def main():
             #params[3] is arch
             
             prefix=params[0]
-            operatingsystem=params[1]
-            name=params[2]
+            name=params[1]
+            operatingsystem=params[2]
             arch=params[3]
             
             moabstring=""
             
             if TEST_MODE:
                 moabstring = 'echo \"' + prefix + operatingsystem + '' + name + ' ' + arch + ' ' + prefix + operatingsystem + '' + name + ' compute netboot\" >> ' + moabInstallPath + '/tools/msm/images.txt'
+                
                 #moabstring = 'echo \"' + prefix + operatingsystem + '' + name + ' ' + arch + ' boottarget ' + prefix + operatingsystem + '' + name + ' netboot\" >> ' + moabInstallPath + '/tools/msm/images.txt'
             else:
                 moabstring = 'echo \"' + prefix + operatingsystem + '' + name + ' ' + arch + ' boottarget ' + prefix + operatingsystem + '' + name + ' netboot\" >> ' + moabInstallPath + '/tools/msm/images.txt'               

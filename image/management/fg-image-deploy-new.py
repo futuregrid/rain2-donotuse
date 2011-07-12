@@ -262,9 +262,8 @@ class ImageDeploy(object):
                 self.logger.info('Configuring network')                   
                 self.runCmd('sudo wget ' + base_url + '/conf/centos/ifcfg-eth1 -O '+self.tempdir+'/rootimg/etc/sysconfig/network-scripts/ifcfg-eth1')
                 self.runCmd('sudo wget ' + base_url + '/conf/hosts_india -O '+self.tempdir+ '/rootimg/etc/hosts')
-                #temporal
-                self.runCmd('sudo mkdir -p '+self.tempdir+'/rootimg/root/.ssh')                
                 
+                self.runCmd('sudo mkdir -p '+self.tempdir+'/rootimg/root/.ssh')
                 os.system('touch ./_authorized_keys')
                 f= open('./_authorized_keys', 'a')
                 f.write("\n"+"ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAsAaCJFcGUXSmA2opcQk/HeuiJu417a69KbuWNjf1UqarP7t0hUpMXQnlc8+yfi"
@@ -279,8 +278,8 @@ class ImageDeploy(object):
                 self.runCmd('sudo chroot '+self.tempdir+'/rootimg/ /sbin/chkconfig --add pbs_mom')
                 self.runCmd('sudo chroot '+self.tempdir+'/rootimg/ /sbin/chkconfig pbs_mom on')       
                 
-            self.runCmd('sudo chmod +x '+self.tempdir+'/rootimg/etc/init.d/pbs_mom')
-                   
+                
+            self.runCmd('sudo chmod +x '+self.tempdir+'/rootimg/etc/init.d/pbs_mom')                   
             
             f= open(self.tempdir+'/config', 'w')
             f.write("opsys "+ self.operatingsystem + "" + self.name+"\n"+"arch "+ self.arch)        
