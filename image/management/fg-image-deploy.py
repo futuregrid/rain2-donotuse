@@ -239,15 +239,7 @@ class ImageDeploy(object):
                 os.system('sudo chown root:root '+self.tempdir+'/rootimg/root/.ssh/authorized_keys')
                 os.system('sudo chmod 600 '+self.tempdir+'/rootimg/root/.ssh/authorized_keys')
                 
-                                
-                os.system('touch ./_rc.local')
-                os.system('cat '+self.tempdir+'/rootimg/etc/rc.d/rc.local'+' > ./_rc.local')            
-                f= open('./_rc.local', 'a')
-                f.write("\n"+"/etc/netsetup/netsetup.sh"+"\n"+"sleep 10"+"\n"+"/etc/init.d/pbs_mom start"+'\n')        
-                f.close()          
-                os.system('sudo mv -f ./_rc.local '+self.tempdir+'/rootimg/etc/rc.d/rc.local')
-                os.system('sudo chown root:root '+self.tempdir+'/rootimg/etc/rc.d/rc.local')
-                os.system('sudo chmod 755 '+self.tempdir+'/rootimg/etc/rc.d/rc.local')   
+                   
                 fstab = '''
 # xCAT fstab 
 devpts  /dev/pts devpts   gid=5,mode=620 0 0
@@ -268,7 +260,9 @@ sysfs   /sys     sysfs    defaults       0 0
                 self.runCmd('sudo rm -f var.tgz opt.tgz')            
                 self.runCmd('sudo wget fg-gravel3.futuregrid.iu.edu/torque/torque-2.4.8_india/pbs_mom -O '+self.tempdir+'/rootimg/etc/init.d/pbs_mom')
                 
-                self.logger.info('Configuring network')                   
+                self.logger.info('Configuring network')
+                self.runCmd('sudo mkdir '+self.tempdir+'/rootimg/etc/netsetup/')              
+                self.runCmd('sudo wget fg-gravel3.futuregrid.iu.edu/conf/centos/netsetup.sh_india -O '+self.tempdir+'/rootimg/etc/netsetup/netsetup.sh')             
                 self.runCmd('sudo wget ' + base_url + '/conf/centos/ifcfg-eth1 -O '+self.tempdir+'/rootimg/etc/sysconfig/network-scripts/ifcfg-eth1')
                 self.runCmd('sudo wget ' + base_url + '/conf/hosts_india -O '+self.tempdir+ '/rootimg/etc/hosts')
                 
@@ -284,8 +278,8 @@ sysfs   /sys     sysfs    defaults       0 0
                 os.system('sudo chown root:root '+self.tempdir+'/rootimg/root/.ssh/authorized_keys')
                 os.system('sudo chmod 600 '+self.tempdir+'/rootimg/root/.ssh/authorized_keys')                
                 
-                self.runCmd('sudo chroot '+self.tempdir+'/rootimg/ /sbin/chkconfig --add pbs_mom')
-                self.runCmd('sudo chroot '+self.tempdir+'/rootimg/ /sbin/chkconfig pbs_mom on')       
+                #self.runCmd('sudo chroot '+self.tempdir+'/rootimg/ /sbin/chkconfig --add pbs_mom')
+                #self.runCmd('sudo chroot '+self.tempdir+'/rootimg/ /sbin/chkconfig pbs_mom on')       
                 
                 fstab = '''
 # xCAT fstab 
@@ -295,8 +289,19 @@ proc    /proc    proc     defaults       0 0
 sysfs   /sys     sysfs    defaults       0 0
 149.165.146.145:/users /N/u      nfs     rw,rsize=1048576,wsize=1048576,intr,nosuid
 '''
-                
-            self.runCmd('sudo chmod +x '+self.tempdir+'/rootimg/etc/init.d/pbs_mom')                   
+            
+            self.runCmd('sudo chmod +x '+self.tempdir+'/rootimg/etc/init.d/pbs_mom')
+            
+            #Modifying rc.local to restart network and start pbs_mom at the end
+            os.system('touch ./_rc.local')
+            os.system('cat '+self.tempdir+'/rootimg/etc/rc.d/rc.local'+' > ./_rc.local')            
+            f= open('./_rc.local', 'a')
+            f.write("\n"+"/etc/netsetup/netsetup.sh"+"\n"+"sleep 10"+"\n"+"/etc/init.d/pbs_mom start"+'\n')        
+            f.close()          
+            os.system('sudo mv -f ./_rc.local '+self.tempdir+'/rootimg/etc/rc.d/rc.local')
+            os.system('sudo chown root:root '+self.tempdir+'/rootimg/etc/rc.d/rc.local')
+            os.system('sudo chmod 755 '+self.tempdir+'/rootimg/etc/rc.d/rc.local')
+                               
             
             f= open(self.tempdir+'/config', 'w')
             f.write("opsys "+ self.operatingsystem + "" + self.name+"\n"+"arch "+ self.arch)        

@@ -204,10 +204,10 @@ def main():
             #Pack image
             cmd = 'packimage -o ' + prefix + operatingsystem + '' + name + ' -p compute -a ' + arch
             logging.debug(cmd)
-            status=runCmd(cmd)
+#            status=runCmd(cmd)
         
-            if status != 0:
-                break
+            #if status != 0:
+            #    break
 
             #create directory that contains initrd.img and vmlinuz
             tftpimgdir='/tftpboot/xcat/'+ prefix + operatingsystem + '' + name+'/'+arch
@@ -240,7 +240,17 @@ def main():
 
                 if status != 0:
                     break
-
+                
+            anotherdir='/tftpboot/xcat/netboot/'+prefix + operatingsystem + '' + name+'/'+arch+'/'
+            
+            if not os.path.isdir(anotherdir):
+            
+                cmd='mkdir -p '+anotherdir
+                status=runCmd(cmd)                
+                cmd='cp '+path+'/initrd-stateless.gz '+path+'/kernel '+anotherdir
+                status=runCmd(cmd)
+                
+                 
 
             """
             #Do a nodeset
@@ -257,7 +267,8 @@ def main():
             
             channel.send(moabstring)
             channel.close()
-                 
+            
+            #add variable that is true if the code reaches this line. if not at the start of the while it send a fail message to the client and closes the channel
 
 
 def runCmd(cmd):
