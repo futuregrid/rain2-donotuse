@@ -204,7 +204,7 @@ def main():
             #Pack image
             cmd = 'packimage -o ' + prefix + operatingsystem + '' + name + ' -p compute -a ' + arch
             logging.debug(cmd)
-#            status=runCmd(cmd)
+            status=runCmd(cmd)
         
             #if status != 0:
             #    break
