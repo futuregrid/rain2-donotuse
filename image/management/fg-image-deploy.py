@@ -285,7 +285,7 @@ sysfs   /sys     sysfs    defaults       0 0
                 self.runCmd('sudo mkdir '+self.tempdir+'/rootimg/etc/netsetup/')              
                 self.runCmd('sudo wget fg-gravel3.futuregrid.iu.edu/conf/centos/netsetup.sh_india -O '+self.tempdir+'/rootimg/etc/netsetup/netsetup.sh')
                 self.runCmd('sudo chmod +x '+self.tempdir+'/rootimg/etc/netsetup/netsetup.sh')             
-                self.runCmd('sudo wget ' + base_url + '/conf/centos/ifcfg-eth1 -O '+self.tempdir+'/rootimg/etc/sysconfig/network-scripts/ifcfg-eth1')
+                #self.runCmd('sudo wget ' + base_url + '/conf/centos/ifcfg-eth1 -O '+self.tempdir+'/rootimg/etc/sysconfig/network-scripts/ifcfg-eth1')
                 self.runCmd('sudo wget ' + base_url + '/conf/hosts_india -O '+self.tempdir+ '/rootimg/etc/hosts')
                 
                 self.runCmd('sudo mkdir -p '+self.tempdir+'/rootimg/root/.ssh')
