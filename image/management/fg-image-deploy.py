@@ -318,7 +318,7 @@ sysfs   /sys     sysfs    defaults       0 0
             os.system('touch ./_rc.local')
             os.system('cat '+self.tempdir+'/rootimg/etc/rc.d/rc.local'+' > ./_rc.local')            
             f= open('./_rc.local', 'a')
-            f.write("\n"+"/etc/netsetup/netsetup.sh"+"\n"+"sleep 10"+"\n"+"/etc/init.d/pbs_mom start"+'\n'+'mount -a'+'\n')        
+            f.write("\n"+"/etc/netsetup/netsetup.sh"+"\n"+"sleep 10"+"\n"+"/etc/init.d/pbs_mom start"+'\n'+'/bin/mount -a'+'\n')        
             f.close()          
             os.system('sudo mv -f ./_rc.local '+self.tempdir+'/rootimg/etc/rc.d/rc.local')
             os.system('sudo chown root:root '+self.tempdir+'/rootimg/etc/rc.d/rc.local')
