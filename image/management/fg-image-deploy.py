@@ -47,6 +47,7 @@ class ImageDeploy(object):
         
         self.manifestname=""
         self.imagefile=""
+        self.extractdir="./"
         
         #from manifest
         self.name=""
@@ -65,20 +66,39 @@ class ImageDeploy(object):
 
     
     def handle_image(self, image):
+        
+        nameimg=""
+                
+        urlparts=image.split("/")
+        self.logger.debug(str(urlparts))
+        if len(urlparts) == 1:
+            nameimg=urlparts[0].split(".")[0]
+        elif len(urlparts) == 2:
+            nameimg=urlparts[1].split(".")[0]
+            if (urlparts!="."):
+                self.extractdir=urlparts[0]+"/"
+        else:
+            nameimg=urlparts[len(urlparts)-1].split(".")[0]
+            self.extractdir=""
+            for i in range(len(urlparts)-1):
+                self.extractdir+=urlparts[i]+"/"
+            
+        self.logger.debug("name img "+nameimg)
+        self.logger.debug("extract dir "+self.extractdir)
+        
         self.logger.info('untar file with image and manifest')
-        stat=os.system("tar xvfz "+image)
+        stat=os.system("tar xvfz "+image+" -C "+self.extractdir)
         
         if (stat!=0):
             print "Error: the files were not extracted"
             sys.exit(1)
         
         
-        nameimg=image.split(".")[0]
         self.tempdir+=nameimg+"/"
         
         self.manifestname=nameimg+".manifest.xml"
         
-        manifestfile = open(self.manifestname, 'r')
+        manifestfile = open(self.extractdir+"/"+self.manifestname, 'r')
         manifest = parse(manifestfile)
 
         
@@ -196,7 +216,7 @@ class ImageDeploy(object):
         self.logger.info('Mounting image...')
         cmd = 'mkdir -p '+self.tempdir+'/rootimg' #to have write access in this directory as normal user. Needed to create files with open
         self.runCmd(cmd)
-        cmd = 'sudo mount -o loop ' + self.imagefile + ' '+self.tempdir+'/rootimg/'
+        cmd = 'sudo mount -o loop '+self.extractdir+'/'+ self.imagefile + ' '+self.tempdir+'/rootimg/'
         self.runCmd(cmd)
         fstab=""
         if (self.operatingsystem!="ubuntu"):
@@ -338,24 +358,24 @@ sysfs   /sys     sysfs    defaults       0 0
         self.runCmd(cmd)
         
         self.logger.info('Compressing image')
-        cmd = ('sudo tar cvfz '+self.imagefile+'.tgz '+self.imagefile)
+        cmd = ('sudo tar cvfz '+self.extractdir+'/'+self.imagefile+'.tgz -C '+self.extractdir+' '+self.imagefile)
         self.runCmd(cmd)
         
         #Copy the image to the Shared directory.        
         self.logger.info('Uploading image. You may be asked for ssh/paraphrase password')
-        cmd = 'scp '+self.imagefile+'.tgz '+ self.user + '@' + self.nasaddr + ':'+self.shareddirserver+'/'
+        cmd = 'scp '+self.extractdir+'/'+self.imagefile+'.tgz '+ self.user + '@' + self.nasaddr + ':'+self.shareddirserver+'/'
         self.logger.info(cmd)
         self.runCmd(cmd)
         
         
         #if name is in tempdir string then del tempdir, else only rootimg
         self.logger.info('sudo rm -rf '+self.tempdir)
-        self.logger.info('sudo rm -f '+self.imagefile+'.tgz')
+        self.logger.info('sudo rm -f '+self.extractdir+'/'+self.imagefile+'.tgz')
         self.runCmd("sudo rm -rf "+self.tempdir)
-        self.runCmd("sudo rm -f "+self.imagefile+'.tgz')
+        self.runCmd("sudo rm -f "+self.extractdir+'/'+self.imagefile+'.tgz')
         
         #remove local img and manifest
-        self.runCmd("rm -f "+self.manifestname+" "+self.imagefile)
+        self.runCmd("rm -f "+self.extractdir+'/'+self.manifestname+" "+self.extractdir+'/'+self.imagefile)
     
         #xCAT server                
         self.logger.info('Connecting to xCAT server')
@@ -490,7 +510,7 @@ def main():
         parser.error('You need to specify a tgz that contains the image and the manifest (-i option)')
         logger.error('Image file not found')
         sys.exit(1)
-    
+        
     #EUCALYPTUS
     if not isinstance(ops.euca, NoneType):
         imgdeploy.euca_method()
