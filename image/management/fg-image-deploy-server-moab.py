@@ -44,7 +44,6 @@ def main():
     ch.setFormatter(formatter)
     logger.addHandler(ch)
     
-    
     logging.info('Starting Server on port ' + str(port))
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.bind(('', port))
