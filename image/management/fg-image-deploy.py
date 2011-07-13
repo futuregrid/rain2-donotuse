@@ -389,9 +389,9 @@ sysfs   /sys     sysfs    defaults       0 0
     
         xcatServer.send(msg)
         #check if the server received all parameters
-        ret = xcatServer.recv(100)
+        ret = xcatServer.recv(1024)
         if ret != 'OK':
-            self.logger.error('Incorrect reply from the xCat server:'+ret)
+            self.logger.error('Incorrect reply from the xCat server:'+ret)            
             sys.exit(1)
     
         #recieve the prefix parameter from xcat server

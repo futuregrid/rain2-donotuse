@@ -78,19 +78,16 @@ def main():
             kernel=params[4]
             tempdir=params[5]
         
-            if not os.path.isfile(tempdir+'/'+oldName+'.img.tgz'):
-                logging.error('file not found')
+
+        
+            if len(params) != numparams:        
+                errormsg(channel, "ERROR: incorrect message", logging)
                 break
         
-            if len(params) == numparams:
-                channel.send('OK')
-                #channel.close()
-            else:
-                logging.error("ERROR: incorrect message")
-                channel.send('ERROR')
-                channel.close()
-                sys.exit(1)
-        
+            if not os.path.isfile(tempdir+'/'+oldName+'.img.tgz'):
+                errormsg(channel, 'ERROR: file not found', logging)                
+                break
+            
             #Hook for Debian based systems to work in xCAT
             prefix = ''
             if operatingsystem == 'ubuntu' or operatingsystem == 'debian':
@@ -107,8 +104,9 @@ def main():
         
             cmd = 'mkdir -p ' + path + 'rootimg '+ path + 'temp'
             status=runCmd(cmd)
-        
-            if status != 0:
+            
+            if status != 0:                
+                errormsg(channel, "ERROR: creating directory rootimg", logging)
                 break
         
             #cmd = 'cd ' + path + '; gunzip -c rootimg.gz | cpio -i'
@@ -118,28 +116,29 @@ def main():
             status=runCmd(cmd) 
         
             if status != 0:
+                errormsg(channel, "ERROR: extracting image", logging)
                 break
             
             cmd =  'rm -f '+ tempdir +'/'+oldName+'.img.tgz'
             status=runCmd(cmd) 
-        
-            if status != 0:
-                break
+            
             
             cmd =  'mount -o loop '+ path +''+oldName+'.img '+ path +'temp'
             status=runCmd(cmd) 
         
             if status != 0:
+                errormsg(channel, "ERROR: mounting image", logging)
                 break
             
             #if os.path.isdir(path +'temp'):
             #    print 'the directory exists'
                              
             cmd =  'cp -rp '+ path +'temp/* '+ path +'rootimg/'
-            print cmd
+            #logging.debug(cmd)
             status=os.system(cmd) 
         
             if status != 0:
+                errormsg(channel, "ERROR: copying image", logging)
                 break
             
             cmd =  'umount '+ path +'temp' 
@@ -148,6 +147,7 @@ def main():
             status=runCmd(cmd)
         
             if status != 0:
+                errormsg(channel, "ERROR: unmounting image", logging)
                 break
             
             #cmd = 'tar xfz '+path + 'rootimg.tar.gz --directory ' + path
@@ -162,24 +162,28 @@ def main():
                 status=runCmd(cmd)
             
                 if status != 0:
+                    errormsg(channel, "ERROR: retrieving/copying initrd.gz", logging)
                     break
             
                 cmd = 'wget fg-gravel3.futuregrid.iu.edu/kernel/specialubuntu/kernel -O ' + path+'/kernel'
                 status=runCmd(cmd)
                 
                 if status != 0:
+                    errormsg(channel, "ERROR: retrieving/copying kernel", logging)
                     break
             else:
                 cmd = 'wget fg-gravel3.futuregrid.iu.edu/kernel/initrd.gz -O ' + path+'/initrd-stateless.gz'
                 status=runCmd(cmd)
             
                 if status != 0:
+                    errormsg(channel, "ERROR: retrieving/copying initrd.gz", logging)
                     break
             
                 cmd = 'wget fg-gravel3.futuregrid.iu.edu/kernel/kernel -O ' + path+'/kernel'
                 status=runCmd(cmd)
                 
                 if status != 0:
+                    errormsg(channel, "ERROR: retrieving/copying kernel", logging)
                     break
         
             #Add entry to the osimage table
@@ -207,6 +211,7 @@ def main():
             status=runCmd(cmd)
         
             if status != 0:
+                errormsg(channel, "ERROR: packimage command", logging)
                 break
 
             #create directory that contains initrd.img and vmlinuz
@@ -221,43 +226,46 @@ def main():
                 status=runCmd(cmd)
     
                 if status != 0:
+                    errormsg(channel, "ERROR: retrieving/copying initrd.img", logging)
                     break
     
                 cmd = 'wget fg-gravel3.futuregrid.iu.edu/kernel/tftp/xcat/ubuntu10/'+arch+'/vmlinuz -O ' +tftpimgdir+'/vmlinuz'
                 status=runCmd(cmd)
 
                 if status != 0:
+                    errormsg(channel, "ERROR: retrieving/copying vmlinuz", logging)
                     break
             else:
                 cmd = 'wget fg-gravel3.futuregrid.iu.edu/kernel/tftp/xcat/centos5/'+arch+'/initrd.img -O ' +tftpimgdir+'/initrd.img'
                 status=runCmd(cmd)
     
                 if status != 0:
+                    errormsg(channel, "ERROR: retrieving/copying initrd.img", logging)
                     break
     
                 cmd = 'wget fg-gravel3.futuregrid.iu.edu/kernel/tftp/xcat/centos5/'+arch+'/vmlinuz -O ' +tftpimgdir+'/vmlinuz'
                 status=runCmd(cmd)
 
                 if status != 0:
+                    errormsg(channel, "ERROR: retrieving/copying vmlinuz", logging)
                     break
                 
             anotherdir='/tftpboot/xcat/netboot/'+prefix + operatingsystem + '' + name+'/'+arch+'/'
             
-            if not os.path.isdir(anotherdir):
-            
+            if not os.path.isdir(anotherdir): #This should be done by qsub/msub by calling nodeset.            
                 cmd='mkdir -p '+anotherdir
                 status=runCmd(cmd)                
                 cmd='cp '+path+'/initrd-stateless.gz '+path+'/kernel '+anotherdir
                 status=runCmd(cmd)
                 
-                 
-
             """
             #Do a nodeset
             cmd = 'nodeset tc1 netboot=' + prefix + operatingsystem + '' + name + '-' + arch + '-compute'
             runCmd(cmd)
             runCmd('rpower tc1 boot')
             """
+            
+            channel.send("OK")            
             
             logging.debug("sending to the client the info needed to register the image in Moab")                    
             
@@ -270,6 +278,11 @@ def main():
             
             #add variable that is true if the code reaches this line. if not at the start of the while it send a fail message to the client and closes the channel
 
+
+def errormsg(channel, msg, logging):
+    logging.error(msg)
+    channel.send(msg)
+    channel.close()
 
 def runCmd(cmd):
     cmdLog = logging.getLogger('exec')
