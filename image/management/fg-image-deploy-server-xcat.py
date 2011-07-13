@@ -206,8 +206,8 @@ def main():
             logging.debug(cmd)
             status=runCmd(cmd)
         
-            #if status != 0:
-            #    break
+            if status != 0:
+                break
 
             #create directory that contains initrd.img and vmlinuz
             tftpimgdir='/tftpboot/xcat/'+ prefix + operatingsystem + '' + name+'/'+arch
