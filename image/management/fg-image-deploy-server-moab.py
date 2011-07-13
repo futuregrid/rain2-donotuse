@@ -17,7 +17,7 @@ import time
 port = 56790
 moabInstallPath = '/opt/moab/'
 
-TEST_MODE=True
+TEST_MODE=False
 RESTARTMOAB=5  #time that we wait to get the moab scheduler restarted (mschedctl -R)
 
 numparams = 4   #prefix,name,os,arch
