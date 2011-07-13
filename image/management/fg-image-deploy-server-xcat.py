@@ -208,11 +208,11 @@ def main():
             #Pack image
             cmd = 'packimage -o ' + prefix + operatingsystem + '' + name + ' -p compute -a ' + arch
             logging.debug(cmd)
-            status=runCmd(cmd)
+#            status=runCmd(cmd)
         
-            if status != 0:
-                errormsg(channel, "ERROR: packimage command", logging)
-                break
+#            if status != 0:
+#                errormsg(channel, "ERROR: packimage command", logging)
+#                break
 
             #create directory that contains initrd.img and vmlinuz
             tftpimgdir='/tftpboot/xcat/'+ prefix + operatingsystem + '' + name+'/'+arch
@@ -250,7 +250,7 @@ def main():
                     errormsg(channel, "ERROR: retrieving/copying vmlinuz", logging)
                     break
                 
-            anotherdir='/tftpboot/xcat/netboot/'+prefix + operatingsystem + '' + name+'/'+arch+'/'
+            anotherdir='/tftpboot/xcat/netboot/'+prefix + operatingsystem + '' + name+'/'+arch+'/compute/'
             
             if not os.path.isdir(anotherdir): #This should be done by qsub/msub by calling nodeset.            
                 cmd='mkdir -p '+anotherdir
