@@ -79,7 +79,7 @@ class ImageDeploy(object):
         
         self.logger.debug(nameimg)
         
-        self.tempdir+=nameimg+"/"
+        self.tempdir+=nameimg+"_0/"
         
         cmd = 'mkdir -p '+self.tempdir
         self.runCmd(cmd)
@@ -219,11 +219,10 @@ class ImageDeploy(object):
             self.logger.info('Installing torque')
             if(TEST_MODE):
                 self.logger.info('Torque for minicluster')
-                self.runCmd('sudo wget fg-gravel3.futuregrid.iu.edu/torque/torque-2.5.1_minicluster/torque-2.5.1.tgz'+\
-                       ' fg-gravel3.futuregrid.iu.edu/torque/torque-2.5.1_minicluster/var.tgz')   
+                self.runCmd('sudo wget fg-gravel3.futuregrid.iu.edu/torque/torque-2.5.1_minicluster/torque-2.5.1.tgz -O '+self.tempdir+'/torque-2.5.1.tgz')
+                self.runCmd('sudo wget fg-gravel3.futuregrid.iu.edu/torque/torque-2.5.1_minicluster/var.tgz -O '+self.tempdir+'/var.tgz')   
                 self.runCmd('sudo tar xfz torque-2.5.1.tgz -C '+self.tempdir+'/rootimg/usr/local/')
-                self.runCmd('sudo tar xfz var.tgz -C '+self.tempdir+'/rootimg/')
-                self.runCmd('sudo rm -f var.tgz torque-2.5.1.tgz')
+                self.runCmd('sudo tar xfz var.tgz -C '+self.tempdir+'/rootimg/')                
                 self.runCmd('sudo wget fg-gravel3.futuregrid.iu.edu/torque/torque-2.5.1_minicluster/pbs_mom -O '+self.tempdir+'/rootimg/etc/init.d/pbs_mom')
                 
                 self.logger.info('Configuring network')        
@@ -270,11 +269,10 @@ sysfs   /sys     sysfs    defaults       0 0
             else:#Later we should be able to chose the cluster where is deployed
                 self.logger.info('Torque for India')    
                 self.runCmd('sudo wget fg-gravel3.futuregrid.iu.edu/conf/hosts_india -O '+self.tempdir+'/rootimg/etc/hosts')
-                self.runCmd('sudo wget fg-gravel3.futuregrid.iu.edu/torque/torque-2.4.8_india/opt.tgz'+\
-                       ' fg-gravel3.futuregrid.iu.edu/torque/torque-2.4.8_india/var.tgz')   
-                self.runCmd('sudo tar xfz opt.tgz -C '+self.tempdir+'/rootimg/')
-                self.runCmd('sudo tar xfz var.tgz -C '+self.tempdir+'/rootimg/')
-                self.runCmd('sudo rm -f var.tgz opt.tgz')            
+                self.runCmd('sudo wget fg-gravel3.futuregrid.iu.edu/torque/torque-2.4.8_india/opt.tgz -O '+self.tempdir+'/opt.tgz')
+                self.runCmd('sudo wget fg-gravel3.futuregrid.iu.edu/torque/torque-2.4.8_india/var.tgz -O '+self.tempdir+'/var.tgz')   
+                self.runCmd('sudo tar xfz '+self.tempdir+'/opt.tgz -C '+self.tempdir+'/rootimg/')
+                self.runCmd('sudo tar xfz '+self.tempdir+'/var.tgz -C '+self.tempdir+'/rootimg/')                            
                 self.runCmd('sudo wget fg-gravel3.futuregrid.iu.edu/torque/torque-2.4.8_india/pbs_mom -O '+self.tempdir+'/rootimg/etc/init.d/pbs_mom')
                 
                 self.logger.info('Configuring network')
