@@ -180,6 +180,11 @@ def main():
     else:
         _retrieveImg(userId, status, logging, serveraddr)
     
+    imgIds=serveraddr.split("/")
+    imgId=serveraddr[len(imgIds)-1]
+    logging.info('Generated image and the manifest are packed in the file '+imgId+'.  Please be aware that this FutureGrid image is packaged ' 
+                  'without a kernel and fstab and is not built for any deployment type.  To deploy the new image, use the fg-image-deploy command.')
+    
     #server return addr of the img and metafeile compressed in a tgz or None
     #get tgz 
     #delete remote files

@@ -275,10 +275,11 @@ sysfs   /sys     sysfs    defaults       0 0
                 self.runCmd('sudo tar xfz '+self.tempdir+'/var.tgz -C '+self.tempdir+'/rootimg/')                            
                 self.runCmd('sudo wget fg-gravel3.futuregrid.iu.edu/torque/torque-2.4.8_india/pbs_mom -O '+self.tempdir+'/rootimg/etc/init.d/pbs_mom')
                 
-                self.logger.info('Configuring network')
-                self.runCmd('sudo mkdir '+self.tempdir+'/rootimg/etc/netsetup/')              
-                self.runCmd('sudo wget fg-gravel3.futuregrid.iu.edu/conf/centos/netsetup.sh_india -O '+self.tempdir+'/rootimg/etc/netsetup/netsetup.sh')
-                self.runCmd('sudo chmod +x '+self.tempdir+'/rootimg/etc/netsetup/netsetup.sh')             
+                self.logger.info('Configuring network')                
+                self.runCmd('sudo wget fg-gravel3.futuregrid.iu.edu/conf/centos/netsetup.sh_india -O '+self.tempdir+'/rootimg/etc/init.d/netsetup.sh')
+                self.runCmd('sudo chmod +x '+self.tempdir+'/rootimg/etc/init.d/netsetup.sh')
+                self.runCmd('sudo chroot '+self.tempdir+'/rootimg/ /sbin/chkconfig --add netsetup.sh')
+                         
                 #self.runCmd('sudo wget ' + base_url + '/conf/centos/ifcfg-eth1 -O '+self.tempdir+'/rootimg/etc/sysconfig/network-scripts/ifcfg-eth1')
                 self.runCmd('sudo wget ' + base_url + '/conf/hosts_india -O '+self.tempdir+ '/rootimg/etc/hosts')
                 
@@ -312,7 +313,7 @@ sysfs   /sys     sysfs    defaults       0 0
             os.system('touch ./_rc.local')
             os.system('cat '+self.tempdir+'/rootimg/etc/rc.d/rc.local'+' > ./_rc.local')            
             f= open('./_rc.local', 'a')
-            f.write("\n"+"/etc/netsetup/netsetup.sh"+"\n"+"sleep 10"+"\n"+"/etc/init.d/pbs_mom start"+'\n'+'/bin/mount -a'+'\n')        
+            f.write("\n"+"sleep 10"+"\n"+"/etc/init.d/pbs_mom start"+'\n')        
             f.close()          
             os.system('sudo mv -f ./_rc.local '+self.tempdir+'/rootimg/etc/rc.d/rc.local')
             os.system('sudo chown root:root '+self.tempdir+'/rootimg/etc/rc.d/rc.local')
