@@ -83,7 +83,7 @@ class ImgStoreSwiftMongo(ImgStoreMongo):
     ############################################################
     # getItem
     ############################################################
-    def getItem(self, imgId, userId):
+    def getItem(self, imgId, userId, admin):
         """
         Get Image file identified by the imgId
         
@@ -94,7 +94,7 @@ class ImgStoreSwiftMongo(ImgStoreMongo):
         """
                         
         imgLinks = []  
-        result = self.queryStore([imgId], imgLinks, userId)
+        result = self.queryStore([imgId], imgLinks, userId, admin)
         """
         if (result):
             filename="/tmp/"+imgId+".img"
@@ -127,7 +127,7 @@ class ImgStoreSwiftMongo(ImgStoreMongo):
     ############################################################
     # queryStore
     ############################################################
-    def queryStore(self, imgIds, imgLinks, userId):
+    def queryStore(self, imgIds, imgLinks, userId, admin):
         """        
         Query the DB and provide a generator object of the Images to create them with strean method.    
         
@@ -150,7 +150,7 @@ class ImgStoreSwiftMongo(ImgStoreMongo):
                 for imgId in imgIds:
                     
                     access = False
-                    if(self.existAndOwner(imgId, userId)):
+                    if(self.existAndOwner(imgId, userId) or admin):
                         access = True
                         #self._log.debug("ifowner "+str(access))
                     elif(self.isPublic(imgId)):
@@ -318,7 +318,7 @@ class ImgStoreSwiftMongo(ImgStoreMongo):
     ############################################################
     # removeItem 
     ############################################################
-    def removeItem (self, userId, imgId, size):
+    def removeItem (self, userId, imgId, size, admin):
         #what are we going to do with concurrency?
         """
         Remove the Image file and Metainfo if imgId exists and your are the owner.
@@ -336,7 +336,7 @@ class ImgStoreSwiftMongo(ImgStoreMongo):
         """   
         removed = False
         if (self.mongoConnection()):# and self.swiftConnection()):
-            if(self.existAndOwner(imgId, userId)):    
+            if(self.existAndOwner(imgId, userId) or admin):    
                 try:
                     dbLink = self._dbConnection[self._dbName]
                     collection = dbLink[self._datacollection]

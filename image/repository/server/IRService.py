@@ -200,10 +200,11 @@ class IRService(object):
     ############################################################
     def get(self, userId, option, imgId):
         self._log.info("user:" + userId + " command:get args={option:" + option + ", imgId:" + imgId + "}")
+        
         if (option == "img"):
-            return self.imgStore.getItem(imgId, userId)
+            return self.imgStore.getItem(imgId, userId, self.userStore.isAdmin(userId))
         elif (option == "uri"):
-            return self.imgStore.getItemUri(imgId, userId)
+            return self.imgStore.getItemUri(imgId, userId, self.userStore.isAdmin(userId))
 
     ############################################################
     # put
@@ -281,10 +282,13 @@ class IRService(object):
     ############################################################
     def remove(self, userId, imgId):
         self._log.info("user:" + userId + " command:remove args={imgId:" + imgId + "}")
-        size = [0] #Size is output parameter in the first call. 
-        status = self.imgStore.removeItem(userId, imgId, size) 
-        if(status):
-            status = self.userStore.updateAccounting(userId, -(size[0]), -1)
+        status=False
+        owner=self.imgStore.getOwner(imgId)
+        if owner != None:
+            size = [0] #Size is output parameter in the first call. 
+            status = self.imgStore.removeItem(userId, imgId, size, self.userStore.isAdmin(userId)) 
+            if(status):
+                status = self.userStore.updateAccounting(owner, -(size[0]), -1)
         return status
     
     ############################################################

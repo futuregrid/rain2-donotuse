@@ -80,7 +80,7 @@ class ImgStoreCumulusMysql(ImgStoreMysql):
     ############################################################
     # getItem
     ############################################################
-    def getItem(self, imgId, userId):
+    def getItem(self, imgId, userId, admin):
         """
         Get Image file identified by the imgId
         
@@ -91,7 +91,7 @@ class ImgStoreCumulusMysql(ImgStoreMysql):
         """
                         
         imgLinks = []  
-        result = self.queryStore([imgId], imgLinks, userId)
+        result = self.queryStore([imgId], imgLinks, userId, admin)
         
         if (result):
             return imgLinks[0]
@@ -103,7 +103,7 @@ class ImgStoreCumulusMysql(ImgStoreMysql):
     ############################################################
     # queryStore
     ############################################################
-    def queryStore(self, imgIds, imgLinks, userId):
+    def queryStore(self, imgIds, imgLinks, userId, admin):
         """        
         Query the DB and provide the uri.    
         
@@ -122,7 +122,7 @@ class ImgStoreCumulusMysql(ImgStoreMysql):
                  
                 for imgId in imgIds:
                     access = False
-                    if(self.existAndOwner(imgId, userId)):
+                    if(self.existAndOwner(imgId, userId) or admin):
                         access = True
                     elif(self.isPublic(imgId)):
                         access = True
@@ -258,7 +258,7 @@ class ImgStoreCumulusMysql(ImgStoreMysql):
     ############################################################
     # removeItem 
     ############################################################
-    def removeItem (self, userId, imgId, size):
+    def removeItem (self, userId, imgId, size, admin):
         #what are we going to do with concurrency?
         """
         Remove the Image file and Metainfo if imgId exists and your are the owner.
@@ -283,7 +283,7 @@ class ImgStoreCumulusMysql(ImgStoreMysql):
                                            db=self._dbName,
                                            read_default_file=self._mysqlcfg,
                                            user=self._iradminsuer)
-            if(self.existAndOwner(imgId, userId)):            
+            if(self.existAndOwner(imgId, userId) or admin):            
                 try:
                     cursor = con.cursor()
                     contain = self._cumulusConnection.get_bucket(self._containerName)               

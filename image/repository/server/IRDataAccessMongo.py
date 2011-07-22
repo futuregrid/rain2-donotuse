@@ -96,7 +96,7 @@ class ImgStoreMongo(AbstractImgStore):
     ############################################################
     # getItem
     ############################################################
-    def getItem(self, imgId, userId):
+    def getItem(self, imgId, userId, admin):
         """
         Get Image file identified by the imgId
         
@@ -107,7 +107,7 @@ class ImgStoreMongo(AbstractImgStore):
         """
                         
         imgLinks = []  
-        result = self.queryStore([imgId], imgLinks, userId)
+        result = self.queryStore([imgId], imgLinks, userId, admin)
         
         if (result):
             filename = "/tmp/" + imgId + ".img"
@@ -286,7 +286,7 @@ class ImgStoreMongo(AbstractImgStore):
     ############################################################
     # queryStore
     ############################################################
-    def queryStore(self, imgIds, imgLinks, userId):
+    def queryStore(self, imgIds, imgLinks, userId, admin):
         """        
         Query the DB and provide the GridOut of the Images to create them with read method.    
         
@@ -307,7 +307,7 @@ class ImgStoreMongo(AbstractImgStore):
                 for imgId in imgIds:
                     
                     access = False
-                    if(self.existAndOwner(imgId, userId)):
+                    if(self.existAndOwner(imgId, userId) or admin):
                         access = True
                         #self._log.debug("ifowner "+str(access))
                     elif(self.isPublic(imgId)):
@@ -435,7 +435,7 @@ class ImgStoreMongo(AbstractImgStore):
     ############################################################
     # removeItem 
     ############################################################
-    def removeItem (self, userId, imgId, size):
+    def removeItem (self, userId, imgId, size, admin):
         #what are we going to do with concurrency?
         """
         Remove the Image file and Metainfo if imgId exists and your are the owner.
@@ -453,7 +453,7 @@ class ImgStoreMongo(AbstractImgStore):
         """   
         removed = False
         if (self.mongoConnection()):
-            if(self.existAndOwner(imgId, userId)):    
+            if(self.existAndOwner(imgId, userId) or admin):    
                 try:
                     dbLink = self._dbConnection[self._dbName]
                     collection = dbLink[self._datacollection]
@@ -486,6 +486,44 @@ class ImgStoreMongo(AbstractImgStore):
             self._log.error("Could not get access to the database. The file has not been removed")
             
         return removed
+    
+    ############################################################
+    # existAndOwner
+    ############################################################
+    def getOwner(self, imgId):
+        """
+        Get image Owner
+        
+        keywords:
+        imgId: The id of the image
+       
+        
+        Return: string
+        """
+        
+        results=None 
+        if (self.mongoConnection()):
+            try:
+                dbLink = self._dbConnection[self._dbName]
+                collection = dbLink[self._metacollection]
+                
+                
+                aux = collection.find_one({"_id": imgId})
+                
+                if (aux != None):
+                    results=aux['owner']
+                #print isOwner                 
+            except pymongo.errors.AutoReconnect:  #TODO: Study what happens with that. store or not store the file
+                self._log.warning("Autoreconnected.")                 
+            except pymongo.errors.ConnectionFailure:
+                self._log.error("Connection failure") 
+            except TypeError as detail:
+                self._log.error("TypeError in ImgStoreMongo - getOwner: "+str(detail))
+            except bson.errors.InvalidId:
+                self._log.error("Error, not a valid ObjectId in ImgStoreMongo - getOwner")
+        else:
+            self._log.error("Could not get access to the database. Cannot check img owner")        
+        return results
     
     ############################################################
     # existAndOwner
@@ -1365,24 +1403,26 @@ class IRUserStoreMongo(AbstractIRUserStore):
         Verify if a user is admin
         """
         admin = False
-           
-        try:
-            dbLink = self._dbConnection[self._dbName]
-            collection = dbLink[self._usercollection]
-                             
-            aux = collection.find_one({"userId": userId})
-            if (aux != None):
-                if (aux['role'] == "admin"):
-                    admin = True
-            #print admin   
-        except pymongo.errors.AutoReconnect:  
-            self._log.warning("Autoreconnected.")                 
-        except pymongo.errors.ConnectionFailure:
-            self._log.error("Connection failure") 
-        except TypeError as detail:
-            self._log.error("TypeError in IRUserStoreMongo - isAdmin" + str(sys.exc_info()))
-        except bson.errors.InvalidId:
-            self._log.error("Error, not a valid ObjectId in IRUserStoreMongo - isAdmin")
+        if (self.mongoConnection()):  
+            try:
+                dbLink = self._dbConnection[self._dbName]
+                collection = dbLink[self._usercollection]
+                                 
+                aux = collection.find_one({"userId": userId})
+                if (aux != None):
+                    if (aux['role'] == "admin"):
+                        admin = True
+                #print admin   
+            except pymongo.errors.AutoReconnect:  
+                self._log.warning("Autoreconnected.")                 
+            except pymongo.errors.ConnectionFailure:
+                self._log.error("Connection failure") 
+            except TypeError as detail:
+                self._log.error("TypeError in IRUserStoreMongo - isAdmin" + str(sys.exc_info()))
+            except bson.errors.InvalidId:
+                self._log.error("Error, not a valid ObjectId in IRUserStoreMongo - isAdmin")
+        else:
+            self._log.error("Could not get access to the database. IsAdmin command failed")
         
         return admin
             

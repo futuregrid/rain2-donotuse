@@ -8,12 +8,12 @@ import sys, os
 ################
 #BACKEND CONFIG
 ################
-
+"""
 #MongoDB config
 __backend__ = "mongodb"
 __address__ = "localhost:23000"
 __fgirimgstore__ = "/tmp/"
-
+"""
 """
 #Mysql config
 __backend__= "mysql"
@@ -41,13 +41,13 @@ __address__="localhost"  #Mongos address
 __addressS__= "192.168.1.2"#cumulus address
 __fgirimgstore__="/tmp/"
 """
-"""
+
 #Cumulus-Mongo
 __backend__= "cumulusmongo"
 __address__="localhost:23000"  #Mongos address
 __addressS__= "192.168.1.2"#cumulus address
 __fgirimgstore__="/tmp/"
-"""
+
 
 
 ############################################

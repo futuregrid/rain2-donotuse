@@ -71,13 +71,13 @@ class ImgStoreMysql(AbstractImgStore):
     ############################################################
     # getItemUri
     ############################################################
-    def getItemUri(self, imgId, userId):
-        return self.getItem(imgId, userId)
+    def getItemUri(self, imgId, userId, admin):
+        return self.getItem(imgId, userId, admin)
         
     ############################################################
     # getItem
     ############################################################
-    def getItem(self, imgId, userId):
+    def getItem(self, imgId, userId, admin):
         """
         Get Image file identified by the imgId
         
@@ -87,7 +87,7 @@ class ImgStoreMysql(AbstractImgStore):
         return the Image file as a str
         """
         imgLinks = []  
-        result = self.queryStore([imgId], imgLinks, userId)
+        result = self.queryStore([imgId], imgLinks, userId, admin)
         
         if (result):     
             return imgLinks[0]
@@ -213,7 +213,7 @@ class ImgStoreMysql(AbstractImgStore):
     ############################################################
     # queryStore
     ############################################################
-    def queryStore(self, imgIds, imgLinks, userId):
+    def queryStore(self, imgIds, imgLinks, userId, admin):
         """        
         Query the DB and provide the uri.    
         
@@ -230,7 +230,7 @@ class ImgStoreMysql(AbstractImgStore):
                        
                 for imgId in imgIds:
                     access = False
-                    if(self.existAndOwner(imgId, userId)):
+                    if(self.existAndOwner(imgId, userId) or admin):
                         access = True
                     elif(self.isPublic(imgId)):
                         access = True
@@ -323,7 +323,7 @@ class ImgStoreMysql(AbstractImgStore):
     ############################################################
     # removeItem 
     ############################################################
-    def removeItem (self, userId, imgId, size):
+    def removeItem (self, userId, imgId, size, admin):
         #what are we going to do with concurrency?
         """
         Remove the Image file and Metainfo if imgId exists and your are the owner.
@@ -348,7 +348,7 @@ class ImgStoreMysql(AbstractImgStore):
                                            db=self._dbName,
                                            read_default_file=self._mysqlcfg,
                                            user=self._iradminsuer)
-            if(self.existAndOwner(imgId, userId)):            
+            if(self.existAndOwner(imgId, userId) or admin):            
                 try:
                     cursor = con.cursor()
                     
@@ -358,7 +358,7 @@ class ImgStoreMysql(AbstractImgStore):
                     results = cursor.fetchone()
                     size[0] = int(results[0])
                     
-                    uri = self.getItem(imgId, userId)
+                    uri = self.getItem(imgId, userId, admin)
                     os.system("rm -f " + uri)
                     
                     sql = "DELETE FROM %s WHERE imgId='%s'" % (self._tabledata, imgId)                    
@@ -377,7 +377,7 @@ class ImgStoreMysql(AbstractImgStore):
                     self._log.error("I/O error({0}): {1}".format(errno, strerror))
                     self._log.error("No such file or directory. Image details: " + item.__str__())                 
                 except TypeError as detail:
-                    self._log.error("TypeError in ImgStoreMongo - removeItem " + format(detail))
+                    self._log.error("TypeError in ImgStoreMysql - removeItem " + format(detail))
                 finally:
                     con.close()
             else:
@@ -387,7 +387,40 @@ class ImgStoreMysql(AbstractImgStore):
             self._log.error("Could not get access to the database. The file has not been removed")
             
         return removed
-             
+    
+    
+    def getOwner(self, imgId):
+        """
+        Get image Owner
+        
+        keywords:
+        imgId: The id of the image
+       
+        
+        Return: string
+        """
+        results=None
+        if (self.mysqlConnection()):  
+            try:
+                cursor = self._dbConnection.cursor()
+                
+                sql = "SELECT owner FROM %s WHERE imgId='%s'" % (self._tablemeta, imgId)
+                #self._log.debug(sql)
+                cursor.execute(sql)
+                results = cursor.fetchone()
+                
+            except MySQLdb.Error, e:
+                self._log.error("Error %d: %s" % (e.args[0], e.args[1]))                                           
+            except IOError as (errno, strerror):
+                self._log.error("I/O error({0}): {1}".format(errno, strerror))
+                self._log.error("No such file or directory. Image details: " + item.__str__())                
+            except TypeError as detail:
+                self._log.error("TypeError in ImgStoreMysql - getOwner: " + format(detail)) 
+        else:
+            self._log.error("Could not get access to the database. Cannot check img owner")
+        
+        return results[0]
+               
     ############################################################
     # existAndOwner
     ############################################################
@@ -1070,30 +1103,30 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
         success = False
         if (self.mysqlConnection()):
             try:
-                if(self.isAdmin(userId)):
-                    cursor = self._dbConnection.cursor()
-                    
-                    sql = "SELECT fsUsed, ownedImgs FROM %s WHERE userId = '%s' " % (self._tabledata, userId)
-                    cursor.execute(sql)
-                    results = cursor.fetchone()                    
-                    currentSize = results[0]
-                    currentNum = results[1]
-                    
-                    totalSize = int(currentSize) + int(size)
-                    total = int(currentNum) + int(num)
-                    
-                    if(totalSize < 0):
-                        totalSize = 0
-                    if(total < 0):
-                        total = 0
-                    
-                    update = "UPDATE %s SET fsUsed='%d',ownedImgs='%d' WHERE userId='%s'" \
-                                   % (self._tabledata, totalSize, total, userId)
-                    
-                    cursor.execute(update)
-                    self._dbConnection.commit()
-                                                    
-                    success = True                 
+                
+                cursor = self._dbConnection.cursor()
+                
+                sql = "SELECT fsUsed, ownedImgs FROM %s WHERE userId = '%s' " % (self._tabledata, userId)
+                cursor.execute(sql)
+                results = cursor.fetchone()                    
+                currentSize = results[0]
+                currentNum = results[1]
+                
+                totalSize = int(currentSize) + int(size)
+                total = int(currentNum) + int(num)
+                
+                if(totalSize < 0):
+                    totalSize = 0
+                if(total < 0):
+                    total = 0
+                
+                update = "UPDATE %s SET fsUsed='%d',ownedImgs='%d' WHERE userId='%s'" \
+                               % (self._tabledata, totalSize, total, userId)
+                
+                cursor.execute(update)
+                self._dbConnection.commit()
+                                                
+                success = True                 
                     
             except MySQLdb.Error, e:
                 self._log.error("Error %d: %s" % (e.args[0], e.args[1]))                
@@ -1342,26 +1375,28 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
         Verify if a user is admin
         """
         admin = False
-                
-        try:
-            cursor = self._dbConnection.cursor()         
-                 
-            sql = "SELECT role FROM %s WHERE userId = '%s' " % (self._tabledata, userId)
-            #print sql
-            cursor.execute(sql)
-            results = cursor.fetchone()
-            #print results
-            if(results != None):
-                if (results[0] == "admin"):               
-                    admin = True
-                 
-        except MySQLdb.Error, e:
-            self._log.error("Error %d: %s" % (e.args[0], e.args[1]))                                           
-        except IOError as (errno, strerror):
-            self._log.error("I/O error({0}): {1}".format(errno, strerror))               
-        except TypeError as detail:
-            self._log.error("TypeError in IRUSerStoreMysql - isAdmin: " + format(detail))   
-       
+        
+        if (self.mysqlConnection()):          
+            try:
+                cursor = self._dbConnection.cursor()         
+                     
+                sql = "SELECT role FROM %s WHERE userId = '%s' " % (self._tabledata, userId)
+                #print sql
+                cursor.execute(sql)
+                results = cursor.fetchone()
+                #print results
+                if(results != None):
+                    if (results[0] == "admin"):               
+                        admin = True
+                     
+            except MySQLdb.Error, e:
+                self._log.error("Error %d: %s" % (e.args[0], e.args[1]))                                           
+            except IOError as (errno, strerror):
+                self._log.error("I/O error({0}): {1}".format(errno, strerror))               
+            except TypeError as detail:
+                self._log.error("TypeError in IRUSerStoreMysql - isAdmin: " + format(detail))   
+        else:
+            self._log.error("Could not get access to the database. IsAdmin command failed")
         return admin
             
     ############################################################

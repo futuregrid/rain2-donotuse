@@ -77,7 +77,7 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
     ############################################################
     # getItem
     ############################################################
-    def getItem(self, imgId, userId):
+    def getItem(self, imgId, userId, admin):
         """
         Get Image file identified by the imgId
         
@@ -88,7 +88,7 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
         """
                         
         imgLinks = []  
-        result = self.queryStore([imgId], imgLinks, userId)
+        result = self.queryStore([imgId], imgLinks, userId, admin)
         
         """
         if (result):
@@ -123,7 +123,7 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
     ############################################################
     # queryStore
     ############################################################
-    def queryStore(self, imgIds, imgLinks, userId):
+    def queryStore(self, imgIds, imgLinks, userId, admin):
         """        
         Query the DB and provide the uri.    
         
@@ -141,7 +141,7 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
                  
                 for imgId in imgIds:
                     access = False
-                    if(self.existAndOwner(imgId, userId)):
+                    if(self.existAndOwner(imgId, userId) or admin):
                         access = True
                     elif(self.isPublic(imgId)):
                         access = True
@@ -293,7 +293,7 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
     ############################################################
     # removeItem 
     ############################################################
-    def removeItem (self, userId, imgId, size):
+    def removeItem (self, userId, imgId, size, admin):
         #what are we going to do with concurrency?
         """
         Remove the Image file and Metainfo if imgId exists and your are the owner.
@@ -318,7 +318,7 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
                                            db=self._dbName,
                                            read_default_file=self._mysqlcfg,
                                            user=self._iradminsuer)
-            if(self.existAndOwner(imgId, userId)):            
+            if(self.existAndOwner(imgId, userId) or admin):            
                 try:
                     cursor = con.cursor()
                     #contain= self._swiftConnection.get_container(self._containerName)
