@@ -45,9 +45,9 @@ def usage():
     --useradd <userId>: add user 
     --userdel <userId>: remove user
     --userlist: list of users
-    --setUserquota <userId> <quota>: modify user quota
-    --setUserRole  <userId> <role>: modify user role
-    --setUserStatus <userId> <status>: modify user status
+    --setuserquota <userId> <quota>: modify user quota
+    --setuserrole  <userId> <role>: modify user role
+    --setuserstatus <userId> <status>: modify user status
     -i/--histimg [imgId]: get usage info of an image
     -u/--histuser <userId>: get usage info of a user
           
