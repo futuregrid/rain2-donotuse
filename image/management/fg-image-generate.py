@@ -34,13 +34,13 @@ def main():
     #Set up logging
     log_filename = 'fg-image-generate.log'
     logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",datefmt='%a, %d %b %Y %H:%M:%S',filemode='w',filename=log_filename,level=logging.DEBUG)
-    logger = logging.getLogger()
-    logger.setLevel(logging.DEBUG)
-    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-    handler = logging.FileHandler(log_filename)
-    handler.setLevel(logging.DEBUG)
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
+    #logger = logging.getLogger()
+    #logger.setLevel(logging.DEBUG)
+    #formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    #handler = logging.FileHandler(log_filename)
+    #handler.setLevel(logging.DEBUG)
+    #handler.setFormatter(formatter)
+    #logger.addHandler(handler)
     
     #ch = logging.StreamHandler()
     #ch.setLevel(logging.DEBUG)

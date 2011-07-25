@@ -16,18 +16,28 @@ import sys
 import socket
 from subprocess import *
 #from xml.dom.ext import *
-from xml.dom.minidom import Document, parse
-from time import time
+from xml.dom.minidom import Document, parseString
+import xmlrpclib
+import time
 
 
 def main():    
     
     
-    #the ips should be given by the method that deploy the VM on demand.
-    vmaddr_centos = "192.168.1.16"
-    vmaddr_rhel= ""
-    vmaddr_ubuntu= "192.168.1.15"
-    vmaddr_debian= ""
+    oneadminpass=os.popen("oneuser list | grep oneadmin | cut -d" " -f13","r")
+    print oneadminpass
+    #the file of the VM to be deployed in OpenNebula
+    vmfile_centos = "/src/cloud/one/share/examples/centos_context.one"
+    vmfile_rhel= ""
+    vmfile_ubuntu= "/src/cloud/one/share/examples/ubuntu_context.one"
+    vmfile_debian= ""
+    vmfile=""
+    
+    #
+    xmlrpcserver='http://localhost:2633/RPC2'
+    #Bridge/interface for VMs
+    bridge="br1"
+    #it will have the IP of the VM
     vmaddr=""
     ####
     
@@ -77,7 +87,7 @@ def main():
     #rhel-distro = ['5.5', '5.4', '4.8']
     #fedora-distro = ['14','12']
     """
-    logging.info('Image generator server...')
+    logger.info('Image generator server...')
         
     #help is auto-generated
     parser.add_option("-o", "--os", dest="os", help="specify destination Operating System")
@@ -100,7 +110,7 @@ def main():
     
     #Turn debugging off
     if not ops.debug:
-        logging.basicConfig(level=logging.INFO)        
+        logger.basicConfig(level=logging.INFO)        
         #ch.setLevel(logging.INFO)
     
     #TODO: authenticate user via promting for CERT or password to auth against LDAP db
@@ -110,31 +120,36 @@ def main():
 #Here we have to call other method that boot an image with the OS required and give me the ip
     
     if ops.os == "ubuntu":        
-        vmaddr=vmaddr_ubuntu
+        vmfile=vmfile_ubuntu
     elif ops.os == "debian":
-        vmaddr=vmaddr_debian
+        vmfile=vmfile_debian
     elif ops.os == "rhel":
-        vmaddr=vmaddr_rhel
+        vmfile=vmfile_rhel
     elif ops.os == "centos":
-        vmaddr=vmaddr_centos
+        vmfile=vmfile_centos
+        
+    ###########
+    #BOOT VM##
+    ##########
+    vmaddr=boot_VM(oneadminpass,xmlrpcserver,vmfile, bridge, logger)    
+    #####
     
+    logger.info("The VM deployed is in "+vmaddr)
     
-    logging.info("The VM deployed is in "+vmaddr)
-    
-    logging.info("Mount scratch directory in the VM")
+    logger.info("Mount scratch directory in the VM")
     cmd="ssh -q " + userId + "@" + vmaddr
     cmdmount=" mount -t nfs "+addrnfs+":"+tempdirserver+" "+tempdir
-    logging.info(cmd+cmdmount)
+    logger.info(cmd+cmdmount)
     stat=os.system(cmd+cmdmount)
     
     
     if (stat == 0):        
-        logging.info("Sending fg-image-generate.py to the VM")
+        logger.info("Sending fg-image-generate.py to the VM")
         cmdscp = "scp -q "+serverdir+'/fg-image-generate.py  ' + userId + "@" + vmaddr + ":"+vmdir
-        logging.info(cmdscp)
+        logger.info(cmdscp)
         stat = os.system(cmdscp)
         if (stat != 0):
-            logging.error("Error sending fg-image-generate.py to the VM. Exit status " + str(stat))
+            logger.error("Error sending fg-image-generate.py to the VM. Exit status " + str(stat))
             
                     
         options+="-a "+ops.arch+" -o "+ops.os+" -v "+ops.version+" -u "+user+" -t "+tempdir
@@ -150,9 +165,9 @@ def main():
         
         cmdexec = " -q '" + vmdir + "fg-image-generate.py "+options+" '"
         
-        logging.info(cmdexec)
+        logger.info(cmdexec)
         
-        uid = _rExec(userId, cmdexec, logging, vmaddr)
+        uid = _rExec(userId, cmdexec, logger, vmaddr)
         
         status = uid[0].strip() #it contains error or filename
         if status=="error":
@@ -164,7 +179,7 @@ def main():
                 
             print tempdirserver+""+status+".tgz"
             
-        logging.info("Umount scratch directory in the VM")
+        logger.info("Umount scratch directory in the VM")
         cmd="ssh -q " + userId + "@" + vmaddr
         cmdmount=" umount "+tempdir
         stat=os.system(cmd+cmdmount)
@@ -172,10 +187,88 @@ def main():
     #destroy VM
     
 
+def boot_VM(oneadminpass,xmlrpcserver, vmfile, bridge, logger):
+    """
+    It will boot a VM using XMLRPC API for OpenNebula
+    
+    from lib/ruby/OpenNebula/VirtualMachine.rb
+    index start in 0
+    
+    VM_STATE=%w{INIT PENDING HOLD ACTIVE STOPPED SUSPENDED DONE FAILED}
+    LCM_STATE=%w{LCM_INIT PROLOG BOOT RUNNING MIGRATE SAVE_STOP SAVE_SUSPEND
+        SAVE_MIGRATE PROLOG_MIGRATE PROLOG_RESUME EPILOG_STOP EPILOG
+        SHUTDOWN CANCEL FAILURE CLEANUP UNKNOWN}
+    """
+    vmaddr=""
+    fail=False
+    # ---Start xmlrpc client to opennebula server-------------
+    server=xmlrpclib.ServerProxy(xmlrpcserver)
+    
+    #-----read template into string -------------------------
+    #s=open('./share/examples/ubuntu_context.one','r').read()
+    s=open(vmfile,'r').read()
+    #logger.debug("Vm template:\n"+s)
+    
+    #-----Start VM-------------------------------------------
+    vm=server.one.vm.allocate(auth,s)
+    
+    if vm[0]:
+        logger.debug("VM ID:\n"+vm[1])
+    
+        #monitor VM
+        booted=False
+        while not booted:
+            #-------Get Info about VM -------------------------------
+            vminfo=server.one.vm.info(auth,vm[1])
+            #print  vminfo[1]
+            manifest = parseString(vminfo[1])
+        
+            #VM_status (init=0, pend=1, act=3, fail=7)
+            vm_status=manifest.getElementsByTagName('STATE')[0].firstChild.nodeValue.strip()
+            
+            if vm_status == "3":
+                #LCM_status (prol=1,boot=2,runn=3, fail=14, unk=16)
+                lcm_status=manifest.getElementsByTagName('LCM_STATE')[0].firstChild.nodeValue.strip()
+                
+                if lcm_status == "3":
+                    booted=True
+            elif vm_status == "7":
+                logger.error("Fail to deploy VM "+vm[1])
+                booted=True
+                fail=True
+                vmaddr="fail"
+            else:
+                time.sleep(2)
+                
+        if not fail:    
+            #get IP
+            nics=manifest.getElementsByTagName('NIC')
+            
+            for i in range(len(nics)):
+                if( nics[i].childNodes[0].firstChild.nodeValue.strip() == bridge ):
+                    vmaddr=nics[i].childNodes[1].firstChild.nodeValue.strip()
+            
+            logger.debug("IP of the VM "+vm[1]+" is "+vmaddr)
+            
+            access=False
+            while not access:
+                cmd = "ssh -q root@"+ip+" uname"
+                status=os.system(cmd)
+                #print status
+                if status == 0:
+                    access=True
+                    logger.debug("The VM "+vm[1]+" with ip "+vmaddr+"is accessible")
+                else:
+                    time.sleep(2)
+    else:
+        vmaddr="fail"
+    
+    return vmaddr
+
 ############################################################
 # _rExec
 ############################################################
-def _rExec(userId, cmdexec, logging, vmaddr):        
+def _rExec(userId, cmdexec, logger, vmaddr):        
             
     #TODO: do we want to use the .format statement from python to make code more readable?
     #Set up random string    
@@ -188,12 +281,12 @@ def _rExec(userId, cmdexec, logging, vmaddr):
     cmdexec = cmdexec + " > " + tmpFile
     cmd = cmdssh + cmdexec
     
-    logging.info(str(cmd))
+    logger.info(str(cmd))
     
     stat = os.system(cmd)
     if (str(stat) != "0"):
         #print stat
-        logging.info(str(stat))
+        logger.info(str(stat))
     f = open(tmpFile, "r")
     outputs = f.readlines()
     f.close()
