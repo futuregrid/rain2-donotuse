@@ -67,8 +67,9 @@ def main():
     #ch.setFormatter(formatter)
     #logger.addHandler(ch)
 
-    oneadminpass=os.system("oneuser list | grep oneadmin | cut -d\" \" -f13","r")
-    logger.debug("password "+oneadminpass)
+    p=Popen("oneuser list | grep oneadmin | cut -d\" \" -f13",stdout=subprocess.PIPE)
+    oneadminpass= p.communicate[0]
+    logger.debug("password "+str(oneadminpass))
 
     parser = OptionParser()
     
