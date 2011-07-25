@@ -24,8 +24,6 @@ import time
 def main():    
     
     
-    oneadminpass=os.popen("oneuser list | grep oneadmin | cut -d\" \" -f13","r")
-    print oneadminpass
     #the file of the VM to be deployed in OpenNebula
     vmfile_centos = "/src/cloud/one/share/examples/centos_context.one"
     vmfile_rhel= ""
@@ -68,6 +66,9 @@ def main():
     #ch.setLevel(logging.DEBUG)
     #ch.setFormatter(formatter)
     #logger.addHandler(ch)
+
+    oneadminpass=os.system("oneuser list | grep oneadmin | cut -d\" \" -f13","r")
+    logger.debug("password "+oneadminpass)
 
     parser = OptionParser()
     
