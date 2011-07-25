@@ -25,9 +25,9 @@ def main():
     
     
     #the file of the VM to be deployed in OpenNebula
-    vmfile_centos = "/src/cloud/one/share/examples/centos_context.one"
+    vmfile_centos = "/srv/cloud/one/share/examples/centos_context.one"
     vmfile_rhel= ""
-    vmfile_ubuntu= "/src/cloud/one/share/examples/ubuntu_context.one"
+    vmfile_ubuntu= "/srv/cloud/one/share/examples/ubuntu_context.one"
     vmfile_debian= ""
     vmfile=""
     
@@ -213,11 +213,13 @@ def boot_VM(oneadminpass,xmlrpcserver, vmfile, bridge, logger):
     s=open(vmfile,'r').read()
     #logger.debug("Vm template:\n"+s)
     
+    auth="oneadmin:"+oneadminpass
+    
     #-----Start VM-------------------------------------------
     vm=server.one.vm.allocate(auth,s)
     
     if vm[0]:
-        logger.debug("VM ID:\n"+vm[1])
+        logger.debug("VM ID:\n"+str(vm[1]))
     
         #monitor VM
         booted=False
@@ -237,7 +239,7 @@ def boot_VM(oneadminpass,xmlrpcserver, vmfile, bridge, logger):
                 if lcm_status == "3":
                     booted=True
             elif vm_status == "7":
-                logger.error("Fail to deploy VM "+vm[1])
+                logger.error("Fail to deploy VM "+str(vm[1]))
                 booted=True
                 fail=True
                 vmaddr="fail"
@@ -252,7 +254,7 @@ def boot_VM(oneadminpass,xmlrpcserver, vmfile, bridge, logger):
                 if( nics[i].childNodes[0].firstChild.nodeValue.strip() == bridge ):
                     vmaddr=nics[i].childNodes[1].firstChild.nodeValue.strip()
             
-            logger.debug("IP of the VM "+vm[1]+" is "+vmaddr)
+            logger.debug("IP of the VM "+str(vm[1])+" is "+str(vmaddr))
             
             access=False
             while not access:
@@ -261,7 +263,7 @@ def boot_VM(oneadminpass,xmlrpcserver, vmfile, bridge, logger):
                 #print status
                 if status == 0:
                     access=True
-                    logger.debug("The VM "+vm[1]+" with ip "+vmaddr+"is accessible")
+                    logger.debug("The VM "+str(vm[1])+" with ip "+str(vmaddr)+"is accessible")
                 else:
                     time.sleep(2)
     else:
