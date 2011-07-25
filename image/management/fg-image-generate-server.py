@@ -113,8 +113,9 @@ def main():
     user = ops.user
     
     #Turn debugging off
-    if not ops.debug:
-        logger.setLevel(level=logging.INFO)        
+#    if not ops.debug:
+#        logger.setLevel(level=logging.INFO)
+                
         #ch.setLevel(logging.INFO)
     
     #TODO: authenticate user via promting for CERT or password to auth against LDAP db
