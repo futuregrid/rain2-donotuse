@@ -1,8 +1,13 @@
 REST
 
-The REST interface implements the IRService API from unique URLs.
-For example going to the URL http://<root>/list  would execute
-the IRService : list(). For the REST put function there is no 
+The REST interface implements the IRService API for a admin and a non admin users from unique URLs.
+The admin application name within the URL would be specified as adminRest, while the non admin
+application name within the URL would be specified as userRest.
+For example going to the URL https://<address>:<port>/adminRest/list  would allow an admin 
+user to list all the users.   
+
+
+For the REST put function there is no 
 need to specify a tmp directory for uploading. The file 
 retrieved from the client gets uploaded in the request object
 and put directly within MongoDB from the request object.With the 
@@ -11,22 +16,31 @@ MongoDB and is downloaded to a filepath according to the
 users specification. 
 
 
+INSTALLATION
+REST comes with dependencies: cherrypy, openssl, and mongodb. To ensure these
+dependencies are loaded on your system type ./install.  Check out 
+the readme-install for more specifics.
+
+ 
+STARTING UP MONGODB
+MONGODB is the database server. In order to start up the server, type 
+startServer <port num> within the main directory.
+
+STARTING UP REST SERVICE - Admin Users
+Type -  python startRestAdmin.py , this script will start
+
+STARTING UP REST SERVER - Non Admin Users
+Type - python startRestUser.py 
+
 FILECOMPOSITION :
-REST includes restFrontEnd.py for the web front end, IRService as
+REST includes startRestUser.py and startRestAdmin.py for web front end, IRService as
 the controller end, and the files IRDataAccessMongo.py and fglog.py 
 for the database access end. All files are written in Python. 
 
 
-REQUIREMENTS:
-
-In order to execute the REST server you must have  installed CherryPy, OpenSSl 
-MongoDb, and twill  in order to activate the WebServer, HTTPS server, 
-database server and user testing respectively.
-
 
 EXECUTING THE SCRIPTS
 
-REST uses the following  scripts:  startServer, userTest and adminTest.
 
 StartServer:
 
@@ -51,76 +65,5 @@ openssl req -new -key server.key -out server.csr
 To sign by private key:
 openssl x509 -req -days 60 -in server.csr -signkey server.key -out server.crt
 
-StarServer args:
-
-Here are the following command line options
-
--d --dbserver <PORT> :
-	   Reads the designated port for the mongod server. Default port 23000
--a --adminport < PORT> :
-	    Reads the specified admin port for the cherryPy http server. Default port 8081
--s --adminsecureport <PORT> :
-            Reads he specified admin port connected to the cherryPy https server. Default port 8444
--u --userport < PORT> :
-	    Reads the specified user port for the cherryPy http server. Default port 8080
--p --usersecureport <PORT> :
-            Reads he specified admin port connected to the cherryPy https server. Default port 8443
--n --username < name > :
-	   Reads the username corresponding to the non admin privledges.
--r --useradmin < name > :
-	   Reads the username corresponding to the admin privledges.
-	 
-Note if the port or user name is not specified in the commands then REST will look for the 
-parameter in the REST.config file.
-
-If debuging information is on , StartServer will generate a StartServer.log file and put this 
-file in the debug directory.
-
-UserTest.py:
-
-This twill based script executes the REST API specific to normal user privledges.
-Ouput is found in debug/userTest.log
-
-AdminTest.py :
-
-This twill based script executes the REST API specific to the admin user privledges.
-Output is found in the debug/adminTest.log for any errors.
-
-
-
-
-GENERAL INSTALL INFORMATION:
-
-Installing CherryPy
-You need a working version of Python 2.3 or later. If using the 
-repository, type the following command: svn co http://svn.cherrypy.org.
-or go to http://www.cherrypy.org/wiki/CherryPyInstall to download
-the latest version of CherryPy. Once downloaded, go to the 'trunk'
-directory and type:  python setup.py install
-
-
-Installing Twill
-Works with easy_install so just type:  sudo easy_install twill. Twill
-gets instaledl in the /usr/local/bin directory.  To check you have twill 
-working, execute the shell option by typing twill-sh.
-
-
-Installing MongoDb
-Go to:  http://www.mongodb.org/downloads to download Mongo. You can also 
-use curl.  
-To install the 32 bit binary:
-curl http://downloads.mongodb.org/osx/mongodb-osx-i386-x.y.z.tgz > mongo.tgz
-tar xzf mongo.tgz
-For the 64 bit binary:
-curl http://downloads.mongodb.org/osx/mongodb-osx-x86_64-x.y.z.tgz > mongo.tgz
-tar xzf mongo.tgz
-To start the server:  ./mongodb-xxxxxxx/bin/mongod  <--port> <port number>
-For client access:  ./mongodb-xxxxxx/bin/mongo <--port> <port number> 
-
-
-PyMongo   (Mongo driver for Python)
-the Python driver for MongoDB type: https://github.com/mongodb/mongo-python-driver.git
-to obtain read access to the pymongo driver. Easy install is prefered to 
-install mongo. Type sudo easy_install pymongo
 
 
