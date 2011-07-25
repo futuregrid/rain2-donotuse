@@ -24,7 +24,7 @@ import time
 def main():    
     
     
-    oneadminpass=os.popen("oneuser list | grep oneadmin | cut -d" " -f13","r")
+    oneadminpass=os.popen("oneuser list | grep oneadmin | cut -d\" \" -f13","r")
     print oneadminpass
     #the file of the VM to be deployed in OpenNebula
     vmfile_centos = "/src/cloud/one/share/examples/centos_context.one"
@@ -57,7 +57,7 @@ def main():
     #Set up logging
     log_filename = 'fg-image-generate-server.log'
     #logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",datefmt='%a, %d %b %Y %H:%M:%S',filemode='w',filename=log_filename,level=logging.DEBUG)
-    logger = logging.getLogger()
+    logger = logging.getLogger("ImgGenSrv")
     logger.setLevel(logging.DEBUG)
     formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
     handler = logging.FileHandler(log_filename)
@@ -110,7 +110,7 @@ def main():
     
     #Turn debugging off
     if not ops.debug:
-        logger.basicConfig(level=logging.INFO)        
+        logger.setLevel(level=logging.INFO)        
         #ch.setLevel(logging.INFO)
     
     #TODO: authenticate user via promting for CERT or password to auth against LDAP db
