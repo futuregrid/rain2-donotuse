@@ -67,11 +67,14 @@ def main():
     #ch.setFormatter(formatter)
     #logger.addHandler(ch)
 
+    logger.info('Image generator server...')
+
     p=Popen('oneuser list',stdout=PIPE)
     p1=Popen('grep oneadmin',stdin=p.stdout, stdout=PIPE)
     p2=Popen('cut -d\" \" -f13', stdin=p1.stdout)
     oneadminpass= p2.stdout.read()
     logger.debug("password "+str(oneadminpass))
+
 
     parser = OptionParser()
     
@@ -91,7 +94,7 @@ def main():
     #rhel-distro = ['5.5', '5.4', '4.8']
     #fedora-distro = ['14','12']
     """
-    logger.info('Image generator server...')
+    
         
     #help is auto-generated
     parser.add_option("-o", "--os", dest="os", help="specify destination Operating System")
@@ -260,7 +263,8 @@ def boot_VM(oneadminpass,xmlrpcserver, vmfile, bridge, logger):
             access=False
             while not access:
                 cmd = "ssh -q root@"+vmaddr+" uname"
-                status=os.system(cmd)
+                p=subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE)
+                status=os.waitpid(p.pid,0)[1]
                 #print status
                 if status == 0:
                     access=True
@@ -283,7 +287,7 @@ def _rExec(userId, cmdexec, logger, vmaddr):
     randid = str(random.getrandbits(32))
           
     cmdssh = "ssh " + userId + "@" + vmaddr
-    tmpFile = "/tmp/" + str(time()) + str(randid)
+    tmpFile = "/tmp/" + str(time.time()) + str(randid)
     #print tmpFile
     cmdexec = cmdexec + " > " + tmpFile
     cmd = cmdssh + cmdexec
