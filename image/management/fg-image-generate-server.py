@@ -67,8 +67,10 @@ def main():
     #ch.setFormatter(formatter)
     #logger.addHandler(ch)
 
-    p=Popen("oneuser list | grep oneadmin | cut -d\" \" -f13",stdout=subprocess.PIPE)
-    oneadminpass= p.communicate[0]
+    p=Popen('oneuser list',stdout=PIPE)
+    p1=Popen('grep oneadmin',stdin=p.stdout, stdout=PIPE)
+    p2=Popen('cut -d\" \" -f13', stdin=p1.stdout)
+    oneadminpass= p2.stdout.read()
     logger.debug("password "+str(oneadminpass))
 
     parser = OptionParser()
