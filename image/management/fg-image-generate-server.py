@@ -259,7 +259,7 @@ def boot_VM(oneadminpass,xmlrpcserver, vmfile, bridge, logger):
             
             access=False
             while not access:
-                cmd = "ssh -q root@"+ip+" uname"
+                cmd = "ssh -q root@"+vmaddr+" uname"
                 status=os.system(cmd)
                 #print status
                 if status == 0:
