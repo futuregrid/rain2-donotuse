@@ -52,7 +52,7 @@ def main():
         if cmdOutput == "i386\n" :
             mongo_dist = 'http://fastdl.mongodb.org/linux/mongodb-linux-i686-1.8.2.tgz'
             mongo_dir = 'mongodb-linux-i686-1.8.2'
-        elif cmpdOupt == "x86_64\n" :
+        elif cmdOutput == "x86_64\n" :
             mongo_dist = 'http://fastdl.mongodb.org/linux/mongodb-linux-x86_64-1.8.2.tgz'
             mongo_dir = 'mongodb-linux-x86_64-1.8.2'
 
