@@ -132,10 +132,10 @@ def main():
     ##############
     #GET oneadmin password encoded in SHA1
     ##############
-    p=Popen('oneuser list',stdout=PIPE)
-    p1=Popen('grep oneadmin',stdin=p.stdout, stdout=PIPE)
-    p2=Popen('cut -d\" \" -f13', stdin=p1.stdout)
-    oneadminpass= p2.stdout.read()
+    p=Popen('oneuser list',stdout=PIPE, shell=True)
+    p1=Popen('grep oneadmin',stdin=p.stdout, stdout=PIPE, shell=True)
+    p2=Popen('cut -d\" \" -f13', stdin=p1.stdout, shell=True, stdout=PIPE)
+    oneadminpass= p2.stdout.read().strip()
     
     logger.debug("password "+str(oneadminpass))
      

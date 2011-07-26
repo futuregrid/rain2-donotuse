@@ -15,6 +15,7 @@ import os
 import sys
 import socket
 from subprocess import *
+import time
 #from xml.dom.ext import *
 from xml.dom.minidom import Document, parse
 
@@ -370,6 +371,9 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
     else:
         output="Error generating bcfg2 group configuration"
 
+    #some time to allow ubuntu task to complete
+    time.sleep(20)
+
     cleanup(name)
 
     return name
@@ -577,7 +581,7 @@ def cleanup(name):
         cleanupLog.error("error in clean up")
      
     cleanupLog.debug('Cleaned up mount points')
-    os.system('sleep 20')
+    time.sleep(20)
 
 def manifest(user, name, os, version, arch, pkgs, givenname, description, tempdir):
 
