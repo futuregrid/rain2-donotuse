@@ -7,8 +7,7 @@ from cherrypy import _cpserver
 from cherrypy import _cpwsgi_server
 import os, sys
 import cherrypy.lib.sessions
-#sys.path.append('/opt/futuregrid/futuregrid/image/repository/server')
-sys.path.append(os.path.dirname(__file__)+'/../server/')
+sys.path.append(os.path.dirname( os.path.realpath( __file__ ) )+'/../server/')
 from IRService import IRService
 from cherrypy.lib.static import serve_file
 
@@ -326,8 +325,8 @@ class AdminRestService :
                     self.msg = "userlist: Error:" + str(sys.exc_info()[0]) + "\n"
                     self.msg = self.msg + "userlist: Error interpreting the list of users from Image Repository\
 " + str(sys.exc_info()[0])
-                else:
-                    self.msg =  "No list of images returned. \n" + \
+            else:
+                self.msg =  "No list of users returned. \n" + \
                         "Please verify that you are admin \n"
         else :
             self.msg = "<br> Error admin name is not set" 
@@ -412,7 +411,6 @@ def configSectionMap(section) :
     return dict1
 
 if __name__ == '__main__':
-
 
     # Site configuration
     cherrypy.config.update(httpsconfig)

@@ -7,8 +7,7 @@ from cherrypy import _cpserver
 from cherrypy import _cpwsgi_server
 import os, sys
 import cherrypy.lib.sessions
-#sys.path.append('/opt/futuregrid/futuregrid/image/repository/server')
-sys.path.append(os.path.dirname(__file__)+'/../server/')
+sys.path.append(os.path.dirname( os.path.realpath( __file__ ) )+'/../server/')
 from IRService import IRService
 from cherrypy.lib.static import serve_file
 
