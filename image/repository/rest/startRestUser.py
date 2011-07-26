@@ -96,11 +96,16 @@ class UserRestService :
 
     def actionGet(self, option, imgId):
         self.msg = None
-        if(len(imgId) > 0 and len(option) > 0):
+        if (len(imgId) > 0 and len(option) > 0):
             service = IRService()
+            print("User name %s " % userName )
             filepath = service.get(userName, option, imgId)
+            if (filepath == None) :
+                self.setMessage("No public images in the repository and/or no images owned by user")
+                raise cherrypy.HTTPRedirect("results")
             if (len(imgId) > 0 ) :
                 self.setMessage("Downloading img to %s " % filepath.__str__())
+                print("Downloading img to %s " % filepath.__str__())
             else :
                 self.setMessage("URL:  %s " % filepath.__str__())
         else :
@@ -108,6 +113,7 @@ class UserRestService :
             raise cherrypy.HTTPRedirect("results")
 
         serve_file(filepath, "application/x-download", "attachment")
+
         raise cherrypy.HTTPRedirect("results")
 
     actionGet.exposed = True
@@ -131,6 +137,7 @@ class UserRestService :
             size += len(data)
             if not data: break
 
+        print("Image size %s " %size)
         self.msg += " Image size %s " % size
         service = IRService()
         print type(imageFileName)
