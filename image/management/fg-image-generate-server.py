@@ -268,7 +268,7 @@ def boot_VM(server, auth, vmfile, bridge, logger):
             access=False
             while not access:
                 cmd = "ssh -q root@"+vmaddr+" uname"
-                p=subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE)
+                p=Popen(cmd,shell=True,stdout=PIPE)
                 status=os.waitpid(p.pid,0)[1]
                 #print status
                 if status == 0:
