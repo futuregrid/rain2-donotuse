@@ -31,6 +31,7 @@ bcfg2_port = 45678
 def main():    
     global tempdir
     global namedir #this == name is to clean up when something fails
+    global logger
     
     #Set up logging
     log_filename = 'fg-image-generate.log'
@@ -188,7 +189,7 @@ def main():
     elif ops.os == "fedora":
         base_os = base_os + "fedora" + spacer    
     
-    logging.info('Generated image is available at '+tempdir+' ' + img + '.img.  Please be aware that this FutureGrid image is packaged without a kernel and fstab and is not built for any deployment type.  To deploy the new image, use the fg-image-deploy command.')
+   # logging.info('Generated image is available at '+tempdir+' ' + img + '.img.  Please be aware that this FutureGrid image is packaged without a kernel and fstab and is not built for any deployment type.  To deploy the new image, use the fg-image-deploy command.')
     
     if type(ops.givenname) is NoneType:
         ops.givenname = img
@@ -229,7 +230,7 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
     ubuntuLog.info('Mounting new image')
     runCmd('mkdir '+tempdir+''+name)
     runCmd('mount -o loop '+tempdir+''+name + '.img '+tempdir+''+name)
-    ubuntuLog.info('Mounted image')
+    #ubuntuLog.info('Mounted image')
 
     
     if base_os:
@@ -262,6 +263,12 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
     runCmd('wget ' + base_url + '/conf/ubuntu/' + version + '-sources.list -O '+tempdir+''+name + '/etc/apt/sources.list')
     runCmd('chroot '+tempdir+''+name + ' apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 98932BEC')
     runCmd('chroot '+tempdir+''+name + ' apt-get update')
+
+    #services will install, but not start
+    os.system('mkdir -p /usr/sbin')
+    os.system('echo "#!/bin/sh" >'+tempdir+''+name+'/usr/sbin/policy-rc.d')
+    os.system('echo "exit 101" >>'+tempdir+''+name+'/usr/sbin/policy-rc.d')
+    os.system('chmod +x '+tempdir+''+name+'/usr/sbin/policy-rc.d')
 
 
     ubuntuLog.info('Installing some util packages')
@@ -371,8 +378,7 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
     else:
         output="Error generating bcfg2 group configuration"
 
-    #some time to allow ubuntu task to complete
-    time.sleep(20)
+    os.system('rm -f '+tempdir+''+name+'/usr/sbin/policy-rc.d')
 
     cleanup(name)
 
@@ -414,7 +420,7 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
     centosLog.info('Mounting new image')
     runCmd('mkdir '+tempdir+''+name)
     runCmd('mount -o loop '+tempdir+''+name + '.img '+tempdir+''+name)
-    centosLog.info('Mounted image')
+    #centosLog.info('Mounted image')
 
     if base_os:
         #to create base_os
@@ -542,6 +548,7 @@ def buildFedora(name, version, arch, pkgs, tempdir):
 def runCmd(cmd):
     cmdLog = logging.getLogger('exec')
     cmdLog.debug(cmd)
+    
     #os.system(cmd)
     #Use subprocess to properly direct output to log
     #p = subprocess.Popen(cmd, shell=True)
@@ -581,7 +588,7 @@ def cleanup(name):
         cleanupLog.error("error in clean up")
      
     cleanupLog.debug('Cleaned up mount points')
-    time.sleep(20)
+    time.sleep(10)
 
 def manifest(user, name, os, version, arch, pkgs, givenname, description, tempdir):
 
