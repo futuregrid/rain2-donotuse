@@ -42,44 +42,42 @@ class AdminRestService :
     def index(self) :
         self.msg = None
         message = "<b> User Commands </b><br> "
-        message +=  "<a href=\"/help\"> Get help information </a> <br>"
-        message +=  "<a href=\"/list\"> Get list of images that meet the criteria </a> <br>"
-        message +=  "<a href=\"/setPermission\">  Set access permission </a> <br>"
-        message +=  "<a href=\"/get\"> Retrieve image or URI </a> <br>"
-        message +=  "<a href=\"/put\"> Upload/register an image </a> <br>"
-        message +=  "<a href=\"/modify\"> Modify an image </a> <br>"
-        message +=  "<a href=\"/remove\">  Remove an image from the repository </a> <br>"
-        message +=  "<a href=\"/histimg\"> Usage info of an image </a> <br>"
-        message +=  "<a href=\"/histuser\">  Usage info of a user </a> <br>"
-        message +=  "<a href=\"/getBackend\"> Provide the back-end configuration in the server side </a> <br>"
-        message +=  "<a href=\"/useradd\"> Add user </a> <br>"
-        message +=  "<a href=\"/userdel\"> Remove user </a> <br>"
-        message +=  "<a href=\"/userlist\"> List of users </a> <br>"
-        message +=  "<a href=\"/setquota\"> Modify user quota </a> <br>"
-        message +=  "<a href=\"/setrole\"> Modify user role </a> <br>"
-        message +=  "<a href=\"/setUserStatus\"> Modify user status </a> <br>"
+        message +=  "<a href=\"help\"> Get help information </a> <br>"
+        message +=  "<a href=\"list\"> Get list of images that meet the criteria </a> <br>"
+        message +=  "<a href=\"setPermission\">  Set access permission </a> <br>"
+        message +=  "<a href=\"get\"> Retrieve image or URI </a> <br>"
+        message +=  "<a href=\"put\"> Upload/register an image </a> <br>"
+        message +=  "<a href=\"modify\"> Modify an image </a> <br>"
+        message +=  "<a href=\"remove\">  Remove an image from the repository </a> <br>"
+        message +=  "<a href=\"histimg\"> Usage info of an image </a> <br>"
+        message +=  "<a href=\"histuser\">  Usage info of a user </a> <br>"
+        message +=  "<a href=\"useradd\"> Add user </a> <br>"
+        message +=  "<a href=\"userdel\"> Remove user </a> <br>"
+        message +=  "<a href=\"userlist\"> List of users </a> <br>"
+        message +=  "<a href=\"setquota\"> Modify user quota </a> <br>"
+        message +=  "<a href=\"setrole\"> Modify user role </a> <br>"
+        message +=  "<a href=\"setUserStatus\"> Modify user status </a> <br>"
         self.setMessage(message)
         raise cherrypy.HTTPRedirect("results")
     index.exposed = True;
 
     def help (self) :
         self.msg = None
-        message =  " /help: get help information. <br>"
-        message += " /list queryString: get list of images that meet the criteria<br>"
-        message += " /setPermission imgId permissionString: set access permission<br>"
-        message += " /get img/uri imgId: get a image or only the URI by id<br>"
-        message += " /put imgFile attributeString: upload/register an image<br>"
-        message += " /modify imgId attributeString: update information<br>"
-        message += " /remove imgId: remove an image from the repository<br>"
-        message += " /histimg imgId: get usage info of an image <br>"
-        message += " /histuser userId: get usage info of a user <br>"
-        message += " /getBackend: provide the back-end configuration in the server side <br>"
-        message += " /useradd <userId> : add user <br>"
-        message += " /userdel <userId> : remove user <br>"
-        message += " /userlist : list of users <br>"
-        message += " /setquota <userId> <quota> :modify user quota <br>"
-        message += " /setrole  <userId> <role> : modify user role <br>"
-        message += " /setUserStatus <userId> <status> :modify user status"
+        message =  " help: get help information. <br>"
+        message += " list queryString: get list of images that meet the criteria<br>"
+        message += " setPermission imgId permissionString: set access permission<br>"
+        message += " get img/uri imgId: get a image or only the URI by id<br>"
+        message += " put imgFile attributeString: upload/register an image<br>"
+        message += " modify imgId attributeString: update information<br>"
+        message += " remove imgId: remove an image from the repository<br>"
+        message += " histimg imgId: get usage info of an image <br>"
+        message += " histuser userId: get usage info of a user <br>"
+        message += " useradd <userId> : add user <br>"
+        message += " userdel <userId> : remove user <br>"
+        message += " userlist : list of users <br>"
+        message += " setquota <userId> <quota> :modify user quota <br>"
+        message += " setrole  <userId> <role> : modify user role <br>"
+        message += " setUserStatus <userId> <status> :modify user status"
         self.setMessage(message)
         raise cherrypy.HTTPRedirect("results")
     help.exposed = True;
@@ -176,7 +174,7 @@ class AdminRestService :
     actionPut.exposed = True
 
     def put (self) :
-       return """                                                                                                                                             <html><body>                                                                                                                                      <form method=post action=actionPut enctype="multipart/form-data">                                                                                     Upload a file: <input type=file name=imageFileName><br>                                                                                           User Id: <input type=string name=userId> <br>                                                                                                     attributeString: <input type=string name=attributeString> <br>                                                                                    <input type=submit>                                                                                                                           </form>                                                                                                                                           </body></html>                                                                                                                        
+       return """                                                                                                                                             <html><body>                                                                                                                                      <form method=post action=actionPut enctype="multipart/form-data">                                                                                     Upload a file: <input type=file name=imageFileName><br>                                                                                           User Id: <input type=string name=userId> <br>                                                                                                     attributeString: <input type=string name=attributeString> <br>                                                                                    <input type=submit>                                                                                                                           </form>                                                                                                </body></html>      
         """
     put.exposed = True;
 
