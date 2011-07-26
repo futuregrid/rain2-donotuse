@@ -102,4 +102,27 @@ To sign by private key:
 openssl x509 -req -days 60 -in server.csr -signkey server.key -out server.crt
 
 
+INSTALLATION
+============
+
+This REST installation requires cherrypy, openssl, and the mongo
+distribution. To insure these dependencies are installed just type
+./install.  The install script will call the getDistribution.py
+script. This script is responsible for retrieving (via wget) the
+correct distribution for your computer if the destribution has not
+already been installed on your computer. The getDistributions.py
+script will also check to insure that the pymongo, and cherrypy are
+instaled as python imports.
+
+
+The install script will continue to generate the library and install
+it in the appropriate /usr/local paths. /usr/local/ssl for opensl and
+/usr/local/mongodb for the mongo database library.  If the account
+that executes install does not have the authority to install ssl and
+mongodb in those directories the generated libraries be put in the
+current directory path of the REST repository: ./ssl and ./mongodb
+
+
+
+
 
