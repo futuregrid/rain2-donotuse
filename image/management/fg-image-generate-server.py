@@ -68,14 +68,7 @@ def main():
     #logger.addHandler(ch)
 
     logger.info('Image generator server...')
-
-    p=Popen('oneuser list',stdout=PIPE)
-    p1=Popen('grep oneadmin',stdin=p.stdout, stdout=PIPE)
-    p2=Popen('cut -d\" \" -f13', stdin=p1.stdout)
-    oneadminpass= p2.stdout.read()
-    logger.debug("password "+str(oneadminpass))
-
-
+    
     parser = OptionParser()
     
     """
@@ -135,11 +128,26 @@ def main():
         vmfile=vmfile_rhel
     elif ops.os == "centos":
         vmfile=vmfile_centos
-        
+     
+    ##############
+    #GET oneadmin password encoded in SHA1
+    ##############
+    p=Popen('oneuser list',stdout=PIPE)
+    p1=Popen('grep oneadmin',stdin=p.stdout, stdout=PIPE)
+    p2=Popen('cut -d\" \" -f13', stdin=p1.stdout)
+    oneadminpass= p2.stdout.read()
+    
+    logger.debug("password "+str(oneadminpass))
+     
+    # ---Start xmlrpc client to opennebula server-------------
+    server=xmlrpclib.ServerProxy(xmlrpcserver)       
+    auth="oneadmin:"+oneadminpass 
     ###########
     #BOOT VM##
     ##########
-    vmaddr=boot_VM(oneadminpass,xmlrpcserver,vmfile, bridge, logger)    
+    output=boot_VM(server, auth,vmfile, bridge, logger)
+    vmaddr=output[0]
+    vmID=output[1]    
     #####
     
     logger.info("The VM deployed is in "+vmaddr)
@@ -193,9 +201,9 @@ def main():
         stat=os.system(cmd+cmdmount)
     
     #destroy VM
-    
+    server.one.vm.action(auth,"finalize",vmID)
 
-def boot_VM(oneadminpass,xmlrpcserver, vmfile, bridge, logger):
+def boot_VM(server, auth, vmfile, bridge, logger):
     """
     It will boot a VM using XMLRPC API for OpenNebula
     
@@ -209,15 +217,12 @@ def boot_VM(oneadminpass,xmlrpcserver, vmfile, bridge, logger):
     """
     vmaddr=""
     fail=False
-    # ---Start xmlrpc client to opennebula server-------------
-    server=xmlrpclib.ServerProxy(xmlrpcserver)
+    
     
     #-----read template into string -------------------------
     #s=open('./share/examples/ubuntu_context.one','r').read()
     s=open(vmfile,'r').read()
     #logger.debug("Vm template:\n"+s)
-    
-    auth="oneadmin:"+oneadminpass
     
     #-----Start VM-------------------------------------------
     vm=server.one.vm.allocate(auth,s)
@@ -274,7 +279,7 @@ def boot_VM(oneadminpass,xmlrpcserver, vmfile, bridge, logger):
     else:
         vmaddr="fail"
     
-    return vmaddr
+    return [vmaddr,vm[1]]
 
 ############################################################
 # _rExec
