@@ -7,24 +7,50 @@ For example going to the URL https://<address>:<port>/adminRest/list  would allo
 user to list all the users.   
 
 
-For the REST put function there is no 
-need to specify a tmp directory for uploading. The file 
-retrieved from the client gets uploaded in the request object
-and put directly within MongoDB from the request object.With the 
-REST get function, the binary file data is retrieved from 
-MongoDB and is downloaded to a filepath according to the 
-users specification. 
+
+INVENTORY :
+
+The Rest repository contains the following
+Config files:  
+httpConfig.conf     (specificiations for  the http server)  
+httpsConfig.conf    (specifications for the https server)
+adminConfig.conf    (admin user name specification)
+userConfig.con      (general user name specification)
+
+Test Files:  (twill required)
+userTest.py
+adminTest.py
+
+Executables:
+install
+getDistribution.py
+
+startMongo
+
+startRestUser.py
+startRestAdmin.py
+
+
+FIRST TIME STARTUP
+For first time execution you should run the scripts in the following order:
+install     ( to insture cherrypy, openssl, and mongodb are installed)
+startMongo <port #>
+python startRest<"User.py"|"Admin.py">   (startRestUser.py for the user script,  startRestAdmin.py for admin script)
 
 
 INSTALLATION
-REST comes with dependencies: cherrypy, openssl, and mongodb. To ensure these
-dependencies are loaded on your system type ./install.  Check out 
+REST comes with dependencies: cherrypy, openssl, and mongodb and twill for testing with 
+using a browser. To ensure these
+dependencies are loaded on your system type: install.  Check out 
 the readme-install for more specifics.
+
 
  
 STARTING UP MONGODB
 MONGODB is the database server. In order to start up the server, type 
-startServer <port num> within the main directory.
+startMongo < port #>  i.e startMongo 23000.  The mongod server will 
+start up on port 23000. The shell prompts you to hit enter again 
+only if you want to cleanly exit the mongod server.
 
 STARTING UP REST SERVICE - Admin Users
 Type -  python startRestAdmin.py , this script will start
@@ -32,24 +58,26 @@ Type -  python startRestAdmin.py , this script will start
 STARTING UP REST SERVER - Non Admin Users
 Type - python startRestUser.py 
 
-FILECOMPOSITION :
-REST includes startRestUser.py and startRestAdmin.py for web front end, IRService as
-the controller end, and the files IRDataAccessMongo.py and fglog.py 
-for the database access end. All files are written in Python. 
+
+Test scripts
+The Rest service comes with two test scripts userTest.py and adminTest.py. 
+These scripts use twill to automatically generate the rest server without
+using a browser. For executing the user script type:  python userTest.py
+and for admin type :  python adminTest.py.  There currently is not
+an installation procedure for checking if twill is installed and wether 
+or not to download twill if not the case.
 
 
 
-EXECUTING THE SCRIPTS
 
 
-StartServer:
+Open SSL:
 
-Running the startServer script will first check the MONGO_DB variable to ensure
-the path variable exists, then it will check if MONGO_DB/mongod and MONGO_DB/mongo
-exist.. If it does not exist will download the mongo distribution. Next the program 
-will look for HTTPS_PATH path and the keys/server.key, keys/server.csr and 
-keys.server.crt files. If one does not exist then the script will dowload the 
-OpenSSL distribution. The script would then generate or insure that all 3 files are there.. 
+The install command will check if open ssl is installed and 
+will generate the public, private keys and certificate if 
+not already detected in the repository. T
+
+
 
 The OpenSSL commands to generate the keys are the following:
 
