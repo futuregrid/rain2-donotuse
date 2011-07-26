@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 @author Michael Lewis
 """
@@ -84,10 +85,10 @@ class AdminRestService :
         message += " setrole  <userId> <role> : modify user role <br>"
         message += " setUserStatus <userId> <status> :modify user status"
         """
-        message = "\n---------------------------------<br>"
+        message = "\n------------------------------------------------------------------<br>"
         message += "FutureGrid Image Repository Help <br>"
-        message += "---------------------------------<br>"
-        message += '''
+        message += "------------------------------------------------------------------<br>"
+        message += '''        
         <b>help:</b> get help information<br>
         <b>auth:</b> login/authentication<br>
         <b>list</b> [queryString]: get list of images that meet the criteria<br>
@@ -96,13 +97,15 @@ class AdminRestService :
         <b>put</b> &lt;imgFile&gt [attributeString]: upload/register an image<br>
         <b>modify</b> &lt;imgId&gt &lt;attributeString&gt: update Metadata   <br>
         <b>remove</b> &lt;imgId&gt: remove an image        <br>
+        <b>histimg</b> [imgId]: get usage info of an image<br>
+        <br>
+        <b>Commands only for Admins</b> <br>
         <b>useradd</b> &lt;userId&gt: add user <br>
         <b>userdel</b> &lt;userId&gt: remove user<br>
         <b>userlist</b>: list of users<br>
         <b>setuserquota</b> &lt;userId&gt &lt;quota>: modify user quota<br>
         <b>setuserrole</b>  &lt;userId&gt &lt;role>: modify user role<br>
-        <b>setuserstatus</b> &lt;userId&gt &lt;status>: modify user status<br>
-        <b>histimg</b> [imgId]: get usage info of an image<br>
+        <b>setuserstatus</b> &lt;userId&gt &lt;status>: modify user status<br>        
         <b>histuser</b> &lt;userId&gt: get usage info of a user<br>
               <br>
               <br>
