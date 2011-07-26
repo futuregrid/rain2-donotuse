@@ -8,14 +8,12 @@ maintain the proposed deployed code structure. In the later phase this will
 be replaced by a WS implementation
 """
 
-"""
-TODO: move isAdmin,isPublic,ExistsandOwner control from IRDataAccess... to here
-
-"""
 
 __author__ = 'Fugang Wang'
 __version__ = '0.1'
 
+import cherrypy
+from cherrypy.lib import cptools
 import os, sys
 import os.path
 from getopt import gnu_getopt, GetoptError
@@ -209,47 +207,56 @@ class IRService(object):
     ############################################################
     # put
     ############################################################
-    def put(self, userId, imgId, imgFile, attributeString, size):
-        self._log.info("user:" + userId + " command:put args={imgId:" + imgId + ", imgFile:" + imgFile + ", metadata:" + attributeString + ",\
-                       size:" + str(size) + "}")
+    def put(self, userId, imgId, imgFile, attributeString, size):        
         """
         Register the file in the database
         
         return imgId or 0 if something fails
         """  
         
-        status = False      
-        fileLocation = self._fgirimgstore + imgId
-        if(os.path.isfile(fileLocation)):
-            if (size > 0):
-                #parse attribute string and construct image metadata
+        status = False
+        statusImg=False
+        fileLocation=""
+        aMeta=None
+        aImg=None
+        
+        if (size > 0):
+            if type(imgFile) == cherrypy._cpreqbody.Part:            
+                self._log.info("user:" + userId + " command:put args={imgId:" + imgId + ", imgFile:" + imgFile.filename + ", metadata:" + attributeString + ", size:" + str(size) + "}")
                 aMeta = self._createImgMeta(userId, imgId, attributeString, False)
-    
-                #print "meta data created:"
-                #print aMeta        
-                                
-                #put image item in the image store        
-                aImg = ImgEntry(imgId, aMeta, fileLocation, size)                
-                statusImg = self.imgStore.addItem(aImg)
-                
-                if(statusImg):
-                    #put metadata into the image meta store
-                    
-                    #with MongoDB I put the metadata with the ImgEntry, so it skips meta add                    
-                    if(re.search("mongo", IRUtil.getBackend()) == None):  
-                        statusMeta = self.metaStore.addItem(aMeta)
-                    else:
-                        statusMeta = True
-                    
-                    if(statusMeta):
-                        #Add size and #imgs to user
-                        statusAcc = self.userStore.updateAccounting(userId, size, 1)
-                        
-                        if (statusAcc):
-                            status = True
+                aImg = ImgEntry(imgId, aMeta, imgFile.filename, size)
+                #it sends the imgEntry and the requestInstance
+                statusImg = self.imgStore.addItem(aImg,imgFile)  
                 
             else:
-                self._log.error("File size must be higher than 0")
+                self._log.info("user:" + userId + " command:put args={imgId:" + imgId + ", imgFile:" + imgFile + ", metadata:" + attributeString + ", size:" + str(size) + "}")            
+                fileLocation = self._fgirimgstore + imgId
+                if(os.path.isfile(fileLocation)):                
+                        #parse attribute string and construct image metadata
+                        aMeta = self._createImgMeta(userId, imgId, attributeString, False)
+                        #put image item in the image store        
+                        aImg = ImgEntry(imgId, aMeta, fileLocation, size)
+                        #it sends the imgEntry and None                
+                        statusImg = self.imgStore.addItem(aImg,None)
+                    
+            if(statusImg):
+                #put metadata into the image meta store
+                
+                #with MongoDB I put the metadata with the ImgEntry, so it skips meta add                    
+                if(re.search("mongo", IRUtil.getBackend()) == None):  
+                    statusMeta = self.metaStore.addItem(aMeta)
+                else:
+                    statusMeta = True
+                
+                if(statusMeta):
+                    #Add size and #imgs to user
+                    statusAcc = self.userStore.updateAccounting(userId, size, 1)
+                    
+                    if (statusAcc):
+                        status = True
+                    
+        else:
+            self._log.error("File size must be higher than 0")
             
         if(status):
             return aImg._imgId

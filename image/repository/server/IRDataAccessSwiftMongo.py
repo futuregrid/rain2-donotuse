@@ -212,7 +212,7 @@ class ImgStoreSwiftMongo(ImgStoreMongo):
     ############################################################
     # persistToStore
     ############################################################
-    def persistToStore(self, items):
+    def persistToStore(self, items, requestInstance):
         """Copy imgEntry and imgMeta to the DB. It first store the imgEntry to get the file Id
         
         Keyword arguments:

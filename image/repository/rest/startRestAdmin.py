@@ -9,7 +9,11 @@ import os, sys
 import cherrypy.lib.sessions
 sys.path.append(os.path.dirname( os.path.realpath( __file__ ) )+'/../server/')
 from IRService import IRService
+from IRTypes import ImgMeta
 from cherrypy.lib.static import serve_file
+import textwrap
+from random import randrange
+import string
 
 localDir = os.path.abspath(os.path.dirname(__file__))
 
@@ -63,6 +67,7 @@ class AdminRestService :
 
     def help (self) :
         self.msg = None
+        """
         message =  " help: get help information. <br>"
         message += " list queryString: get list of images that meet the criteria<br>"
         message += " setPermission imgId permissionString: set access permission<br>"
@@ -78,6 +83,71 @@ class AdminRestService :
         message += " setquota <userId> <quota> :modify user quota <br>"
         message += " setrole  <userId> <role> : modify user role <br>"
         message += " setUserStatus <userId> <status> :modify user status"
+        """
+        message = "\n---------------------------------<br>"
+        message += "FutureGrid Image Repository Help <br>"
+        message += "---------------------------------<br>"
+        message += '''
+        <b>help:</b> get help information<br>
+        <b>auth:</b> login/authentication<br>
+        <b>list</b> [queryString]: get list of images that meet the criteria<br>
+        <b>setPermission</b> &lt;imgId> <permissionString>: set access permission<br>
+        <b>get</b> &lt;img/uri&gt &lt;imgId&gt: get an image or only the URI<br>
+        <b>put</b> &lt;imgFile&gt [attributeString]: upload/register an image<br>
+        <b>modify</b> &lt;imgId&gt &lt;attributeString&gt: update Metadata   <br>
+        <b>remove</b> &lt;imgId&gt: remove an image        <br>
+        <b>useradd</b> &lt;userId&gt: add user <br>
+        <b>userdel</b> &lt;userId&gt: remove user<br>
+        <b>userlist</b>: list of users<br>
+        <b>setuserquota</b> &lt;userId&gt &lt;quota>: modify user quota<br>
+        <b>setuserrole</b>  &lt;userId&gt &lt;role>: modify user role<br>
+        <b>setuserstatus</b> &lt;userId&gt &lt;status>: modify user status<br>
+        <b>histimg</b> [imgId]: get usage info of an image<br>
+        <b>histuser</b> &lt;userId&gt: get usage info of a user<br>
+              <br>
+              <br>
+    Notes:<br>
+        <br>
+        <b>attributeString</b> example (you do not need to provide all of them): <br>
+            vmtype=xen | imgtype=opennebula | os=linux | arch=x86_64 | <br>
+            description=my image | tag=tag1,tag2 | permission=public | <br>
+            imgStatus=available.<br>
+        <br>
+        <b>queryString</b>: * or * where field=XX, field2=YY or <br>
+             field1,field2 where field3=XX<br>
+        <br>
+        Some argument's values are controlled:<br>'''
+        
+        
+        first = True
+        for line in textwrap.wrap("<b>vmtype</b>= " + str(ImgMeta.VmType), 100):
+            if first:
+                message += "         %s<br>" % (line)
+                first = False
+            else:
+                message += "           %s<br>" % (line)
+        first = True
+        for line in textwrap.wrap("<b>imgtype</b>= " + str(ImgMeta.ImgType), 100):
+            if first:
+                message += "         %s<br>" % (line)
+                first = False
+            else:
+                message += "               %s<br>" % (line)
+        first = True
+        for line in textwrap.wrap("<b>imgStatus</b>= " + str(ImgMeta.ImgStatus), 100):
+            if first:
+                message += "         %s<br>" % (line)
+                first = False
+            else:
+                message += "           %s<br>" % (line)
+        first = True
+        for line in textwrap.wrap("<b>Permission</b>= " + str(ImgMeta.Permission), 100):
+            if first:
+                message += "         %s<br>" % (line)
+                first = False
+            else:
+                message += "           %s<br>" % (line)
+        
         self.setMessage(message)
         raise cherrypy.HTTPRedirect("results")
     help.exposed = True;
@@ -160,16 +230,39 @@ class AdminRestService :
         size = 0
         self.fromSite = "actionPut"
         self.msg = None
-        self.msg = "Uploaded fileName: %s " % imageFileName.__str__()
+        
         while 1:
             data = imageFileName.file.read(1024 * 8) # Read blocks of 8KB at a time                                                               
             size += len(data)
             if not data: break
-
-        self.msg += " Image size %s " % size
+        
         service = IRService()
-        print type(imageFileName)
-        imageId = service.put(adminName, userId,imageFileName,attributeString,size)
+        
+        #check metadata
+        correct=self.checkMeta(attributeString)
+        if correct:
+            #check quota
+            isPermitted = service.uploadValidator(userId, size)
+                  
+            
+            if (isPermitted == True):
+                imgId=self.getImgId() #this is needed when we are not using mongodb as image storage backend
+                imageId = service.put(adminName, imgId, imageFileName,attributeString,size)
+                
+                self.msg = "Image %s successfully uploaded." % imageFileName.filename
+                self.msg += " Image size %s " % size
+                self.msg += "<br> The image ID is %s " % imageId
+            elif (isPermitted.strip() == "NoUser"):
+                self.msg = "the image has NOT been uploaded<br>"
+                self.msg = "The User does not exist"                        
+            elif (isPermitted.strip() == "NoActive"):
+                self.msg = "The image has NOT been uploaded<br>"
+                self.msg = "The User is not active"
+            else:
+                self.msg = "The image has NOT been uploaded"
+                self.msg = "The file exceed the quota"
+        else:
+            self.msg = "The image has NOT been uploaded. Please, verify that the metadata string is valid"        
         raise cherrypy.HTTPRedirect("results")
     actionPut.exposed = True
 
@@ -178,6 +271,51 @@ class AdminRestService :
         """
     put.exposed = True;
 
+
+    def getImgId(self):
+        imgId = str(randrange(999999999999999999999999))
+        return imgId
+
+    ############################################################
+    # checkMeta
+    ############################################################
+    def checkMeta(self, attributeString):        
+        attributes = attributeString.split("|")
+        correct = True
+        for item in attributes:
+            attribute = item.strip()
+            #print attribute
+            tmp = attribute.split("=")
+            if (len(tmp) == 2):
+                key = string.lower(tmp[0])            
+                value = tmp[1]            
+                if key in ImgMeta.metaArgsIdx.keys():
+                    if (key == "vmtype"):
+                        value = string.lower(value)
+                        if not (value in ImgMeta.VmType):
+                            print "Wrong value for VmType, please use: " + str(ImgMeta.VmType)
+                            correct = False
+                            break
+                    elif (key == "imgtype"):       
+                        value = string.lower(value) 
+                        if not (value in ImgMeta.ImgType):
+                            print "Wrong value for ImgType, please use: " + str(ImgMeta.ImgType)
+                            correct = False
+                            break
+                    elif(key == "permission"):
+                        value = string.lower(value)
+                        if not (value in ImgMeta.Permission):
+                            print "Wrong value for Permission, please use: " + str(ImgMeta.Permission)
+                            correct = False
+                            break
+                    elif (key == "imgstatus"):
+                        value = string.lower(value)
+                        if not (value in ImgMeta.ImgStatus):
+                            print "Wrong value for ImgStatus, please use: " + str(ImgMeta.ImgStatus)
+                            correct = False
+                            break                
+                
+        return correct
 
     def actionModify (self, imgId = None, attributeString = None):
         fname = sys._getframe().f_code.co_name

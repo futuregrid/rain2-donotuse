@@ -97,7 +97,7 @@ class ImgStoreMysql(AbstractImgStore):
     ############################################################
     # addItem
     ############################################################
-    def addItem(self, imgEntry1):
+    def addItem(self, imgEntry1, requestInstance):
         """
         Add imgEntry to store or Update it if exists and the user is the owner
         
@@ -106,7 +106,7 @@ class ImgStoreMysql(AbstractImgStore):
         """
         #self._items.append(imgEntry)
         status = False
-        status = self.persistToStore([imgEntry1])            
+        status = self.persistToStore([imgEntry1], requestInstance)            
                     
         return status
     """
@@ -276,7 +276,7 @@ class ImgStoreMysql(AbstractImgStore):
     ############################################################
     # persistToStore
     ############################################################
-    def persistToStore(self, items):
+    def persistToStore(self, items, requestInstance):
         """Copy imgEntry to the DB. 
         
         Keyword arguments:
@@ -298,7 +298,14 @@ class ImgStoreMysql(AbstractImgStore):
                     
                     cursor.execute(sql)
                     self._dbConnection.commit()
-                                                            
+                                  
+                if requestInstance != None:
+                    if not os.path.isfile(IRUtil.__fgirimgstore__+""+item._imgId):
+                        f=open(filename,'w')
+                        f.write(requestInstance.file.read())   #read return an str
+                        f.close()
+                        imgStored += 1
+                else:
                     imgStored += 1
                                       
                     

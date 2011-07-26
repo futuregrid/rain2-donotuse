@@ -130,7 +130,7 @@ class ImgStoreMongo(AbstractImgStore):
     ############################################################
     # addItem
     ############################################################
-    def addItem(self, imgEntry1):
+    def addItem(self, imgEntry1, requestInstance):
         """
         Add imgEntry to store or Update it if exists and the user is the owner
         
@@ -139,7 +139,7 @@ class ImgStoreMongo(AbstractImgStore):
         """
         #self._items.append(imgEntry)
         status = False
-        status = self.persistToStore([imgEntry1])            
+        status = self.persistToStore([imgEntry1], requestInstance)            
                     
         return status
     """
@@ -347,7 +347,7 @@ class ImgStoreMongo(AbstractImgStore):
     ############################################################
     # persistToStore
     ############################################################
-    def persistToStore(self, items):
+    def persistToStore(self, items, requestInstance):
         """Copy imgEntry and imgMeta to the DB. It first store the imgEntry to get the file Id
         
         Keyword arguments:
@@ -373,9 +373,11 @@ class ImgStoreMongo(AbstractImgStore):
                     """The default chunksize is 256kb. We should made tests with different sizes
                     4MB is the biggest and should be the most efficient for big binary files"""
                                   
-                    
-                    with open(item._imgURI) as image:
-                        imgId = gridfsLink.put(image, chunksize=4096 * 1024)
+                    if requestInstance == None:
+                        with open(item._imgURI) as image:
+                            imgId = gridfsLink.put(image, chunksize=4096 * 1024)
+                    else:
+                        imgId = gridfsLink.put(requestInstance.file, chunksize=4096 * 1024)
                     
                     item._imgId = imgId.__str__().decode('utf-8') # we store an String instead of an ObjectId.
                     #item._imgMeta._imgId=imgId #not needed                                                                       

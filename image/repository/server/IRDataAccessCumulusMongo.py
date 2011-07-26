@@ -188,7 +188,7 @@ class ImgStoreCumulusMongo(ImgStoreMongo):
     ############################################################
     # persistToStore
     ############################################################
-    def persistToStore(self, items):
+    def persistToStore(self, items, requestInstance):
         """Copy imgEntry and imgMeta to the DB. It first store the imgEntry to get the file Id
         
         Keyword arguments:
@@ -223,8 +223,11 @@ class ImgStoreCumulusMongo(ImgStoreMongo):
                                 
                 for item in items:
                                                       
-                    k.key = item._imgId                    
-                    k.set_contents_from_filename(item._imgURI)
+                    k.key = item._imgId            
+                    if requestInstance == None:        
+                        k.set_contents_from_filename(item._imgURI)
+                    else:
+                        k.set_contents_from_file(requestInstance.file)
                     
                     tags = item._imgMeta._tag.split(",")
                     tags_list = [x.strip() for x in tags]
@@ -261,7 +264,7 @@ class ImgStoreCumulusMongo(ImgStoreMongo):
             except TypeError:
                 self._log.error("TypeError in ImgStorecumulusMongo - persistenToStore " + str(sys.exc_info()))  
             except pymongo.errors.OperationFailure:
-                self._log.error("Operation Failure in ImgStorecumulusMongo - persistenToStore")  
+                self._log.error("Operation Failure in ImgStorecumulusMongo - persistenToStore. " + str(sys.exc_info()))  
             except:
                 self._log.error("Error in ImgStoreCumulusMongo - persistToStore. " + str(sys.exc_info()))           
             finally:

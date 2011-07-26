@@ -1,4 +1,4 @@
-#!/user/bin/python
+#!/usr/bin/python
 
 
 #from optparse import OptionParser
@@ -36,7 +36,7 @@ def main():
         openssl_dir = 'openssl-1.0.0d'
         cherrypy_dist = 'http://download.cherrypy.org/cherrypy/0.1/cherrypy-0.1.tar.gz'
         cherrypy_dir = 'cherrypy-0.1'
-        cmdOutput = runCmd('uname -p')
+        cmdOutput = 'x86_64\n'#runCmd('uname -p')
         if cmdOutput == "i386\n" :
             mongo_dist = 'http://fastdl.mongodb.org/osx/mongodb-osx-i386-1.8.2.tgz'
             mongo_dir = 'mongodb-osx-i386-1.8.2'
@@ -48,7 +48,9 @@ def main():
         logger.info('Using Linux kernel')
         openssl_dist = 'http://www.openssl.org/source/openssl-1.0.0d.tar.gz'
         openssl_dir = 'openssl-1.0.0d'
-        cmdOutput = runCmd('uname -p')
+        cherrypy_dist = 'http://download.cherrypy.org/cherrypy/0.1/cherrypy-0.1.tar.gz'
+        cherrypy_dir = 'cherrypy-0.1'
+        cmdOutput = 'x86_64\n' #runCmd('uname -p')
         if cmdOutput == "i386\n" :
             mongo_dist = 'http://fastdl.mongodb.org/linux/mongodb-linux-i686-1.8.2.tgz'
             mongo_dir = 'mongodb-linux-i686-1.8.2'
@@ -74,7 +76,7 @@ def main():
 
 #---------------------------------------------------------------------------
 
-
+    """
 #------------------- INSTALLING MONGODB -------------------------------------
     install_dir = 'mongodb'
     path_name = '/usr/local/mongodb/bin/mongod'
@@ -103,7 +105,7 @@ def main():
         print("unable to install pymongo")
         sys.exit(0)
 #------------------------------------------------------------------------------
-
+    """
 #----------------------- INSTALLING CHERRYPY ----------------------------------
     install_dir = 'cherrypy'
     try : 

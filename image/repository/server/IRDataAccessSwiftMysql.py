@@ -207,7 +207,7 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
     ############################################################
     # persistToStore
     ############################################################
-    def persistToStore(self, items):
+    def persistToStore(self, items, requestInstance):
         """Copy imgEntry to the DB. 
         
         Keyword arguments:

@@ -184,7 +184,7 @@ class ImgStoreCumulusMysql(ImgStoreMysql):
     ############################################################
     # persistToStore
     ############################################################
-    def persistToStore(self, items):
+    def persistToStore(self, items, requestInstance):
         """Copy imgEntry to the DB. 
         
         Keyword arguments:
@@ -217,9 +217,11 @@ class ImgStoreCumulusMysql(ImgStoreMysql):
                       
                 for item in items:
                     
-                    k.key = item._imgId                    
-                    k.set_contents_from_filename(item._imgURI)
-                    
+                    k.key = item._imgId
+                    if requestInstance == None:        
+                        k.set_contents_from_filename(item._imgURI)
+                    else:
+                        k.set_contents_from_file(requestInstance.file)
                     sql = "INSERT INTO %s (imgId, imgMetaData, imgUri, createdDate, lastAccess, accessCount, size) \
        VALUES ('%s', '%s', '%s', '%s', '%s', '%d', '%d' )" % \
        (self._tabledata, item._imgId, item._imgId, "", datetime.utcnow(), datetime.utcnow(), 0, item._size)
