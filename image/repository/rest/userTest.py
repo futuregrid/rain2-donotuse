@@ -4,15 +4,9 @@ import subprocess
 from twill import get_browser
 from twill.commands import *
 
-
-
-
-
 #subprocess.call("python restFrontEnd.py \&\> cherry.log \&",shell=True)
 #print "Press Enter to continue"
 #subprocess.call("read line",shell=True)
-
-
 
 
 get_browser()
