@@ -18,6 +18,7 @@ __version__ = '0.1'
 import cherrypy
 import os, sys
 import os.path
+import logging
 from getopt import gnu_getopt, GetoptError
 from datetime import datetime
 from IRTypes import ImgMeta
@@ -99,7 +100,8 @@ class IRService(object):
         self._fgirimgstore = IRUtil.getFgirimgstore()
         self._fgserverdir = IRUtil.getFgserverdir()
         #Setup log        
-        self._log = fgLog.fgLog(IRUtil.getLogFile(), IRUtil.getLogLevel(), "Img Repo Server", False)
+        self._log = fgLog.fgLog(IRUtil.getLogFile(), IRUtil.getLogLevel(), "Img Repo Server", True)
+        
         if (self._backend == "mongodb"): 
             self.metaStore = ImgMetaStoreMongo(self._address, self._fgserverdir, self._log)
             self.imgStore = ImgStoreMongo(self._address, self._fgserverdir, self._log)            
@@ -211,11 +213,15 @@ class IRService(object):
     # put
     ############################################################
     def put(self, userId, imgId, fileName, attributeString, size):
-        self._log.info("user:" + userId + " command:put args={imgId:" + imgId + ", metadata:" + attributeString + ",\
+        if (str(size) == 0) :
+            print("Error size is 0 ")
+        else :
+            print("Logging log info for put action- user  " + userId + " len(size) " + str(size))
+            self._log.info("user:" + userId + " command:put args={imgId:" + imgId + ", metadata:" + attributeString + ",\
                        size:" + str(size) + "}")
         """
         Register the file in the database
-        
+
         return imgId or 0 if something fails
         """  
         
@@ -535,7 +541,7 @@ def main():
         elif o in ("--getuid"):
             print IRUtil.getImgId()
         elif o in ("--getBackend"):
-            print service._backend
+            print service._backe+nd
             print service._fgirimgstore
         elif o in ("-m", "--modify"):
             print service.updateItem(os.popen('whoami', 'r').read().strip(), args[0], args[1])
