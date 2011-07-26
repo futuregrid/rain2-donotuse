@@ -36,7 +36,7 @@ class RepositoryService:
     sessionId = 0
     userName = None
     directoryName = None
-    curlObject = None
+#    curlObject = None
     msg = None
     myCookie = []
     userNameType = None
@@ -58,20 +58,22 @@ class RepositoryService:
         return
 
     def logout(self) :
-        self.msg = None
-        if myCookie == None :
-            setMessage(" No user was logged in to logout")
-        else :
-            setMessage("Logged out with session id %s ")
+#        self.msg = None
+#        if myCookie == None :
+#            setMessage(" No user was logged in to logout")
+#        else :
+#            setMessage("Logged out with session id %s ")
 #            setMessage("Logged out with session id %s " % myCookie[self.userName])
 #            myCookie[self.userName] = None
-            cherrypy.response.cookie[self.userName] = None    # set the response cookie to None
+#            cherrypy.response.cookie[self.userName] = None    # set the response cookie to None
         raise cherrypy.HTTPRedirect("/results")
     logout.exposed = True
 
     def verifyLogin(self,user_name = None, password = None) :
         # here check the database for username , if does not exist needs to redirect to 
         # add user name page, for now assume user_name is good
+
+        # July 5th 2011:  Currently this function is no longer in use
         self.userName = user_name
         
         # If we get this far then user name exists, check if the password is correct
@@ -97,17 +99,20 @@ class RepositoryService:
 
     def login(self) :
         # this a link that the site redirects users to, not to be exposed
-        message = "<p> Welcome to Future Grid Rest Service API </p>"
-        message += "<form method=get action=verifyLogin>"
-        message += "username: <input type=string name=user_name> <br> "
-        message += "password: <input type=string name=password> <br> "
-        message += "<input type=submit> </form> </body> </html>" 
+#        message = "<p> Welcome to Future Grid Rest Service API </p>"
+#        message += "<form method=get action=verifyLogin>"
+#        message += "username: <input type=string name=user_name> <br> "
+#        message += "password: <input type=string name=password> <br> "
+#        message += "<input type=submit> </form> </body> </html>" 
     
         return message
     login.exposed = True
 
     
     def index(self) :
+        # July 5th : ignoring session variables
+        self.inSession = True
+
         self.msg = None
         if (self.inSession == False) :
             raise cherrypy.HTTPRedirect("/login")
@@ -307,12 +312,13 @@ class RepositoryService:
             self.msg = "The user status has not been changed.</br>"
             self.msg = self.msg + "Please verify that you are admin and that the username exists \n"        
         raise cherrypy.HTTPRedirect("/results")    
-    actionUserRole.exposed = True
+    actionUserStatus.exposed = True
 
     def setuserstatus (self) :
         if (self.inSession == False) :
             raise cherrypy.HTTPRedirect("/login")
         fname = sys._getframe().f_code.co_name
+
         self.msg = """ <form method=post action=actionUserStatus>
                 User Id: <input type=string name=userId> <br>
                 Status : <input type=string name=status> <br>
@@ -413,7 +419,7 @@ class RepositoryService:
             self.setMessage("The image Id or option is empty! Please input both the image Id and option")
             raise cherrypy.HTTPRedirect("/results")
 
-            serve_file(filepath, "application/x-download", "attachment")
+        serve_file(filepath, "application/x-download", "attachment")
         raise cherrypy.HTTPRedirect("/results")
     
     actionGet.exposed = True
@@ -434,26 +440,13 @@ class RepositoryService:
 
     def upload(self, fileName = None) :
         url = "http://localhost:8080/receive"
-        # a good pathname:  /tmp/4dd66e0a97ace67869000001.img2
-        self.fromSite = "upload"
         self.msg = None
         if  fileName == None :
             self.msg = " fileName path not specified " 
-            raise cherrypy.HTTPRedirect("/results")
         if not os.path.exists(fileName) :
             self.msg =  "Error: the file %s does not exsist " % fileName
-        else :
-            values = [ ("imageFileName",fileName.__str__()), ("userId", "None"),  ("attributeString","None") ]
-#            content = String.IO.String.IO()
-            curlObject = pycurl.Curl()
-            curlObject.setopt(curlObject.URL,url) 
-            curlObject.setopt(curlObject.HTTPPOST,values)
-            curlObject.setopt(pycurl.FOLLOWLOCATION, 1)
-#           curlObject.setopt(pycurl.WRITEFUNCTION, content.write)
-            curlObject.perform()
-            self.msg = "EFFECTIVE URL %s " % curlObject.getinfo(pycurl.EFFECTIVE_URL)
-            self.msg += "HTTP CODE : %s " %  curlObject.getinfo(pycurl.HTTP_CODE)
-#            raise cherrypy.HTTPRedirect("/results")
+
+        raise cherrypy.HTTPRedirect("/results")
         
     upload.exposed = True
 
@@ -466,6 +459,7 @@ class RepositoryService:
         self.msg = " Filename type:  %s " % type(filename)
         raise cherrypy.HTTPRedirect("/results")
     receive.exposed = True
+
 
     def actionPut (self, userId = None, imageFileName = None, attributeString = None) :
         # retrieve the data
@@ -481,7 +475,7 @@ class RepositoryService:
         self.msg += " Image size %s " % size 
         service = IRService()
         print type(imageFileName)
-        imageId = service.put(os.popen('whoami', 'r').read().strip(), userId,imageFileName,attributeString,size)
+        imageId = service.put(adminName, userId,imageFileName,attributeString,size)
         raise cherrypy.HTTPRedirect("/results")
     actionPut.exposed = True
 
@@ -586,13 +580,14 @@ class RepositoryService:
 
 
 
-import os.path
-configurationFile = os.path.join(os.path.dirname(__file__), 'repository.conf')
+#import os.path
+#configurationFile = os.path.join(os.path.dirname(__file__), 'repository.conf')
 
 if __name__ == '__main__':
 
-
+    # Site configuration
     cherrypy.config.update(httpsconfig)
+
     ip = cherrypy.config.get("server.socket_host")
     port = cherrypy.config.get("server.socket_port")
     secure_server = _cpwsgi_server.CPWSGIServer()
@@ -604,7 +599,6 @@ if __name__ == '__main__':
     adapter.subscribe()
     cherrypy.quickstart(RepositoryService(), config=httpconfig)
 
-    curlObject = pycurl.Curl()
 else:
     # This branch is for the test suite; you can ignore it.
     cherrypy.tree.mount(RepositoryService(), config=configurationFile)
