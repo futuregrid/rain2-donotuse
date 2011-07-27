@@ -21,6 +21,9 @@ pylint:
 	mkdir -p doc
 	pylint --rcfile=check/standard.rc shell utils image > doc/pylint-all.txt
 
+pep8:
+	mkdir -p doc
+	check/pep8.sh > doc/pep8-all.txt
 
 pychecker:
 	./check/pycheck.sh
