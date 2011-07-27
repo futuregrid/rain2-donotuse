@@ -1,6 +1,7 @@
 import logging
 import logging.handlers
 
+# kjcjlk
 class fgLog():
 
     def __init__(self, logfile, loglevel, whois, verbose):
