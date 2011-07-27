@@ -806,7 +806,7 @@ class ImgMetaStoreMongo(AbstractImgMetaStore):
                             else:
                                 dic[key] = value
                     
-                    
+                    self._log.debug(dic)
                     if len(dic)>0:
                                                                
                         collectionMeta.update({"_id": imgId},

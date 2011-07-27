@@ -220,9 +220,9 @@ class AdminRestService(object):
 
     def actionGet(self, userId, option, imgId):
         self.msg = None
-        if(len(imgId) > 0 and len(option) > 0):
+        if(len(imgId) > 0 and len(option) > 0 and len(userId)):
             
-            filepath = self.service.get(adminName, option, imgId)
+            filepath = self.service.get(userId, option, imgId)
             if (filepath != None):
                 if (len(imgId) > 0 ) :
                     self.setMessage("Downloading img to %s " % filepath.__str__())
@@ -241,9 +241,11 @@ class AdminRestService(object):
     actionGet.exposed = True
 
     def get (self):
-        return """                                                                                                                                           <html><body>                                                                                                                                      <form method=get action=actionGet>                                                                                                                    Image Id: <input type=string name=imgId> <br>                                                                                                     Option ('img' or 'uri'): <input type=string name=option> <br>                                                                                     <input type=submit>
-                                       </form> 
-                         </body></html>
+        return """<html><body><form method=get action=actionGet>
+         User Id: <input type=string name=userId><br>
+         Image Id: <input type=string name=imgId> <br>
+         Option ('img' or 'uri'): <input type=string name=option> <br> 
+         <input type=submit> </form> </body></html>
        """
     get.exposed = True;
 
@@ -251,7 +253,7 @@ class AdminRestService(object):
         # retrieve the data                                                                                                                       
         size = 0
         self.fromSite = "actionPut"
-        self.msg = None
+        self.msg = ""
         
         while 1:
             data = imageFileName.file.read(1024 * 8) # Read blocks of 8KB at a time                                                               
@@ -283,12 +285,16 @@ class AdminRestService(object):
                 self.msg = "The image has NOT been uploaded"
                 self.msg = "The file exceed the quota"
         else:
-            self.msg = "The image has NOT been uploaded. Please, verify that the metadata string is valid"        
+            self.msg += "The image has NOT been uploaded. Please, verify that the metadata string is valid"        
         raise cherrypy.HTTPRedirect("results")
     actionPut.exposed = True
 
     def put (self) :
-       return """                                                                                                                                             <html><body>                                                                                                                                      <form method=post action=actionPut enctype="multipart/form-data">                                                                                     Upload a file: <input type=file name=imageFileName><br>                                                                                           User Id: <input type=string name=userId> <br>                                                                                                     attributeString: <input type=string name=attributeString> <br>                                                                                    <input type=submit>                                                                                                                           </form>                                                                                                </body></html>      
+       return """<html><body><form method=post action=actionPut enctype="multipart/form-data">
+       Upload a file: <input type=file name=imageFileName><br>
+       User Id: <input type=string name=userId> <br>
+       attributeString: <input type=string name=attributeString> <br>
+       <input type=submit></form></body></html>      
         """
     put.exposed = True;
 
@@ -314,25 +320,25 @@ class AdminRestService(object):
                     if (key == "vmtype"):
                         value = string.lower(value)
                         if not (value in ImgMeta.VmType):
-                            print "Wrong value for VmType, please use: " + str(ImgMeta.VmType)
+                            self.msg = "Wrong value for VmType, please use: " + str(ImgMeta.VmType)+"<br>"
                             correct = False
                             break
                     elif (key == "imgtype"):       
                         value = string.lower(value) 
                         if not (value in ImgMeta.ImgType):
-                            print "Wrong value for ImgType, please use: " + str(ImgMeta.ImgType)
+                            self.msg = "Wrong value for ImgType, please use: " + str(ImgMeta.ImgType)+"<br>"
                             correct = False
                             break
                     elif(key == "permission"):
                         value = string.lower(value)
                         if not (value in ImgMeta.Permission):
-                            print "Wrong value for Permission, please use: " + str(ImgMeta.Permission)
+                            self.msg = "Wrong value for Permission, please use: " + str(ImgMeta.Permission)+"<br>"
                             correct = False
                             break
                     elif (key == "imgstatus"):
                         value = string.lower(value)
                         if not (value in ImgMeta.ImgStatus):
-                            print "Wrong value for ImgStatus, please use: " + str(ImgMeta.ImgStatus)
+                            self.msg = "Wrong value for ImgStatus, please use: " + str(ImgMeta.ImgStatus)+"<br>"
                             correct = False
                             break                
                 
@@ -340,20 +346,26 @@ class AdminRestService(object):
 
     def actionModify (self, userId = None, imgId = None, attributeString = None):
         fname = sys._getframe().f_code.co_name
-        self.msg = None
-        if(len(imgId) > 0):
-            
-            success = self.service.updateItem(adminName, imgId, attributeString)
+        self.msg = ""
+        success=False
+        
+        if(len(imgId) > 0 and len(userId) >0):
+            if self.checkMeta(attributeString):                        
+                success = self.service.updateItem(userId, imgId, attributeString)
+                
         if (success):
-            self.msg = "The image %s was successfully updated" % imgId
-            self.msg += " User name: < %s > " % adminName
+            self.msg = "The image %s was successfully updated" % imgId            
         else:
-            self.msg = "Error in the update.<br>Please verify that you are the owner or that you introduced the correct arguments"
+            self.msg += "Error in the update.<br>Please verify that you are the owner or that you introduced the correct arguments"
         raise cherrypy.HTTPRedirect("results")
     actionModify.exposed = writeMethodsExposed;
 
     def modify (self, imgId = None, attributeString = None):
-        self.msg = """ <form method=get action=actionModify>                                                                                                      Image Id: <input type=string name=imgId> <br>                                                                                                     Atribute String: <input type=string name=attributeString> <br>                                                                                   <input type=submit> </form> """
+        self.msg = """ <form method=get action=actionModify>
+        User Id: <input type=string name=userId> <br>
+        Image Id: <input type=string name=imgId> <br>
+        Atribute String: <input type=string name=attributeString> <br> 
+         <input type=submit> </form> """
         return self.msg;
     modify.exposed = writeMethodsExposed;
 
@@ -361,7 +373,7 @@ class AdminRestService(object):
     def actionRemove (self, userId = None, imgId = None):
         fname = sys._getframe().f_code.co_name
         
-        status = self.service.remove(adminName, imgId)
+        status = self.service.remove(userId, imgId)
         self.msg = None
         if (status == True):
             self.msg = "The image with imgId=" + imgId + " has been removed"
@@ -371,33 +383,43 @@ class AdminRestService(object):
     actionRemove.exposed = True;
 
     def remove (self):
-        self.msg = """ <form method=get action=actionRemove>                                                                                                      Image Id: <input type=string name=imgId> <br>                                                                                                     <input type=submit> </form> """
+        self.msg = """ <form method=get action=actionRemove>
+        User Id: <input type=string name=userId> <br>
+        Image Id: <input type=string name=imgId> <br>
+        <input type=submit> </form> """
         return self.msg
     remove.exposed = True
 
     def actionHistImage (self, userId, imgId):
         
         fname = sys._getframe().f_code.co_name
-        self.msg = None
-        if(len(imgId) > 0):
-            imgsList = self.service.histImg(adminName, imgId)
+        self.msg = ""
+        if(len(userId)>0):
+            if(len(imgId) > 0):
+                imgsList = self.service.histImg(userId, imgId)
+            else:
+                imgsList = self.service.histImg(userId, "None")
+    
+            try:
+                imgs = self.service.printHistImg(imgsList)
+                self.msg = string.replace(imgs['head'], "\n", "<br>")
+                self.msg+="<br>"
+                for key in imgs.keys():
+                    if key != 'head':
+                        self.msg = self.msg + imgs[key] + "<br>"
+            except:
+                self.msg = "histimg: Error:" + str(sys.exc_info()) + "\n"
+                self._log.error("histimg: Error interpreting the list of images from Image Repository" + str(sys.exc_info()[0]))
         else:
-            imgsList = self.service.histImg(adminName, "None")
-
-        try:
-            imgs = self.service.printHistImg(imgsList)
-            self.msg = imgs['head']
-            for key in imgs.keys():
-                if key != 'head':
-                    self.msg = self.msg + imgs[key] + "\n"
-        except:
-            self.msg = "histimg: Error:" + str(sys.exc_info()[0]) + "\n"
-            self._log.error("histimg: Error interpreting the list of images from Image Repository" + str(sys.exc_info()[0]))
+            self.msg="Please introduce your userId"
         raise cherrypy.HTTPRedirect("results")
     actionHistImage.exposed = True;
 
     def histimg (self):
-        self.msg = """ <form method=get action=actionHistImage>                                                                                                   Image Id: <input type=string name=imgId> <br>                                                                                                     <input type=submit> </form> """
+        self.msg = """ <form method=get action=actionHistImage>
+        User Id: <input type=string name=userId> <br>
+        Image Id: <input type=string name=imgId> <br>
+        <input type=submit> </form> """
         return self.msg;
     histimg.exposed = True;
 
@@ -406,27 +428,34 @@ class AdminRestService(object):
     def actionHistUser (self, userId, userIdtoSearch):
         fname = sys._getframe().f_code.co_name
         
-        self.msg = None
-        if (len(userIdtoSearch) > 0):
-            userList = self.service.histUser(adminName, userIdtoSearch)
-        else:
-            userList = self.service.histUser(adminName, "None")
+        self.msg = ""
+        if (len(userId) > 0):
+            if (len(userIdtoSearch)>0):
+                userList = self.service.histUser(userId, userIdtoSearch)
+            else:
+                userList = self.service.histUser(userId, "None")
 
-        try:
-            users = userList
-            self.msg = users['head']
-            self.msg = "<br>"
-            for key in users.keys():
-                if key != 'head':
-                    self.msg = self.msg + users[key]
-        except:
-            self.msg = "histuser: Error:" + str(sys.exc_info()[0]) + "\n"
-            self._log.error("histuser: Error interpreting the list of users from Image Repository" + str(sys.exc_info()[0]))
+            try:
+                users = userList
+                self.msg = string.replace(users['head'], "\n", "<br>")
+                self.msg += "<br>"
+                for key in users.keys():
+                    if key != 'head':
+                        self.msg = self.msg + users[key]+"<br>"
+            except:
+                self.msg = "histuser: Error:" + str(sys.exc_info()) + "<br>"
+                self._log.error("histuser: Error interpreting the list of users from Image Repository" + str(sys.exc_info()[0]))
+        else:
+            self.msg="Please introduce your userId"
+            
         raise cherrypy.HTTPRedirect("results")
     actionHistUser.exposed = True;
 
     def histuser (self) :
-        self.msg = """ <form method=get action=actionHistUser>                                                                                                     User Id: <input type=string name=userId> <br>                                                                                                     <input type=submit> </form> """
+        self.msg = """ <form method=get action=actionHistUser>
+        UserId: <input type=string name=userId> <br>
+        UserId to Search: <input type=string name=userIdtoSearch> <br>
+        <input type=submit> </form> """
         return self.msg
     histuser.exposed = True;
 

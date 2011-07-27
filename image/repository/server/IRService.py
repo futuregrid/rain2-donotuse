@@ -229,7 +229,7 @@ class IRService(object):
             if type(imgFile) == cherrypy._cpreqbody.Part:            
                 self._log.info("user:" + userId + " command:put args={imgId:" + imgId + ", imgFile:" + imgId + ", metadata:" + attributeString + ", size:" + str(size) + "}")
                 aMeta = self._createImgMeta(userId, imgId, attributeString, False)
-                aImg = ImgEntry(imgId, aMeta, imgId, size)
+                aImg = ImgEntry(imgId, aMeta, self._fgirimgstore+"/"+imgId, size)
                 #it sends the imgEntry and the requestInstance
                 statusImg = self.imgStore.addItem(aImg,imgFile)  
                 
@@ -315,7 +315,7 @@ class IRService(object):
     ############################################################
     def printHistImg(self, imgs):
         output = {}
-        output ['head'] = "    Image Id \t\t     Created Date \t Last Access \t    #Access \n"
+        output ['head'] = "    Image_Id \t\t     Created_Date \t Last_Access \t    #Access \n"
         output ['head'] = string.expandtabs(output ['head'], 8)
         stradd = ""
         for i in range(len(output['head'])):
@@ -342,7 +342,7 @@ class IRService(object):
     def histUser(self, userId, userIdtoSearch):    
         self._log.info("user:" + userId + " command:histImg args={userIdtoSearch:" + userIdtoSearch + "}")    
         output = {}
-        output ['head'] = "User Id  Used Disk \t\t  Last Login  \t\t #Owned Images \n"
+        output ['head'] = "User_Id  Used_Disk \t\t  Last_Login  \t\t #Owned_Images \n"
         output ['head'] = string.expandtabs(output ['head'], 8)
         stradd = ""
         for i in range(len(output['head'])):
