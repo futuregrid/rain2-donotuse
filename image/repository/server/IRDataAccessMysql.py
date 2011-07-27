@@ -300,9 +300,12 @@ class ImgStoreMysql(AbstractImgStore):
                     self._dbConnection.commit()
                                   
                 if requestInstance != None:
-                    if not os.path.isfile(IRUtil.__fgirimgstore__+""+item._imgId):
+                    filename=IRUtil.__fgirimgstore__+""+item._imgId
+                    if not os.path.isfile(filename):
                         f=open(filename,'w')
-                        f.write(requestInstance.file.read())   #read return an str
+                        requestInstance.file.seek(0)
+                        data=requestInstance.file.read()                        
+                        f.write(data)   #read return an str
                         f.close()
                         imgStored += 1
                 else:
@@ -366,6 +369,7 @@ class ImgStoreMysql(AbstractImgStore):
                     size[0] = int(results[0])
                     
                     uri = self.getItem(imgId, userId, admin)
+                    self._log.debug(uri)
                     os.system("rm -f " + uri)
                     
                     sql = "DELETE FROM %s WHERE imgId='%s'" % (self._tabledata, imgId)                    
@@ -426,7 +430,10 @@ class ImgStoreMysql(AbstractImgStore):
         else:
             self._log.error("Could not get access to the database. Cannot check img owner")
         
-        return results[0]
+        if results !=None:
+            return results[0]
+        else:
+            return results
                
     ############################################################
     # existAndOwner

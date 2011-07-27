@@ -26,9 +26,14 @@ adminName = None
 config = None
 
 
-class AdminRestService :
-    msg = None
+class AdminRestService(object):
+    
     writeMethodsExposed = True
+
+    def __init__(self):
+        super(AdminRestService, self).__init__()
+        self.service=IRService()
+        self.msg = None
 
     def results(self) :
         # adds the ending html tags and possible footer here                                      
@@ -157,11 +162,11 @@ class AdminRestService :
 
 
     def actionList (self, queryString) :
-        service = IRService()
+        
         if (len(queryString) == 0):
-            imgsList = service.query(adminName, "*")
+            imgsList = self.service.query(adminName, "*")
         else:
-            imgsList = service.query(adminName, queryString)
+            imgsList = self.service.query(adminName, queryString)
 
         if(len(imgsList) > 0):
             try:
@@ -182,8 +187,8 @@ class AdminRestService :
     def actionSetPermission (self, imgId = None, permissionString = None) :
         self.msg = None
         if (len(permissionString) > 0):
-            service = IRService()
-            status = service.updateItem(adminName, imgId, permissionString)
+            
+            status = self.service.updateItem(adminName, imgId, permissionString)
             if(status == True):
                 self.setMessage("Permission of img " + imgId + " updated")
             else:
@@ -206,12 +211,16 @@ class AdminRestService :
     def actionGet(self, option, imgId):
         self.msg = None
         if(len(imgId) > 0 and len(option) > 0):
-            service = IRService()
-            filepath = service.get(adminName, option, imgId)
-            if (len(imgId) > 0 ) :
-                self.setMessage("Downloading img to %s " % filepath.__str__())
-            else :
-                self.setMessage("URL:  %s " % filepath.__str__())
+            
+            filepath = self.service.get(adminName, option, imgId)
+            if (filepath != None):
+                if (len(imgId) > 0 ) :
+                    self.setMessage("Downloading img to %s " % filepath.__str__())
+                else :
+                    self.setMessage("URL:  %s " % filepath.__str__())
+            else:
+                self.setMessage("Cannot get access to the image with imgId = "+imgId)
+                raise cherrypy.HTTPRedirect("results")
         else :
             self.setMessage("The image Id or option is empty! Please input both the image Id and option")
             raise cherrypy.HTTPRedirect("results")
@@ -239,18 +248,18 @@ class AdminRestService :
             size += len(data)
             if not data: break
         
-        service = IRService()
+        
         
         #check metadata
         correct=self.checkMeta(attributeString)
         if correct:
             #check quota
-            isPermitted = service.uploadValidator(userId, size)
+            isPermitted = self.service.uploadValidator(userId, size)
                   
             
             if (isPermitted == True):
                 imgId=self.getImgId() #this is needed when we are not using mongodb as image storage backend
-                imageId = service.put(adminName, imgId, imageFileName,attributeString,size)
+                imageId = self.service.put(adminName, imgId, imageFileName,attributeString,size)
                 
                 self.msg = "Image %s successfully uploaded." % imageFileName.filename
                 self.msg += " Image size %s " % size
@@ -324,8 +333,8 @@ class AdminRestService :
         fname = sys._getframe().f_code.co_name
         self.msg = None
         if(len(imgId) > 0):
-            service = IRService()
-            success = service.updateItem(adminName, imgId, attributeString)
+            
+            success = self.service.updateItem(adminName, imgId, attributeString)
         if (success):
             self.msg = "The image %s was successfully updated" % imgId
             self.msg += " User name: < %s > " % adminName
@@ -342,14 +351,14 @@ class AdminRestService :
 
     def actionRemove (self, imgId = None):
         fname = sys._getframe().f_code.co_name
-        service = IRService()
-        status = service.remove(adminName, imgId)
+        
+        status = self.service.remove(adminName, imgId)
         self.msg = None
         if (status == True):
             self.msg = "The image with imgId=" + imgId + " has been removed"
         else:
             self.msg = "The image with imgId=" + imgId + " has NOT been removed.</br>Please verify the imgId and if you are the image owner"
-            raise cherrypy.HTTPRedirect("results")
+        raise cherrypy.HTTPRedirect("results")
     actionRemove.exposed = True;
 
     def remove (self):
@@ -358,16 +367,16 @@ class AdminRestService :
     remove.exposed = True
 
     def actionHistImage (self, imgId):
-        service = IRService()
+        
         fname = sys._getframe().f_code.co_name
         self.msg = None
         if(len(imgId) > 0):
-            imgsList = service.histImg(adminName, imgId)
+            imgsList = self.service.histImg(adminName, imgId)
         else:
-            imgsList = service.histImg(adminName, "None")
+            imgsList = self.service.histImg(adminName, "None")
 
         try:
-            imgs = service.printHistImg(imgsList)
+            imgs = self.service.printHistImg(imgsList)
             self.msg = imgs['head']
             for key in imgs.keys():
                 if key != 'head':
@@ -387,12 +396,12 @@ class AdminRestService :
 
     def actionHistUser (self, userId):
         fname = sys._getframe().f_code.co_name
-        service = IRService()
+        
         self.msg = None
         if (len(userId) > 0):
-            userList = service.histUser(adminName, userId)
+            userList = self.service.histUser(adminName, userId)
         else:
-            userList = service.histUser(adminName, "None")
+            userList = self.service.histUser(adminName, "None")
 
         try:
             users = userList
@@ -414,8 +423,8 @@ class AdminRestService :
 
 
     def actionUserAdd (self, userId):
-        service = IRService()
-        status = service.userAdd(adminName, userId)
+        
+        status = self.service.userAdd(adminName, userId)
         if(status):
             self.msg = "User created successfully.</br>"
             self.msg = self.msg + "Remember that you still need to activate this user (see setuserstatus command)</br>"
@@ -432,8 +441,8 @@ class AdminRestService :
 
 
     def actionUserDel(self,userId = None) :
-        service = IRService()
-        status = service.userDel(adminName,userId)
+        
+        status = self.service.userDel(adminName,userId)
         self.msg = None
         if(status == True):
             self.msg = "User deleted successfully."
@@ -450,11 +459,11 @@ class AdminRestService :
 
     def userlist(self):
         fname = sys._getframe().f_code.co_name
-        service = IRService()
+        
         self.msg = None
 
         if (adminName != None) :
-            usersList = service.userList(adminName)
+            usersList = self.service.userList(adminName)
             if (len(usersList) > 0):
                 try:
                     self.msg = "<br>" + str(len(usersList)) + " users found </br>"
@@ -476,8 +485,8 @@ class AdminRestService :
     userlist.exposed = True;
 
     def actionQuota (self,userId, quota) :
-        service = IRService()
-        status = service.setUserQuota(adminName,userId,quota)
+        
+        status = self.service.setUserQuota(adminName,userId,quota)
         if(status == True):
             self.msg = "Quota changed successfully."
         else:
@@ -492,9 +501,9 @@ class AdminRestService :
     setquota.exposed = True;
 
     def actionUserRole (self,userId, role) :
-        service = IRService()
+        
         # User name based on admin file
-        status = service.setUserRole(adminName,userId, role) 
+        status = self.service.setUserRole(adminName,userId, role) 
         
         self.msg = None
         if (status == True):
@@ -517,8 +526,8 @@ class AdminRestService :
 
 
     def actionUserStatus (self,userId, status) :
-        service = IRService()
-        status = service.setUserStatus(adminName,userId,status)
+        
+        status = self.service.setUserStatus(adminName,userId,status)
         self.msg = None
         if(status == True):
             self.msg = "Status changed successfully."
