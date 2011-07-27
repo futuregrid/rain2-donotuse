@@ -94,7 +94,9 @@ class IRService(object):
         self._address = IRUtil.getAddress()                
         self._fgirimgstore = IRUtil.getFgirimgstore()
         self._fgserverdir = IRUtil.getFgserverdir()
-        #Setup log        
+        
+        #Setup log. 
+        #When integrate ALL FG software, we may need to create this somewhere else and send the log object to all classes like this        
         self._log = fgLog.fgLog(IRUtil.getLogFile(), IRUtil.getLogLevel(), "Img Repo Server", False)
         if (self._backend == "mongodb"): 
             self.metaStore = ImgMetaStoreMongo(self._address, self._fgserverdir, self._log)
@@ -124,7 +126,10 @@ class IRService(object):
             self.metaStore = ImgMetaStoreFS()
             self.imgStore = ImgStoreFS()            
             self.userStore = IRUserStoreFS()    
-        
+    
+    def getLog(self):
+        return self._log
+       
     ############################################################
     # uploadValidator
     ############################################################
@@ -266,8 +271,7 @@ class IRService(object):
     ############################################################
     # updateItem
     ############################################################
-    def updateItem(self, userId, imgId, attributeString):
-        self._log.info("user:" + userId + " command:updateItem args={imgId:" + imgId + ",metadata:" + attributeString + "}")
+    def updateItem(self, userId, imgId, attributeString):        
         """
         Update Image Repository
         
@@ -276,6 +280,7 @@ class IRService(object):
                 meta - update only the Metadata
                 all - update Image file and Metadata
         """
+        self._log.info("user:" + userId + " command:updateItem args={imgId:" + imgId + ",metadata:" + attributeString + "}")
         success = False
         self._log.debug(str(attributeString))
         aMeta = self._createImgMeta(userId, imgId, attributeString, True)

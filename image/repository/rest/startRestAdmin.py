@@ -10,6 +10,7 @@ import os, sys
 import cherrypy.lib.sessions
 sys.path.append(os.path.dirname( os.path.realpath( __file__ ) )+'/../server/')
 from IRService import IRService
+import IRUtil
 from IRTypes import ImgMeta
 from cherrypy.lib.static import serve_file
 import textwrap
@@ -25,7 +26,6 @@ privateKey = os.path.join(localDir, 'server.key')
 adminName = None
 config = None
 
-
 class AdminRestService(object):
     
     writeMethodsExposed = True
@@ -33,8 +33,9 @@ class AdminRestService(object):
     def __init__(self):
         super(AdminRestService, self).__init__()
         self.service=IRService()
-        self.msg = None
-
+        self.msg = None        
+        self._log=self.service.getLog()
+        
     def results(self) :
         # adds the ending html tags and possible footer here                                      
         self.msg += "<br> <br> <a href = \"index\"> Return to the main page </a> "
@@ -166,8 +167,8 @@ class AdminRestService(object):
         if (len(queryString) == 0):
             imgsList = self.service.query(adminName, "*")
         else:
-            imgsList = self.service.query(adminName, queryString)
-
+            imgsList = self.service.query(userId, queryString)
+        
         if(len(imgsList) > 0):
             try:
                     self.msg = str(imgsList)
@@ -247,8 +248,7 @@ class AdminRestService(object):
             data = imageFileName.file.read(1024 * 8) # Read blocks of 8KB at a time                                                               
             size += len(data)
             if not data: break
-        
-        
+                
         
         #check metadata
         correct=self.checkMeta(attributeString)
@@ -259,7 +259,7 @@ class AdminRestService(object):
             
             if (isPermitted == True):
                 imgId=self.getImgId() #this is needed when we are not using mongodb as image storage backend
-                imageId = self.service.put(adminName, imgId, imageFileName,attributeString,size)
+                imageId = self.service.put(userId, imgId, imageFileName,attributeString,size)
                 
                 self.msg = "Image %s successfully uploaded." % imageFileName.filename
                 self.msg += " Image size %s " % size
@@ -572,7 +572,8 @@ if __name__ == '__main__':
     print("Admin name: %s" % adminName) 
 #    adminName = cherrypy.config.get("Admin")['username']
 #    adminName = configSectionMap("Admin")['username']
-
+    cherrypy.log.error_log.propagate = False
+    cherrypy.log.access_log.propagate = False 
 
 
     secure_server = _cpwsgi_server.CPWSGIServer()

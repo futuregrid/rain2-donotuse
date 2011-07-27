@@ -20,7 +20,7 @@ import IRUtil
 from IRClientConf import IRClientConf
 import string
 import sys
-
+sys.path.append(os.getcwd())
 try:
     from futuregrid.utils import fgLog #This should the the final one
 #To execute IRClient for tests
