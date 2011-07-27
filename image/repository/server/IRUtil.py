@@ -8,7 +8,7 @@ import sys, os
 ################
 #BACKEND CONFIG
 ################
-"""
+
 #MongoDB config
 __backend__ = "mongodb"
 __address__ = "localhost:23000"
@@ -19,7 +19,7 @@ __fgirimgstore__ = "/tmp/"
 __backend__= "mysql"
 __address__= "localhost"
 __fgirimgstore__="/srv/irstore/"
-
+"""
 """
 #Swift-Mysql
 __backend__= "swiftmysql"
