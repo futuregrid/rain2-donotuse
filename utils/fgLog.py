@@ -8,7 +8,8 @@ class fgLog():
         self._formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
         self._logger.setLevel(loglevel)
                 
-        handler = logging.handlers.RotatingFileHandler(logfile, maxBytes=2048, backupCount=5)
+        handler = logging.FileHandler(logfile)
+        #handlers.RotatingFileHandler(logfile, maxBytes=2048, backupCount=5)
         
         handler.setFormatter(self._formatter)
         
