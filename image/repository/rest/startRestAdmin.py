@@ -11,7 +11,7 @@ import cherrypy.lib.sessions
 sys.path.append(os.path.dirname( os.path.realpath( __file__ ) )+'/../server/')
 from IRService import IRService
 import IRUtil
-from IRTypes import ImgMeta
+from IRTypes import ImgMeta,IRUser
 from cherrypy.lib.static import serve_file
 import textwrap
 from random import randrange
@@ -33,7 +33,7 @@ class AdminRestService(object):
     def __init__(self):
         super(AdminRestService, self).__init__()
         self.service=IRService()
-        self.msg = None        
+        self.msg = ""        
         self._log=self.service.getLog()
         
     def results(self) :
@@ -51,7 +51,7 @@ class AdminRestService(object):
         return
 
     def index(self) :
-        self.msg = None
+        self.msg = ""
         message = "<b> User Commands </b><br> "
         message +=  "<a href=\"help\"> Get help information </a> <br>"
         message +=  "<a href=\"list\"> Get list of images that meet the criteria </a> <br>"
@@ -69,13 +69,13 @@ class AdminRestService(object):
         message +=  "<a href=\"userlist\"> List of users </a> <br>"
         message +=  "<a href=\"setquota\"> Modify user quota </a> <br>"
         message +=  "<a href=\"setrole\"> Modify user role </a> <br>"
-        message +=  "<a href=\"setUserStatus\"> Modify user status </a> <br>"
+        message +=  "<a href=\"setuserstatus\"> Modify user status </a> <br>"
         self.setMessage(message)
         raise cherrypy.HTTPRedirect("results")
     index.exposed = True;
 
     def help (self) :
-        self.msg = None
+        self.msg = ""
         """
         message =  " help: get help information. <br>"
         message += " list queryString: get list of images that meet the criteria<br>"
@@ -158,7 +158,18 @@ class AdminRestService(object):
                 first = False
             else:
                 message += "           %s<br>" % (line)
-        
+        for line in textwrap.wrap("<b>User Role</b>= " + str(IRUser.Role), 100):
+            if first:
+                message += "         %s<br>" % (line)
+                first = False
+            else:
+                message += "           %s<br>" % (line)
+        for line in textwrap.wrap("<b>User Status</b>= " + str(IRUser.Status), 100):
+            if first:
+                message += "         %s<br>" % (line)
+                first = False
+            else:
+                message += "           %s<br>" % (line)
         self.setMessage(message)
         raise cherrypy.HTTPRedirect("results")
     help.exposed = True;
@@ -194,7 +205,7 @@ class AdminRestService(object):
     list.exposed = True
 
     def actionSetPermission (self, userId = None, imgId = None, permissionString = None) :
-        self.msg = None
+        self.msg = ""
         if (len(permissionString) > 0 and len(userId)>0 and len(imgId)>0):
             permstring="permission="+permissionString
             status = self.service.updateItem(userId.strip(), imgId.strip(), permstring.strip())
@@ -219,7 +230,7 @@ class AdminRestService(object):
 
 
     def actionGet(self, userId, option, imgId):
-        self.msg = None
+        self.msg = ""
         if(len(imgId) > 0 and len(option) > 0 and len(userId)):
             
             filepath = self.service.get(userId, option, imgId)
@@ -374,7 +385,7 @@ class AdminRestService(object):
         fname = sys._getframe().f_code.co_name
         
         status = self.service.remove(userId, imgId)
-        self.msg = None
+        self.msg = ""
         if (status == True):
             self.msg = "The image with imgId=" + imgId + " has been removed"
         else:
@@ -460,28 +471,34 @@ class AdminRestService(object):
     histuser.exposed = True;
 
 
-    def actionUserAdd (self, userId):
-        
-        status = self.service.userAdd(adminName, userId)
-        if(status):
-            self.msg = "User created successfully.</br>"
-            self.msg = self.msg + "Remember that you still need to activate this user (see setuserstatus command)</br>"
+    def actionUserAdd (self, userId, userIdtoAdd):
+        self.msg=""
+        if (len(userId)>0 and len(userIdtoAdd)>0):
+            status = self.service.userAdd(userId, userIdtoAdd)
+            if(status):
+                self.msg = "User created successfully.</br>"
+                self.msg = self.msg + "Remember that you still need to activate this user (see setuserstatus command)</br>"
+            else:
+                self.msg = "The user has not been created.</br>"
+                self.msg = self.msg + "Please verify that you are admin and that the username does not exist </br>"
         else:
-            self.msg = "The user has not been created.</br>"
-            self.msg = self.msg + "Please verify that you are admin and that the username does not exist </br>"
+            self.msg="Please introduce your userId and the userId to add"
         raise cherrypy.HTTPRedirect("results")
     actionUserAdd.exposed = True
 
     def useradd (self, userId = None) :
-        self.msg = """ <form method=get action=actionUserAdd>                                                                                       Add User Id: <input type=string name=userId> <br>                                                                                   <input type=submit> </form> """
+        self.msg = """ <form method=get action=actionUserAdd>
+        UserId: <input type=string name=userId> <br>
+        UserId to Add: <input type=string name=userIdtoAdd> <br>
+        <input type=submit> </form> """
         return self.msg
     useradd.exposed = True;
 
 
-    def actionUserDel(self,userId = None) :
+    def actionUserDel(self,userId, userIdtoDel) :
         
-        status = self.service.userDel(adminName,userId)
-        self.msg = None
+        status = self.service.userDel(userId,userIdtoDel)
+        self.msg = ""
         if(status == True):
             self.msg = "User deleted successfully."
         else:
@@ -491,18 +508,21 @@ class AdminRestService(object):
     actionUserDel.exposed = True
 
     def userdel (self, userId = None) :
-        self.msg = """ <form method=get action=actionUserDel>                                                                                       User Id: <input type=string name=userId> <br>                                                                                       <input type=submit> </form> """
+        self.msg = """ <form method=get action=actionUserDel>
+        UserId: <input type=string name=userId> <br>
+        UserId to Del: <input type=string name=userIdtoDel> <br>
+        <input type=submit> </form> """
         return self.msg
     userdel.exposed = True
 
-    def userlist(self, userId = None):
+    def actionUserList(self, userId):
         fname = sys._getframe().f_code.co_name
         
-        self.msg = None
-
-        if (adminName != None) :
-            usersList = self.service.userList(adminName)
-            if (len(usersList) > 0):
+        self.msg = ""
+        
+        if (len(userId) > 0) :
+            usersList = self.service.userList(userId)
+            if ( usersList != None):
                 try:
                     self.msg = "<br>" + str(len(usersList)) + " users found </br>"
                     self.msg = self.msg + "<br> UserId Cred fsCap fsUsed lastLogin status role ownedImgs </br>"
@@ -510,45 +530,61 @@ class AdminRestService(object):
                         self.msg = self.msg + "<br>" + str(user[1])[1:len(str(user[1]))-1]
                         self.msg = self.msg + "</br>"
                 except:
-                    self.msg = "userlist: Error:" + str(sys.exc_info()[0]) + "\n"
-                    self.msg = self.msg + "userlist: Error interpreting the list of users from Image Repository\
-" + str(sys.exc_info()[0])
+                    self.msg = "userlist: Error:" + str(sys.exc_info()) + "\n"
+                    self.msg = self.msg + "userlist: Error interpreting the list of users from Image Repository " + str(sys.exc_info())
             else:
                 self.msg =  "No list of users returned. \n" + \
                         "Please verify that you are admin \n"
         else :
-            self.msg = "<br> Error admin name is not set" 
+            self.msg = "<br> Please introduce your userId" 
 
         raise cherrypy.HTTPRedirect("results")
+    actionUserList.exposed = True;
+    
+    def userlist (self, userId = None) :
+        self.msg = """ <form method=get action=actionUserList>
+        UserId: <input type=string name=userId> <br>        
+        <input type=submit> </form> """
+        return self.msg
     userlist.exposed = True;
-
-    def actionQuota (self,userId, quota) :
+    
+    def actionQuota (self,userId, userIdtoModify, quota) :
         
-        status = self.service.setUserQuota(adminName,userId,quota)
-        if(status == True):
-            self.msg = "Quota changed successfully."
+        if (len(userId)>0 and len(userIdtoAdd)>0 and len(quota)>0):
+            status = self.service.setUserQuota(userId,userIdtoModify,eval(quota))
+            if(status == True):
+                self.msg = "Quota changed successfully."
+            else:
+                self.msg = "The user quota has not been changed.</br>"
+                self.msg = self.msg + "Please verify that you are admin and that the username exists"
         else:
-            self.msg = "The user quota has not been changed.</br>"
-            self.msg = self.msg + "Please verify that you are admin and that the username exists"
+            self.msg = "<br> Please introduce your userId, the userId to modify and the quota in bytes (math operation allowed)"
         return self.msg
     actionQuota.exposed = True
 
     def setquota (self) :
-        self.msg = """ <form method=get action=actionQuota>                                                                                     User Id: <input type=string name=userId> <br>                                                                                       Quota : <input type=string name=quota> <br>                                                                                         <input type=submit> </form> """
+        self.msg = """ <form method=get action=actionQuota>
+        UserId: <input type=string name=userId> <br>
+        UserId to Modify: <input type=string name=userIdtoModify> <br>
+        Quota : <input type=string name=quota> <br>
+        <input type=submit> </form> """
         return self.msg
     setquota.exposed = True;
 
-    def actionUserRole (self,userId, role) :
+    def actionUserRole (self, userId, userIdtoModify, role) :
         
-        # User name based on admin file
-        status = self.service.setUserRole(adminName,userId, role) 
-        
-        self.msg = None
-        if (status == True):
-            self.msg = "Role changed successfully."
+        if (len(userId)>0 and len(userIdtoModify)>0 and len(role)>0):
+            # User name based on admin file
+            status = self.service.setUserRole(userId,userIdtoModify, role) 
+            
+            self.msg = ""
+            if (status == True):
+                self.msg = "Role changed successfully."
+            else:
+                self.msg =  "The user role has not been changed </br>"
+                self.msg = self.msg + "Please verify that you are admin and that the username exists"
         else:
-            self.msg =  "The user role has not been changed </br>"
-            self.msg = self.msg + "Please verify that you are admin and that the username exists"
+            self.msg = "<br> Please introduce your userId, the userId to modify and the role"
         raise cherrypy.HTTPRedirect("results")
     actionUserRole.exposed = True
 
@@ -556,29 +592,37 @@ class AdminRestService(object):
     def setrole (self) :
         fname = sys._getframe().f_code.co_name
         self.msg = """ <form method=post action=actionUserRole>
-                User To Modify : <input type=string name=userId> <br>
+                UserId: <input type=string name=userId> <br>
+                User To Modify : <input type=string name=userIdtoModify> <br>
                 Role : <input type=string name=role> <br>
                 <input type=submit> </form> """
         return self.msg;
     setrole.exposed = True;
 
 
-    def actionUserStatus (self,userId, status) :
+    def actionUserStatus (self,userId, userIdtoModify, status) :
         
-        status = self.service.setUserStatus(adminName,userId,status)
-        self.msg = None
-        if(status == True):
-            self.msg = "Status changed successfully."
+        if (len(userId)>0 and len(userIdtoModify)>0 and len(status)>0):
+            status = self.service.setUserStatus(userId,userIdtoModify,status)
+            self.msg = ""
+            if(status == True):
+                self.msg = "Status changed successfully."
+            else:
+                self.msg = "The user status has not been changed.</br>"
+                self.msg = self.msg + "Please verify that you are admin and that the username exists \n"
         else:
-            self.msg = "The user status has not been changed.</br>"
-            self.msg = self.msg + "Please verify that you are admin and that the username exists \n"
+            self.msg = "<br> Please introduce your userId, the userId to modify and the status"
         raise cherrypy.HTTPRedirect("results")
     actionUserStatus.exposed = True
 
     def setuserstatus (self) :
         fname = sys._getframe().f_code.co_name
 
-        self.msg = """ <form method=post action=actionUserStatus>                                                                                   User Id: <input type=string name=userId> <br>                                                                                       Status : <input type=string name=status> <br>                                                                                       <input type=submit> </form> """
+        self.msg = """ <form method=post action=actionUserStatus>
+        UserId: <input type=string name=userId> <br>
+        UserId to Modify: <input type=string name=userIdtoModify> <br>
+        Status : <input type=string name=status> <br>
+        <input type=submit> </form> """
         return self.msg;
     setuserstatus.exposed = True;
 

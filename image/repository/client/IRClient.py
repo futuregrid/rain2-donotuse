@@ -93,7 +93,18 @@ Notes:
             first = False
         else:
             print "           %s" % (line)
-          
+    for line in textwrap.wrap("User Role= " + str(IRUser.Role), 100):
+            if first:
+                message += "         %s" % (line)
+                first = False
+            else:
+                message += "           %s" % (line)
+    for line in textwrap.wrap("User Status= " + str(IRUser.Status), 100):
+        if first:
+            message += "         %s" % (line)
+            first = False
+        else:
+            message += "           %s" % (line)    
 
 ############################################################
 # main
