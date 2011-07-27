@@ -227,9 +227,9 @@ class IRService(object):
         
         if (size > 0):
             if type(imgFile) == cherrypy._cpreqbody.Part:            
-                self._log.info("user:" + userId + " command:put args={imgId:" + imgId + ", imgFile:" + imgFile.filename + ", metadata:" + attributeString + ", size:" + str(size) + "}")
+                self._log.info("user:" + userId + " command:put args={imgId:" + imgId + ", imgFile:" + imgId + ", metadata:" + attributeString + ", size:" + str(size) + "}")
                 aMeta = self._createImgMeta(userId, imgId, attributeString, False)
-                aImg = ImgEntry(imgId, aMeta, imgFile.filename, size)
+                aImg = ImgEntry(imgId, aMeta, imgId, size)
                 #it sends the imgEntry and the requestInstance
                 statusImg = self.imgStore.addItem(aImg,imgFile)  
                 
@@ -502,7 +502,7 @@ def main():
             #    print imgs[key]
             print imgs
             #service.query("tstuser2", "imgId=fakeid4950877")
-        elif o in ("-a", "--getPermission"): ##THIS is not used from client side. We call directly updateItem
+        elif o in ("-a", "--setPermission"): ##THIS is not used from client side. We call directly updateItem
             print service.updateItem(os.popen('whoami', 'r').read().strip(), args[0], args[1])
         elif o in ("-g", "--get"):
             print service.get(os.popen('whoami', 'r').read().strip(), args[0], args[1])

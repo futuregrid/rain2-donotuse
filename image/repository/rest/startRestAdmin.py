@@ -61,6 +61,8 @@ class AdminRestService(object):
         message +=  "<a href=\"modify\"> Modify an image </a> <br>"
         message +=  "<a href=\"remove\">  Remove an image from the repository </a> <br>"
         message +=  "<a href=\"histimg\"> Usage info of an image </a> <br>"
+        message +=  " <br>"
+        message +=  "<b>Commands only for Admins</b> <br>"
         message +=  "<a href=\"histuser\">  Usage info of a user </a> <br>"
         message +=  "<a href=\"useradd\"> Add user </a> <br>"
         message +=  "<a href=\"userdel\"> Remove user </a> <br>"
@@ -162,46 +164,53 @@ class AdminRestService(object):
     help.exposed = True;
 
 
-    def actionList (self, queryString) :
+    def actionList (self, userId, queryString) :
         
-        if (len(queryString) == 0):
-            imgsList = self.service.query(adminName, "*")
+        if (len(userId)>0):
+            if (len(queryString) == 0):
+                imgsList = self.service.query(userId, "*")
+            else:
+                imgsList = self.service.query(userId, queryString)
+            
+            if(len(imgsList) > 0):
+                try:
+                        self.msg = str(imgsList)
+                except:
+                    self.msg = "list: Error:" + str(sys.exc_info()[0]) + "</br>"
+                    self._log.error("list: Error interpreting the list of images from Image Repository" + str(sys.exc_info()[0]))
+            else:
+                self.msg = "No list of images returned"
         else:
-            imgsList = self.service.query(userId, queryString)
-        
-        if(len(imgsList) > 0):
-            try:
-                    self.msg = str(imgsList)
-            except:
-                self.msg = "list: Error:" + str(sys.exc_info()[0]) + "</br>"
-                self._log.error("list: Error interpreting the list of images from Image Repository" + str(sys.exc_info()[0]))
-        else:
-            self.msg = "No list of images returned"
+            self.msg = "you need to specify an userId"
         raise cherrypy.HTTPRedirect("results")
     actionList.exposed = True
 
     def list (self) :
-        self.msg = """ <form method=get action=actionList>                                                                                                      Query string: <input type=string name=queryString> <br>                                                                                        <input type=submit> </form> """
+        self.msg = """ <form method=get action=actionList> 
+        UserId: <input type=string name=userId> <br> 
+        Query string: <input type=string name=queryString> <br> 
+        <input type=submit> </form> """
         return self.msg;
     list.exposed = True
 
-    def actionSetPermission (self, imgId = None, permissionString = None) :
+    def actionSetPermission (self, userId = None, imgId = None, permissionString = None) :
         self.msg = None
-        if (len(permissionString) > 0):
-            
-            status = self.service.updateItem(adminName, imgId, permissionString)
+        if (len(permissionString) > 0 and len(userId)>0 and len(imgId)>0):
+            permstring="permission="+permissionString
+            status = self.service.updateItem(userId.strip(), imgId.strip(), permstring.strip())
             if(status == True):
                 self.setMessage("Permission of img " + imgId + " updated")
             else:
                 self.setMessage("The permission has not been changed.")
         else :
-            self.setMessage("Permission string length not set")
+            self.setMessage("Please verify the input information, you need to include userId, permission and imgId")
 
         raise cherrypy.HTTPRedirect("results")
     actionSetPermission.exposed = True;
 
     def setPermission (self):
       message = """ <form method=get action=actionSetPermission>
+        UserId: <input type=string name=userId> <br>
         Image Id: <input type=string name=imgId> <br>                                                                                 
         Permission string: <input type=string name=permissionString> <br>                                                              
         <input type=submit> </form> """
@@ -209,7 +218,7 @@ class AdminRestService(object):
     setPermission.exposed = True;
 
 
-    def actionGet(self, option, imgId):
+    def actionGet(self, userId, option, imgId):
         self.msg = None
         if(len(imgId) > 0 and len(option) > 0):
             
@@ -329,7 +338,7 @@ class AdminRestService(object):
                 
         return correct
 
-    def actionModify (self, imgId = None, attributeString = None):
+    def actionModify (self, userId = None, imgId = None, attributeString = None):
         fname = sys._getframe().f_code.co_name
         self.msg = None
         if(len(imgId) > 0):
@@ -349,7 +358,7 @@ class AdminRestService(object):
     modify.exposed = writeMethodsExposed;
 
 
-    def actionRemove (self, imgId = None):
+    def actionRemove (self, userId = None, imgId = None):
         fname = sys._getframe().f_code.co_name
         
         status = self.service.remove(adminName, imgId)
@@ -366,7 +375,7 @@ class AdminRestService(object):
         return self.msg
     remove.exposed = True
 
-    def actionHistImage (self, imgId):
+    def actionHistImage (self, userId, imgId):
         
         fname = sys._getframe().f_code.co_name
         self.msg = None
@@ -394,12 +403,12 @@ class AdminRestService(object):
 
 
 
-    def actionHistUser (self, userId):
+    def actionHistUser (self, userId, userIdtoSearch):
         fname = sys._getframe().f_code.co_name
         
         self.msg = None
-        if (len(userId) > 0):
-            userList = self.service.histUser(adminName, userId)
+        if (len(userIdtoSearch) > 0):
+            userList = self.service.histUser(adminName, userIdtoSearch)
         else:
             userList = self.service.histUser(adminName, "None")
 
@@ -457,7 +466,7 @@ class AdminRestService(object):
         return self.msg
     userdel.exposed = True
 
-    def userlist(self):
+    def userlist(self, userId = None):
         fname = sys._getframe().f_code.co_name
         
         self.msg = None

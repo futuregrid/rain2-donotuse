@@ -805,11 +805,15 @@ class ImgMetaStoreMongo(AbstractImgMetaStore):
                                 dic[key] = tags_list
                             else:
                                 dic[key] = value
-                                                               
-                    collectionMeta.update({"_id": imgId},
-                                      {"$set": dic }, safe=True)
                     
-                    imgUpdated = True
+                    
+                    if len(dic)>0:
+                                                               
+                        collectionMeta.update({"_id": imgId},
+                                          {"$set": dic }, safe=True)
+                        
+                        imgUpdated = True
+                        
                     
                 except pymongo.errors.AutoReconnect:  #TODO: Study what happens with that. store or not store the file
                     self._log.warning("Autoreconnected.")                 

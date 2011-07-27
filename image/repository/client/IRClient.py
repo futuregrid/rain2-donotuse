@@ -37,7 +37,7 @@ def usage():
     -h/--help: get help information
     -l/--auth: login/authentication
     -q/--list [queryString]: get list of images that meet the criteria
-    -a/--setPermission <imgId> <permissionString>: set access permission
+    -a/--setpermission <imgId> <permissionString>: set access permission
     -g/--get <img/uri> <imgId>: get an image or only the URI
     -p/--put <imgFile> [attributeString]: upload/register an image
     -m/--modify <imgId> <attributeString>: update Metadata   
@@ -161,7 +161,7 @@ def main():
                  
                 #service.query("tstuser2", "imgId=fakeid4950877")
             elif o in ("-a", "--setpermission"):
-                if (len(args) == 0):
+                if (len(args) != 0):
                     status = service.setPermission(os.popen('whoami', 'r').read().strip(), args[0], args[1])
                     if(status == "True"):
                         print "Permission of img " + args[0] + " updated"

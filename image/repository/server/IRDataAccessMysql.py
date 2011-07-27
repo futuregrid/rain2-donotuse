@@ -928,7 +928,8 @@ class ImgMetaStoreMysql(AbstractImgMetaStore):
         
         exists = False
         owner = False
-                
+        self._log.debug(imgId)
+        self._log.debug(ownerId)
         try:
             cursor = self._dbConnection.cursor()         
                  
@@ -937,14 +938,18 @@ class ImgMetaStoreMysql(AbstractImgMetaStore):
             cursor.execute(sql)
             results = cursor.fetchone()
             #print results
+            self._log.debug(results)
+            self._log.debug(IRUtil.getFgirimgstore()+"/"+results[0])
             if(results != None):
-                if (os.path.isfile(results[0])):               
+                if (os.path.isfile(results[0]) or os.path.isfile(IRUtil.getFgirimgstore()+"/"+results[0])):               
                     exists = True
+                    self._log.debug("here")
                        
             sql = "SELECT owner FROM %s WHERE imgId='%s' and owner='%s'" % (self._tablemeta, imgId, ownerId)
             #print sql
             cursor.execute(sql)
             results = cursor.fetchone()
+            self._log.debug(results)
             #print results
             if(results != None):                  
                 owner = True                      
