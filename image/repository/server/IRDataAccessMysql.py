@@ -27,6 +27,8 @@ import re
 import MySQLdb
 import string
 import IRUtil
+from random import randrange
+
 
 class ImgStoreMysql(AbstractImgStore):
 
@@ -965,7 +967,33 @@ class ImgMetaStoreMysql(AbstractImgMetaStore):
             return True
         else:
             return False
-        
+    
+    
+    def genImgId(self):
+        found =False
+        imgId=None
+        if (self.mysqlConnection()):
+            try:
+                while not found:
+                    imgId = str(randrange(999999999999999999999999))
+                    
+                    cursor = self._dbConnection.cursor()     
+                    sql = "SELECT imgId FROM %s WHERE imgId = '%s' " % (self._tablemeta, imgId)
+                    cursor.execute(sql)
+                    results = cursor.fetchone()
+                    self._log.debug(str(results))                    
+                    if (results==None):
+                        found = True
+                    
+            except MySQLdb.Error, e:
+                self._log.error("Error %d: %s" % (e.args[0], e.args[1]))                                           
+            except IOError as (errno, strerror):
+                self._log.error("I/O error({0}): {1}".format(errno, strerror))
+                self._log.error("No such file or directory. Image details: " + item.__str__())                
+            except TypeError as detail:
+                self._log.error("TypeError in ImgStoreMysql - genImgId: " + format(detail))
+        return imgId 
+                   
     ############################################################
     # mysqlConnection
     ############################################################

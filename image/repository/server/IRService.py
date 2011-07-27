@@ -127,6 +127,12 @@ class IRService(object):
             self.imgStore = ImgStoreFS()            
             self.userStore = IRUserStoreFS()    
     
+    def genImgId(self):
+        """
+        return None if could not get an imgId
+        """ 
+        return self.metaStore.genImgId()
+    
     def getLog(self):
         return self._log
        
@@ -468,7 +474,7 @@ def main():
                                  "histimg",
                                  "histuser",
                                  "uploadValidator",
-                                 "getuid",
+                                 "genImgId",
                                  "getBackend",
                                  "modify",
                                  "useradd",
@@ -526,8 +532,8 @@ def main():
         elif o in ("--uploadValidator"):
             print service.uploadValidator(os.popen('whoami', 'r').read().strip(), int(args[0]))
             #print service.uploadValidator("javi", 0)
-        elif o in ("--getuid"):
-            print IRUtil.getImgId()
+        elif o in ("--genImgId"):
+            print service.genImgId()
         elif o in ("--getBackend"):
             print service._backend
             print service._fgirimgstore

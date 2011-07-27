@@ -182,14 +182,14 @@ class IRServiceProxy(object):
                 status = "-2"
             elif (isPermitted[0].strip() == "True"):     
                 
-                """       
-                cmdexec = " '" + self._serverdir + "IRService.py --getuid'"
+                self._log.debug("Getting ImgId")
+                cmdexec = " '" + self._serverdir + "IRService.py --genImgId'"
                 uidRet = self._rExec(userId, cmdexec)
-                uid = uidRet[0].strip()
-                """
-                uid = IRUtil.getImgId()
+                imgId = uidRet[0].strip()
+                self._log.debug(imgId)
+                #uid = IRUtil.getImgId()
                                                 
-                fileLocation = self._fgirimgstore + uid
+                fileLocation = self._fgirimgstore + imgId
                             
                 cmd = 'scp ' + imgFile + ' ' + userId + "@" + \
                         self._serveraddr + ":" + fileLocation
@@ -201,11 +201,13 @@ class IRServiceProxy(object):
                     print stat
                 print "Registering the Image"
                 cmdexec = " '" + self._serverdir + "IRService.py --put " + \
-                             uid + " " + fileLocation + " \"" + attributeString + "\" " + str(size) + "'"
+                             imgId + " " + fileLocation + " \"" + attributeString + "\" " + str(size) + "'"
                 #print cmdexec
                 uid = self._rExec(userId, cmdexec)
                 
+                
                 status = uid[0].strip()
+                self._log.debug(status)
                 #print status
             else:
                 status = "-3"        

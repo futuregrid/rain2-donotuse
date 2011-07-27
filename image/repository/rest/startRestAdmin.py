@@ -260,7 +260,8 @@ class AdminRestService(object):
        """
     get.exposed = True;
 
-    def actionPut (self, userId = None, imageFileName = None, attributeString = None) :
+    def actionPut (self, userId = None, imageFileName = None, attributeString = None):
+        
         # retrieve the data                                                                                                                       
         size = 0
         self.fromSite = "actionPut"
@@ -280,12 +281,15 @@ class AdminRestService(object):
                   
             
             if (isPermitted == True):
-                imgId=self.getImgId() #this is needed when we are not using mongodb as image storage backend
-                imageId = self.service.put(userId, imgId, imageFileName,attributeString,size)
-                
-                self.msg = "Image %s successfully uploaded." % imageFileName.filename
-                self.msg += " Image size %s " % size
-                self.msg += "<br> The image ID is %s " % imageId
+                imgId=self.service.genImgId() #this is needed when we are not using mongodb as image storage backend
+                if imgId!=None:
+                    imageId = self.service.put(userId, imgId, imageFileName,attributeString,size)
+                    
+                    self.msg = "Image %s successfully uploaded." % imageFileName.filename
+                    self.msg += " Image size %s " % size
+                    self.msg += "<br> The image ID is %s " % imageId
+                else:
+                    self.msg+="Error generating the imgId"
             elif (isPermitted.strip() == "NoUser"):
                 self.msg = "the image has NOT been uploaded<br>"
                 self.msg = "The User does not exist"                        
@@ -308,11 +312,7 @@ class AdminRestService(object):
        <input type=submit></form></body></html>      
         """
     put.exposed = True;
-
-
-    def getImgId(self):
-        imgId = str(randrange(999999999999999999999999))
-        return imgId
+    
 
     ############################################################
     # checkMeta

@@ -49,6 +49,7 @@ from datetime import datetime
 import os
 import re
 import sys
+from random import randrange
 
 class ImgStoreMongo(AbstractImgStore):
 
@@ -999,7 +1000,32 @@ class ImgMetaStoreMongo(AbstractImgMetaStore):
     def removeItem (self, imdId):
         #this method is used only in ImgStoreMongo
         self._log.error("Data has not been deleted. Please, use the ImgStoreMongo to delete items ")
-        
+    
+    def genImgId(self):
+        found =False
+        imgId=None
+        if (self.mongoConnection()):
+            try:
+                dbLink = self._dbConnection[self._dbName]
+                collection = dbLink[self._metacollection]
+                while not found:
+                    imgId = str(randrange(999999999999999999999999))
+                    
+                    aux = collection.find_one({"_id": imgId})
+                                
+                    if (aux==None):
+                        found = True
+                    
+            except pymongo.errors.AutoReconnect:
+                self._log.warning("Autoreconnected in ImgMetaStoreMongo - queryStore") 
+            except pymongo.errors.ConnectionFailure:
+                self._log.error("Connection failure: the query cannot be performed")  
+            except TypeError as detail:
+                self._log.error("TypeError in ImgMetaStoreMongo - genImgId")
+            finally:
+                self._dbConnection.disconnect()    
+        return imgId 
+       
     ############################################################
     # mongoConnection
     ############################################################

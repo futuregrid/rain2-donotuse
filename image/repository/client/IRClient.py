@@ -199,16 +199,16 @@ def main():
                     ok = True
                 elif (len(args) == 1):
                     status = service.put(os.popen('whoami', 'r').read().strip(), None, args[0], "")
-                    of = True
+                    ok = True
                 else:
                     usage()
                 #id2 = service.put(os.popen('whoami', 'r').read().strip(), None, "/home/javi/tst3.iso", "vmtype=vmware")
                 #print "image has been uploaded and registered with id " + str(id1)
                 #id2 = service.put(os.popen('whoami', 'r').read().strip(), None, "/home/javi/tst2.iso", "vmtype=11|imgType=0|os=UBUNTU|arch=x86_64| owner=tstuser2| description=another test| tag=tsttaga, tsttagb")
                 if(ok):              
-                    if(status == 0):
+                    if(status == "0"):
                         print "the image has NOT been uploaded. Please, verify that the file exists and the metadata string is valid"
-                    elif(status == -1):
+                    elif(status == "-1"):
                         print "the image has NOT been uploaded"
                         print "The User does not exist"
                     elif(status == "-2"):
