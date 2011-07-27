@@ -550,7 +550,7 @@ class AdminRestService(object):
     
     def actionQuota (self,userId, userIdtoModify, quota) :
         
-        if (len(userId)>0 and len(userIdtoAdd)>0 and len(quota)>0):
+        if (len(userId)>0 and len(userIdtoModify)>0 and len(quota)>0):
             status = self.service.setUserQuota(userId,userIdtoModify,eval(quota))
             if(status == True):
                 self.msg = "Quota changed successfully."
@@ -559,6 +559,7 @@ class AdminRestService(object):
                 self.msg = self.msg + "Please verify that you are admin and that the username exists"
         else:
             self.msg = "<br> Please introduce your userId, the userId to modify and the quota in bytes (math operation allowed)"
+        raise cherrypy.HTTPRedirect("results")
         return self.msg
     actionQuota.exposed = True
 
