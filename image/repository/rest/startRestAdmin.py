@@ -179,9 +179,9 @@ class AdminRestService(object):
         
         if (len(userId)>0):
             if (len(queryString) == 0):
-                imgsList = self.service.query(userId, "*")
+                imgsList = self.service.query(userId.strip(), "*")
             else:
-                imgsList = self.service.query(userId, queryString)
+                imgsList = self.service.query(userId.strip(), queryString.strip())
             
             if(len(imgsList) > 0):
                 try:
@@ -206,9 +206,13 @@ class AdminRestService(object):
 
     def actionSetPermission (self, userId = None, imgId = None, permissionString = None) :
         self.msg = ""
+        userId=userId.strip()
+        imgId=imgId.strip()
+        permstring=permstring.strip()
+        
         if (len(permissionString) > 0 and len(userId)>0 and len(imgId)>0):
             permstring="permission="+permissionString
-            status = self.service.updateItem(userId.strip(), imgId.strip(), permstring.strip())
+            status = self.service.updateItem(userId, imgId, permstring)
             if(status == True):
                 self.setMessage("Permission of img " + imgId + " updated")
             else:
@@ -231,6 +235,11 @@ class AdminRestService(object):
 
     def actionGet(self, userId, option, imgId):
         self.msg = ""
+        
+        option=option.strip()
+        imgId=imgId.strip()
+        userId=userId.strip()
+        
         if(len(imgId) > 0 and len(option) > 0 and len(userId)):
             
             filepath = self.service.get(userId, option, imgId)
@@ -266,6 +275,8 @@ class AdminRestService(object):
         size = 0
         self.fromSite = "actionPut"
         self.msg = ""
+        userId=userId.strip()
+        attributeString=attributeString.strip()
         
         while 1:
             data = imageFileName.file.read(1024 * 8) # Read blocks of 8KB at a time                                                               
@@ -277,7 +288,7 @@ class AdminRestService(object):
         correct=self.checkMeta(attributeString)
         if correct:
             #check quota
-            isPermitted = self.service.uploadValidator(userId, size)
+            isPermitted = self.service.uploadValidator(userId.strip(), size)
                   
             
             if (isPermitted == True):
@@ -360,7 +371,11 @@ class AdminRestService(object):
         self.msg = ""
         success=False
         
-        if(len(imgId) > 0 and len(userId) >0):
+        userId=userId.strip()
+        imgId=imgId.strip()
+        attributeString=attributeString.strip()
+        
+        if(len(imgId) > 0 and len(userId) >0 and len(attributeString) >0):
             if self.checkMeta(attributeString):                        
                 success = self.service.updateItem(userId, imgId, attributeString)
                 
@@ -384,6 +399,9 @@ class AdminRestService(object):
     def actionRemove (self, userId = None, imgId = None):
         fname = sys._getframe().f_code.co_name
         
+        userId=userId.strip()
+        imgId=imgId.strip()
+        
         status = self.service.remove(userId, imgId)
         self.msg = ""
         if (status == True):
@@ -401,10 +419,13 @@ class AdminRestService(object):
         return self.msg
     remove.exposed = True
 
-    def actionHistImage (self, userId, imgId):
-        
+    def actionHistImage (self, userId, imgId):        
         fname = sys._getframe().f_code.co_name
         self.msg = ""
+        
+        userId=userId.strip()
+        imgId=imgId.strip()
+        
         if(len(userId)>0):
             if(len(imgId) > 0):
                 imgsList = self.service.histImg(userId, imgId)
@@ -440,6 +461,9 @@ class AdminRestService(object):
         fname = sys._getframe().f_code.co_name
         
         self.msg = ""
+        userId=userId.strip()
+        userIdtoSearch=userIdtoSearch.strip()
+        
         if (len(userId) > 0):
             if (len(userIdtoSearch)>0):
                 userList = self.service.histUser(userId, userIdtoSearch)
@@ -473,6 +497,9 @@ class AdminRestService(object):
 
     def actionUserAdd (self, userId, userIdtoAdd):
         self.msg=""
+        userId=userId.strip()
+        userIdtoAdd=userIdtoAdd.strip()
+        
         if (len(userId)>0 and len(userIdtoAdd)>0):
             status = self.service.userAdd(userId, userIdtoAdd)
             if(status):
@@ -495,15 +522,19 @@ class AdminRestService(object):
     useradd.exposed = True;
 
 
-    def actionUserDel(self,userId, userIdtoDel) :
-        
-        status = self.service.userDel(userId,userIdtoDel)
-        self.msg = ""
-        if(status == True):
-            self.msg = "User deleted successfully."
+    def actionUserDel(self,userId, userIdtoDel):
+        userId=userId.strip()
+        userIdtoDel=userIdtoDel.strip()
+        if (len(userId)>0 and len(userIdtoDel)>0):
+            status = self.service.userDel(userId,userIdtoDel)
+            self.msg = ""
+            if(status == True):
+                self.msg = "User deleted successfully."
+            else:
+                self.msg = "The user has not been deleted.</br>"
+                self.msg = self.msg + "Please verify that you are admin and that the username exists \n"
         else:
-            self.msg = "The user has not been deleted.</br>"
-            self.msg = self.msg + "Please verify that you are admin and that the username exists \n"
+            self.msg="Please introduce your userId and the userId to del"
         raise cherrypy.HTTPRedirect("results")
     actionUserDel.exposed = True
 
@@ -519,7 +550,7 @@ class AdminRestService(object):
         fname = sys._getframe().f_code.co_name
         
         self.msg = ""
-        
+        userId=userId.strip()
         if (len(userId) > 0) :
             usersList = self.service.userList(userId)
             if ( usersList != None):
@@ -550,15 +581,22 @@ class AdminRestService(object):
     
     def actionQuota (self,userId, userIdtoModify, quota) :
         
-        if (len(userId)>0 and len(userIdtoModify)>0 and len(quota)>0):
-            status = self.service.setUserQuota(userId,userIdtoModify,eval(quota))
-            if(status == True):
-                self.msg = "Quota changed successfully."
+        userId=userId.strip()
+        userIdtoModify=userIdtoModify.strip()
+        try:
+            quota=eval(quota)
+            if (len(userId)>0 and len(userIdtoModify)>0):
+                status = self.service.setUserQuota(userId,userIdtoModify,quota)
+                if(status == True):
+                    self.msg = "Quota changed successfully."
+                else:
+                    self.msg = "The user quota has not been changed.</br>"
+                    self.msg = self.msg + "Please verify that you are admin and that the username exists"
             else:
-                self.msg = "The user quota has not been changed.</br>"
-                self.msg = self.msg + "Please verify that you are admin and that the username exists"
-        else:
-            self.msg = "<br> Please introduce your userId, the userId to modify and the quota in bytes (math operation allowed)"
+                self.msg = "<br> Please introduce your userId, the userId to modify and the quota in bytes (math operation allowed)"
+        except:
+            self.msg = "<br> The quota must be a number or a valid math function"
+            
         raise cherrypy.HTTPRedirect("results")
         return self.msg
     actionQuota.exposed = True
@@ -573,6 +611,9 @@ class AdminRestService(object):
     setquota.exposed = True;
 
     def actionUserRole (self, userId, userIdtoModify, role) :
+        userId=userId.strip()
+        userIdtoModify=userIdtoModify.strip()
+        role=role.strip()
         
         if (len(userId)>0 and len(userIdtoModify)>0 and len(role)>0):
             # User name based on admin file
@@ -602,6 +643,9 @@ class AdminRestService(object):
 
 
     def actionUserStatus (self,userId, userIdtoModify, status) :
+        userId=userId.strip()
+        userIdtoModify=userIdtoModify.strip()
+        status=status.strip()
         
         if (len(userId)>0 and len(userIdtoModify)>0 and len(status)>0):
             status = self.service.setUserStatus(userId,userIdtoModify,status)
