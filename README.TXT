@@ -85,3 +85,17 @@ TODO: on OSX describe how to use curl instead of wget
 TODO: FInd out a way to check if cmd2 is already installed
 
 
+INSTALLING CODE BEAUTIFIERS
+===========================
+
+sudo easy_install pep8
+sudo easy_install pylint
+
+see: http://pypi.python.org/pypi/pep8
+     http://www.logilab.org/card/pylint_manual
+
+
+Integration into Pydev/eclipse
+
+pylint: http://pydev.org/manual_adv_pylint.html
+pep8: http://stackoverflow.com/questions/399956/how-to-integrate-pep8-py-in-eclipse
