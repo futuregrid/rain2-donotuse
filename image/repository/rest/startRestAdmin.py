@@ -39,7 +39,7 @@ class AdminRestService(object):
         self.msg = ""        
         self._log=self.service.getLog()
         
-    ## Returning the html output from a rest call
+    ## Returning the html output from a Rest call
     def results(self) :
         # adds the ending html tags and possible footer here                                      
         self.msg += "<br> <br> <a href = \"index\"> Return to the main page </a> "
@@ -216,7 +216,7 @@ class AdminRestService(object):
 
     ## Callback function to the set permission service
     # @param userId login/account name of the Rest user to invoke this service
-    # @param imgId id of the uploaded Rest image for a particular user.
+    # @param imgId id of the uploaded Rest image for the specified user.
     # @permissionString permission string
     def actionSetPermission (self, userId = None, imgId = None, permissionString = None) :
         self.msg = ""
@@ -250,7 +250,7 @@ class AdminRestService(object):
     ## Callback function to the get service. 
     # @param userId login/account name of the Rest user to invoke this service
     # @param option specify exactly 'img' or 'uri' 
-    # @param imgId id of the uploaded Rest image for a particular user.
+    # @param imgId id of the uploaded Rest image for a specified user.
     def actionGet(self, userId, option, imgId):
         self.msg = ""
         
@@ -391,8 +391,8 @@ class AdminRestService(object):
         return correct
 
     ## Callback function to the modify service. Modifies the imageid based on attribute string
-    # @param userid 
-    # @param imgId
+    # @param userId login/account name of the Rest user to invoke this service
+    # @param imgId id of the uploaded Rest image for the specified user.
     # @param attributeString
     def actionModify (self, userId = None, imgId = None, attributeString = None):
         fname = sys._getframe().f_code.co_name
@@ -414,6 +414,7 @@ class AdminRestService(object):
         raise cherrypy.HTTPRedirect("results")
     actionModify.exposed = writeMethodsExposed;
 
+    # modify Rest service
     def modify (self, imgId = None, attributeString = None):
         self.msg = """ <form method=get action=actionModify>
         User Id: <input type=string name=userId> <br>
@@ -424,6 +425,9 @@ class AdminRestService(object):
     modify.exposed = writeMethodsExposed;
 
 
+    ## Callback function to the remove Rest service
+    # @param userId login/account name of the Rest user to invoke this service
+    # @param imgId id of the uploaded Rest image for the specified user.
     def actionRemove (self, userId = None, imgId = None):
         fname = sys._getframe().f_code.co_name
         
@@ -439,6 +443,8 @@ class AdminRestService(object):
         raise cherrypy.HTTPRedirect("results")
     actionRemove.exposed = True;
 
+    ## Remove Rest service.
+    # Removes image based on specified image id and user id
     def remove (self):
         self.msg = """ <form method=get action=actionRemove>
         User Id: <input type=string name=userId> <br>
@@ -447,6 +453,9 @@ class AdminRestService(object):
         return self.msg
     remove.exposed = True
 
+    ## Callback function to the histimage service
+    # @param userId login/account name of the Rest user to invoke this service
+    # @param imgId id of the uploaded Rest image for the specified user.
     def actionHistImage (self, userId, imgId):        
         fname = sys._getframe().f_code.co_name
         self.msg = ""
@@ -475,6 +484,7 @@ class AdminRestService(object):
         raise cherrypy.HTTPRedirect("results")
     actionHistImage.exposed = True;
 
+    ## histimg Rest service. 
     def histimg (self):
         self.msg = """ <form method=get action=actionHistImage>
         User Id: <input type=string name=userId> <br>
@@ -484,7 +494,9 @@ class AdminRestService(object):
     histimg.exposed = True;
 
 
-
+    ## Callback function to the histuser service
+    # @param userId login/account name of the Rest user to invoke this service
+    # @param userIdtoSearch user id that is the subject of the search
     def actionHistUser (self, userId, userIdtoSearch):
         fname = sys._getframe().f_code.co_name
         
@@ -514,6 +526,7 @@ class AdminRestService(object):
         raise cherrypy.HTTPRedirect("results")
     actionHistUser.exposed = True;
 
+    ## histuser Rest service
     def histuser (self) :
         self.msg = """ <form method=get action=actionHistUser>
         UserId: <input type=string name=userId> <br>
@@ -523,6 +536,9 @@ class AdminRestService(object):
     histuser.exposed = True;
 
 
+    ## Callback function to the userAdd Rest service
+    # @param userId login/account name of the Rest user to invoke this service
+    # @param userIdtoAdd user id that is the subject of the add in the datbase
     def actionUserAdd (self, userId, userIdtoAdd):
         self.msg=""
         userId=userId.strip()
@@ -541,6 +557,7 @@ class AdminRestService(object):
         raise cherrypy.HTTPRedirect("results")
     actionUserAdd.exposed = True
 
+    ## useradd Rest service.  Adding a new user to the database
     def useradd (self, userId = None) :
         self.msg = """ <form method=get action=actionUserAdd>
         UserId: <input type=string name=userId> <br>
@@ -549,7 +566,9 @@ class AdminRestService(object):
         return self.msg
     useradd.exposed = True;
 
-
+    ## Callback function to the userdel Rest service
+    # @param userId login/account name of the Rest user to invoke this service
+    # @param userIdtoDel user id that is the subject of the delete in the datbase
     def actionUserDel(self,userId, userIdtoDel):
         userId=userId.strip()
         userIdtoDel=userIdtoDel.strip()
@@ -566,6 +585,7 @@ class AdminRestService(object):
         raise cherrypy.HTTPRedirect("results")
     actionUserDel.exposed = True
 
+    ## userdel Rest service. Removing a user from the database.
     def userdel (self, userId = None) :
         self.msg = """ <form method=get action=actionUserDel>
         UserId: <input type=string name=userId> <br>
@@ -574,6 +594,8 @@ class AdminRestService(object):
         return self.msg
     userdel.exposed = True
 
+    ## Callback function to the userlist Rest service
+    # @param userId login/account name of the Rest user to invoke this service
     def actionUserList(self, userId):
         fname = sys._getframe().f_code.co_name
         
@@ -600,6 +622,7 @@ class AdminRestService(object):
         raise cherrypy.HTTPRedirect("results")
     actionUserList.exposed = True;
     
+    ## userlist Rest service. 
     def userlist (self, userId = None) :
         self.msg = """ <form method=get action=actionUserList>
         UserId: <input type=string name=userId> <br>        
@@ -607,6 +630,10 @@ class AdminRestService(object):
         return self.msg
     userlist.exposed = True;
     
+    ## Callback function to the setquota Rest service
+    # @param userId login/account name of the Rest user to invoke this service
+    # @param userIdtoModify user id where the quota is modified
+    # @param quota quota of the specified user
     def actionQuota (self,userId, userIdtoModify, quota) :
         
         userId=userId.strip()
@@ -629,6 +656,7 @@ class AdminRestService(object):
         return self.msg
     actionQuota.exposed = True
 
+    # setquota Rest service
     def setquota (self) :
         self.msg = """ <form method=get action=actionQuota>
         UserId: <input type=string name=userId> <br>
@@ -638,6 +666,10 @@ class AdminRestService(object):
         return self.msg
     setquota.exposed = True;
 
+    ## Callback function to Rest service setrole.
+    # @param userId login/account name of the Rest user to invoke this service
+    # @param userIdtoModify user id that is the subject of the set role in the datbase
+    # @param role
     def actionUserRole (self, userId, userIdtoModify, role) :
         userId=userId.strip()
         userIdtoModify=userIdtoModify.strip()
@@ -658,7 +690,7 @@ class AdminRestService(object):
         raise cherrypy.HTTPRedirect("results")
     actionUserRole.exposed = True
 
-
+    ## setrole Rest service
     def setrole (self) :
         fname = sys._getframe().f_code.co_name
         self.msg = """ <form method=post action=actionUserRole>
@@ -669,7 +701,10 @@ class AdminRestService(object):
         return self.msg;
     setrole.exposed = True;
 
-
+    ## Callback function to the setuserstatus Rest service.
+    # @param userId login/account name of the Rest user to invoke this service
+    # @param userIdtoModfiy user id that is the subject of the delete in the datbase
+    # @param status 
     def actionUserStatus (self,userId, userIdtoModify, status) :
         userId=userId.strip()
         userIdtoModify=userIdtoModify.strip()
@@ -688,6 +723,7 @@ class AdminRestService(object):
         raise cherrypy.HTTPRedirect("results")
     actionUserStatus.exposed = True
 
+    ## setuserstatus Rest service
     def setuserstatus (self) :
         fname = sys._getframe().f_code.co_name
 
