@@ -378,6 +378,7 @@ class ImgStoreMongo(AbstractImgStore):
                         with open(item._imgURI) as image:
                             imgId = gridfsLink.put(image, chunksize=4096 * 1024)
                     else:
+                        requestInstance.file.seek(0)
                         imgId = gridfsLink.put(requestInstance.file, chunksize=4096 * 1024)
                     
                     item._imgId = imgId.__str__().decode('utf-8') # we store an String instead of an ObjectId.

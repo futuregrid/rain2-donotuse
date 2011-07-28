@@ -227,6 +227,7 @@ class ImgStoreCumulusMongo(ImgStoreMongo):
                     if requestInstance == None:        
                         k.set_contents_from_filename(item._imgURI)
                     else:
+                        requestInstance.file.seek(0)
                         k.set_contents_from_file(requestInstance.file)
                     
                     tags = item._imgMeta._tag.split(",")
