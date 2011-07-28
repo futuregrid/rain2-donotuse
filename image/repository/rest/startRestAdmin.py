@@ -21,12 +21,12 @@ import string
 
 localDir = os.path.abspath(os.path.dirname(__file__))
 
-httpconfig = os.path.join(localDir, 'httpconfig.conf')
+#httpconfig = os.path.join(localDir, 'httpconfig.conf')
 httpsconfig = os.path.join(localDir, 'httpsconfig.conf')
-certificate = os.path.join(localDir, 'server.crt')
-privateKey = os.path.join(localDir, 'server.key')
-adminName = None
-config = None
+#certificate = os.path.join(localDir, 'server.crt')
+#privateKey = os.path.join(localDir, 'server.key')
+#adminName = None
+#config = None
 
 class AdminRestService(object):
     
@@ -83,23 +83,6 @@ class AdminRestService(object):
     ## Document to the user, what are the REST services and what they do.
     def help (self) :
         self.msg = ""
-        """
-        message =  " help: get help information. <br>"
-        message += " list queryString: get list of images that meet the criteria<br>"
-        message += " setPermission imgId permissionString: set access permission<br>"
-        message += " get img/uri imgId: get a image or only the URI by id<br>"
-        message += " put imgFile attributeString: upload/register an image<br>"
-        message += " modify imgId attributeString: update information<br>"
-        message += " remove imgId: remove an image from the repository<br>"
-        message += " histimg imgId: get usage info of an image <br>"
-        message += " histuser userId: get usage info of a user <br>"
-        message += " useradd <userId> : add user <br>"
-        message += " userdel <userId> : remove user <br>"
-        message += " userlist : list of users <br>"
-        message += " setquota <userId> <quota> :modify user quota <br>"
-        message += " setrole  <userId> <role> : modify user role <br>"
-        message += " setUserStatus <userId> <status> :modify user status"
-        """
         message = "\n------------------------------------------------------------------<br>"
         message += "FutureGrid Image Repository Help <br>"
         message += "------------------------------------------------------------------<br>"
@@ -737,46 +720,50 @@ class AdminRestService(object):
 
 
 
-def configSectionMap(section) :
-    dict1 = {}
-    options = cherrypy.config.options(section)
-    dict1[option] = cherrypy.config.get(section,option)
-    for options in options :
-        try:
-            dict1[option] = cherrypy.config.get(section,option)
-            if dict1[option] == -1 :
-                print("Skip: %s " % option)
-        except:
-            print("Exeption on %s " % option)
-            dict1[option] = None
-    return dict1
+#def configSectionMap(section) :
+#    dict1 = {}
+#    options = cherrypy.config.options(section)
+#    dict1[option] = cherrypy.config.get(section,option)
+#    for options in options :
+#        try:
+#            dict1[option] = cherrypy.config.get(section,option)
+#            if dict1[option] == -1 :
+#                print("Skip: %s " % option)
+#        except:
+#            print("Exeption on %s " % option)
+#            dict1[option] = None
+#    return dict1
 
 if __name__ == '__main__':
 
     # Site configuration
-    cherrypy.config.update(httpsconfig)
-    cherrypy.tree.mount(AdminRestService(),'/adminRest',config='adminConfig.conf')
-    ip = cherrypy.config.get("server.socket_host")
-    port = cherrypy.config.get("server.socket_port")
-    cherrypy.config.update('adminConfig.conf')
-    adminName = cherrypy.config.get("admin_name")
-    print("Admin name: %s" % adminName) 
+    
+    
+    #cherrypy.config.update(httpsconfig)
+    
+    #cherrypy.tree.mount(AdminRestService(),"/")#,'/adminRest',config='adminConfig.conf')
+    
+    #ip = cherrypy.config.get("server.socket_host")
+    #port = cherrypy.config.get("server.socket_port")
+    #cherrypy.config.update('adminConfig.conf')
+    #adminName = cherrypy.config.get("admin_name")
+    #print("Admin name: %s" % adminName) 
 #    adminName = cherrypy.config.get("Admin")['username']
 #    adminName = configSectionMap("Admin")['username']
     cherrypy.log.error_log.propagate = False
     cherrypy.log.access_log.propagate = False 
 
+  
+    #secure_server = _cpwsgi_server.CPWSGIServer()
+    #secure_server.bind_addr = (ip, port)
+    #secure_server.ssl_certificate = certificate
+    #secure_server.ssl_private_key = privateKey
 
-    secure_server = _cpwsgi_server.CPWSGIServer()
-    secure_server.bind_addr = (ip, port)
-    secure_server.ssl_certificate = certificate
-    secure_server.ssl_private_key = privateKey
+    #adapter = _cpserver.ServerAdapter(cherrypy.engine, secure_server, secure_server.bind_addr)
+    #adapter.subscribe()
+    cherrypy.quickstart(AdminRestService(),"/", config=httpsconfig)
 
-    adapter = _cpserver.ServerAdapter(cherrypy.engine, secure_server, secure_server.bind_addr)
-    adapter.subscribe()
-    cherrypy.quickstart(AdminRestService(), config=httpconfig)
  
-
-else:
+#else:
     # This branch is for the test suite; you can ignore it.
-    cherrypy.tree.mount(AdminRestService, config=configurationFile)
+#    cherrypy.tree.mount(AdminRestService, config=configurationFile)
