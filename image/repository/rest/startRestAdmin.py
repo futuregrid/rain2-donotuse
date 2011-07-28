@@ -1,7 +1,9 @@
 #!/usr/bin/env python
-"""
-@author Michael Lewis
-"""
+
+## @author Michael Lewis
+# The functions in this class represent the REST interface
+# which then delegates the http input values to the Server (IRService) module. 
+
 import ConfigParser
 import cherrypy
 from cherrypy import _cpserver
@@ -30,12 +32,14 @@ class AdminRestService(object):
     
     writeMethodsExposed = True
 
+    ## Constructor call: instantiate IRservice, retrieve logger
     def __init__(self):
         super(AdminRestService, self).__init__()
         self.service=IRService()
         self.msg = ""        
         self._log=self.service.getLog()
         
+    ## Returning the html output from a rest call
     def results(self) :
         # adds the ending html tags and possible footer here                                      
         self.msg += "<br> <br> <a href = \"index\"> Return to the main page </a> "
@@ -43,6 +47,7 @@ class AdminRestService(object):
         return self.msg
     results.exposed = True
 
+    ## Adding to the HTML output from a REST call
     def setMessage(self, message) :
         if self.msg == None :
             self.msg = "<html> <body> %s " % message
@@ -50,6 +55,7 @@ class AdminRestService(object):
             self.msg += message
         return
 
+    ## HTML Listing of all the REST functions 
     def index(self) :
         self.msg = ""
         message = "<b> User Commands </b><br> "
@@ -74,6 +80,7 @@ class AdminRestService(object):
         raise cherrypy.HTTPRedirect("results")
     index.exposed = True;
 
+    ## Document to the user, what are the REST services and what they do.
     def help (self) :
         self.msg = ""
         """
@@ -174,7 +181,9 @@ class AdminRestService(object):
         raise cherrypy.HTTPRedirect("results")
     help.exposed = True;
 
-
+    ## Callback function to the list service
+    # @param userId user id to represent list
+    # @param queryString (not required) string to help narrow down the query 
     def actionList (self, userId, queryString) :
         
         if (len(userId)>0):
@@ -196,6 +205,7 @@ class AdminRestService(object):
         raise cherrypy.HTTPRedirect("results")
     actionList.exposed = True
 
+    ## list service
     def list (self) :
         self.msg = """ <form method=get action=actionList> 
         UserId: <input type=string name=userId> <br> 
@@ -204,6 +214,10 @@ class AdminRestService(object):
         return self.msg;
     list.exposed = True
 
+    ## Callback function to the set permission service
+    # @param userId login/account name of the Rest user to invoke this service
+    # @param imgId id of the uploaded Rest image for a particular user.
+    # @permissionString permission string
     def actionSetPermission (self, userId = None, imgId = None, permissionString = None) :
         self.msg = ""
         userId=userId.strip()
@@ -223,6 +237,7 @@ class AdminRestService(object):
         raise cherrypy.HTTPRedirect("results")
     actionSetPermission.exposed = True;
 
+    ## Set permission service
     def setPermission (self):
       message = """ <form method=get action=actionSetPermission>
         UserId: <input type=string name=userId> <br>
@@ -232,7 +247,10 @@ class AdminRestService(object):
       return message
     setPermission.exposed = True;
 
-
+    ## Callback function to the get service. 
+    # @param userId login/account name of the Rest user to invoke this service
+    # @param option specify exactly 'img' or 'uri' 
+    # @param imgId id of the uploaded Rest image for a particular user.
     def actionGet(self, userId, option, imgId):
         self.msg = ""
         
@@ -260,6 +278,7 @@ class AdminRestService(object):
 
     actionGet.exposed = True
 
+    ## get Rest service. Retrieves image
     def get (self):
         return """<html><body><form method=get action=actionGet>
          User Id: <input type=string name=userId><br>
@@ -269,6 +288,10 @@ class AdminRestService(object):
        """
     get.exposed = True;
 
+    ## Callback function to the put service
+    # @param userId login/account name of the Rest user to invoke this service
+    # @param imageFileName request based object file representing the user file name
+    # @param attributeString attribute string
     def actionPut (self, userId = None, imageFileName = None, attributeString = None):
         
         # retrieve the data                                                                                                                       
@@ -315,6 +338,7 @@ class AdminRestService(object):
         raise cherrypy.HTTPRedirect("results")
     actionPut.exposed = True
 
+    ## put Rest service. Download an image to the Rest service.
     def put (self) :
        return """<html><body><form method=post action=actionPut enctype="multipart/form-data">
        Upload a file: <input type=file name=imageFileName><br>
@@ -366,6 +390,10 @@ class AdminRestService(object):
                 
         return correct
 
+    ## Callback function to the modify service. Modifies the imageid based on attribute string
+    # @param userid 
+    # @param imgId
+    # @param attributeString
     def actionModify (self, userId = None, imgId = None, attributeString = None):
         fname = sys._getframe().f_code.co_name
         self.msg = ""
