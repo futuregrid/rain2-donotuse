@@ -56,6 +56,12 @@ c:
 t:
 	open -a dist/fg.app
 
-
 egg:
 	python setup.py bdist_egg
+
+tar:
+	python setup.py sdist
+
+dist:
+	make -f Makefile egg
+	make -f Makefile tar
