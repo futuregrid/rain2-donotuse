@@ -10,7 +10,7 @@ class fgLog():
         self._logger.setLevel(loglevel)
                 
         handler = logging.FileHandler(logfile)
-        #handlers.RotatingFileHandler(logfile, maxBytes=2048, backupCount=5)
+        # handlers.RotatingFileHandler(logfile, maxBytes=2048, backupCount=5)
         
         handler.setFormatter(self._formatter)
         
@@ -18,7 +18,7 @@ class fgLog():
         self._logger.addHandler(handler)
         self._logger.propagate = False
         
-        #This is to print in the stout the same that in the log
+        # This is to print in the stout the same that in the log
         if(verbose):
             ch = logging.StreamHandler()
             ch.setLevel(loglevel)
