@@ -2,16 +2,20 @@ import logging
 import logging.handlers
 import os
 
-# kjcjlk
 class fgLog():
+''' This class allws to conveniently create a logging file to which
+you can add warnings, errors, infos, and debug messages. For each type
+we provide a convenient method.
+'''
 
     def __init__(self, logfile, loglevel, whois, verbose):
         '''initializes the log file. the parameters are as follows
-        logfile: name of the log file
-        loglevel: setting of the log level 
-        TODO: explain what the loglevels do
-        whois: name associated with the log
-        verbose: if True prints some information to stdout
+        @param logfile name of the log file
+        @param loglevel setting of the log level 
+        @param whois name associated with the log
+        @param verbose if True prints some information to stdout
+ 
+       TODO: explain what the loglevels do
         '''
         self._logger = logging.getLogger(whois)
         self._formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -40,19 +44,23 @@ class fgLog():
         return self._logfile
 
     def debug(self, text):
-        '''includes a debug message of "text" into the log file'''
+        '''includes a debug message of "text" into the log file.
+        @param text the message written into the log file'''
         self._logger.debug(text)
 
     def info(self, text):
-        '''includes an info message of "text" into the log file'''
+        '''includes an info message of "text" into the log file
+        @param text the message written into the log file'''
         self._logger.info(text)
 
     def warning(self, text):
-        '''includes a warning message of "text" into the log file'''
+        '''includes a warning message of "text" into the log file
+        @param text the message written into the log file'''
         self._logger.warning(text)
 
     def error(self, text):
-        '''includes an error message of "text" into the log file'''
+        '''includes an error message of "text" into the log file
+        @param text the message written into the log file'''
         self._logger.error(text)
 
     def clear(self):
