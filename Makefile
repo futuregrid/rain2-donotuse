@@ -38,14 +38,14 @@ apidoc:
 #	firefox doc/api/index.html
 
 app:
-	# without the .py ending it does not work
+# without the .py ending it does not work
 	cd src; cp fg-shell fg.py
 	python setup-app.py py2app
 
 test-app:
 	ln ./dist/fg.app/Contents/MacOS/fg ./dist/fg
 	./dist/fg.app/Contents/MacOS/fg
-	
+
 #
 # THE NEXT COMMANDS ARE FOR DEBUGGING ONLY
 #
@@ -55,3 +55,7 @@ c:
 
 t:
 	open -a dist/fg.app
+
+
+egg:
+	python setup.py bdist_egg

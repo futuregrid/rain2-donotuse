@@ -9,16 +9,18 @@ and added to the PACKAGES variable below.
 This configuration file is modified and its origin is in cogkit.org and cyberaide.org
 """
 
+from setuptools import setup
+
 NAME = 'futuregrid'
-SOURCE = 'src'
-PACKAGES = ['futuregrid', 'futuregrid.config']
-VERSION = '0.1'
+SOURCE = '.'
+PACKAGES = ['shell', 'utils','var','etc','image']
+VERSION = '0.2'
 DESCRIPTION = "FutureGrid (Python)"
 LONG_DESCRIPTION = """\
 futuregrid is a python library that contains the code related dynamically provisioning images on hardware ...
 
 """
-AUTHOR = "Gregor von Laszewski"
+AUTHOR ="Gregor von Laszewski, Fugang Wang, Javier Diaz, Mike Lewis"
 AUTHOR_EMAIL = 'laszewski@gmail.com'
 LICENSE = "Apache 2.0"
 PLATFORMS = "Linux"
