@@ -12,6 +12,8 @@ __version__ = '0.1'
 import os
 from time import time
 
+#futuregrid.image.repository.client.
+
 from IRTypes import ImgMeta
 from IRTypes import ImgEntry
 from IRTypes import IRUser
@@ -20,6 +22,8 @@ import IRUtil
 from IRClientConf import IRClientConf
 import string
 import sys
+from random import randrange
+
 sys.path.append(os.getcwd())
 try:
     from futuregrid.utils import fgLog #This should the the final one
@@ -323,7 +327,7 @@ class IRServiceProxy(object):
         #TODO: do we want to use the .format statement from python to make code more readable?
 
         cmdssh = "ssh " + userId + "@" + self._serveraddr
-        tmpFile = "/tmp/" + str(time()) + str(IRUtil.getImgId())
+        tmpFile = "/tmp/" + str(time()) + str(self.getImgId())
         #print tmpFile
         cmdexec = cmdexec + " > " + tmpFile
         cmd = cmdssh + cmdexec
@@ -366,3 +370,7 @@ class IRServiceProxy(object):
             output = None
 
         return output
+     
+    def getImgId(self):
+        imgId = str(randrange(999999999999999999999999))
+        return imgId

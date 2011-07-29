@@ -11,6 +11,11 @@ __version__ = '0.1'
 import os, sys
 from getopt import gnu_getopt, GetoptError
 
+#TO USER full path in the modules we need to put this file (the main) just outside futuregrid dir.
+#THe same apply for the server part where we need to put the main part in other file
+
+#futuregrid.image.repository.client.
+
 from IRTypes import ImgMeta
 from IRTypes import ImgEntry
 from IRTypes import IRUser
