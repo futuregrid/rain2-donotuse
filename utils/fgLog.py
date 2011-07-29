@@ -1,5 +1,5 @@
 '''@package fgLog
-Easy to use logging for FG.
+Easy to use logging.
 '''
 import logging
 import logging.handlers
@@ -21,7 +21,8 @@ class fgLog():
        TODO: explain what the loglevels do
         '''
         self._logger = logging.getLogger(whois)
-        self._formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+        self._formatter = logging.Formatter(
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s")
         self._logger.setLevel(loglevel)
 
         handler = logging.FileHandler(logfile)
