@@ -31,6 +31,8 @@ If it is not installed (it will say ImportError: No module named cmd2)
 
 please install it.
 
+or simply do easy_install -U cmd2
+
 In future we will have an egg that resolves dependencied and installes also cmd2 automatically)
 
    wget http://pypi.python.org/packages/2.6/c/cmd2/cmd2-0.6.2-py2.6.egg#md5=4c1804bdb53acd313ef83d150ed1cc46
@@ -53,6 +55,9 @@ cp futuregrid/fg.py .
 cd futuregrid   #### ??????
 set $FG_HOME=`cwd`
 
+in bash
+
+export FG_HOME=`pwd`
 
 
 The file 
