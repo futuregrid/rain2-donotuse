@@ -18,7 +18,7 @@ from IRTypes import ImgMeta
 from IRTypes import ImgEntry
 from IRTypes import IRUser
 from IRTypes import IRCredential
-import IRUtil
+import futuregrid.image.repository.server.IRUtil
 from IRClientConf import IRClientConf
 import string
 import sys

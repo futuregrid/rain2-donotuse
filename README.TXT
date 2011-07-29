@@ -46,14 +46,13 @@ INSTALATION OF THE FG CODE
 
 1. Please create a directory, where you place the FG source code. 
 
-set $FG_HOME=
+set $FG_PATH=
 
-mkdir -p $FG_HOME
-cd $FG_HOME
+mkdir -p $FG_PATH
+cd $FG_PATH
 svn checkout https://futuregrid.svn.sourceforge.net/svnroot/futuregrid/core/trunk/src/futuregrid/
 cp futuregrid/fg.py .
-cd futuregrid   #### ??????
-set $FG_HOME=`cwd`
+set $FG_PATH=`cwd`/futuregrid
 
 in bash
 
