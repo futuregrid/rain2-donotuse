@@ -421,8 +421,8 @@ class fgShell(fgShellUtils,
     help_eof = help_EOF
 
     def help_quit(self):
-         msg = "This command terminates the Shell."
-         self.print_man("quit", msg)
+        msg = "This command terminates the Shell."
+        self.print_man("quit", msg)
     help_q = help_exit = help_quit
     ##############################
     #PRE and POST commands
