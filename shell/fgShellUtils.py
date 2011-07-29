@@ -14,44 +14,44 @@ import textwrap
 from cmd2 import Cmd
 
 class fgShellUtils(Cmd):
-    
-    
+
+
     def __init__(self):
-        
+
         self._script = False
         self._scriptList = []
         self._scriptFile = self._conf.getScriptFile()
-    
+
 
     ############################################################
-  
+
     def getArgs(self, args):
         """
         Convert the string args to a list of arguments
         """
         aux = args.strip()
         argsList = []
-                
-        if(aux != ""):        
+
+        if(aux != ""):
             values = aux.split(" ")
             for i in values:
                 istriped = i.strip()
                 if (istriped != ""):
-                    argsList.append(istriped)            
-        return argsList  
-    
+                    argsList.append(istriped)
+        return argsList
+
     ############################################################
     #SCRIPT
     ############################################################
 
-    def do_script(self, arg):        
+    def do_script(self, arg):
         args = self.getArgs(arg)
         if not self._script:
             self._scriptList = []
             if(len(args) == 0):  #default file NO force
                 if not (os.path.isfile(self._scriptFile)):
                     print "Script module activated"
-                    self._script = True                    
+                    self._script = True
                 else:
                     print "File " + self._scriptFile + " exists. Use argument force to overwrite it"
             elif(len(args) == 1):
@@ -59,23 +59,23 @@ class fgShellUtils(Cmd):
                     print "Script is not active."
                 elif(args[0] == "force"):  ##default file force
                     print "Script module activated "
-                    self._script = True                    
+                    self._script = True
                 else:    #custom file NO force
                     print "Script module activated"
                     self._scriptFile = os.path.expanduser(args[0])
-                    if not (os.path.isfile(self._scriptFile)):                        
-                        self._script = True                        
+                    if not (os.path.isfile(self._scriptFile)):
+                        self._script = True
                     else:
-                        print "File " + self._scriptFile + " exists. Use argument force to overwrite it"                    
+                        print "File " + self._scriptFile + " exists. Use argument force to overwrite it"
             elif(len(args) == 2):  ##custom file and maybe force
                 if (args[0] == "force"):
                     print "Script module activated"
-                    self._scriptFile = os.path.expanduser(args[1])                    
-                    self._script = True                    
+                    self._scriptFile = os.path.expanduser(args[1])
+                    self._script = True
                 if (args[1] == "force"):
                     print "Script module activated"
-                    self._scriptFile = os.path.expanduser(args[0])                    
-                    self._script = True                    
+                    self._scriptFile = os.path.expanduser(args[0])
+                    self._script = True
             else:
                 self.help_script()
         elif(len(args) == 1):
@@ -89,7 +89,7 @@ class fgShellUtils(Cmd):
                 print "Script is activated. To finish it use: script end"
         else:
             print "Script is activated. To finish it use: script end"
-    
+
     def help_script(self):
         message = " When Script is active, all commands executed are stored " + \
         "in a file. Activate it by executing: script [file]. If no argument is " + \
@@ -109,43 +109,43 @@ class fgShellUtils(Cmd):
         for line in man_lines:
             print "    %s" % (line)
         print ""
-    
+
     def do_manual (self, args):
         "Print all manual pages organized by contexts"
         print "######################################################################"
         print "Generic commands (available in any context)\n"
         print "######################################################################"
         for i in self._docHelp:
-            
+
             try:
                 func = getattr(self, 'help_' + i)
-                func()                
+                func()
             except AttributeError:
-                try:                    
+                try:
                     doc = getattr(self, 'do_' + i).__doc__
                     if doc:
                         print "----------------------------------------------------------------------"
                         print "%s" % (i)
                         print "----------------------------------------------------------------------"
                         self.stdout.write("%s\n" % str(doc))
-                        print ""                      
+                        print ""
                 except AttributeError:
-                    pass                    
-                  
+                    pass
+
         for context in self.env:
             if (context != ""):
                 print "######################################################################"
                 print "\nSpecific Commands for the context: " + context
-                print "######################################################################" 
-                                     
+                print "######################################################################"
+
                 self.getDocUndoc(context)
                 for i in self._specdocHelp:
-            
+
                     if (i.strip().startswith(context)):
-                        i = i[len(context):]                                                
+                        i = i[len(context):]
                     try:
                         func = getattr(self, 'help_' + context + i)
-                        func()                
+                        func()
                     except AttributeError:
                         try:
                             doc = getattr(self, 'do_' + context + i).__doc__
@@ -153,11 +153,11 @@ class fgShellUtils(Cmd):
                                 print "----------------------------------------------------------------------"
                                 print "%s" % (i)
                                 print "----------------------------------------------------------------------"
-                                self.stdout.write("%s\n" % str(doc))                                                      
+                                self.stdout.write("%s\n" % str(doc))
                         except AttributeError:
                             pass
                     print ""
-    
+
     """
     def do_manual (self, args):
         all_manpages = ['use',
@@ -212,21 +212,21 @@ class fgShellUtils(Cmd):
                   "    Execute \'contexts\' command to see the available context names. \n" + \
                   "    Help information is also different depending on the context. \n" + \
                   "    Note that this command may not be available in all CONTEXTS."
-                  
+
     def generic_help(self):
         msg = "Generic command that changes its behaviour depending on the CONTEXT. "
-        for line in textwrap.wrap(msg, 64):            
+        for line in textwrap.wrap(msg, 64):
             print "    %s" % (line)
         print ""
         self.generic_error()
-        
-            
+
+
     #################################
     #Run JOB
     #################################    
-       
+
     def do_runjob(self, args):
-        if(self._use != ""):            
+        if(self._use != ""):
             command = "self.do_" + self._use + "runjob(\"" + args + "\")"
             #print command
             try:
@@ -236,15 +236,15 @@ class fgShellUtils(Cmd):
                 self._log.error(str(sys.exc_info()))
         else:
             self.generic_error()
-    
-    help_runjob = generic_help        
-    
+
+    help_runjob = generic_help
+
         #################################
     #Run JOB
     #################################    
-       
+
     def do_runscript(self, args):
-        if(self._use != ""):            
+        if(self._use != ""):
             command = "self.do_" + self._use + "runscript(\"" + args + "\")"
             #print command
             try:
@@ -254,15 +254,15 @@ class fgShellUtils(Cmd):
                 self._log.error(str(sys.exc_info()))
         else:
             self.generic_error()
-    
-    help_runjob = generic_help      
-    
+
+    help_runjob = generic_help
+
     #################################
     #GET
     #################################
-        
-    def do_get(self, args):        
-        if(self._use != ""):            
+
+    def do_get(self, args):
+        if(self._use != ""):
             command = "self.do_" + self._use + "get(\"" + args + "\")"
             #print command
             try:
@@ -273,13 +273,13 @@ class fgShellUtils(Cmd):
         else:
             self.generic_error()
     help_get = generic_help
-    
+
     #################################
     #MODIFY
     #################################
-        
-    def do_modify(self, args):        
-        if(self._use != ""):            
+
+    def do_modify(self, args):
+        if(self._use != ""):
             command = "self.do_" + self._use + "modify(\"" + args + "\")"
             #print command
             try:
@@ -290,13 +290,13 @@ class fgShellUtils(Cmd):
         else:
             self.generic_error()
     help_modify = generic_help
-    
+
     #################################
     #Set permission
     #################################
-        
-    def do_setpermission(self, args):        
-        if(self._use != ""):            
+
+    def do_setpermission(self, args):
+        if(self._use != ""):
             command = "self.do_" + self._use + "setpermission(\"" + args + "\")"
             #print command
             try:
@@ -307,12 +307,12 @@ class fgShellUtils(Cmd):
         else:
             self.generic_error()
     help_setpermission = generic_help
-                       
+
     ################################
     #PUT
     ################################
-    
-    def do_put(self, args):        
+
+    def do_put(self, args):
         if(self._use != ""):
             command = "self.do_" + self._use + "put(\"" + args + "\")"
             try:
@@ -323,12 +323,12 @@ class fgShellUtils(Cmd):
         else:
             self.generic_error()
     help_put = generic_help
-             
+
     ################################
     #REMOVE
     ################################
-    
-    def do_remove(self, args):             
+
+    def do_remove(self, args):
         if(self._use != ""):
             command = "self.do_" + self._use + "remove(\"" + args + "\")"
             try:
@@ -339,7 +339,7 @@ class fgShellUtils(Cmd):
         else:
             self.generic_error()
     help_remove = generic_help
-    
+
     #def do_prueba(self,args):
     #    """Prueba Help"""
     #    pass         
@@ -347,8 +347,8 @@ class fgShellUtils(Cmd):
     ################################
     #List
     ################################
-    
-    def do_list(self, args):        
+
+    def do_list(self, args):
         if(self._use != ""):
             command = "self.do_" + self._use + "list(\"" + args + "\")"
             try:
@@ -359,13 +359,13 @@ class fgShellUtils(Cmd):
         else:
             self.generic_error()
     help_list = generic_help
-            
+
     #################################
     #User Add
     #################################
-        
-    def do_useradd(self, args):        
-        if(self._use != ""):            
+
+    def do_useradd(self, args):
+        if(self._use != ""):
             command = "self.do_" + self._use + "useradd(\"" + args + "\")"
             #print command
             try:
@@ -376,13 +376,13 @@ class fgShellUtils(Cmd):
         else:
             self.generic_error()
     help_useradd = generic_help
-    
+
     #################################
     #User Del
     #################################
-        
-    def do_userdel(self, args):        
-        if(self._use != ""):            
+
+    def do_userdel(self, args):
+        if(self._use != ""):
             command = "self.do_" + self._use + "userdel(\"" + args + "\")"
             #print command
             try:
@@ -391,15 +391,15 @@ class fgShellUtils(Cmd):
                 print "The " + self._use + " context does not have a userdel method "
                 self._log.error(str(sys.exc_info()))
         else:
-            self.generic_error()              
+            self.generic_error()
     help_userdel = generic_help
-    
+
     #################################
     #User List
     #################################
-        
-    def do_userlist(self, args):        
-        if(self._use != ""):            
+
+    def do_userlist(self, args):
+        if(self._use != ""):
             command = "self.do_" + self._use + "userlist(\"" + args + "\")"
             #print command
             try:
@@ -410,13 +410,13 @@ class fgShellUtils(Cmd):
         else:
             self.generic_error()
     help_userlist = generic_help
-    
+
     #################################
     #Set User Quota
     #################################
-        
-    def do_setuserquota(self, args):        
-        if(self._use != ""):            
+
+    def do_setuserquota(self, args):
+        if(self._use != ""):
             command = "self.do_" + self._use + "setuserquota(\"" + args + "\")"
             #print command
             try:
@@ -426,13 +426,13 @@ class fgShellUtils(Cmd):
                 self._log.error(str(sys.exc_info()))
         else:
             self.generic_error()
-    help_setuserquota = generic_help                  
+    help_setuserquota = generic_help
     #################################
     #Set User Role
     #################################
-        
-    def do_setuserrole(self, args):        
-        if(self._use != ""):            
+
+    def do_setuserrole(self, args):
+        if(self._use != ""):
             command = "self.do_" + self._use + "setuserrole(\"" + args + "\")"
             #print command
             try:
@@ -442,14 +442,14 @@ class fgShellUtils(Cmd):
                 self._log.error(str(sys.exc_info()))
         else:
             self.generic_error()
-    help_setuserrole = generic_help     
+    help_setuserrole = generic_help
     #################################
     #Set User Status
     #################################
-        
+
     def do_setuserstatus(self, args):
-        
-        if(self._use != ""):            
+
+        if(self._use != ""):
             command = "self.do_" + self._use + "setuserstatus(\"" + args + "\")"
             #print command
             try:
@@ -459,15 +459,15 @@ class fgShellUtils(Cmd):
                 self._log.error(str(sys.exc_info()))
         else:
             self.generic_error()
-    help_setuserstatus = generic_help     
+    help_setuserstatus = generic_help
 
     #################################
     #Hist img
     #################################
-        
+
     def do_histimg(self, args):
-        
-        if(self._use != ""):            
+
+        if(self._use != ""):
             command = "self.do_" + self._use + "histimg(\"" + args + "\")"
             #print command
             try:
@@ -478,14 +478,14 @@ class fgShellUtils(Cmd):
         else:
             self.generic_error()
     help_histimg = generic_help
-    
+
     #################################
     #Hist users
     #################################
-        
+
     def do_histuser(self, args):
-        
-        if(self._use != ""):            
+
+        if(self._use != ""):
             command = "self.do_" + self._use + "histuser(\"" + args + "\")"
             #print command
             try:
@@ -496,15 +496,15 @@ class fgShellUtils(Cmd):
         else:
             self.generic_error()
     help_histuser = generic_help
-    
-    
+
+
     #################################
     #Move nodes
     #################################
-        
+
     def do_move(self, args):
-        
-        if(self._use != ""):            
+
+        if(self._use != ""):
             command = "self.do_" + self._use + "move(\"" + args + "\")"
             #print command
             try:
@@ -515,14 +515,14 @@ class fgShellUtils(Cmd):
         else:
             self.generic_error()
     help_move = generic_help
-    
+
     #################################
     #Group nodes
     #################################
-        
+
     def do_group(self, args):
-        
-        if(self._use != ""):            
+
+        if(self._use != ""):
             command = "self.do_" + self._use + "group(\"" + args + "\")"
             #print command
             try:
@@ -533,14 +533,14 @@ class fgShellUtils(Cmd):
         else:
             self.generic_error()
     help_group = generic_help
-    
+
     #################################
     #Deploy nodes
     #################################
-        
+
     def do_deploy(self, args):
-        
-        if(self._use != ""):            
+
+        if(self._use != ""):
             command = "self.do_" + self._use + "deploy(\"" + args + "\")"
             #print command
             try:
@@ -550,13 +550,13 @@ class fgShellUtils(Cmd):
                 self._log.error(str(sys.exc_info()))
         else:
             self.generic_error()
-    help_deploy = generic_help          
-    
+    help_deploy = generic_help
+
     ##########################################################################
     # LOAD
     ##########################################################################
 
-    def do_exec(self, script_file):       
+    def do_exec(self, script_file):
 
         if script_file.strip() == "":
             self.help_exec()
@@ -574,18 +574,18 @@ class fgShellUtils(Cmd):
     def help_exec(self):
         msg = "Runs the specified script file. Lines from the script file are " + \
         "printed out with a '>' preceding them, for clarity."
-        self.print_man("exec <script_file>", msg) 
-        
-    
+        self.print_man("exec <script_file>", msg)
+
+
     #####################################
     # IO
     #####################################
-    
+
     def loadhist(self, arguments):
         """Load history from the $HOME/.fg/hist.txt file
         """
         histfile = self._conf.getHistFile()
-        
+
         try:
             readline.read_history_file(histfile)
         except IOError:
@@ -593,19 +593,19 @@ class fgShellUtils(Cmd):
             pass
 
         atexit.register(readline.write_history_file, histfile)
-    
+
     def loadBanner(self, bannerfile):
         """Load banner from a file"""
         banner = ""
         try:
             f = open(bannerfile, "r")
-            output = f.readlines()            
+            output = f.readlines()
             f.close()
             for i in output:
                 banner += i
-            
+
         except:
             banner = "\nWelcome to the FutureGrid Shell\n" + \
                      "-------------------------------\n"
-        return banner      
-        
+        return banner
+
