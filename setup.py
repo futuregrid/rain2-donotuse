@@ -11,7 +11,7 @@ This configuration file is modified and its origin is in cogkit.org and cyberaid
 
 NAME = 'futuregrid'
 SOURCE = 'src'
-PACKAGES=['futuregrid', 'futuregrid.config']
+PACKAGES = ['futuregrid', 'futuregrid.config']
 VERSION = '0.1'
 DESCRIPTION = "FutureGrid (Python)"
 LONG_DESCRIPTION = """\
@@ -38,24 +38,24 @@ from distutils.core import setup
 
 if __name__ == '__main__':
     setup(
-        name=NAME,
-        version=VERSION,
-        description=DESCRIPTION,
-        long_description=LONG_DESCRIPTION,
-        author=AUTHOR,
-        author_email=AUTHOR_EMAIL,
-        license=LICENSE,
-        platforms=PLATFORMS,
-        url=URL,
-        download_url=DOWNLOAD_URL,
-        classifiers=CLASSIFIERS,
-        keywords=KEYWORDS,
-        package_dir={ '' : SOURCE },
-        packages=PACKAGES,
-        install_requires=[
+        name = NAME,
+        version = VERSION,
+        description = DESCRIPTION,
+        long_description = LONG_DESCRIPTION,
+        author = AUTHOR,
+        author_email = AUTHOR_EMAIL,
+        license = LICENSE,
+        platforms = PLATFORMS,
+        url = URL,
+        download_url = DOWNLOAD_URL,
+        classifiers = CLASSIFIERS,
+        keywords = KEYWORDS,
+        package_dir = { '' : SOURCE },
+        packages = PACKAGES,
+        install_requires = [
           'setuptools',
           'greenlet'
-        ]        
+        ]
     )
 
 

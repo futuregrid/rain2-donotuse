@@ -22,7 +22,7 @@ import argparse
 
 # TODO : Configure the conf location
 class fgHadoop:
-    
+
     ############################################################
     # init
     ############################################################
@@ -54,8 +54,8 @@ class fgHadoop:
         return job_script
 
 
-    def generate_start_hadoop(self, local_storage_dir, hadoop_conf_dir):        
-        job_script  = "echo Generating Configuration Scripts \n"
+    def generate_start_hadoop(self, local_storage_dir, hadoop_conf_dir):
+        job_script = "echo Generating Configuration Scripts \n"
         job_script += "python " + sys.path[0] + "/generate-xml.py $PBS_NODEFILE "
         job_script += local_storage_dir + " " + hadoop_conf_dir + " \n\n"
         job_script += "echo Formatting HDFS  \n"
@@ -85,76 +85,76 @@ class fgHadoop:
             job_script += "#PBS -q " + queue + " \n"
         job_script += "#PBS -V \n"
         job_script += "#PBS -o " + job_name + ".$PBS_JOBID.out \n \n"
-        return job_script  
-           
+        return job_script
+
     ############################################################
     # run job
     ############################################################
-        
+
     def runJob(self, args, hadoop_cmd, jobname):
         hadoop_home = os.environ.get("HADOOP_HOME")
         if (not hadoop_home):
             print("HADOOP_HOME is not set.")
-        else :                
+        else :
             local_storage_dir = "/tmp/$PBS_JOBID-fg-hadoop"
             # gvl: tmp dir must be able to be specified. is probably globally set?
             hadoop_conf_dir = "$HADOOP_HOME/conf"
-            
-            job_script = self.generate_PBS_directives(jobname, args.walltime, args.nodes, args.queue)      
-            job_script += self.generate_start_hadoop(local_storage_dir, hadoop_conf_dir)        
-            job_script += self.generate_runjob(hadoop_cmd, args.inputdir, args.outputdir)        
-            job_script += self.generate_shutdown()        
+
+            job_script = self.generate_PBS_directives(jobname, args.walltime, args.nodes, args.queue)
+            job_script += self.generate_start_hadoop(local_storage_dir, hadoop_conf_dir)
+            job_script += self.generate_runjob(hadoop_cmd, args.inputdir, args.outputdir)
+            job_script += self.generate_shutdown()
             job_script_name = self.save_job_script(jobname, job_script)
-            
-            print("Generated Job Script :"+job_script_name)
-            subprocess.call("qsub " + job_script_name, shell=True)
-            
-            
+
+            print("Generated Job Script :" + job_script_name)
+            subprocess.call("qsub " + job_script_name, shell = True)
+
+
     def runScript(self, args, hadoop_cmd, jobname):
         hadoop_home = os.environ.get("HADOOP_HOME")
         if (not hadoop_home):
             print("HADOOP_HOME is not set.")
-        else :                
+        else :
             local_storage_dir = "/tmp/$PBS_JOBID-fg-hadoop"
             # gvl: tmp dir must be able to be specified. is probably globally set?
             hadoop_conf_dir = "$HADOOP_HOME/conf"
-            
-            job_script = self.generate_PBS_directives(jobname, args.walltime, args.nodes, args.queue)      
-            job_script += self.generate_start_hadoop(local_storage_dir, hadoop_conf_dir)        
-            job_script += hadoop_cmd + " \n"     
-            job_script += self.generate_shutdown()        
+
+            job_script = self.generate_PBS_directives(jobname, args.walltime, args.nodes, args.queue)
+            job_script += self.generate_start_hadoop(local_storage_dir, hadoop_conf_dir)
+            job_script += hadoop_cmd + " \n"
+            job_script += self.generate_shutdown()
             job_script_name = self.save_job_script(jobname, job_script)
-            
-            print("Generated Job Script :"+job_script_name)
-            subprocess.call("qsub " + job_script_name, shell=True)
+
+            print("Generated Job Script :" + job_script_name)
+            subprocess.call("qsub " + job_script_name, shell = True)
 
 ############################################################
 # main
 ############################################################
-    
-def main():        
-    parser = argparse.ArgumentParser(description='Run a Hadoop Job in FutureGrid')
-    parser.add_argument('jobname', help='Name of the job')
-    
+
+def main():
+    parser = argparse.ArgumentParser(description = 'Run a Hadoop Job in FutureGrid')
+    parser.add_argument('jobname', help = 'Name of the job')
+
     #optional arguments
-    parser.add_argument('-i','--inputdir', help='Directory containing the input data for the job')
-    parser.add_argument('-o','--outputdir', help='Directory to store the output data from the job')
-    parser.add_argument('-q', '--queue', help='Queue to submit the job', default="batch")
+    parser.add_argument('-i', '--inputdir', help = 'Directory containing the input data for the job')
+    parser.add_argument('-o', '--outputdir', help = 'Directory to store the output data from the job')
+    parser.add_argument('-q', '--queue', help = 'Queue to submit the job', default = "batch")
     # TODO: add a type function to validate walltime
-    parser.add_argument('-w', '--walltime', help='Walltime for the job (hh:mm:ss)', default='00:20:00')    
-    parser.add_argument('-n', '--nodes', help='Number of nodes for the job', default=2, type=int)    
-    
+    parser.add_argument('-w', '--walltime', help = 'Walltime for the job (hh:mm:ss)', default = '00:20:00')
+    parser.add_argument('-n', '--nodes', help = 'Number of nodes for the job', default = 2, type = int)
+
     #hadoop command
-    parser.add_argument('hadoopcmd', nargs='+', help='''Hadoop job command to 
+    parser.add_argument('hadoopcmd', nargs = '+', help = '''Hadoop job command to 
         run in the cluster. Please use "input" & "output" as HDFS input & output
-        directories ''')    
-    
-    args = parser.parse_args()    
-    hadoop_cmd = ' '.join(args.hadoopcmd)        
-    
+        directories ''')
+
+    args = parser.parse_args()
+    hadoop_cmd = ' '.join(args.hadoopcmd)
+
     _fgHadoop = fgHadoop()
-    _fgHadoop.runJob(args, hadoop_cmd, args.jobname)   
-    
+    _fgHadoop.runJob(args, hadoop_cmd, args.jobname)
+
 # TODO export HADOOP_LOG_DIR=${HADOOP_HOME}/log
 if __name__ == "__main__":
     main()

@@ -7,6 +7,6 @@
 
 from setuptools import setup
 setup(
-    app=["./src/cog.py"],
-    setup_requires=["py2app"],
+    app = ["./src/cog.py"],
+    setup_requires = ["py2app"],
 )

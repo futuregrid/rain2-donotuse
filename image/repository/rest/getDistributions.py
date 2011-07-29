@@ -25,7 +25,7 @@ def main():
     handler.setLevel(logging.DEBUG)
     handler.setFormatter(formatter)
     logger.addHandler(handler)
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level = logging.INFO)
 
 
 #----------------------  Determining kernel ----------------------------------------
@@ -43,7 +43,7 @@ def main():
         elif cmdOutput == 'x86_64\n' :
             logger.info('Using osx x86_64')
             mongo_dist = 'http://fastdl.mongodb.org/osx/mongodb-osx-x86_64-1.8.2.tgz'
-            mongo_dir = 'mongodb-osx-x86_64-1.8.2'            
+            mongo_dir = 'mongodb-osx-x86_64-1.8.2'
     elif kernel == "Linux\n" :
         logger.info('Using Linux kernel')
         openssl_dist = 'http://www.openssl.org/source/openssl-1.0.0d.tar.gz'
@@ -61,7 +61,7 @@ def main():
 
 
 #------------------ INSTALLING OPEN SSL ----------------------------------
-               
+
     install_dir = 'ssl'
     path_name = '/usr/local/ssl/bin/openssl'
     exitStat = 2
@@ -108,7 +108,7 @@ def main():
     """
 #----------------------- INSTALLING CHERRYPY ----------------------------------
     install_dir = 'cherrypy'
-    try : 
+    try :
         import cherrypy
     except ImportError:
         runCmd('wget ' + cherrypy_dist)
@@ -127,27 +127,27 @@ def main():
     print(exitStat)
     print("Exiting , exit stat: ")
     sys.exit(exitStat)
-    
 
-def runCmd(cmd,isShell = False):
+
+def runCmd(cmd, isShell = False):
     cmdLog = logging.getLogger('exec')
     cmdLog.debug(cmd)
     print("Executing command " + cmd)
     if isShell == True :
-        p = Popen(cmd.split(' '), stdout=PIPE, stderr=PIPE, shell = True)
+        p = Popen(cmd.split(' '), stdout = PIPE, stderr = PIPE, shell = True)
     else :
-        p = Popen(cmd.split(' '), stdout=PIPE, stderr=PIPE)
+        p = Popen(cmd.split(' '), stdout = PIPE, stderr = PIPE)
 
     std = p.communicate()
     if len(std[0]) > 0:
-        cmdLog.debug('stdout: '+std[0])
+        cmdLog.debug('stdout: ' + std[0])
         cmdOutput = std[0]
         return std[0]
     #cmdLog.debug('stderr: '+std[1])                                                                                                                                      
 
     #cmdLog.debug('Ret status: '+str(p.returncode))                                                                                                                       
     if p.returncode != 0:
-        cmdLog.error('Command: '+cmd+' failed, status: '+str(p.returncode)+' --- '+std[1])
+        cmdLog.error('Command: ' + cmd + ' failed, status: ' + str(p.returncode) + ' --- ' + std[1])
         sys.exit(p.returncode)
 
 

@@ -15,7 +15,7 @@ import os
 import sys
 import time
 from datetime import datetime
-from fg_euca_twister_util import instance_id, get_nodes 
+from fg_euca_twister_util import instance_id, get_nodes
 #import subprocess
 
 args = sys.argv
@@ -46,7 +46,7 @@ for i in range(len(args)):
     if cmp(args[i], num_tag) == 0:
         num = args[i + 1]
     if cmp(args[i], type_tag) == 0:
-        instance_type = args[i + 1] 
+        instance_type = args[i + 1]
 
 #print
 print "User key:", key
@@ -58,11 +58,11 @@ print "Instance type:", instance_type
 
 
 
-print "\n### Future Grid Euca Twister Starts...###" 
+print "\n### Future Grid Euca Twister Starts...###"
 
 #run euca-run-instances -k userkey -n 1   emi-0B951139 -t c1.medium
-print "euca-run-instances -k " + key + " -n " + num + " " + instance_id +" -t " + instance_type
-os.system("euca-run-instances -k " + key + " -n " + num + " " + instance_id +" -t " + instance_type)
+print "euca-run-instances -k " + key + " -n " + num + " " + instance_id + " -t " + instance_type
+os.system("euca-run-instances -k " + key + " -n " + num + " " + instance_id + " -t " + instance_type)
 
 lines = get_nodes()
 num_nodes = len(lines)
@@ -82,12 +82,12 @@ while not ready:
     for i in range(num_nodes):
         if lines[i].find("running") != -1:
             ready_count = ready_count + 1
-    
+
     #print ready_count
     if ready_count == num_nodes:
         ready = True
         break
-    
+
     time.sleep(10)
 
 tdiff = datetime.now() - tstart
@@ -108,9 +108,9 @@ for i in range(num_nodes):
 print "Now write IP addresses to nodes file..."
 home_dir = os.popen("echo $HOME").read()
 home_dir = home_dir[:len(home_dir) - 1]
-fp = open(home_dir +'/nodes', 'w')
+fp = open(home_dir + '/nodes', 'w')
 for ip in ip_dict.keys():
-    fp.write(ip + "\n") 
+    fp.write(ip + "\n")
 fp.close()
 
 #get a node's Twister home, scp nodes file to that directory
@@ -127,7 +127,7 @@ print "Remote Twister Home is", twister_home
 
 #do scp
 print "Copy node file to remote..."
-os.system("scp -i " + pem + " " + home_dir +"/nodes root@" + ip_dict.values()[0] + ":" + twister_home + "/bin/")
+os.system("scp -i " + pem + " " + home_dir + "/nodes root@" + ip_dict.values()[0] + ":" + twister_home + "/bin/")
 
 #kill all java processes
 print "\n### Kill potential Twister processes...###"
@@ -159,7 +159,7 @@ for line in conf_lines:
                 break
     if cmp(broker_address, "") != 0:
         break
-             
-print "### Notice...###"   
-print "Please log in to " + broker_address + " and start ActiveMQ broker." 
-                
+
+print "### Notice...###"
+print "Please log in to " + broker_address + " and start ActiveMQ broker."
+

@@ -46,36 +46,36 @@ class ImgStoreCumulusMysql(ImgStoreMysql):
         _items = list of imgEntry
         _dbName = name of the database
         
-        """                
+        """
         super(ImgStoreMysql, self).__init__()
-                
+
         self._dbName = "imagesC"
         self._tabledata = "data"
         self._tablemeta = "meta"
         self._mysqlcfg = IRUtil.getMysqlcfg()
         self._iradminsuer = IRUtil.getMysqluser()
-        
+
         self._log = log
-        
+
         self._dbConnection = None
         if (address != ""):
             self._mysqlAddress = address
         else:
             self._mysqlAddress = self._getAddress()
-        
-               
+
+
         self._cumulusAddress = addressS
         self._cumulusConnection = None
         self._containerName = "images"
-            
 
-    
+
+
     ############################################################
     # getItemUri
     ############################################################
     def getItemUri(self, imgId, userId):
         return "For now we do not provide this feature with the Cumulus system as backend."
-        
+
 
     ############################################################
     # getItem
@@ -89,17 +89,17 @@ class ImgStoreCumulusMysql(ImgStoreMysql):
         
         return the image uri
         """
-                        
-        imgLinks = []  
+
+        imgLinks = []
         result = self.queryStore([imgId], imgLinks, userId, admin)
-        
+
         if (result):
             return imgLinks[0]
         else:
             return None
-        
 
-           
+
+
     ############################################################
     # queryStore
     ############################################################
@@ -111,59 +111,59 @@ class ImgStoreCumulusMysql(ImgStoreMysql):
         imgIds: this is the list of images that I need
         imgLinks: This is an output parameter. Return the list URIs
         """
-        
+
         itemsFound = 0
-                
+
         if (self.mysqlConnection() and self.cumulusConnection()):
             try:
-                cursor = self._dbConnection.cursor()                
-                contain = self._cumulusConnection.get_bucket(self._containerName)                
-                k = Key(contain) 
-                 
+                cursor = self._dbConnection.cursor()
+                contain = self._cumulusConnection.get_bucket(self._containerName)
+                k = Key(contain)
+
                 for imgId in imgIds:
                     access = False
                     if(self.existAndOwner(imgId, userId) or admin):
                         access = True
                     elif(self.isPublic(imgId)):
                         access = True
-                    
+
                     if (access):
                         sql = "SELECT accessCount FROM %s WHERE imgId = '%s' " % (self._tabledata, imgId)
                         #print sql
                         cursor.execute(sql)
                         results = cursor.fetchone()
-                        
+
                         if(results != None):
-                            k.key = imgId                        
+                            k.key = imgId
                             #Boto does not stream, so we have to create the file here instead of in getItem
                             imagepath = '/tmp/' + imgId + ".img"
-                            
-                            if os.path.isfile(imagepath):                            
+
+                            if os.path.isfile(imagepath):
                                 for i in range(1000):
                                     imagepath = "/tmp/" + imgId + ".img" + i.__str__()
-                                    if not os.path.isfile(imagepath):                                    
+                                    if not os.path.isfile(imagepath):
                                         break
-                                                                                                  
-                            k.get_contents_to_filename(imagepath)                                                                           
-                             
+
+                            k.get_contents_to_filename(imagepath)
+
                             imgLinks.append(imagepath)
-                            
+
                             accessCount = int(results[0]) + 1
-                            
+
                             update = "UPDATE %s SET lastAccess='%s', accessCount='%d' WHERE imgId='%s'" \
                                            % (self._tabledata, datetime.utcnow(), accessCount, imgId)
                             #print update
                             cursor.execute(update)
                             self._dbConnection.commit()
-                                                            
-                            itemsFound += 1                    
-                    
+
+                            itemsFound += 1
+
             except MySQLdb.Error, e:
-                self._log.error("Error %d: %s" % (e.args[0], e.args[1]))                
-                self._dbConnection.rollback()                           
-            except IOError:                
+                self._log.error("Error %d: %s" % (e.args[0], e.args[1]))
+                self._dbConnection.rollback()
+            except IOError:
                 self._log.error("Error in ImgStorecumulusMysql - queryStore. " + str(sys.exc_info()))
-                self._log.error("No such file or directory. Image details: " + item.__str__())                 
+                self._log.error("No such file or directory. Image details: " + item.__str__())
             except TypeError:
                 self._log.error("TypeError in ImgStorecumulusMysql - queryStore " + str(sys.exc_info()))
             except boto.exception.S3ResponseError as detail:
@@ -172,15 +172,15 @@ class ImgStoreCumulusMysql(ImgStoreMysql):
             except:
                 self._log.error("Error in ImgStorecumulusMysql - queryToStore. " + str(sys.exc_info()))
             finally:
-                self._dbConnection.close()                      
+                self._dbConnection.close()
         else:
             self._log.error("Could not get access to the database. Query failed")
-       
+
         if (itemsFound >= 1):
             return True
         else:
             return False
-           
+
     ############################################################
     # persistToStore
     ############################################################
@@ -191,16 +191,16 @@ class ImgStoreCumulusMysql(ImgStoreMysql):
         items= list of ImgEntrys
                 
         return: True if all items are stored successfully, False in any other case
-        """               
-         
+        """
+
         imgStored = 0
-                        
+
         if (self.mysqlConnection() and self.cumulusConnection()):
-            
+
             try:
                 contain = self._cumulusConnection.get_bucket(self._containerName)
             except boto.exception.S3ResponseError as detail:
-                if(detail.reason.strip() == "Not Found"):                
+                if(detail.reason.strip() == "Not Found"):
                     self._log.warning("Creating bucket")
                     self._cumulusConnection.create_bucket(self._containerName)
                     contain = self._cumulusConnection.get_bucket(self._containerName)
@@ -208,17 +208,17 @@ class ImgStoreCumulusMysql(ImgStoreMysql):
                     self._log.error("Code and reason " + detail.code + " " + detail.reason)
                     self._log.error("Error in ImgStorecumulusMysql - queryToStore. full error " + str(sys.exc_info()))
             except:
-                self._log.error("Error in ImgStorecumulusMysql - persistToStore. " + str(sys.exc_info()))   
-            
+                self._log.error("Error in ImgStorecumulusMysql - persistToStore. " + str(sys.exc_info()))
+
             try:
-                cursor = self._dbConnection.cursor()      
-                
+                cursor = self._dbConnection.cursor()
+
                 k = Key(contain)
-                      
+
                 for item in items:
-                    
+
                     k.key = item._imgId
-                    if requestInstance == None:        
+                    if requestInstance == None:
                         k.set_contents_from_filename(item._imgURI)
                     else:
                         requestInstance.file.seek(0)
@@ -226,38 +226,38 @@ class ImgStoreCumulusMysql(ImgStoreMysql):
                     sql = "INSERT INTO %s (imgId, imgMetaData, imgUri, createdDate, lastAccess, accessCount, size) \
        VALUES ('%s', '%s', '%s', '%s', '%s', '%d', '%d' )" % \
        (self._tabledata, item._imgId, item._imgId, "", datetime.utcnow(), datetime.utcnow(), 0, item._size)
-                    
+
                     cursor.execute(sql)
                     self._dbConnection.commit()
-                                                   
+
                     imgStored += 1
-                    
+
             except MySQLdb.Error, e:
                 self._log.error("Error %d: %s" % (e.args[0], e.args[1]))
-                self._dbConnection.rollback()                           
-            except IOError:                
+                self._dbConnection.rollback()
+            except IOError:
                 self._log.error("Error in ImgStorecumulusMongo - persistToStore. " + str(sys.exc_info()))
-                self._log.error("No such file or directory. Image details: " + item.__str__())                 
+                self._log.error("No such file or directory. Image details: " + item.__str__())
             except TypeError:
                 self._log.error("TypeError in ImgStorecumulusMongo - persistToStore " + str(sys.exc_info()))
             except:
                 self._log.error("Error in ImgStorecumulusMysql - persistToStore. " + str(sys.exc_info()))
             finally:
-                self._dbConnection.close()                      
+                self._dbConnection.close()
         else:
             self._log.error("Could not get access to the database. The file has not been stored")
-        
+
         for item in items:
             if (re.search('^/tmp/', item._imgURI)):
-                cmd = "rm -f " + item._imgURI         
+                cmd = "rm -f " + item._imgURI
                 os.system(cmd)
-        
+
         if (imgStored == len(items)):
             return True
         else:
             return False
-        
-    
+
+
     ############################################################
     # removeItem 
     ############################################################
@@ -275,45 +275,45 @@ class ImgStoreCumulusMysql(ImgStoreMysql):
         imgEntry : new info to update. It HAS TO include the owner in _imgMeta
         
         Return boolean
-        """   
-        
-        removed = False     
-        
+        """
+
+        removed = False
+
         if (self.mysqlConnection() and self.cumulusConnection()):     ##Error 2006: MySQL server has gone away???
-            
+
             ##Solve with this. LOOK INTO MYSQL CONNECTIONS
-            con = MySQLdb.connect(host=self._mysqlAddress,
-                                           db=self._dbName,
-                                           read_default_file=self._mysqlcfg,
-                                           user=self._iradminsuer)
-            if(self.existAndOwner(imgId, userId) or admin):            
+            con = MySQLdb.connect(host = self._mysqlAddress,
+                                           db = self._dbName,
+                                           read_default_file = self._mysqlcfg,
+                                           user = self._iradminsuer)
+            if(self.existAndOwner(imgId, userId) or admin):
                 try:
                     cursor = con.cursor()
-                    contain = self._cumulusConnection.get_bucket(self._containerName)               
+                    contain = self._cumulusConnection.get_bucket(self._containerName)
                     contain.delete_key(imgId)
-                    
+
                     sql = "SELECT size FROM %s WHERE imgId = '%s' " % (self._tabledata, imgId)
                     #print sql
                     cursor.execute(sql)
                     results = cursor.fetchone()
-                    size[0] = int(results[0])                                      
-                    
-                                        
-                    sql = "DELETE FROM %s WHERE imgId='%s'" % (self._tabledata, imgId)                    
+                    size[0] = int(results[0])
+
+
+                    sql = "DELETE FROM %s WHERE imgId='%s'" % (self._tabledata, imgId)
                     sql1 = "DELETE FROM %s WHERE imgId='%s'" % (self._tablemeta, imgId)
-                    
-                    cursor.execute(sql)                    
+
+                    cursor.execute(sql)
                     cursor.execute(sql1)
                     con.commit()
-                    
+
                     removed = True
-                    
+
                 except MySQLdb.Error, e:
                     self._log.error("Error %d: %s" % (e.args[0], e.args[1]))
-                    con.rollback()                           
-                except IOError:                
+                    con.rollback()
+                except IOError:
                     self._log.error("Error in ImgStorecumulusMongo - removeItem. " + str(sys.exc_info()))
-                    self._log.error("No such file or directory. Image details: " + item.__str__())                 
+                    self._log.error("No such file or directory. Image details: " + item.__str__())
                 except TypeError:
                     self._log.error("TypeError in ImgStorecumulusMongo - removeItem " + str(sys.exc_info()))
                 except:
@@ -325,9 +325,9 @@ class ImgStoreCumulusMysql(ImgStoreMysql):
                 self._log.error("The Image does not exist or the user is not the owner")
         else:
             self._log.error("Could not get access to the database. The file has not been removed")
-            
+
         return removed
-            
+
     ############################################################
     # existAndOwner
     ############################################################
@@ -341,42 +341,42 @@ class ImgStoreCumulusMysql(ImgStoreMysql):
         
         Return: boolean
         """
-        
+
         exists = False
         owner = False
-                
-        
-        try:
-            cursor = self._dbConnection.cursor()         
-            contain = self._cumulusConnection.get_bucket(self._containerName)
-                        
-            if contain.get_key(imgId) != None:
-                exists = True         
 
-                     
+
+        try:
+            cursor = self._dbConnection.cursor()
+            contain = self._cumulusConnection.get_bucket(self._containerName)
+
+            if contain.get_key(imgId) != None:
+                exists = True
+
+
             sql = "SELECT owner FROM %s WHERE imgId='%s' and owner='%s'" % (self._tablemeta, imgId, ownerId)
-            
+
             cursor.execute(sql)
             results = cursor.fetchone()
-            
-            if(results != None):                  
-                owner = True                      
-                    
+
+            if(results != None):
+                owner = True
+
         except MySQLdb.Error, e:
-            self._log.error("Error %d: %s" % (e.args[0], e.args[1]))                                           
+            self._log.error("Error %d: %s" % (e.args[0], e.args[1]))
         except IOError as (errno, strerror):
             self._log.error("Error in ImgStorecumulusMongo - existAndOwner. " + str(sys.exc_info()))
-            self._log.error("No such file or directory. Image details: " + item.__str__())                 
+            self._log.error("No such file or directory. Image details: " + item.__str__())
         except TypeError:
             self._log.error("TypeError in ImgStorecumulusMongo - existAndOwner " + str(sys.exc_info()))
         except:
             self._log.error("Error in ImgStorecumulusMysql - existAndOwner. " + str(sys.exc_info()))
-       
+
         if (exists and owner):
             return True
         else:
             return False
-    
+
     ############################################################
     # cumulusConnection
     ############################################################
@@ -386,17 +386,17 @@ class ImgStoreCumulusMysql(ImgStoreMysql):
         
         """
         connected = False
-        
+
         #username an password will be moved to the config file
         id = 'PgkhmT23FUv7aRZND7BOW'
         pw = 'Bf9ppgw9mzxe2EoKjbVl0wjaNJoHlIPxJ6QAgA0pOj'
         cf = OrdinaryCallingFormat()
         try:
-            self._cumulusConnection = S3Connection(id, pw, host=self._cumulusAddress, port=8888, is_secure=False, calling_format=cf)
+            self._cumulusConnection = S3Connection(id, pw, host = self._cumulusAddress, port = 8888, is_secure = False, calling_format = cf)
             connected = True
         except:
             self._log.error("Error in cumulus connection. " + str(sys.exc_info()))
-            
+
         return connected
 
 class ImgMetaStoreCumulusMysql(ImgMetaStoreMysql):
@@ -413,9 +413,9 @@ class ImgMetaStoreCumulusMysql(ImgMetaStoreMysql):
         _items = list of imgEntry
         _dbName = name of the database
         
-        """                
+        """
         super(ImgMetaStoreMysql, self).__init__()
-                
+
         self._dbName = "imagesC"
         self._tabledata = "data"
         self._tablemeta = "meta"
@@ -427,7 +427,7 @@ class ImgMetaStoreCumulusMysql(ImgMetaStoreMysql):
             self._mysqlAddress = address
         else:
             self._mysqlAddress = self._getAddress()
-                       
+
 class IRUserStoreCumulusMysql(IRUserStoreMysql):
 
     ############################################################
@@ -442,19 +442,19 @@ class IRUserStoreCumulusMysql(IRUserStoreMysql):
         _items = list of imgEntry
         _dbName = name of the database
         
-        """                
+        """
         super(IRUserStoreMysql, self).__init__()
-                
+
         self._dbName = "imagesC"
-        self._tabledata = "users"        
+        self._tabledata = "users"
         self._mysqlcfg = IRUtil.getMysqlcfg()
         self._iradminsuer = IRUtil.getMysqluser()
         self._log = log
-        
+
         self._dbConnection = None
         if (address != ""):
             self._mysqlAddress = address
         else:
             self._mysqlAddress = self._getAddress()
 
-  
+

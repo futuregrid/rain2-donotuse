@@ -88,61 +88,61 @@ class IRService(object):
     ############################################################
     def __init__(self):
         super(IRService, self).__init__()
-        
+
         #Config in IRUtil
         self._backend = IRUtil.getBackend()
-        self._address = IRUtil.getAddress()                
+        self._address = IRUtil.getAddress()
         self._fgirimgstore = IRUtil.getFgirimgstore()
         self._fgserverdir = IRUtil.getFgserverdir()
-        
+
         #Setup log. 
         #When integrate ALL FG software, we may need to create this somewhere else and send the log object to all classes like this        
         self._log = fgLog.fgLog(IRUtil.getLogFile(), IRUtil.getLogLevel(), "Img Repo Server", False)
-        if (self._backend == "mongodb"): 
+        if (self._backend == "mongodb"):
             self.metaStore = ImgMetaStoreMongo(self._address, self._fgserverdir, self._log)
-            self.imgStore = ImgStoreMongo(self._address, self._fgserverdir, self._log)            
+            self.imgStore = ImgStoreMongo(self._address, self._fgserverdir, self._log)
             self.userStore = IRUserStoreMongo(self._address, self._fgserverdir, self._log)
         elif(self._backend == "mysql"):
             self.metaStore = ImgMetaStoreMysql(self._address, self._fgserverdir, self._log)
-            self.imgStore = ImgStoreMysql(self._address, self._fgserverdir, self._log)            
+            self.imgStore = ImgStoreMysql(self._address, self._fgserverdir, self._log)
             self.userStore = IRUserStoreMysql(self._address, self._fgserverdir, self._log)
         elif(self._backend == "swiftmysql"):
             self.metaStore = ImgMetaStoreSwiftMysql(self._address, self._fgserverdir, self._log)
-            self.imgStore = ImgStoreSwiftMysql(self._address, IRUtil.getAddressS(), self._fgserverdir, self._log)            
+            self.imgStore = ImgStoreSwiftMysql(self._address, IRUtil.getAddressS(), self._fgserverdir, self._log)
             self.userStore = IRUserStoreSwiftMysql(self._address, self._fgserverdir, self._log)
         elif(self._backend == "swiftmongo"):
             self.metaStore = ImgMetaStoreSwiftMongo(self._address, self._fgserverdir, self._log)
-            self.imgStore = ImgStoreSwiftMongo(self._address, IRUtil.getAddressS(), self._fgserverdir, self._log)            
+            self.imgStore = ImgStoreSwiftMongo(self._address, IRUtil.getAddressS(), self._fgserverdir, self._log)
             self.userStore = IRUserStoreSwiftMongo(self._address, self._fgserverdir, self._log)
         elif(self._backend == "cumulusmysql"):
             self.metaStore = ImgMetaStoreCumulusMysql(self._address, self._fgserverdir, self._log)
-            self.imgStore = ImgStoreCumulusMysql(self._address, IRUtil.getAddressS(), self._fgserverdir, self._log)            
+            self.imgStore = ImgStoreCumulusMysql(self._address, IRUtil.getAddressS(), self._fgserverdir, self._log)
             self.userStore = IRUserStoreCumulusMysql(self._address, self._fgserverdir, self._log)
         elif(self._backend == "cumulusmongo"):
             self.metaStore = ImgMetaStoreCumulusMongo(self._address, self._fgserverdir, self._log)
-            self.imgStore = ImgStoreCumulusMongo(self._address, IRUtil.getAddressS(), self._fgserverdir, self._log)            
+            self.imgStore = ImgStoreCumulusMongo(self._address, IRUtil.getAddressS(), self._fgserverdir, self._log)
             self.userStore = IRUserStoreCumulusMongo(self._address, self._fgserverdir, self._log)
         else:
             self.metaStore = ImgMetaStoreFS()
-            self.imgStore = ImgStoreFS()            
-            self.userStore = IRUserStoreFS()    
-    
+            self.imgStore = ImgStoreFS()
+            self.userStore = IRUserStoreFS()
+
     def genImgId(self):
         """
         return None if could not get an imgId
-        """ 
+        """
         return self.metaStore.genImgId()
-    
+
     def getLog(self):
         return self._log
-       
+
     ############################################################
     # uploadValidator
     ############################################################
     def uploadValidator(self, userId, size):
         self._log.info("user:" + userId + " command:uploadValidator args={size:" + str(size) + "}")
         return self.userStore.uploadValidator(userId, size)
-    
+
     ############################################################
     # userAdd
     ############################################################
@@ -150,21 +150,21 @@ class IRService(object):
         self._log.info("user:" + userId + " command:userAdd args={userIdtoAdd:" + username + "}")
         user = IRUser(username)
         return self.userStore.userAdd(userId, user)
-    
+
     ############################################################
     # userDel
     ############################################################
     def userDel(self, userId, userIdtoDel):
         self._log.info("user:" + userId + " command:userDel args={userIdtoDel:" + userIdtoDel + "}")
         return self.userStore.userDel(userId, userIdtoDel)
-    
+
     ############################################################
     # userList
     ############################################################
     def userList(self, userId):
         self._log.info("user:" + userId + " command:userlist")
         return self.userStore.queryStore(userId, None)
-    
+
     ############################################################
     # setUserRole
     ############################################################
@@ -176,14 +176,14 @@ class IRService(object):
             self._log.error("Role " + role + " is not valid")
             print "Role not valid. Valid roles are " + str(IRUser.Role)
             return False
-          
+
     ############################################################
     # setUserQuota
     ############################################################
     def setUserQuota(self, userId, userIdtoModify, quota):
-        self._log.info("user:" + userId + " command:setUserQuota args={userIdtoModify:" + userIdtoModify + ", quota:" + str(quota) + "}")        
+        self._log.info("user:" + userId + " command:setUserQuota args={userIdtoModify:" + userIdtoModify + ", quota:" + str(quota) + "}")
         return self.userStore.setQuota(userId, userIdtoModify, quota)
-        
+
     ############################################################
     # setUserStatus
     ############################################################
@@ -195,7 +195,7 @@ class IRService(object):
             self._log.error("Status " + status + " is not valid")
             print "Status not valid. Status available: " + str(IRUser.Status)
             return False
-    
+
     def auth(self, userId):
         # to be implemented when integrating with the security framework
         return IRUtil.auth(userId, None)
@@ -209,7 +209,7 @@ class IRService(object):
     ############################################################
     def get(self, userId, option, imgId):
         self._log.info("user:" + userId + " command:get args={option:" + option + ", imgId:" + imgId + "}")
-        
+
         if (option == "img"):
             return self.imgStore.getItem(imgId, userId, self.userStore.isAdmin(userId))
         elif (option == "uri"):
@@ -218,66 +218,66 @@ class IRService(object):
     ############################################################
     # put
     ############################################################
-    def put(self, userId, imgId, imgFile, attributeString, size):        
+    def put(self, userId, imgId, imgFile, attributeString, size):
         """
         Register the file in the database
         
         return imgId or 0 if something fails
-        """  
-        
+        """
+
         status = False
-        statusImg=False
-        fileLocation=""
-        aMeta=None
-        aImg=None
-        
+        statusImg = False
+        fileLocation = ""
+        aMeta = None
+        aImg = None
+
         if (size > 0):
-            if type(imgFile) == cherrypy._cpreqbody.Part:            
+            if type(imgFile) == cherrypy._cpreqbody.Part:
                 self._log.info("user:" + userId + " command:put args={imgId:" + imgId + ", imgFile:" + imgId + ", metadata:" + attributeString + ", size:" + str(size) + "}")
                 aMeta = self._createImgMeta(userId, imgId, attributeString, False)
-                aImg = ImgEntry(imgId, aMeta, self._fgirimgstore+"/"+imgId, size)
+                aImg = ImgEntry(imgId, aMeta, self._fgirimgstore + "/" + imgId, size)
                 #it sends the imgEntry and the requestInstance
-                statusImg = self.imgStore.addItem(aImg,imgFile)  
-                
+                statusImg = self.imgStore.addItem(aImg, imgFile)
+
             else:
-                self._log.info("user:" + userId + " command:put args={imgId:" + imgId + ", imgFile:" + imgFile + ", metadata:" + attributeString + ", size:" + str(size) + "}")            
+                self._log.info("user:" + userId + " command:put args={imgId:" + imgId + ", imgFile:" + imgFile + ", metadata:" + attributeString + ", size:" + str(size) + "}")
                 fileLocation = self._fgirimgstore + imgId
-                if(os.path.isfile(fileLocation)):                
+                if(os.path.isfile(fileLocation)):
                         #parse attribute string and construct image metadata
                         aMeta = self._createImgMeta(userId, imgId, attributeString, False)
                         #put image item in the image store        
                         aImg = ImgEntry(imgId, aMeta, fileLocation, size)
                         #it sends the imgEntry and None                
-                        statusImg = self.imgStore.addItem(aImg,None)
-                    
+                        statusImg = self.imgStore.addItem(aImg, None)
+
             if(statusImg):
                 #put metadata into the image meta store
-                
+
                 #with MongoDB I put the metadata with the ImgEntry, so it skips meta add                    
-                if(re.search("mongo", IRUtil.getBackend()) == None):  
+                if(re.search("mongo", IRUtil.getBackend()) == None):
                     statusMeta = self.metaStore.addItem(aMeta)
                 else:
                     statusMeta = True
-                
+
                 if(statusMeta):
                     #Add size and #imgs to user
                     statusAcc = self.userStore.updateAccounting(userId, size, 1)
-                    
+
                     if (statusAcc):
                         status = True
-                    
+
         else:
             self._log.error("File size must be higher than 0")
-            
+
         if(status):
             return aImg._imgId
         else:
             return 0
-    
+
     ############################################################
     # updateItem
     ############################################################
-    def updateItem(self, userId, imgId, attributeString):        
+    def updateItem(self, userId, imgId, attributeString):
         """
         Update Image Repository
         
@@ -292,30 +292,30 @@ class IRService(object):
         aMeta = self._createImgMeta(userId, imgId, attributeString, True)
         self._log.debug(str(aMeta))
         success = self.metaStore.updateItem(userId, imgId, aMeta)
-                
+
         return success
-        
+
     ############################################################
     # remove
     ############################################################
     def remove(self, userId, imgId):
         self._log.info("user:" + userId + " command:remove args={imgId:" + imgId + "}")
-        status=False
-        owner=self.imgStore.getOwner(imgId)
+        status = False
+        owner = self.imgStore.getOwner(imgId)
         if owner != None:
             size = [0] #Size is output parameter in the first call. 
-            status = self.imgStore.removeItem(userId, imgId, size, self.userStore.isAdmin(userId)) 
+            status = self.imgStore.removeItem(userId, imgId, size, self.userStore.isAdmin(userId))
             if(status):
                 status = self.userStore.updateAccounting(owner, -(size[0]), -1)
         return status
-    
+
     ############################################################
     # histImg
     ############################################################
     def histImg(self, userId, imgId):
         self._log.info("user:" + userId + " command:histImg args={imgId:" + imgId + "}")
         return self.imgStore.histImg(imgId)
-    
+
     ############################################################
     # printHistImg
     ############################################################
@@ -325,57 +325,57 @@ class IRService(object):
         output ['head'] = string.expandtabs(output ['head'], 8)
         stradd = ""
         for i in range(len(output['head'])):
-            stradd += "-"    
+            stradd += "-"
         output ['head'] += stradd
 
         if(imgs != None):
             for key in imgs.keys():
                 spaces = ""
                 num = 24 - len(imgs[key]._imgId)
-                if (num > 0):                                                  
+                if (num > 0):
                     for i in range(num):
                         spaces += " "
-                        
+
                 output[key] = imgs[key]._imgId + spaces + "  " + str(imgs[key]._createdDate) + "  " + \
                         str(imgs[key]._lastAccess) + "    " + str(imgs[key]._accessCount) + "\n"
-        
+
         return output
-    
+
 
     ############################################################
     # histUser
     ############################################################
-    def histUser(self, userId, userIdtoSearch):    
-        self._log.info("user:" + userId + " command:histImg args={userIdtoSearch:" + userIdtoSearch + "}")    
+    def histUser(self, userId, userIdtoSearch):
+        self._log.info("user:" + userId + " command:histImg args={userIdtoSearch:" + userIdtoSearch + "}")
         output = {}
         output ['head'] = "User_Id  Used_Disk \t\t  Last_Login  \t\t #Owned_Images \n"
         output ['head'] = string.expandtabs(output ['head'], 8)
         stradd = ""
         for i in range(len(output['head'])):
-            stradd += "-"    
+            stradd += "-"
         output ['head'] += stradd
-        
+
         if (userIdtoSearch == "None"):
             userIdtoSearch = None
-        
-        users = self.userStore.queryStore(userId, userIdtoSearch)      
-                               
+
+        users = self.userStore.queryStore(userId, userIdtoSearch)
+
         if(users != None):
             for key in users.keys():
                 spaces = ""
                 num = 8 - len(users[key]._userId)
-                if (num > 0):                                                  
+                if (num > 0):
                     for i in range(num):
                         spaces += " "
-                
-                                        
+
+
                 output[key] = users[key]._userId + spaces + "   " + str(users[key]._fsUsed).split(".")[0] + " \t\t " + \
                         str(users[key]._lastLogin) + "   \t " + str(users[key]._ownedImgs).split(".")[0] + "\n"
-        
+
         return output
-        
-        
-    
+
+
+
     ############################################################
     # _createImgMeta
     ############################################################
@@ -393,16 +393,16 @@ class IRService(object):
             #print attribute
             tmp = attribute.split("=")
             if (len(tmp) == 2):
-                key = string.lower(tmp[0])            
-                value = tmp[1]            
+                key = string.lower(tmp[0])
+                value = tmp[1]
                 if key in ImgMeta.metaArgsIdx.keys():
                     if (key == "vmtype"):
                         value = string.lower(value)
                         if not (value in ImgMeta.VmType):
                             print "Wrong value for VmType, please use: " + str(ImgMeta.VmType)
                             break
-                    elif (key == "imgtype"):       
-                        value = string.lower(value) 
+                    elif (key == "imgtype"):
+                        value = string.lower(value)
                         if not (value in ImgMeta.ImgType):
                             print "Wrong value for ImgType, please use: " + str(ImgMeta.ImgType)
                             break
@@ -417,7 +417,7 @@ class IRService(object):
                             print "Wrong value for ImgStatus, please use: " + str(ImgMeta.ImgStatus)
                             break
                     args[ImgMeta.metaArgsIdx[key]] = value
-        if not update:        
+        if not update:
             for x in range(len(args)):
                 if args[x] == '':
                     args[x] = ImgMeta.argsDefault[x]
@@ -429,7 +429,7 @@ class IRService(object):
                         args[5], args[6], args[7], args[8], args[9])
         #print aMeta
         return aMeta
-        
+
     ############################################################
     # usage
     ############################################################
@@ -454,13 +454,13 @@ def usage():
         --setrole  <userId> <role> : modify user role
         --setUserStatus <userId> <status> :modify user status
           '''
-          
+
     ############################################################
     # main
     ############################################################
 def main():
 
-    
+
     try:
         opts, args = gnu_getopt(sys.argv[1:],
                                 "hlqagprium",
@@ -490,10 +490,10 @@ def main():
         sys.exit(2)
 
     service = IRService()
-             
+
     if(len(opts) == 0):
         usage()
-    
+
     for o, v in opts:
         #print o, v
         if o in ("-h", "--help"):
@@ -502,7 +502,7 @@ def main():
             #username = os.system("whoami")
             #service.auth(username)
             print service.auth("fuwang")
-        elif o in ("-q", "--list"):            
+        elif o in ("-q", "--list"):
             imgs = service.query(os.popen('whoami', 'r').read().strip(), args[0])
             #for key in imgs.keys():
             #    print imgs[key]
@@ -515,20 +515,20 @@ def main():
             #print service.get(os.popen('whoami', 'r').read().strip(), "img", "4d4c2e6e577d70102a000000")
         elif o in ("-p", "--put"):
             print service.put(os.popen('whoami', 'r').read().strip(), args[0], args[1], args[2], int(args[3]))
-            
+
             #print service.put(os.popen('whoami', 'r').read().strip(), "id536785449", "/home/jav/tst3.iso","vmtype=kvm|imgtype=Nimbus|os=RHEL5|arch=i386|owner=tstuser1|description=this is a test description|tag=tsttag1, tsttag2|permission=private" )
             #print service.put(os.popen('whoami', 'r').read().strip(), "id536785449", "ttylinux1.img", "vmType=kvm|imgType=opennebula|os=UBUNTU|arch=x86_64| owner=tstuser2| description=another test| tag=tsttaga, tsttagb")
         elif o in ("-r", "--remove"):
             print service.remove(os.popen('whoami', 'r').read().strip(), args[0])
             #print service.remove(os.popen('whoami', 'r').read().strip(), "4d4b0b8a577d700d2b000000")
         elif o in ("-i", "--histimg"):
-            imgs = service.histImg(os.popen('whoami', 'r').read().strip(), args[0])                 
-                                   
+            imgs = service.histImg(os.popen('whoami', 'r').read().strip(), args[0])
+
             print service.printHistImg(imgs)
 
         elif o in ("-u", "--histuser"):
-            print service.histUser(os.popen('whoami', 'r').read().strip(), args[0])            
-            
+            print service.histUser(os.popen('whoami', 'r').read().strip(), args[0])
+
         elif o in ("--uploadValidator"):
             print service.uploadValidator(os.popen('whoami', 'r').read().strip(), int(args[0]))
             #print service.uploadValidator("javi", 0)
@@ -540,26 +540,26 @@ def main():
         elif o in ("-m", "--modify"):
             print service.updateItem(os.popen('whoami', 'r').read().strip(), args[0], args[1])
             #print service.updateItem(os.popen('whoami', 'r').read().strip(), "4d681d65577d703439000000", "vmtype=vmware|os=windows")
-            
+
 #This commands only can be used by users with Admin Role.
         elif o in ("--useradd"):  #args[0] is the username. It MUST be the same that the system user
             print service.userAdd(os.popen('whoami', 'r').read().strip(), args[0])
-            
+
         elif o in ("--userdel"):
             print service.userDel(os.popen('whoami', 'r').read().strip(), args[0])
-            
+
         elif o in ("--userlist"):
             print service.userList(os.popen('whoami', 'r').read().strip())
-           
+
         elif o in ("--setUserQuota"):
             print service.setUserQuota(os.popen('whoami', 'r').read().strip(), args[0], int(args[1]))
-            
+
         elif o in ("--setUserRole"):
             print service.setUserRole(os.popen('whoami', 'r').read().strip(), args[0], args[1])
-            
+
         elif o in ("--setUserStatus"):
             print service.setUserStatus(os.popen('whoami', 'r').read().strip(), args[0], args[1])
-            
+
         else:
             assert False, "unhandled option"
 

@@ -13,7 +13,7 @@ def get_nodes():
     #get the ip addresses, test if they are ready
     text = os.popen('euca-describe-instances').read()
     lines = text.split("\n")
-    
+
     #remove unrelated information
     remove_lines = []
     for line in lines:
@@ -22,6 +22,6 @@ def get_nodes():
 
     for line in remove_lines:
         lines.remove(line)
-        
+
     return lines
 

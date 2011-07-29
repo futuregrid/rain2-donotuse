@@ -8,16 +8,16 @@ function wait() {
 }
 ######################################################################   
 
-source  ~/.bashrc
+source ~/ .bashrc
 
 echo "######################################################################"
 echo "Starting mongod"
 echo "######################################################################"
-mongod --port 23000 &
-mongoPID=$!
+mongod - -port 23000 &
+mongoPID = $ !
 sleep 1
 
-lsof -i tcp:23000
+lsof - i tcp:23000
 
 wait
 
@@ -28,11 +28,11 @@ echo "Put service"
 echo "######################################################################"
 
 python restFrontEnd.py &> cherry.log &
-serverPID=$!
+serverPID = $ !
 sleep 1
 
-lsof -i tcp:8080
-lsof -i tcp:23000
+lsof - i tcp:8080
+lsof - i tcp:23000
 
 
 
@@ -45,12 +45,12 @@ wait
 echo "Enter return to kill mongod and cherrypy server"
 read line
 
-kill -9 ${serverPID}
-kill -9 ${mongoPID}
+kill - 9 ${serverPID}
+kill - 9 ${mongoPID}
 
 
-rm /data/db/mongod.lock
+rm / data / db / mongod.lock
 
-lsof -i tcp:8080
-lsof -i tcp:23000
+lsof - i tcp:8080
+lsof - i tcp:23000
 

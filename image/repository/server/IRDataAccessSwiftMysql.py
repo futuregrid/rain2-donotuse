@@ -43,36 +43,36 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
         _items = list of imgEntry
         _dbName = name of the database
         
-        """                
+        """
         super(ImgStoreMysql, self).__init__()
-                
+
         self._dbName = "imagesS"
         self._tabledata = "data"
         self._tablemeta = "meta"
         self._mysqlcfg = IRUtil.getMysqlcfg()
         self._iradminsuer = IRUtil.getMysqluser()
-        
+
         self._log = log
-        
+
         self._dbConnection = None
         if (address != ""):
             self._mysqlAddress = address
         else:
             self._mysqlAddress = self._getAddress()
-        
-               
+
+
         self._swiftAddress = addressS
         self._swiftConnection = None
         self._containerName = "images"
-            
 
-    
+
+
     ############################################################
     # getItemUri
     ############################################################
     def getItemUri(self, imgId, userId):
         return "For now we do not provide this feature with the Swift system as backend."
-        
+
 
     ############################################################
     # getItem
@@ -86,10 +86,10 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
         
         return the image uri
         """
-                        
-        imgLinks = []  
+
+        imgLinks = []
         result = self.queryStore([imgId], imgLinks, userId, admin)
-        
+
         """
         if (result):
             filename="/tmp/"+imgId+".img"
@@ -117,9 +117,9 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
         else:
             return None
         ##to skip the python api
-        
 
-           
+
+
     ############################################################
     # queryStore
     ############################################################
@@ -131,62 +131,62 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
         imgIds: this is the list of images that I need
         imgLinks: This is an output parameter. Return the list URIs
         """
-        
+
         itemsFound = 0
-                
+
         if (self.mysqlConnection() and self.swiftConnection()):
             try:
-                cursor = self._dbConnection.cursor()                
+                cursor = self._dbConnection.cursor()
                 contain = self._swiftConnection.get_container(self._containerName)
-                 
+
                 for imgId in imgIds:
                     access = False
                     if(self.existAndOwner(imgId, userId) or admin):
                         access = True
                     elif(self.isPublic(imgId)):
                         access = True
-                    
+
                     if (access):
                         sql = "SELECT accessCount FROM %s WHERE imgId = '%s' " % (self._tabledata, imgId)
                         #print sql
                         cursor.execute(sql)
                         results = cursor.fetchone()
-                        
+
                         if(results != None):
                             #imgLinks.append(contain.get_object(imgId))
-                            
+
                             ##to skip the python api
                             imagepath = '/tmp/' + imgId + ".img"
-                            
-                            if os.path.isfile(imagepath):                            
+
+                            if os.path.isfile(imagepath):
                                 for i in range(1000):
                                     imagepath = "/tmp/" + imgId + ".img" + i.__str__()
-                                    if not os.path.isfile(imagepath):                                    
+                                    if not os.path.isfile(imagepath):
                                         break
-                                    
+
                             cmd = "$HOME/swift/trunk/bin/st download -q " + self._containerName + " " + imgId + " -o " + imagepath + " -A https://192.168.11.40:8080/auth/v1.0 -U test:tester -K testing"
-                            
+
                             os.system(cmd)
 
                             imgLinks.append(imagepath)
                             ##to skip the python api
-                            
+
                             accessCount = int(results[0]) + 1
-                            
+
                             update = "UPDATE %s SET lastAccess='%s', accessCount='%d' WHERE imgId='%s'" \
                                            % (self._tabledata, datetime.utcnow(), accessCount, imgId)
                             #print update
                             cursor.execute(update)
                             self._dbConnection.commit()
-                                                            
-                            itemsFound += 1                    
-                    
+
+                            itemsFound += 1
+
             except MySQLdb.Error, e:
-                self._log.error("Error %d: %s" % (e.args[0], e.args[1]))                
-                self._dbConnection.rollback()                           
+                self._log.error("Error %d: %s" % (e.args[0], e.args[1]))
+                self._dbConnection.rollback()
             except IOError as (errno, strerror):
                 self._log.error("I/O error({0}): {1}".format(errno, strerror))
-                self._log.error("No such file or directory. Image details: " + item.__str__())                
+                self._log.error("No such file or directory. Image details: " + item.__str__())
             except TypeError as detail:
                 self._log.error("TypeError in ImgStoreSwiftMysql - queryToStore: " + format(detail))
             except cloudfiles.errors.NoSuchObject:
@@ -194,15 +194,15 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
             except:
                 self._log.error("Error in ImgStoreSwiftMysql - queryToStore. " + str(sys.exc_info()))
             finally:
-                self._dbConnection.close()                      
+                self._dbConnection.close()
         else:
             self._log.error("Could not get access to the database. Query failed")
-       
+
         if (itemsFound >= 1):
             return True
         else:
             return False
-           
+
 
     ############################################################
     # persistToStore
@@ -214,10 +214,10 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
         items= list of ImgEntrys
                 
         return: True if all items are stored successfully, False in any other case
-        """               
-         
+        """
+
         imgStored = 0
-                        
+
         if (self.mysqlConnection()):#and self.swiftConnection()):
             """ 
             try:
@@ -228,11 +228,11 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
                 self._log.warning("Creating the container")
             except:
                 self._log.error("Error in ImgStoreSwiftMysql - persistToStore. "+str(sys.exc_info()))  
-            """ 
+            """
             try:
-                cursor = self._dbConnection.cursor()            
+                cursor = self._dbConnection.cursor()
                 for item in items:
-                    
+
                     """
                     loaded=False
                     retries=0                    
@@ -257,39 +257,39 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
                         sql = "INSERT INTO %s (imgId, imgMetaData, imgUri, createdDate, lastAccess, accessCount, size) \
            VALUES ('%s', '%s', '%s', '%s', '%s', '%d', '%d' )" % \
            (self._tabledata, item._imgId, item._imgId, "", datetime.utcnow(), datetime.utcnow(), 0, item._size)
-                        
+
                         cursor.execute(sql)
                         self._dbConnection.commit()
-                                                       
+
                         imgStored += 1
-                    
+
             except MySQLdb.Error, e:
                 self._log.error("Error %d: %s" % (e.args[0], e.args[1]))
-                self._dbConnection.rollback()                           
-            except IOError:                
+                self._dbConnection.rollback()
+            except IOError:
                 self._log.error("Error in ImgStoreSwiftMysql - persistToStore. " + str(sys.exc_info()))
-                self._log.error("No such file or directory. Image details: " + item.__str__())                 
+                self._log.error("No such file or directory. Image details: " + item.__str__())
             except TypeError:
-                self._log.error("TypeError in ImgStoreSwiftMysql - persistToStore " + str(sys.exc_info()))                 
+                self._log.error("TypeError in ImgStoreSwiftMysql - persistToStore " + str(sys.exc_info()))
             except TypeError as detail:
                 self._log.error("TypeError in ImgStoreSwiftMysql - persistToStore " + format(detail))
             except:
                 self._log.error("Error in ImgStoreSwiftMysql - persistToStore. " + str(sys.exc_info()))
             finally:
-                self._dbConnection.close()                      
+                self._dbConnection.close()
         else:
             self._log.error("Could not get access to the database. The file has not been stored")
-        
+
         for item in items:
             if (re.search('^/tmp/', item._imgURI)):
-                cmd = "rm -f " + item._imgURI         
+                cmd = "rm -f " + item._imgURI
                 os.system(cmd)
-        
+
         if (imgStored == len(items)):
             return True
         else:
             return False
-        
+
     ############################################################
     # removeItem 
     ############################################################
@@ -307,52 +307,52 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
         imgEntry : new info to update. It HAS TO include the owner in _imgMeta
         
         Return boolean
-        """   
-        
-        removed = False     
-        
+        """
+
+        removed = False
+
         if (self.mysqlConnection() and self.swiftConnection()):     ##Error 2006: MySQL server has gone away???
-            
+
             ##Solve with this. LOOK INTO MYSQL CONNECTIONS
-            con = MySQLdb.connect(host=self._mysqlAddress,
-                                           db=self._dbName,
-                                           read_default_file=self._mysqlcfg,
-                                           user=self._iradminsuer)
-            if(self.existAndOwner(imgId, userId) or admin):            
+            con = MySQLdb.connect(host = self._mysqlAddress,
+                                           db = self._dbName,
+                                           read_default_file = self._mysqlcfg,
+                                           user = self._iradminsuer)
+            if(self.existAndOwner(imgId, userId) or admin):
                 try:
                     cursor = con.cursor()
                     #contain= self._swiftConnection.get_container(self._containerName)
-                    
+
                     sql = "SELECT size FROM %s WHERE imgId = '%s' " % (self._tabledata, imgId)
                     #print sql
                     cursor.execute(sql)
                     results = cursor.fetchone()
                     size[0] = int(results[0])
-                                       
+
                     #contain.delete_object(imgId)
 
                     cmd = "$HOME/swift/trunk/bin/st delete -q " + self._containerName + " " + imgId + " -A https://192.168.11.40:8080/auth/v1.0 -U test:tester -K testing"
                     status = os.system(cmd)
                     self._log.debug(" swift remove image status: " + str(status))
-                    if (status == 0):                   
-                    
-                        sql = "DELETE FROM %s WHERE imgId='%s'" % (self._tabledata, imgId)                    
+                    if (status == 0):
+
+                        sql = "DELETE FROM %s WHERE imgId='%s'" % (self._tabledata, imgId)
                         sql1 = "DELETE FROM %s WHERE imgId='%s'" % (self._tablemeta, imgId)
-                    
-                        cursor.execute(sql)                    
+
+                        cursor.execute(sql)
                         cursor.execute(sql1)
                         con.commit()
-                    
+
                         removed = True
-                    
+
                 except MySQLdb.Error, e:
                     self._log.error("Error %d: %s" % (e.args[0], e.args[1]))
-                    con.rollback()                           
-                except IOError:                
+                    con.rollback()
+                except IOError:
                     self._log.error("Error in ImgStoreSwiftMysql - removeItem. " + str(sys.exc_info()))
-                    self._log.error("No such file or directory. Image details: " + item.__str__())                 
+                    self._log.error("No such file or directory. Image details: " + item.__str__())
                 except TypeError:
-                    self._log.error("TypeError in ImgStoreSwiftMysql - removeItem " + str(sys.exc_info()))  
+                    self._log.error("TypeError in ImgStoreSwiftMysql - removeItem " + str(sys.exc_info()))
                 except:
                     self._log.error("Error in ImgStoreSwiftMysql - removeItem. " + str(sys.exc_info()))
                 finally:
@@ -362,9 +362,9 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
                 self._log.error("The Image does not exist or the user is not the owner")
         else:
             self._log.error("Could not get access to the database. The file has not been removed")
-            
+
         return removed
-            
+
     ############################################################
     # existAndOwner
     ############################################################
@@ -378,42 +378,42 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
         
         Return: boolean
         """
-        
+
         exists = False
         owner = False
-                
-        
+
+
         try:
-            cursor = self._dbConnection.cursor()         
+            cursor = self._dbConnection.cursor()
             contain = self._swiftConnection.get_container(self._containerName)
-            
+
             #if imgId in contain.list_objects():
             cmd = "$HOME/swift/trunk/bin/st list " + self._containerName + " -A https://192.168.11.40:8080/auth/v1.0 -U test:tester -K testing"
             output = os.popen(cmd).read()
             if imgId in output:
                 exists = True
-                     
+
             sql = "SELECT owner FROM %s WHERE imgId='%s' and owner='%s'" % (self._tablemeta, imgId, ownerId)
-            
+
             cursor.execute(sql)
             results = cursor.fetchone()
-            
-            if(results != None):                  
-                owner = True                      
-                    
+
+            if(results != None):
+                owner = True
+
         except MySQLdb.Error, e:
-            self._log.error("Error %d: %s" % (e.args[0], e.args[1]))                                           
-        except IOError:                
+            self._log.error("Error %d: %s" % (e.args[0], e.args[1]))
+        except IOError:
             self._log.error("Error in ImgStoreSwiftMongo - existandOwner. " + str(sys.exc_info()))
-            self._log.error("No such file or directory. Image details: " + item.__str__())                 
+            self._log.error("No such file or directory. Image details: " + item.__str__())
         except TypeError:
-            self._log.error("TypeError in ImgStoreSwiftMongo - existandOwner " + str(sys.exc_info()))  
-       
+            self._log.error("TypeError in ImgStoreSwiftMongo - existandOwner " + str(sys.exc_info()))
+
         if (exists and owner):
             return True
         else:
             return False
-    
+
     ############################################################
     # swiftConnection
     ############################################################
@@ -423,14 +423,14 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
         
         """
         connected = False
-        
+
         #username an password will be moved to the config file
         try:
-            self._swiftConnection = cloudfiles.get_connection('test:tester', 'testing', authurl='https://' + self._swiftAddress + ':8080/auth/v1.0')
+            self._swiftConnection = cloudfiles.get_connection('test:tester', 'testing', authurl = 'https://' + self._swiftAddress + ':8080/auth/v1.0')
             connected = True
         except:
             self._log.error("Error in swift connection. " + str(sys.exc_info()))
-            
+
         return connected
 
 class ImgMetaStoreSwiftMysql(ImgMetaStoreMysql):
@@ -448,9 +448,9 @@ class ImgMetaStoreSwiftMysql(ImgMetaStoreMysql):
         _items = list of imgEntry
         _dbName = name of the database
         
-        """                
+        """
         super(ImgMetaStoreMysql, self).__init__()
-                
+
         self._dbName = "imagesS"
         self._tabledata = "data"
         self._tablemeta = "meta"
@@ -462,7 +462,7 @@ class ImgMetaStoreSwiftMysql(ImgMetaStoreMysql):
             self._mysqlAddress = address
         else:
             self._mysqlAddress = self._getAddress()
-                       
+
 class IRUserStoreSwiftMysql(IRUserStoreMysql):
 
     ############################################################
@@ -477,19 +477,19 @@ class IRUserStoreSwiftMysql(IRUserStoreMysql):
         _items = list of imgEntry
         _dbName = name of the database
         
-        """                
+        """
         super(IRUserStoreMysql, self).__init__()
-                
+
         self._dbName = "imagesS"
-        self._tabledata = "users"        
+        self._tabledata = "users"
         self._mysqlcfg = IRUtil.getMysqlcfg()
         self._iradminsuer = IRUtil.getMysqluser()
         self._log = log
-        
+
         self._dbConnection = None
         if (address != ""):
             self._mysqlAddress = address
         else:
             self._mysqlAddress = self._getAddress()
 
-  
+

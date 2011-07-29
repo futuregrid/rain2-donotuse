@@ -10,10 +10,10 @@ from cherrypy import _cpserver
 from cherrypy import _cpwsgi_server
 import os, sys
 import cherrypy.lib.sessions
-sys.path.append(os.path.dirname( os.path.realpath( __file__ ) )+'/../server/')
+sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../server/')
 from IRService import IRService
 import IRUtil
-from IRTypes import ImgMeta,IRUser
+from IRTypes import ImgMeta, IRUser
 from cherrypy.lib.static import serve_file
 import textwrap
 from random import randrange
@@ -29,16 +29,16 @@ httpsconfig = os.path.join(localDir, 'httpsconfig.conf')
 #config = None
 
 class AdminRestService(object):
-    
+
     writeMethodsExposed = True
 
     ## Constructor call: instantiate IRservice, retrieve logger
     def __init__(self):
         super(AdminRestService, self).__init__()
-        self.service=IRService()
-        self.msg = ""        
-        self._log=self.service.getLog()
-        
+        self.service = IRService()
+        self.msg = ""
+        self._log = self.service.getLog()
+
     ## Returning the html output from a Rest call
     def results(self) :
         # adds the ending html tags and possible footer here                                      
@@ -59,23 +59,23 @@ class AdminRestService(object):
     def index(self) :
         self.msg = ""
         message = "<b> User Commands </b><br> "
-        message +=  "<a href=\"help\"> Get help information </a> <br>"
-        message +=  "<a href=\"list\"> Get list of images that meet the criteria </a> <br>"
-        message +=  "<a href=\"setPermission\">  Set access permission </a> <br>"
-        message +=  "<a href=\"get\"> Retrieve image or URI </a> <br>"
-        message +=  "<a href=\"put\"> Upload/register an image </a> <br>"
-        message +=  "<a href=\"modify\"> Modify an image </a> <br>"
-        message +=  "<a href=\"remove\">  Remove an image from the repository </a> <br>"
-        message +=  "<a href=\"histimg\"> Usage info of an image </a> <br>"
-        message +=  " <br>"
-        message +=  "<b>Commands only for Admins</b> <br>"
-        message +=  "<a href=\"histuser\">  Usage info of a user </a> <br>"
-        message +=  "<a href=\"useradd\"> Add user </a> <br>"
-        message +=  "<a href=\"userdel\"> Remove user </a> <br>"
-        message +=  "<a href=\"userlist\"> List of users </a> <br>"
-        message +=  "<a href=\"setquota\"> Modify user quota </a> <br>"
-        message +=  "<a href=\"setrole\"> Modify user role </a> <br>"
-        message +=  "<a href=\"setuserstatus\"> Modify user status </a> <br>"
+        message += "<a href=\"help\"> Get help information </a> <br>"
+        message += "<a href=\"list\"> Get list of images that meet the criteria </a> <br>"
+        message += "<a href=\"setPermission\">  Set access permission </a> <br>"
+        message += "<a href=\"get\"> Retrieve image or URI </a> <br>"
+        message += "<a href=\"put\"> Upload/register an image </a> <br>"
+        message += "<a href=\"modify\"> Modify an image </a> <br>"
+        message += "<a href=\"remove\">  Remove an image from the repository </a> <br>"
+        message += "<a href=\"histimg\"> Usage info of an image </a> <br>"
+        message += " <br>"
+        message += "<b>Commands only for Admins</b> <br>"
+        message += "<a href=\"histuser\">  Usage info of a user </a> <br>"
+        message += "<a href=\"useradd\"> Add user </a> <br>"
+        message += "<a href=\"userdel\"> Remove user </a> <br>"
+        message += "<a href=\"userlist\"> List of users </a> <br>"
+        message += "<a href=\"setquota\"> Modify user quota </a> <br>"
+        message += "<a href=\"setrole\"> Modify user role </a> <br>"
+        message += "<a href=\"setuserstatus\"> Modify user status </a> <br>"
         self.setMessage(message)
         raise cherrypy.HTTPRedirect("results")
     index.exposed = True;
@@ -118,8 +118,8 @@ class AdminRestService(object):
              field1,field2 where field3=XX<br>
         <br>
         Some argument's values are controlled:<br>'''
-        
-        
+
+
         first = True
         for line in textwrap.wrap("<b>vmtype</b>= " + str(ImgMeta.VmType), 100):
             if first:
@@ -168,13 +168,13 @@ class AdminRestService(object):
     # @param userId user id to represent list
     # @param queryString (not required) string to help narrow down the query 
     def actionList (self, userId, queryString) :
-        
-        if (len(userId)>0):
+
+        if (len(userId) > 0):
             if (len(queryString) == 0):
                 imgsList = self.service.query(userId.strip(), "*")
             else:
                 imgsList = self.service.query(userId.strip(), queryString.strip())
-            
+
             if(len(imgsList) > 0):
                 try:
                         self.msg = str(imgsList)
@@ -203,12 +203,12 @@ class AdminRestService(object):
     # @permissionString permission string
     def actionSetPermission (self, userId = None, imgId = None, permissionString = None) :
         self.msg = ""
-        userId=userId.strip()
-        imgId=imgId.strip()
-        permstring=permstring.strip()
-        
-        if (len(permissionString) > 0 and len(userId)>0 and len(imgId)>0):
-            permstring="permission="+permissionString
+        userId = userId.strip()
+        imgId = imgId.strip()
+        permstring = permstring.strip()
+
+        if (len(permissionString) > 0 and len(userId) > 0 and len(imgId) > 0):
+            permstring = "permission=" + permissionString
             status = self.service.updateItem(userId, imgId, permstring)
             if(status == True):
                 self.setMessage("Permission of img " + imgId + " updated")
@@ -236,21 +236,21 @@ class AdminRestService(object):
     # @param imgId id of the uploaded Rest image for a specified user.
     def actionGet(self, userId, option, imgId):
         self.msg = ""
-        
-        option=option.strip()
-        imgId=imgId.strip()
-        userId=userId.strip()
-        
+
+        option = option.strip()
+        imgId = imgId.strip()
+        userId = userId.strip()
+
         if(len(imgId) > 0 and len(option) > 0 and len(userId)):
-            
+
             filepath = self.service.get(userId, option, imgId)
             if (filepath != None):
-                if (len(imgId) > 0 ) :
+                if (len(imgId) > 0) :
                     self.setMessage("Downloading img to %s " % filepath.__str__())
                 else :
                     self.setMessage("URL:  %s " % filepath.__str__())
             else:
-                self.setMessage("Cannot get access to the image with imgId = "+imgId)
+                self.setMessage("Cannot get access to the image with imgId = " + imgId)
                 raise cherrypy.HTTPRedirect("results")
         else :
             self.setMessage("The image Id or option is empty! Please input both the image Id and option")
@@ -276,40 +276,40 @@ class AdminRestService(object):
     # @param imageFileName request based object file representing the user file name
     # @param attributeString attribute string
     def actionPut (self, userId = None, imageFileName = None, attributeString = None):
-        
+
         # retrieve the data                                                                                                                       
         size = 0
         self.fromSite = "actionPut"
         self.msg = ""
-        userId=userId.strip()
-        attributeString=attributeString.strip()
-        
+        userId = userId.strip()
+        attributeString = attributeString.strip()
+
         while 1:
             data = imageFileName.file.read(1024 * 8) # Read blocks of 8KB at a time                                                               
             size += len(data)
             if not data: break
-                
-        
+
+
         #check metadata
-        correct=self.checkMeta(attributeString)
+        correct = self.checkMeta(attributeString)
         if correct:
             #check quota
             isPermitted = self.service.uploadValidator(userId.strip(), size)
-                  
-            
+
+
             if (isPermitted == True):
-                imgId=self.service.genImgId() #this is needed when we are not using mongodb as image storage backend
-                if imgId!=None:
-                    imageId = self.service.put(userId, imgId, imageFileName,attributeString,size)
-                    
+                imgId = self.service.genImgId() #this is needed when we are not using mongodb as image storage backend
+                if imgId != None:
+                    imageId = self.service.put(userId, imgId, imageFileName, attributeString, size)
+
                     self.msg = "Image %s successfully uploaded." % imageFileName.filename
                     self.msg += " Image size %s " % size
                     self.msg += "<br> The image ID is %s " % imageId
                 else:
-                    self.msg+="Error generating the imgId"
+                    self.msg += "Error generating the imgId"
             elif (isPermitted.strip() == "NoUser"):
                 self.msg = "the image has NOT been uploaded<br>"
-                self.msg = "The User does not exist"                        
+                self.msg = "The User does not exist"
             elif (isPermitted.strip() == "NoActive"):
                 self.msg = "The image has NOT been uploaded<br>"
                 self.msg = "The User is not active"
@@ -317,7 +317,7 @@ class AdminRestService(object):
                 self.msg = "The image has NOT been uploaded"
                 self.msg = "The file exceed the quota"
         else:
-            self.msg += "The image has NOT been uploaded. Please, verify that the metadata string is valid"        
+            self.msg += "The image has NOT been uploaded. Please, verify that the metadata string is valid"
         raise cherrypy.HTTPRedirect("results")
     actionPut.exposed = True
 
@@ -330,12 +330,12 @@ class AdminRestService(object):
        <input type=submit></form></body></html>      
         """
     put.exposed = True;
-    
+
 
     ############################################################
     # checkMeta
     ############################################################
-    def checkMeta(self, attributeString):        
+    def checkMeta(self, attributeString):
         attributes = attributeString.split("|")
         correct = True
         for item in attributes:
@@ -343,34 +343,34 @@ class AdminRestService(object):
             #print attribute
             tmp = attribute.split("=")
             if (len(tmp) == 2):
-                key = string.lower(tmp[0])            
-                value = tmp[1]            
+                key = string.lower(tmp[0])
+                value = tmp[1]
                 if key in ImgMeta.metaArgsIdx.keys():
                     if (key == "vmtype"):
                         value = string.lower(value)
                         if not (value in ImgMeta.VmType):
-                            self.msg = "Wrong value for VmType, please use: " + str(ImgMeta.VmType)+"<br>"
+                            self.msg = "Wrong value for VmType, please use: " + str(ImgMeta.VmType) + "<br>"
                             correct = False
                             break
-                    elif (key == "imgtype"):       
-                        value = string.lower(value) 
+                    elif (key == "imgtype"):
+                        value = string.lower(value)
                         if not (value in ImgMeta.ImgType):
-                            self.msg = "Wrong value for ImgType, please use: " + str(ImgMeta.ImgType)+"<br>"
+                            self.msg = "Wrong value for ImgType, please use: " + str(ImgMeta.ImgType) + "<br>"
                             correct = False
                             break
                     elif(key == "permission"):
                         value = string.lower(value)
                         if not (value in ImgMeta.Permission):
-                            self.msg = "Wrong value for Permission, please use: " + str(ImgMeta.Permission)+"<br>"
+                            self.msg = "Wrong value for Permission, please use: " + str(ImgMeta.Permission) + "<br>"
                             correct = False
                             break
                     elif (key == "imgstatus"):
                         value = string.lower(value)
                         if not (value in ImgMeta.ImgStatus):
-                            self.msg = "Wrong value for ImgStatus, please use: " + str(ImgMeta.ImgStatus)+"<br>"
+                            self.msg = "Wrong value for ImgStatus, please use: " + str(ImgMeta.ImgStatus) + "<br>"
                             correct = False
-                            break                
-                
+                            break
+
         return correct
 
     ## Callback function to the modify service. Modifies the imageid based on attribute string
@@ -380,18 +380,18 @@ class AdminRestService(object):
     def actionModify (self, userId = None, imgId = None, attributeString = None):
         fname = sys._getframe().f_code.co_name
         self.msg = ""
-        success=False
-        
-        userId=userId.strip()
-        imgId=imgId.strip()
-        attributeString=attributeString.strip()
-        
-        if(len(imgId) > 0 and len(userId) >0 and len(attributeString) >0):
-            if self.checkMeta(attributeString):                        
+        success = False
+
+        userId = userId.strip()
+        imgId = imgId.strip()
+        attributeString = attributeString.strip()
+
+        if(len(imgId) > 0 and len(userId) > 0 and len(attributeString) > 0):
+            if self.checkMeta(attributeString):
                 success = self.service.updateItem(userId, imgId, attributeString)
-                
+
         if (success):
-            self.msg = "The image %s was successfully updated" % imgId            
+            self.msg = "The image %s was successfully updated" % imgId
         else:
             self.msg += "Error in the update.<br>Please verify that you are the owner or that you introduced the correct arguments"
         raise cherrypy.HTTPRedirect("results")
@@ -413,10 +413,10 @@ class AdminRestService(object):
     # @param imgId id of the uploaded Rest image for the specified user.
     def actionRemove (self, userId = None, imgId = None):
         fname = sys._getframe().f_code.co_name
-        
-        userId=userId.strip()
-        imgId=imgId.strip()
-        
+
+        userId = userId.strip()
+        imgId = imgId.strip()
+
         status = self.service.remove(userId, imgId)
         self.msg = ""
         if (status == True):
@@ -439,23 +439,23 @@ class AdminRestService(object):
     ## Callback function to the histimage service
     # @param userId login/account name of the Rest user to invoke this service
     # @param imgId id of the uploaded Rest image for the specified user.
-    def actionHistImage (self, userId, imgId):        
+    def actionHistImage (self, userId, imgId):
         fname = sys._getframe().f_code.co_name
         self.msg = ""
-        
-        userId=userId.strip()
-        imgId=imgId.strip()
-        
-        if(len(userId)>0):
+
+        userId = userId.strip()
+        imgId = imgId.strip()
+
+        if(len(userId) > 0):
             if(len(imgId) > 0):
                 imgsList = self.service.histImg(userId, imgId)
             else:
                 imgsList = self.service.histImg(userId, "None")
-    
+
             try:
                 imgs = self.service.printHistImg(imgsList)
                 self.msg = string.replace(imgs['head'], "\n", "<br>")
-                self.msg+="<br>"
+                self.msg += "<br>"
                 for key in imgs.keys():
                     if key != 'head':
                         self.msg = self.msg + imgs[key] + "<br>"
@@ -463,7 +463,7 @@ class AdminRestService(object):
                 self.msg = "histimg: Error:" + str(sys.exc_info()) + "\n"
                 self._log.error("histimg: Error interpreting the list of images from Image Repository" + str(sys.exc_info()[0]))
         else:
-            self.msg="Please introduce your userId"
+            self.msg = "Please introduce your userId"
         raise cherrypy.HTTPRedirect("results")
     actionHistImage.exposed = True;
 
@@ -482,13 +482,13 @@ class AdminRestService(object):
     # @param userIdtoSearch user id that is the subject of the search
     def actionHistUser (self, userId, userIdtoSearch):
         fname = sys._getframe().f_code.co_name
-        
+
         self.msg = ""
-        userId=userId.strip()
-        userIdtoSearch=userIdtoSearch.strip()
-        
+        userId = userId.strip()
+        userIdtoSearch = userIdtoSearch.strip()
+
         if (len(userId) > 0):
-            if (len(userIdtoSearch)>0):
+            if (len(userIdtoSearch) > 0):
                 userList = self.service.histUser(userId, userIdtoSearch)
             else:
                 userList = self.service.histUser(userId, "None")
@@ -499,13 +499,13 @@ class AdminRestService(object):
                 self.msg += "<br>"
                 for key in users.keys():
                     if key != 'head':
-                        self.msg = self.msg + users[key]+"<br>"
+                        self.msg = self.msg + users[key] + "<br>"
             except:
                 self.msg = "histuser: Error:" + str(sys.exc_info()) + "<br>"
                 self._log.error("histuser: Error interpreting the list of users from Image Repository" + str(sys.exc_info()[0]))
         else:
-            self.msg="Please introduce your userId"
-            
+            self.msg = "Please introduce your userId"
+
         raise cherrypy.HTTPRedirect("results")
     actionHistUser.exposed = True;
 
@@ -523,11 +523,11 @@ class AdminRestService(object):
     # @param userId login/account name of the Rest user to invoke this service
     # @param userIdtoAdd user id that is the subject of the add in the datbase
     def actionUserAdd (self, userId, userIdtoAdd):
-        self.msg=""
-        userId=userId.strip()
-        userIdtoAdd=userIdtoAdd.strip()
-        
-        if (len(userId)>0 and len(userIdtoAdd)>0):
+        self.msg = ""
+        userId = userId.strip()
+        userIdtoAdd = userIdtoAdd.strip()
+
+        if (len(userId) > 0 and len(userIdtoAdd) > 0):
             status = self.service.userAdd(userId, userIdtoAdd)
             if(status):
                 self.msg = "User created successfully.</br>"
@@ -536,7 +536,7 @@ class AdminRestService(object):
                 self.msg = "The user has not been created.</br>"
                 self.msg = self.msg + "Please verify that you are admin and that the username does not exist </br>"
         else:
-            self.msg="Please introduce your userId and the userId to add"
+            self.msg = "Please introduce your userId and the userId to add"
         raise cherrypy.HTTPRedirect("results")
     actionUserAdd.exposed = True
 
@@ -552,11 +552,11 @@ class AdminRestService(object):
     ## Callback function to the userdel Rest service
     # @param userId login/account name of the Rest user to invoke this service
     # @param userIdtoDel user id that is the subject of the delete in the datbase
-    def actionUserDel(self,userId, userIdtoDel):
-        userId=userId.strip()
-        userIdtoDel=userIdtoDel.strip()
-        if (len(userId)>0 and len(userIdtoDel)>0):
-            status = self.service.userDel(userId,userIdtoDel)
+    def actionUserDel(self, userId, userIdtoDel):
+        userId = userId.strip()
+        userIdtoDel = userIdtoDel.strip()
+        if (len(userId) > 0 and len(userIdtoDel) > 0):
+            status = self.service.userDel(userId, userIdtoDel)
             self.msg = ""
             if(status == True):
                 self.msg = "User deleted successfully."
@@ -564,7 +564,7 @@ class AdminRestService(object):
                 self.msg = "The user has not been deleted.</br>"
                 self.msg = self.msg + "Please verify that you are admin and that the username exists \n"
         else:
-            self.msg="Please introduce your userId and the userId to del"
+            self.msg = "Please introduce your userId and the userId to del"
         raise cherrypy.HTTPRedirect("results")
     actionUserDel.exposed = True
 
@@ -581,30 +581,30 @@ class AdminRestService(object):
     # @param userId login/account name of the Rest user to invoke this service
     def actionUserList(self, userId):
         fname = sys._getframe().f_code.co_name
-        
+
         self.msg = ""
-        userId=userId.strip()
+        userId = userId.strip()
         if (len(userId) > 0) :
             usersList = self.service.userList(userId)
-            if ( usersList != None):
+            if (usersList != None):
                 try:
                     self.msg = "<br>" + str(len(usersList)) + " users found </br>"
                     self.msg = self.msg + "<br> UserId Cred fsCap fsUsed lastLogin status role ownedImgs </br>"
                     for user in usersList.items():
-                        self.msg = self.msg + "<br>" + str(user[1])[1:len(str(user[1]))-1]
+                        self.msg = self.msg + "<br>" + str(user[1])[1:len(str(user[1])) - 1]
                         self.msg = self.msg + "</br>"
                 except:
                     self.msg = "userlist: Error:" + str(sys.exc_info()) + "\n"
                     self.msg = self.msg + "userlist: Error interpreting the list of users from Image Repository " + str(sys.exc_info())
             else:
-                self.msg =  "No list of users returned. \n" + \
+                self.msg = "No list of users returned. \n" + \
                         "Please verify that you are admin \n"
         else :
-            self.msg = "<br> Please introduce your userId" 
+            self.msg = "<br> Please introduce your userId"
 
         raise cherrypy.HTTPRedirect("results")
     actionUserList.exposed = True;
-    
+
     ## userlist Rest service. 
     def userlist (self, userId = None) :
         self.msg = """ <form method=get action=actionUserList>
@@ -612,19 +612,19 @@ class AdminRestService(object):
         <input type=submit> </form> """
         return self.msg
     userlist.exposed = True;
-    
+
     ## Callback function to the setquota Rest service
     # @param userId login/account name of the Rest user to invoke this service
     # @param userIdtoModify user id where the quota is modified
     # @param quota quota of the specified user
-    def actionQuota (self,userId, userIdtoModify, quota) :
-        
-        userId=userId.strip()
-        userIdtoModify=userIdtoModify.strip()
+    def actionQuota (self, userId, userIdtoModify, quota) :
+
+        userId = userId.strip()
+        userIdtoModify = userIdtoModify.strip()
         try:
-            quota=eval(quota)
-            if (len(userId)>0 and len(userIdtoModify)>0):
-                status = self.service.setUserQuota(userId,userIdtoModify,quota)
+            quota = eval(quota)
+            if (len(userId) > 0 and len(userIdtoModify) > 0):
+                status = self.service.setUserQuota(userId, userIdtoModify, quota)
                 if(status == True):
                     self.msg = "Quota changed successfully."
                 else:
@@ -634,7 +634,7 @@ class AdminRestService(object):
                 self.msg = "<br> Please introduce your userId, the userId to modify and the quota in bytes (math operation allowed)"
         except:
             self.msg = "<br> The quota must be a number or a valid math function"
-            
+
         raise cherrypy.HTTPRedirect("results")
         return self.msg
     actionQuota.exposed = True
@@ -654,19 +654,19 @@ class AdminRestService(object):
     # @param userIdtoModify user id that is the subject of the set role in the datbase
     # @param role
     def actionUserRole (self, userId, userIdtoModify, role) :
-        userId=userId.strip()
-        userIdtoModify=userIdtoModify.strip()
-        role=role.strip()
-        
-        if (len(userId)>0 and len(userIdtoModify)>0 and len(role)>0):
+        userId = userId.strip()
+        userIdtoModify = userIdtoModify.strip()
+        role = role.strip()
+
+        if (len(userId) > 0 and len(userIdtoModify) > 0 and len(role) > 0):
             # User name based on admin file
-            status = self.service.setUserRole(userId,userIdtoModify, role) 
-            
+            status = self.service.setUserRole(userId, userIdtoModify, role)
+
             self.msg = ""
             if (status == True):
                 self.msg = "Role changed successfully."
             else:
-                self.msg =  "The user role has not been changed </br>"
+                self.msg = "The user role has not been changed </br>"
                 self.msg = self.msg + "Please verify that you are admin and that the username exists"
         else:
             self.msg = "<br> Please introduce your userId, the userId to modify and the role"
@@ -688,13 +688,13 @@ class AdminRestService(object):
     # @param userId login/account name of the Rest user to invoke this service
     # @param userIdtoModfiy user id that is the subject of the delete in the datbase
     # @param status 
-    def actionUserStatus (self,userId, userIdtoModify, status) :
-        userId=userId.strip()
-        userIdtoModify=userIdtoModify.strip()
-        status=status.strip()
-        
-        if (len(userId)>0 and len(userIdtoModify)>0 and len(status)>0):
-            status = self.service.setUserStatus(userId,userIdtoModify,status)
+    def actionUserStatus (self, userId, userIdtoModify, status) :
+        userId = userId.strip()
+        userIdtoModify = userIdtoModify.strip()
+        status = status.strip()
+
+        if (len(userId) > 0 and len(userIdtoModify) > 0 and len(status) > 0):
+            status = self.service.setUserStatus(userId, userIdtoModify, status)
             self.msg = ""
             if(status == True):
                 self.msg = "Status changed successfully."
@@ -737,12 +737,12 @@ class AdminRestService(object):
 if __name__ == '__main__':
 
     # Site configuration
-    
-    
+
+
     #cherrypy.config.update(httpsconfig)
-    
+
     #cherrypy.tree.mount(AdminRestService(),"/")#,'/adminRest',config='adminConfig.conf')
-    
+
     #ip = cherrypy.config.get("server.socket_host")
     #port = cherrypy.config.get("server.socket_port")
     #cherrypy.config.update('adminConfig.conf')
@@ -751,9 +751,9 @@ if __name__ == '__main__':
 #    adminName = cherrypy.config.get("Admin")['username']
 #    adminName = configSectionMap("Admin")['username']
     cherrypy.log.error_log.propagate = False
-    cherrypy.log.access_log.propagate = False 
+    cherrypy.log.access_log.propagate = False
 
-  
+
     #secure_server = _cpwsgi_server.CPWSGIServer()
     #secure_server.bind_addr = (ip, port)
     #secure_server.ssl_certificate = certificate
@@ -761,9 +761,9 @@ if __name__ == '__main__':
 
     #adapter = _cpserver.ServerAdapter(cherrypy.engine, secure_server, secure_server.bind_addr)
     #adapter.subscribe()
-    cherrypy.quickstart(AdminRestService(),"/", config=httpsconfig)
+    cherrypy.quickstart(AdminRestService(), "/", config = httpsconfig)
 
- 
+
 #else:
     # This branch is for the test suite; you can ignore it.
 #    cherrypy.tree.mount(AdminRestService, config=configurationFile)

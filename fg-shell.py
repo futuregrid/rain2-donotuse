@@ -46,7 +46,7 @@ def usage():
 
 def main():
     try:
-        opts, args = getopt.getopt(sys.argv[1:],   #IGNORE:W0612
+        opts, args = getopt.getopt(sys.argv[1:], #IGNORE:W0612
                                    "hqif:",
                                    ["help", "quiet", "interactive", "file="])
     except getopt.GetoptError:

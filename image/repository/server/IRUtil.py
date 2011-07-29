@@ -67,7 +67,7 @@ __iradmin__ = "IRUser"
 #Log Options
 ########################
 ##At the end, it should be in /var/log or a var directory in the Futuregrid software
-__logfile__ = __fgserverdir__ + "/var/reposerver.log"  
+__logfile__ = __fgserverdir__ + "/var/reposerver.log"
 __logLevel__ = logging.DEBUG
 
 
@@ -135,7 +135,7 @@ def getAddressS():
 def getImgId():
     imgId = str(randrange(999999999999999999999999))
     return imgId
-    
+
 
 ############################################################
 # auth

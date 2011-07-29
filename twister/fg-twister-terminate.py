@@ -11,10 +11,10 @@
 # no error catching domne in case something goes wrong
 
 import os
-from fg_euca_twister_util import get_nodes 
+from fg_euca_twister_util import get_nodes
 
 lines = get_nodes()
-    
+
 num_nodes = len(lines)
 
 #print lines

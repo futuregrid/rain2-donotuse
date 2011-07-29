@@ -7,14 +7,14 @@ from cherrypy import _cpserver
 from cherrypy import _cpwsgi_server
 import os, sys
 import cherrypy.lib.sessions
-sys.path.append(os.path.dirname( os.path.realpath( __file__ ) )+'/../server/')
+sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../server/')
 from IRService import IRService
 from cherrypy.lib.static import serve_file
 
 localDir = os.path.abspath(os.path.dirname(__file__))
 
 httpconfig = os.path.join(localDir, 'httpconfig.conf')
-httpUserConfig = os.path.join(localDir,'httpUserConfig.conf')
+httpUserConfig = os.path.join(localDir, 'httpUserConfig.conf')
 userconfig = os.path.join(localDir, 'userConfig.conf')
 httpsconfig = os.path.join(localDir, 'httpsconfig.conf')
 certificate = os.path.join(localDir, 'server.crt')
@@ -44,21 +44,21 @@ class UserRestService :
     def index(self) :
         self.msg = None
         message = "<b> User Commands </b><br> "
-        message +=  "<a href=\"help\"> Get help information </a> <br>"
-        message +=  "<a href=\"list\"> Get list of images that meet the criteria </a> <br>"
-        message +=  "<a href=\"get\"> Retrieve image or URI </a> <br>"
-        message +=  "<a href=\"put\"> Upload/register an image </a> <br>"
-        message +=  "<a href=\"modify\"> Modify an image </a> <br>"
-        message +=  "<a href=\"remove\">  Remove an image from the repository </a> <br>"
-        message +=  "<a href=\"histimg\"> Usage info of an image </a> <br>"
-        message +=  "<a href=\"histuser\">  Usage info of a user </a> <br>"
+        message += "<a href=\"help\"> Get help information </a> <br>"
+        message += "<a href=\"list\"> Get list of images that meet the criteria </a> <br>"
+        message += "<a href=\"get\"> Retrieve image or URI </a> <br>"
+        message += "<a href=\"put\"> Upload/register an image </a> <br>"
+        message += "<a href=\"modify\"> Modify an image </a> <br>"
+        message += "<a href=\"remove\">  Remove an image from the repository </a> <br>"
+        message += "<a href=\"histimg\"> Usage info of an image </a> <br>"
+        message += "<a href=\"histuser\">  Usage info of a user </a> <br>"
         self.setMessage(message)
         raise cherrypy.HTTPRedirect("results")
     index.exposed = True;
 
     def help (self) :
         self.msg = None
-        message =  " help: get help information. <br>"
+        message = " help: get help information. <br>"
         message += " list queryString: get list of images that meet the criteria<br>"
         message += " get img/uri imgId: get a image or only the URI by id<br>"
         message += " put imgFile attributeString: upload/register an image<br>"
@@ -98,12 +98,12 @@ class UserRestService :
         self.msg = None
         if (len(imgId) > 0 and len(option) > 0):
             service = IRService()
-            print("User name %s " % userName )
+            print("User name %s " % userName)
             filepath = service.get(userName, option, imgId)
             if (filepath == None) :
                 self.setMessage("No public images in the repository and/or no images owned by user")
                 raise cherrypy.HTTPRedirect("results")
-            if (len(imgId) > 0 ) :
+            if (len(imgId) > 0) :
                 self.setMessage("Downloading img to %s " % filepath.__str__())
                 print("Downloading img to %s " % filepath.__str__())
             else :
@@ -137,11 +137,11 @@ class UserRestService :
             size += len(data)
             if not data: break
 
-        print("Image size %s " %size)
+        print("Image size %s " % size)
         self.msg += " Image size %s " % size
         service = IRService()
         print type(imageFileName)
-        imageId = service.put(userName, userId,imageFileName,attributeString,size)
+        imageId = service.put(userName, userId, imageFileName, attributeString, size)
         raise cherrypy.HTTPRedirect("results")
     actionPut.exposed = True
 
@@ -252,7 +252,7 @@ if __name__ == '__main__':
     cherrypy.config.update(httpsconfig)
     ip = cherrypy.config.get("server.socket_host")
     port = cherrypy.config.get("server.socket_port1")
-    cherrypy.tree.mount(UserRestService(),'/userRest', config=userconfig)
+    cherrypy.tree.mount(UserRestService(), '/userRest', config = userconfig)
     cherrypy.config.update(userconfig)
     userName = cherrypy.config.get("user_name")
     print("user name : %s " % userName)
@@ -265,9 +265,9 @@ if __name__ == '__main__':
 
     adapter = _cpserver.ServerAdapter(cherrypy.engine, secure_server, secure_server.bind_addr)
     adapter.subscribe()
-    cherrypy.quickstart(UserRestService(), config=httpUserConfig)
- 
+    cherrypy.quickstart(UserRestService(), config = httpUserConfig)
+
 
 else:
     # This branch is for the test suite; you can ignore it.
-    cherrypy.tree.mount(AdminRestService, config=configurationFile)
+    cherrypy.tree.mount(AdminRestService, config = configurationFile)
