@@ -16,7 +16,7 @@ class fgLog():
         
         handler.setLevel(loglevel)
         self._logger.addHandler(handler)
-        self._logger.propagate=False
+        self._logger.propagate = False
         
         #This is to print in the stout the same that in the log
         if(verbose):
@@ -28,18 +28,18 @@ class fgLog():
 
         
     def getLogFile(self):
-         return self._logfile
+        return self._logfile
          
-    def debug(self,text):        
+    def debug(self, text):        
         self._logger.debug(text)
          
-    def info(self,text):
+    def info(self, text):
         self._logger.info(text)
          
-    def warning(self,text):       
+    def warning(self, text):       
         self._logger.warning(text)
     
-    def error(self,text):        
+    def error(self, text):        
         self._logger.error(text)
          
     def clear(self):
