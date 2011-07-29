@@ -3,10 +3,10 @@ import logging.handlers
 import os
 
 class fgLog():
-''' This class allws to conveniently create a logging file to which
-you can add warnings, errors, infos, and debug messages. For each type
-we provide a convenient method.
-'''
+    ''' This class allows to conveniently create a logging file to which
+    you can add warnings, errors, infos, and debug messages. For each type
+    we provide a convenient method.
+    '''
 
     def __init__(self, logfile, loglevel, whois, verbose):
         '''initializes the log file. the parameters are as follows
