@@ -62,6 +62,11 @@ egg:
 tar:
 	python setup.py sdist
 
-dist:
+rpm:
+	python setup.py bdist_rpm
+
+
+d:
 	make -f Makefile egg
 	make -f Makefile tar
+#	make -f Makefile rpm
