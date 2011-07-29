@@ -287,7 +287,7 @@ class fgShell(fgShellUtils,
             cmd.Cmd.print_topics(self, undoc_header, self._undocHelp, 15, 80)
 
             if (args.strip() == ""):
-                      print "Please select a CONTEXT by executing use <context_name>\n" + \
+                print "Please select a CONTEXT by executing use <context_name>\n" + \
                       "Execute \'contexts\' command to see the available context names \n"
 
         else:
