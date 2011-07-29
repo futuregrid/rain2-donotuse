@@ -1,5 +1,5 @@
 '''@package fgLog
-Easy to use logging.
+Easy to use logging. Poll test
 '''
 import logging
 import logging.handlers
