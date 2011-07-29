@@ -1,3 +1,6 @@
+'''@package fgLog
+Easy to use logging for FG.
+'''
 import logging
 import logging.handlers
 import os
