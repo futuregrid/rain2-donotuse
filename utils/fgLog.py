@@ -37,10 +37,10 @@ class fgLog():
 
         # This is to print in the stdout the same that in the log
         if(verbose):
-            ch = logging.StreamHandler()
-            ch.setLevel(loglevel)
-            ch.setFormatter(self._formatter)
-            self._logger.addHandler(ch)
+            handler = logging.StreamHandler()
+            handler.setLevel(loglevel)
+            handler.setFormatter(self._formatter)
+            self._logger.addHandler(handler)
 
 
 
