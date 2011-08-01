@@ -147,7 +147,8 @@ class IRClientConf(object):
             tempLevel = self._LogLevel
 
         if not (tempLevel in self._logType):
-            print "Log level " + self._log_level + " not supported. Using the default one " + self._defaultLogLevel
+            print "Log level " + self._log_level + " not supported. Using the default one " + self._logLevel
+            tempLevel=self._logLevel
         self._logLevel = eval("logging." + tempLevel)
 
         #Server dir
