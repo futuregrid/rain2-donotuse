@@ -2,6 +2,10 @@
 # Gregor von Laszewski, original modified from cogkit.org and cyberaide.org
 #
 
+VERSION=`svn info |grep "Revision:" | sed "s/Revision: //"`
+
+
+
 exe:
 	# the copy is here to make it uniform to OSX
 	# NOT USED cd src; cp fg-shell fg.py
@@ -66,7 +70,14 @@ rpm:
 	python setup.py bdist_rpm
 
 
+e:
+	echo "Building Version ${VERSION}"
+
 d:
 	make -f Makefile egg
 	make -f Makefile tar
 #	make -f Makefile rpm
+
+install:
+	sudo easy_install -U dist/futuregrid-0.2-py2.7.egg
+
