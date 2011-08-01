@@ -7,7 +7,7 @@ exe:
 	# NOT USED cd src; cp fg-shell fg.py
 	rm -rf  ./dist
 	@echo "---------------------------------------------------------"
-	python setup-exe.py py2exe
+	python setup_exe.py py2exe
 	@echo "---------------------------------------------------------"
 	@echo "I created an executable file and libraries in  ./dist/"
 	@echo " To call the program we can do ./dist/fg-shell.exe"
