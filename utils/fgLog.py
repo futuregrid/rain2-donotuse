@@ -13,9 +13,14 @@ class fgLog():
 
     def __init__(self, logfile, loglevel, whois, verbose):
         '''initializes the log file. the parameters are as follows
+
         @param logfile name of the log file
-        @param loglevel setting of the log level 
+
+        @param loglevel setting of the log level. The log level has to
+        be specified a sa string. 
+
         @param whois name associated with the log
+
         @param verbose if True prints some information to stdout
  
        TODO: explain what the loglevels do
