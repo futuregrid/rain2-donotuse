@@ -1,59 +1,103 @@
 #! /bin/sh
 
 # Downloading dependencies
-python getDistributions.py
+source ~/.bashrc
+python --version
 
+#-------------------------- Open SSL installation -------------------------
 
-# echo " Return value " $? 
+# which returns the number of failed arguments
+which openssl
 
-
-#--------copyingg mongodb to /usr/local/monbodb ----------
 if [[ $? -eq 1 ]]; then
-    # This result shows that mongodb does not exist on /usr/local/mongodb
-
-    echo " Copying mongodb to /usr/local/mongodb "
-    # Check the local directory
-    if [ -d "mongodb" ]; then
-	sudo cp -rf mongodb /usr/local/mongodb
-    else
-	echo " Unable to install mongodb "
-	exit 1
-    fi
-
-    if [ ! -e "/usr/local/mongodb/bin/mongod" ]; then
-	echo "Unable to copy mongodb into /usr/local"
-	exit 1
-    else
-	echo " Able to copy mongodb into /usr/local, removing distribution "
-	sudo rm -rf mongodb*
-    fi
-elif [[ $? -eq 0 ]]; then
-	# unable to install either pymongo or cherrypy
-	echo " Installation error, please check if pymongo or cherrypy was setup appropriately " $?
-	exit 1
-fi
-
-
-# Download and generate keys from  openssl
-
-if  [ ! -e "/usr/local/ssl/bin/openssl" ]; then
-    if [ -d "ssl" ]; then 
+    cd ../../../utils
+    python -c "import distributions; distributions.Distributions().getopenssl(ssl)"
+    cd -
+    # if return code is non-zero then there was an error in the installation
+    if [[ $? -eq 0 ]];  then
 	echo "compiling ssl  distribution "
 	cd ssl
 	./config ; sudo make install
 	cd ..
-	if [ -e "/usr/local/ssl/bin/openssl" ]; then
-	    sudo rm -rf openssl* ssl
-	else
+
+	which openssl
+	if [[ $? -eq 1 ]]; then
 	    echo " Unable to generate library for openssl distribution "
-	    exit 1
 	fi
     else
-	echo "Unable to install openssl "
+	echo "unsuccessful installation"
 	exit 1
     fi
+else
+    echo "Found openssl installation no need to install"
 fi
 
+
+#------------------------ mongodb, pymongo ----------------------
+which mongod
+
+if [[ $? -eq 1 ]]; then
+#    cd ../../../utils
+    python -c "import distributions; distributions.Distributions().getmongo(mongodb)"
+#    cd -
+    if [[ $? -eq 0 ]]; then
+	echo " Successful retrieving mongo and pymongo distribution "
+	sudo cp -rf mongodb /usr/local/mongodb
+    fi
+
+    if [ ! -e "/usr/local/mongodb/bin/mongod" ]; then
+	echo "Unable to copy mongodb into /usr/local"
+    else
+	echo " Able to copy into /usr/local, removing distribution from curr dir "
+	sudo rm -rf mongodb*
+    fi
+else 
+    echo  "Found mongod installation no need to install "
+fi
+
+
+#----------------------check pymongo --------------------------
+# Checks if loading the library is successful
+# for consistency:  0 returns successful import 1 returns unsuccessful import
+cd ../server/utils
+python -c "import distributions; distributions.Distributions().checkmongo()"
+cd -
+if [[ $? -eq 0 ]]; then 
+    echo " Successful importing pymongo library "
+else
+    echo " Not successful importing pymongo library "
+fi    
+
+
+
+
+#---------------------CherryPy--------------------------
+# Checks and retrieves the Cherrypy distribution
+# Loads library
+# Checks if loading library is successful
+cd ../server/utils
+python -c "import distributions; distributions.Distributions().checkcherrypy()"
+cd -
+if [[ $? -eq 0 ]]; then
+    echo " Successful in importing the cherrypy library, no need for installation "
+else
+    cd ../server/utils
+    python -c "import distributions; x = distributions.Distributions(); x.getcherrypy('cherrypy')"
+    cd -
+    if [[ $? -eq 0 ]]; then 
+	echo " Successful retrieving the cherrypy distribution "
+	cd cherrypy
+	sudo python setup.py install
+    fi
+#--------------Re- Check cherrypy inport -----------------------
+    cd ../server/utils
+    python -c "import distributions; distributions.Distributions().checkcherrypy()"
+    if [[ $? -eq 0 ]]; then
+	echo " Successful in importing the cherrypy library "
+    else
+	echo " Not successful in importing the cherrypy library "
+    fi
+fi
 
 #-------Generating keys and certificates ---------------
 
@@ -83,3 +127,5 @@ else
 	/usr/local/ssl/bin/openssl x509 -req -days 60 -in server.csr -signkey server.key -out server.crt
     fi
 fi
+
+
