@@ -104,20 +104,6 @@ class distributions() :
         if (self.returnCode != 0) :
             return self.returnCode
 
-        try :
-            import pymongo
-        except ImportError:
-            # To use easy install on linux make sure you have the python-setuptools:   sudo apt-get install python-setuptools
-            self.runCmd('sudo easy_install pymongo')
-            if (self.returnCode != 0) :
-                return self.returnCode
-
-        try :
-            import pymongo
-        except ImportError:
-            print("unable to install pymongo")
-            return 1
-
         return 0
 
     ## Retrieve cherrypy distribution
