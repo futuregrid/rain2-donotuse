@@ -20,6 +20,7 @@ class fgLog():
  
        TODO: explain what the loglevels do
         '''
+        self._logfile = logfile
         self._logger = logging.getLogger(whois)
         self._formatter = logging.Formatter(
             "%(asctime)s - %(name)s - %(levelname)s - %(message)s")
