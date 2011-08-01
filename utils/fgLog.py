@@ -17,7 +17,7 @@ class fgLog():
         @param logfile name of the log file
 
         @param loglevel setting of the log level. The log level has to
-        be specified a sa string. 
+        be specified as an logging object. It can be logging.DEBUG, logging.ERROR, logging.INFO, logging.WARNING 
 
         @param whois name associated with the log
 
