@@ -77,7 +77,7 @@ e:
 d:
 	cp scripts/fg-shell.py scripts/fg-shell
 	make -f Makefile egg
-	make -f Makefile tar
+#	make -f Makefile tar
 #	make -f Makefile rpm
 	echo "Cleanup"
 	rm scripts/fg-shell
