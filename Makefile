@@ -67,6 +67,7 @@ tar:
 	python setup.py sdist
 
 rpm:
+	echo "THIS DOES NOT WORK"
 	python setup.py bdist_rpm
 
 
@@ -78,6 +79,6 @@ d:
 	make -f Makefile tar
 #	make -f Makefile rpm
 
-install:
+i:
 	sudo easy_install -U dist/futuregrid-0.2-py2.7.egg
 
