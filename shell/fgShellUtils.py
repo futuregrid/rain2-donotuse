@@ -12,6 +12,7 @@ import atexit
 import sys
 import textwrap
 from cmd2 import Cmd
+import pkgutil
 
 class fgShellUtils(Cmd):
 
@@ -594,18 +595,10 @@ class fgShellUtils(Cmd):
 
         atexit.register(readline.write_history_file, histfile)
 
-    def loadBanner(self, bannerfile):
+    def loadBanner(self):
         """Load banner from a file"""
-        banner = ""
-        try:
-            f = open(bannerfile, "r")
-            output = f.readlines()
-            f.close()
-            for i in output:
-                banner += i
-
-        except:
-            banner = "\nWelcome to the FutureGrid Shell\n" + \
-                     "-------------------------------\n"
+        banner = pkgutil.get_data('futuregrid.shell','banner.txt') + \
+            "\nWelcome to the FutureGrid Shell\n" + \
+            "-------------------------------\n"
         return banner
 
