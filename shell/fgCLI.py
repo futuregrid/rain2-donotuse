@@ -19,6 +19,7 @@ from futuregrid.shell.fgShellHadoop import fgShellHadoop
 from futuregrid.shell.fgShellRain import fgShellRain
 from futuregrid.shell.fgShellConf import fgShellConf
 import logging
+from futuregrid.utils.syscheck import sysCheck
 
 from futuregrid.utils.fgLog import fgLog
 from cmd2 import Cmd
@@ -61,6 +62,8 @@ class fgShell(fgShellUtils,
             self.intro = self.loadBanner()
         ##Load History
         self.loadhist("no argument needed")
+        e = sysCheck()
+
 
     ################################
     # USE
