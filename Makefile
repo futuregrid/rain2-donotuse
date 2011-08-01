@@ -75,10 +75,13 @@ e:
 	echo "Building Version ${VERSION}"
 
 d:
+	cp scripts/fg-shell.py scripts/fg-shell
 	make -f Makefile egg
 	make -f Makefile tar
 #	make -f Makefile rpm
+	echo "Cleanup"
+	rm scripts/fg-shell
+
 
 i:
 	sudo easy_install -U dist/futuregrid-0.2-py2.7.egg
-

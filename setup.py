@@ -26,13 +26,13 @@ futuregrid is a python library that contains the code related dynamically provis
     keywords = "Grid, Cloud, HPC",
     package_dir = { '' : '.' },
     packages = [
-        'shell', 'utils','var','etc','image'],
+        'futuregrid.shell', 'futuregrid.utils','futuregrid.image'],
     install_requires = [
         'setuptools',
         'cmd2'
         ],
     scripts = [
-        'fg-shell.py'
+        'scripts/fg-shell'
         ]
     )
 
