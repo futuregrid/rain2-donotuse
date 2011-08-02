@@ -24,6 +24,7 @@ from futuregrid.utils.syscheck import sysCheck
 from futuregrid.utils.fgLog import fgLog
 from cmd2 import Cmd
 
+import inspect
 
 class fgShell(fgShellUtils,
               Cmd,
@@ -126,20 +127,22 @@ class fgShell(fgShellUtils,
     ############################
 
     def do_contexts(self, argument):
+        '''Show the available CONTEXTS in FG Shell'''
         print "FG Contexts:"
         print "-------------"
         for i in self.env:
             print i
 
     def help_contexts(self):
-        msg = "Show the available CONTEXTS in FG Shell"
-        self.print_man("contexts", msg)
+        '''Help message for contexts'''
+        self.print_man("contexts", self.do_contexts.__doc__)
 
     ##########################################################################
     # HISTORY
     ##########################################################################
 
     def do_history(self, line):
+        '''Print a list of commands that have been entered.'''
         hist = []
         for i in range(readline.get_current_history_length()):
             hist.append(readline.get_history_item(i + 1))
@@ -148,21 +151,20 @@ class fgShell(fgShellUtils,
     do_hi = do_hist = do_history
 
     def help_history (self):
-        '''Print a list of commands that have been entered.'''
-        self.print_man("history", self.help_history.__doc__)
-        # msg = "Print a list of commands that have been entered."
-        # self.print_man("history", msg)
+        '''Help message for the history command'''
+        self.print_man("history", self.do_history.__doc__)
     help_hi = help_hist = help_history
 
 
     def do_historysession(self, line):
+        '''Print a list of commands that have been entered in the current session'''
         Cmd.do_history(self, line)
 
     do_his = do_hists = do_historysession
 
     def help_historysession (self):
-        msg = "Print a list of commands that have been entered in the current session"
-        self.print_man("historysession", msg)
+        '''Help message for the historysession command'''
+        self.print_man("historysession", self.do_historysession.__doc__)
 
     help_his = help_hists = help_historysession
 
@@ -271,6 +273,9 @@ class fgShell(fgShellUtils,
 
 
     def do_help(self, args):
+        '''Get help on commands. 'help' or '?' with no arguments prints a 
+        list of commands for which help is available. 'help <command>' or 
+        ? <command>' gives help on <command>'''
 
         if (args.strip() == ""):
             print "\nA complete manual can be found in https://portal.futuregrid.org/man/fg-shell\n"
@@ -300,11 +305,10 @@ class fgShell(fgShellUtils,
 
         else:
             self.customHelp(args)
+
     def help_help(self):
-        msg = "Get help on commands. 'help' or '?' with no arguments prints a " + \
-        "list of commands for which help is available. 'help <command>' or '? " + \
-        "<command>' gives help on <command>"
-        self.print_man("help [command]", msg)
+        '''Help method for the help command'''
+        self.print_man("help [command]", self.do_help.__doc__)
 
     def customHelpNoContext(self, args):
         if args:
@@ -474,6 +478,15 @@ class fgShell(fgShellUtils,
 
 
 def runCLI(filename = None, silent = False, interactive = False):
+    '''runs the commandline shell
+    
+    @param filename commands within the file will be interpreted
+    
+    @param silent the commands will be interpreted silently
+
+    @interactive after the commands are interpreted the shell is put
+    into interactive mode
+    '''
     if filename == None:
         cli = fgShell(silent)
         cli.cmdloop()
