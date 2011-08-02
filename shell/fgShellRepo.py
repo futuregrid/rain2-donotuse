@@ -423,29 +423,14 @@ class fgShellRepo(Cmd):
             "imgStatus=available. Some attributes are controlled:"
         self.print_man("put <imgFile> [attributeString]", msg)
 
+        self.type_print ("vmtype= ", IRTypes.ImgMeta.VmType)
+        self.type_print ("imgtype= ", IRTypes.ImgMeta.ImgType)
+        self.type_print ("imgStatus= ",IRTypes.ImgMeta.ImgStatus)
+        self.type_print ("Permission=" ,IRTypes.ImgMeta.Permission)
+
+    def type_print (self, label, irtype):
         first = True
-        for line in textwrap.wrap("vmtype= " + str(IRTypes.ImgMeta.VmType), 64):
-            if first:
-                print "    %s" % (line)
-                first = False
-            else:
-                print "      %s" % (line)
-        first = True
-        for line in textwrap.wrap("imgtype= " + str(IRTypes.ImgMeta.ImgType), 64):
-            if first:
-                print "    %s" % (line)
-                first = False
-            else:
-                print "      %s" % (line)
-        first = True
-        for line in textwrap.wrap("imgStatus= " + str(IRTypes.ImgMeta.ImgStatus), 64):
-            if first:
-                print "    %s" % (line)
-                first = False
-            else:
-                print "      %s" % (line)
-        first = True
-        for line in textwrap.wrap("Permission= " + str(IRTypes.ImgMeta.Permission), 64):
+        for line in textwrap.wrap(label + str(irtype), 64):
             if first:
                 print "    %s" % (line)
                 first = False
