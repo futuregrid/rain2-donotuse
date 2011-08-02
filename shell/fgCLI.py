@@ -24,9 +24,12 @@ from futuregrid.utils.syscheck import sysCheck
 from futuregrid.utils.fgLog import fgLog
 from cmd2 import Cmd
 
+
 class fgShell(fgShellUtils,
               Cmd,
-              fgShellRepo, fgShellHadoop, fgShellRain):
+              fgShellRepo,
+              fgShellHadoop,
+              fgShellRain):
 
     def __init__(self, silent = False):
 
@@ -44,7 +47,9 @@ class fgShell(fgShellUtils,
 
         #Context        
         self.env = ["repo", "rain", "hadoop", ""]
-        self.text = {'repo':'Image Repository', 'rain':'Dynamic Provisioning', 'hadoop':'Apache Hadoop'}
+        self.text = {'repo':'Image Repository',
+                     'rain':'Dynamic Provisioning',
+                     'hadoop':'Apache Hadoop'}
         self._use = ""
         self._contextOn = [] # initialized contexts
 
@@ -143,8 +148,10 @@ class fgShell(fgShellUtils,
     do_hi = do_hist = do_history
 
     def help_history (self):
-        msg = "Print a list of commands that have been entered."
-        self.print_man("history", msg)
+        '''THIS IS THE HISTORY DOCSTRING'''
+        self.print_man("history", self.__DOC__)
+        # msg = "Print a list of commands that have been entered."
+        # self.print_man("history", msg)
     help_hi = help_hist = help_history
 
 
@@ -434,15 +441,15 @@ class fgShell(fgShellUtils,
         """Initialization before prompting user for commands.
            Despite the claims in the Cmd documentaion, Cmd.preloop() is not a stub.
         """
-        cmd.Cmd.preloop(self)   ## sets up command completion                
-        self._locals = {}      ## Initialize execution namespace for user
+        cmd.Cmd.preloop(self)  # sets up command completion                
+        self._locals = {}      # Initialize execution namespace for user
         self._globals = {}
 
     def postloop(self):
         """Take care of any unfinished business.
            Despite the claims in the Cmd documentaion, Cmd.postloop() is not a stub.
         """
-        cmd.Cmd.postloop(self)   ## Clean up command completion
+        cmd.Cmd.postloop(self)   # Clean up command completion
         #print "\nExiting..."
 
     def precmd(self, line):
