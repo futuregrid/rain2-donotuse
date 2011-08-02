@@ -94,6 +94,9 @@ class fgShellRepo(Cmd):
     ############################################################
 
     def do_repouseradd(self, args):
+        '''Image Repository useradd command: Add new user (only Admin
+        user can execut it).'''
+
         args = self.getArgs(args)
         if (len(args) == 1):
             status = self._service.userAdd(os.popen('whoami', 'r').read().strip(), args[0])
@@ -107,15 +110,17 @@ class fgShellRepo(Cmd):
             self.help_repouseradd()
 
     def help_repouseradd(self):
-        msg = "Image Repository useradd command: Add new user (only Admin user " + \
-        "can execut it). \n"
-        self.print_man("useradd <userId>", msg)
+        '''Help message for the repouseradd command'''
+        self.print_man("useradd <userId>", self.do_repouseradd.__doc__)
 
     ############################################################
     # user del
     ############################################################
 
     def do_repouserdel(self, args):
+        '''Image Repository userdel command: Remove a user (only Admin
+        user can execut it).'''
+
         args = self.getArgs(args)
         if (len(args) == 1):
             status = self._service.userDel(os.popen('whoami', 'r').read().strip(), args[0])
@@ -128,10 +133,8 @@ class fgShellRepo(Cmd):
             self.help_repouserdel()
 
     def help_repouserdel(self):
-        msg = "Image Repository userdel command: Remove a user (only Admin user" + \
-        "can execut it). \n"
-        self.print_man("userdel <userId>", msg)
-
+        '''Help message for the repouserdel command'''
+        self.print_man("userdel <userId>", self.do_repouserdel.__doc__)
 
 
     ############################################################
@@ -139,6 +142,8 @@ class fgShellRepo(Cmd):
     ############################################################
 
     def do_repouserlist(self, args):
+        '''Image Repository userlist command: Get list of users'''
+
         #args=self.getArgs(args)      
         ok = False
 
@@ -158,8 +163,8 @@ class fgShellRepo(Cmd):
                   "Please verify that you are admin \n"
 
     def help_repouserlist(self):
-        msg = "Image Repository userlist command: Get list of users \n"
-        self.print_man("userlist", msg)
+        '''Help message for the repouserlist command'''
+        self.print_man("userlist", self.do_repouserlist.__doc__)
 
 
     ############################################################
@@ -167,6 +172,10 @@ class fgShellRepo(Cmd):
     ############################################################
 
     def do_reposetuserquota(self, args):
+        '''Image Repository setuserquota command: Establish disk space
+        available for users (this is given in bytes). Quota argument
+        allow math expressions like 4*1024'''
+
         args = self.getArgs(args)
         if (len(args) == 2):
             status = self._service.setUserQuota(os.popen('whoami', 'r').read().strip(), args[0], args[1])
@@ -179,9 +188,10 @@ class fgShellRepo(Cmd):
             self.help_reposetuserquota()
 
     def help_reposetuserquota(self):
-        msg = "Image Repository setuserquota command: Establish disk space " + \
-        "available for users (this is given in bytes). Quota argument allow math expressions like 4*1024"
-        self.print_man("userquota <userId> <quota in bytes>", msg)
+        '''Help message for the repouserlist command'''
+        self.print_man("userquota <userId> <quota in bytes>", 
+                       self.do_reposetuserquota.__doc__)
+
     ############################################################
     # userrole
     ############################################################
@@ -227,6 +237,11 @@ class fgShellRepo(Cmd):
     ############################################################
 
     def do_repolist(self, args):
+        '''Image Repository list command: Get list of images that meet
+        the criteria. If not argument provided it get all
+        images. queryString can "be: * ; * where field=XX, field2=YY;
+        field1,field2 where field3=XX'''
+
         #args=self.getArgs(args)      
         ok = False
 
@@ -250,10 +265,9 @@ class fgShellRepo(Cmd):
             print "No list of images returned"
 
     def help_repolist(self):
-        msg = "Image Repository list command: Get list of images that meet the " + \
-        "criteria. If not argument provided it get all images. queryString can " + \
-        "be: * ; * where field=XX, field2=YY; field1,field2 where field3=XX \n"
-        self.print_man("list [queryString] ", msg)
+        '''Help message for the repouserlist command'''
+        self.print_man("list [queryString] ", self.do_repolist.__doc__)
+
     ############################################################
     # modify
     ############################################################
@@ -338,6 +352,7 @@ class fgShellRepo(Cmd):
     ############################################################
 
     def do_repoget(self, args):
+        '''Image Repository get command: Get an image or only the URI by id.'''
         args = self.getArgs(args)
 
         if (len(args) == 2):
@@ -351,8 +366,8 @@ class fgShellRepo(Cmd):
             self.help_repoget()
 
     def help_repoget(self):
-        msg = "Image Repository get command: Get an image or only the URI by id. \n"
-        self.print_man("get <img OR uri> <imgId>", msg)
+        '''Help message for the repoget command'''
+        self.print_man("get <img OR uri> <imgId>", self.do_repoget.__doc__)
 
     ############################################################
     # put
@@ -442,6 +457,8 @@ class fgShellRepo(Cmd):
     # remove
     ############################################################
     def do_reporemove(self, args):
+        '''The Image Repository remove command: Remove a image from
+        the repository.'''
         args = self.getArgs(args)
         if (len(args) == 1):
             if (self._service.remove(os.popen('whoami', 'r').read().strip(), args[0]) == "True"):
@@ -452,6 +469,6 @@ class fgShellRepo(Cmd):
             self.help_reporemove()
 
     def help_reporemove(self):
-        msg = "The Image Repository remove command: Remove a image from the repository."
-        self.print_man("remove <imgId>", msg)
+        '''Help message for the repremove command'''
+        self.print_man("remove <imgId>", self.do_reporemove.__doc__)
 
