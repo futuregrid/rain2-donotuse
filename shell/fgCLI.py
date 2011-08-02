@@ -148,8 +148,8 @@ class fgShell(fgShellUtils,
     do_hi = do_hist = do_history
 
     def help_history (self):
-        '''THIS IS THE HISTORY DOCSTRING'''
-        self.print_man("history", self.__DOC__)
+        '''Print a list of commands that have been entered.'''
+        self.print_man("history", self.help_history.__doc__)
         # msg = "Print a list of commands that have been entered."
         # self.print_man("history", msg)
     help_hi = help_hist = help_history
