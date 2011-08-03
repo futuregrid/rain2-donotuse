@@ -12,7 +12,7 @@ class fgShellConf(object):
     ############################################################
 
     def __init__(self):
-
+        '''initialize the shell configuration'''
 
         self._fgpath = ""
         try:
@@ -47,6 +47,7 @@ class fgShellConf(object):
     ############################################################
 
     def getLogHistDir(self):
+        '''returns the directory of the history file'''
         return self._loghistdir
 
     ############################################################
@@ -54,6 +55,7 @@ class fgShellConf(object):
     ############################################################
 
     def getConfigFile(self):
+        '''returns the configuration file'''
         return self._configfile
 
     ############################################################
@@ -61,6 +63,7 @@ class fgShellConf(object):
     ############################################################
 
     def getLogFile(self):
+        '''returns the logfile'''
         return self._logfile
 
     ############################################################
@@ -69,6 +72,7 @@ class fgShellConf(object):
 
 
     def getHistFile(self):
+        '''returns the history file'''
         return self._histfile
 
     ############################################################
@@ -76,6 +80,7 @@ class fgShellConf(object):
     ############################################################
 
     def getScriptFile(self):
+        '''returns the script file'''
         return self._scriptfile
 
     ############################################################
@@ -83,13 +88,14 @@ class fgShellConf(object):
     ############################################################
 
     def getLogLevel(self):
+        '''returns the loglevel'''
         return self._logLevel
 
     ############################################################
     # loadConfig
     ############################################################
     def loadConfig(self):
-
+        '''loads the configuration from the config file'''
         config = ConfigParser.ConfigParser()
         if(os.path.isfile(self._configfile)):
             config.read(self._configfile)
