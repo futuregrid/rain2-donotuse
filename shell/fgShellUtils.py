@@ -18,7 +18,7 @@ class fgShellUtils(Cmd):
 
 
     def __init__(self):
-
+        '''initialize the fgshellutils'''
         self._script = False
         self._scriptList = []
         self._scriptFile = self._conf.getScriptFile()
@@ -27,9 +27,7 @@ class fgShellUtils(Cmd):
     ############################################################
 
     def getArgs(self, args):
-        """
-        Convert the string args to a list of arguments
-        """
+        '''Convert the string args to a list of arguments.'''
         aux = args.strip()
         argsList = []
 
@@ -46,6 +44,7 @@ class fgShellUtils(Cmd):
     ############################################################
 
     def do_script(self, arg):
+        '''executs the script'''
         args = self.getArgs(arg)
         if not self._script:
             self._scriptList = []
@@ -92,6 +91,7 @@ class fgShellUtils(Cmd):
             print "Script is activated. To finish it use: script end"
 
     def help_script(self):
+        '''help message for the script'''
         message = " When Script is active, all commands executed are stored " + \
         "in a file. Activate it by executing: script [file]. If no argument is " + \
         "provided, the file will be called \'script\' and will be located in your " + \
@@ -103,6 +103,7 @@ class fgShellUtils(Cmd):
     ############################################################
 
     def print_man(self, name, msg):
+        '''print the manual'''
         print "\n"
         print "----------------------------------------------------------------------"
         print "%s" % (name)
@@ -113,6 +114,7 @@ class fgShellUtils(Cmd):
         print ""
 
     def do_manual (self, args):
+        '''print all manual pages'''
         "Print all manual pages organized by contexts"
         print "######################################################################"
         print "Generic commands (available in any context)\n"
@@ -210,12 +212,14 @@ class fgShellUtils(Cmd):
         print this_function_name
     """
     def generic_error(self):
+        '''print the generic error'''
         print "    Please select a CONTEXT by executing use <context_name>.\n" + \
                   "    Execute \'contexts\' command to see the available context names. \n" + \
                   "    Help information is also different depending on the context. \n" + \
                   "    Note that this command may not be available in all CONTEXTS."
 
     def generic_help(self):
+        '''help message for the generic command'''
         msg = "Generic command that changes its behaviour depending on the CONTEXT. "
         for line in textwrap.wrap(msg, 64):
             print "    %s" % (line)
@@ -228,6 +232,7 @@ class fgShellUtils(Cmd):
     #################################    
 
     def do_runjob(self, args):
+        '''run the job'''
         if(self._use != ""):
             command = "self.do_" + self._use + "runjob(\"" + args + "\")"
             #print command
@@ -241,11 +246,12 @@ class fgShellUtils(Cmd):
 
     help_runjob = generic_help
 
-        #################################
+    #################################
     #Run JOB
     #################################    
 
     def do_runscript(self, args):
+        '''run the script'''
         if(self._use != ""):
             command = "self.do_" + self._use + "runscript(\"" + args + "\")"
             #print command
@@ -264,6 +270,7 @@ class fgShellUtils(Cmd):
     #################################
 
     def do_get(self, args):
+        '''TODO: get'''
         if(self._use != ""):
             command = "self.do_" + self._use + "get(\"" + args + "\")"
             #print command
@@ -281,6 +288,7 @@ class fgShellUtils(Cmd):
     #################################
 
     def do_modify(self, args):
+        '''TODO: modify'''
         if(self._use != ""):
             command = "self.do_" + self._use + "modify(\"" + args + "\")"
             #print command
@@ -298,6 +306,7 @@ class fgShellUtils(Cmd):
     #################################
 
     def do_setpermission(self, args):
+        '''set permissions'''
         if(self._use != ""):
             command = "self.do_" + self._use + "setpermission(\"" + args + "\")"
             #print command
@@ -315,6 +324,7 @@ class fgShellUtils(Cmd):
     ################################
 
     def do_put(self, args):
+        '''TODO: put'''
         if(self._use != ""):
             command = "self.do_" + self._use + "put(\"" + args + "\")"
             try:
@@ -331,6 +341,7 @@ class fgShellUtils(Cmd):
     ################################
 
     def do_remove(self, args):
+        '''TODO: remove'''
         if(self._use != ""):
             command = "self.do_" + self._use + "remove(\"" + args + "\")"
             try:
@@ -559,7 +570,7 @@ class fgShellUtils(Cmd):
     ##########################################################################
 
     def do_exec(self, script_file):
-
+        '''execute the script'''
         if script_file.strip() == "":
             self.help_exec()
             return
