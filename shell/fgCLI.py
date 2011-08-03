@@ -22,15 +22,48 @@ import logging
 from futuregrid.utils.syscheck import sysCheck
 
 from futuregrid.utils.fgLog import fgLog
-from cmd2 import Cmd
-
 import inspect
+
+from cmd2 import Cmd, make_option, options, Cmd2TestCase
+import unittest, optparse, sys
 
 class fgShell(fgShellUtils,
               Cmd,
               fgShellRepo,
               fgShellHadoop,
               fgShellRain):
+
+    # TODO: when a script file is used, we must switch on echo, whne
+    # it than gost to interactive it needs to be switched of?
+
+    # TODO: the list command to list the last executed command is not
+    # executable as it does not have a context and seems to have been
+    # overwritten?
+
+    # TODO: integrate the transcript feature via the --test flag,
+    # e.g. we can reexecute a log file
+
+    # TODO: provide nice documentation that shows how to load scripts
+    # with @ and @@
+
+    # TODO: document a use case that shows how to use timing e.g. set
+    # timing True ...
+
+    # TODO: documnet the "show" command and set --long
+
+    # TODO: do we need multiline commands? should all commands be multiline?
+
+    # TODO: we could use printing of feedback/info with pfeedback and
+    # set quiet True/false. NOt sure if we want that
+
+    # #####################################################################
+    # setting variables that can be manipulated with a set method
+    # #####################################################################
+
+    maxrepeats = 3
+    Cmd.settable.append('maxrepeats')
+
+    # #####################################################################
 
     def __init__(self, silent = False):
 
@@ -69,6 +102,25 @@ class fgShell(fgShellUtils,
         ##Load History
         self.loadhist("no argument needed")
         e = sysCheck()
+
+    
+
+    @options([make_option('-p', '--piglatin', action="store_true", help="atinLay"),
+              make_option('-s', '--shout', action="store_true", help="N00B EMULATION MODE"),
+              make_option('-r', '--repeat', type="int", help="output [n] times")
+             ])
+    def do_speak(self, arg, opts=None):
+        """Repeats what you tell me to."""
+        #self.maxrepeats = 3
+        arg = ''.join(arg)
+        if opts.piglatin:
+            arg = '%s%say' % (arg[1:].rstrip(), arg[0])
+        if opts.shout:
+            arg = arg.upper()
+        repetitions = opts.repeat or 1
+        for i in range(min(repetitions, self.maxrepeats)):
+            self.stdout.write(arg)
+            self.stdout.write('\n')
 
 
     ################################
