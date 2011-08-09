@@ -78,7 +78,7 @@ def main():
     (ops, args) = parser.parse_args()
 
 
-    #user = os.popen('whoami', 'r').read().strip()
+    #this user will be changed to the normal userId 
     userId = 'oneadmin'
 
     try:

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python2.7
 """
 FutureGrid Image Repository Command Line Tool
 

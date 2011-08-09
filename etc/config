@@ -16,3 +16,31 @@ serveraddr="localhost"
 IRconfig=%(loghistdir)s/.IRconfig
 log=%(loghistdir)s/repo.log
 log_level=debug
+
+[Generation]
+serveraddr = fg-gravel6.futuregrid.iu.edu
+serverdir = /srv/cloud/one/fg-management/
+
+[Deploy]
+xcat_port = 56789
+moab_port = 56790
+http_server = http://fg-gravel3.futuregrid.iu.edu/
+#tempdir=/tmp/
+
+[minicluster]
+shareddir=/tmp/
+loginmachine=localhost
+moabmachine=localhost
+xcatmachine=localhost
+#loginmachine=tm1r.tidp.iu.futuregrid.org
+#moabmachine=tm1r.tidp.iu.futuregrid.org
+#xcatmachine=tm1r.tidp.iu.futuregrid.org
+
+[india]
+shareddir=/share/project/FG82/
+loginmachine=localhost
+moabmachine=localhost
+xcatmachine=im1
+#loginmachine=india.futuregrid.org
+#moabmachine=india.futuregrid.org
+#xcatmachine=im1r.idp.iu.futuregrid.org

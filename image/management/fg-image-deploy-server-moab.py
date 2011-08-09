@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2.7
 # Description: xCAT image deployment server that DO REGISTER AN IMAGE IN MOAB. 
 #
 # Author: Andrew J. Younge, Javier Diaz
@@ -64,18 +64,20 @@ def main():
             #params[1] is name
             #params[2] is operating system            
             #params[3] is arch
+            #params[4] is machine (india, minicluster..)
 
             prefix = params[0]
             name = params[1]
             operatingsystem = params[2]
             arch = params[3]
+            machine=params[4]
 
             moabstring = ""
 
-            if TEST_MODE:
+            if machine =="minicluster":
                 moabstring = 'echo \"' + prefix + operatingsystem + '' + name + ' ' + arch + ' ' + prefix + operatingsystem + '' + name + ' compute netboot\" >> ' + moabInstallPath + '/tools/msm/images.txt'
                 #moabstring = 'echo \"' + prefix + operatingsystem + '' + name + ' ' + arch + ' boottarget ' + prefix + operatingsystem + '' + name + ' netboot\" >> ' + moabInstallPath + '/tools/msm/images.txt'
-            else:
+            elif machine =="india":
                 moabstring = 'echo \"' + prefix + operatingsystem + '' + name + ' ' + arch + ' boottarget ' + prefix + operatingsystem + '' + name + ' netboot\" >> ' + moabInstallPath + '/tools/msm/images.txt'
 
 

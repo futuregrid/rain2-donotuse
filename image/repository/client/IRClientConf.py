@@ -127,7 +127,7 @@ class IRClientConf(object):
         try:
             self._loghistdir = os.path.expanduser(config.get('DEFAULT', 'loghistdir', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No option loghistdir in section LogHist"
+            print "Error: No loghistdir option found in section LogHist"
             sys.exit(0)
 
         #Directory where history and logs are
@@ -137,7 +137,7 @@ class IRClientConf(object):
         try:
             self._logfile = os.path.expanduser(config.get('Repo', 'log', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No option log in section Repo"
+            print "Error: No log option found in section Repo"
             sys.exit(0)
 
         ##Log
@@ -147,7 +147,7 @@ class IRClientConf(object):
             tempLevel = self._LogLevel
 
         if not (tempLevel in self._logType):
-            print "Log level " + self._log_level + " not supported. Using the default one " + self._logLevel
+            print "Log level " + tempLevel + " not supported. Using the default one " + self._logLevel
             tempLevel=self._logLevel
         self._logLevel = eval("logging." + tempLevel)
 
@@ -155,19 +155,19 @@ class IRClientConf(object):
         try:
             self._serverdir = os.path.expanduser(config.get('Repo', 'serverdir', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No option serverdir in section Repo"
+            print "Error: No serverdir option found in section Repo"
             sys.exit(0)
         #Server address
         try:
             self._serveraddr = os.path.expanduser(config.get('Repo', 'serveraddr', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No option serveraddr in section Repo"
+            print "Error: No serveraddr option found in section Repo"
             sys.exit(0)
          #Server address
         try:
             self._irconfig = os.path.expanduser(config.get('Repo', 'IRConfig', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No option IRconfig in section Repo"
+            print "Error: No IRconfig option found in section Repo"
             sys.exit(0)
 
     ############################################################
