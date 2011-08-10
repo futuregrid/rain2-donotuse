@@ -9,14 +9,14 @@ import sys
 
 configFileName = "config"
 
-class ImageClientConf(object):
+class IMClientConf(object):
 
     ############################################################
     # init
     ############################################################
 
     def __init__(self):
-        super(ImageClientConf, self).__init__()
+        super(IMClientConf, self).__init__()
 
         ###################################
         #These should be sent from the Shell. We leave it for now to have an independent tool.   

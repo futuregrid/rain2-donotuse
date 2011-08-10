@@ -4,8 +4,6 @@
 # Author: Andrew J. Younge and Javier Diaz
 #
 
-
-
 from optparse import OptionParser
 import sys
 import os
@@ -15,7 +13,7 @@ from subprocess import *
 import logging
 import logging.handlers
 from xml.dom.minidom import Document, parse
-from ImageClientConf import ImageClientConf
+from IMClientConf import IMClientConf
 
 
 #Default Kernels to use for each deployment
@@ -24,12 +22,12 @@ default_xcat_kernel_ubuntu = '2.6.35-22-generic'
 default_euca_kernel = '2.6.27.21-0.1-xen'
 
 
-class ImageDeploy(object):
+class IMDeploy(object):
     ############################################################
     # __init__
     ############################################################
     def __init__(self, kernel, user, logger):
-        super(ImageDeploy, self).__init__()
+        super(IMDeploy, self).__init__()
 
         
         self.kernel = kernel
@@ -52,7 +50,7 @@ class ImageDeploy(object):
         self.arch = ""
         
         #Load Configuration from file
-        self._deployConf = ImageClientConf()
+        self._deployConf = IMClientConf()
         self._deployConf.load_deployConfig()        
         self._xcat_port = self._deployConf.getXcatPort()
         self._moab_port = self._deployConf.getMoabPort()
@@ -334,7 +332,7 @@ def main():
             logger.error("User not specified")
             sys.exit(1)
 
-    imgdeploy = ImageDeploy(ops.kernel, user, logger)
+    imgdeploy = IMDeploy(ops.kernel, user, logger)
     #Define the type
 
     #Get image destination

@@ -14,20 +14,10 @@ import logging.handlers
 import time
 from IMServerConf import IMServerConf
 
-def main():
-
-    #Check if we have root privs 
-    if os.getuid() != 0:
-        print "Sorry, you need to run with root privileges"
-        sys.exit(1)
-
-    server = DeployMoabServer()
-    server.start()
-    
-class DeployMoabServer(object):
+class IMDeployServerMoab(object):
 
     def __init__(self):
-        super(DeployMoabServer, self).__init__()
+        super(IMDeployServerMoab, self).__init__()
         
         self.numparams = 4   #prefix,name,os,arch
         
@@ -145,6 +135,16 @@ class DeployMoabServer(object):
             status = 1
             #sys.exit(p.returncode)
         return status
+
+def main():
+
+    #Check if we have root privs 
+    if os.getuid() != 0:
+        print "Sorry, you need to run with root privileges"
+        sys.exit(1)
+
+    server = IMDeployServerMoab()
+    server.start()
 
 if __name__ == "__main__":
     main()

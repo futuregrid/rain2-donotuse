@@ -160,12 +160,12 @@ def main():
 
 
     if (stat == 0):
-        logger.info("Sending fg-image-generate.py to the VM")
-        cmdscp = "scp -q " + serverdir + '/fg-image-generate.py  ' + userId + "@" + vmaddr + ":" + vmdir
+        logger.info("Sending IMGenerateScript.py to the VM")
+        cmdscp = "scp -q " + serverdir + '/IMGenerateScript.py  ' + userId + "@" + vmaddr + ":" + vmdir
         logger.info(cmdscp)
         stat = os.system(cmdscp)
         if (stat != 0):
-            logger.error("Error sending fg-image-generate.py to the VM. Exit status " + str(stat))
+            logger.error("Error sending IMGenerateScript.py to the VM. Exit status " + str(stat))
 
 
         options += "-a " + ops.arch + " -o " + ops.os + " -v " + ops.version + " -u " + user + " -t " + tempdir
@@ -179,7 +179,7 @@ def main():
         if type(ops.software) is not NoneType:
             options += " -s " + ops.software
 
-        cmdexec = " -q '" + vmdir + "fg-image-generate.py " + options + " '"
+        cmdexec = " -q '" + vmdir + "IMGenerateScript.py " + options + " '"
 
         logger.info(cmdexec)
 

@@ -14,10 +14,10 @@ import logging.handlers
 import time
 from IMServerConf import IMServerConf
 
-class DeployXcatServer(object):
+class IMDeployServerXcat(object):
 
     def __init__(self):
-        super(DeployXcatServer, self).__init__()
+        super(IMDeployServerXcat, self).__init__()
         
         
         self.prefix = ""
@@ -435,7 +435,7 @@ def main():
         print "Sorry, you need to run with root privileges"
         sys.exit(1)
 
-    server = DeployXcatServer()
+    server = IMDeployServerXcat()
     server.start()
 
 if __name__ == "__main__":
