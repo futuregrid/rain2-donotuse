@@ -1,8 +1,27 @@
+#******************************************************************************
+# FutureGrid Client Configuration File
+#******************************************************************************
+
+#******************************************************************************
+# Default section
+#------------------------------------------------------------------------------
+#  loghistdir: Local directory to store logs, configuration files, etc..
+#
+#  banner: This especify the file that is used as banner in the fg-shell
+#******************************************************************************
 [DEFAULT]
 loghistdir=~/.fg/
 banner=banner.txt
 
-
+#******************************************************************************
+# fg-shell configuration
+#------------------------------------------------------------------------------
+#  history: file where the fg-shell history commands are stored
+#
+#  log: file where the fg-shell logs are stored
+#
+#  log_level: debug level. It can be debug, error, info, warning
+#******************************************************************************
 [LogHist]
 #History file to store and load the shell commands
 history=%(loghistdir)s/hist.txt
@@ -10,6 +29,21 @@ log=%(loghistdir)s/fg.log
 log_level=debug
 #script=~/myexperiment
 
+#******************************************************************************
+# Image Repository Client Configuration
+#------------------------------------------------------------------------------
+#  serverdir: Path where the server software is installed
+#
+#  serveraddr: Address of the server machine
+#
+#  IRconfig: File that contains the server backend configuration. This file is
+#  created the first time that the image repository is used and it is recreated
+#  when missing
+#
+#  log: file where image repository client logs are stored
+#  
+#  log_level: debug level. It can be debug, error, info, warning
+#******************************************************************************
 [Repo]
 serverdir=/opt/futuregrid/futuregrid/image/repository/server/
 serveraddr="localhost"
@@ -17,16 +51,51 @@ IRconfig=%(loghistdir)s/.IRconfig
 log=%(loghistdir)s/repo.log
 log_level=debug
 
+#******************************************************************************
+# Image Generation Client Configuration
+#------------------------------------------------------------------------------
+#  serveraddr: Address of the server machine
+#
+#  serverdir: Path where the server software is installed
+#******************************************************************************
+
 [Generation]
 serveraddr = fg-gravel6.futuregrid.iu.edu
 serverdir = /srv/cloud/one/fg-management/
 
+#******************************************************************************
+# Image Deploy Client Configuration
+#------------------------------------------------------------------------------
+#  xcat_port: Port where our image-deploy-server-xcat is listening
+#
+#  moab_port: Port where our image-deploy-server-moab is listening
+#
+#  http_server: Address of the http server that keeps config files 
+#  for the images
+#
+#  tempdir: Directory that will be used to extract the image. 
+#  Current directory is the default option. This parameter is optional
+#******************************************************************************
 [Deploy]
 xcat_port = 56789
 moab_port = 56790
 http_server = http://fg-gravel3.futuregrid.iu.edu/
-#tempdir=/tmp/
+tempdir=/tmp/
 
+#******************************************************************************
+# Machines configuration
+#------------------------------------------------------------------------------
+#  The section indicates the target cluster that where the image 
+#  will be deployed
+#
+#  shareddir: directory that is shared between login machine and xcat machine
+#  
+#  loginmachine: Login machine of the target cluster
+#
+#  moabmachine: Machine where moab is installed
+#
+#  xcatmachine: Machine where xcat is installed
+#******************************************************************************
 [minicluster]
 shareddir=/tmp/
 loginmachine=localhost
