@@ -1,0 +1,53 @@
+#******************************************************************************
+# FutureGrid Servers Configuration
+#
+# This configuration file is organized for services. So you only need to 
+# configure the sections of the services that you need to use
+#
+#******************************************************************************
+
+
+#******************************************************************************
+# Image Server xCAT configuration
+#------------------------------------------------------------------------------
+#  xcat_port: Port where this server (image-deploy-server-xcat) will listen
+#
+#  xcatNetbootImgPath: path used by xCAT to store the netboot images
+#
+#  http_server: Address of the http server that keeps config files 
+#  for the images
+#
+#  log: file where logs are stored. You should include
+#  the full path, otherwise it will use the current directory. 
+#
+#  log_level: debug level. It can be debug, error, info, warning
+#******************************************************************************
+[DeployServerXcat]
+xcat_port=56789
+xcatNetbootImgPath=/install/netboot/
+http_server=http://fg-gravel3.futuregrid.iu.edu/
+log=fg-image-deploy-server-xcat.log
+log_level=debug
+
+#******************************************************************************
+# Image Server Moab Configuration
+#------------------------------------------------------------------------------
+#  moab_port: Port where this server (iamge-deploy-server-moab) will listen
+#
+#  moabInstallPath: path where moab is installed
+#
+#  timeToRestartMoab: seconds to restart the moab scheduler. This prevent to 
+#  restart the scheduler each time an image is register. This also induces a 
+#  delay in the status of the available images.
+#
+#  log: file where logs are stored
+#  
+#  log_level: debug level. It can be debug, error, info, warning
+#******************************************************************************
+[DeployServerMoab]
+moab_port = 56790
+moabInstallPath = /opt/moab/
+timeToRestartMoab = 5
+log = fg-image-deploy-server-moab.log
+log_level = debug
+
