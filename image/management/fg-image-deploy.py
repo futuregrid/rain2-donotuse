@@ -261,7 +261,7 @@ class ImageDeploy(object):
 
 
     def runCmd(self, cmd):
-        cmdLog = logging.getLogger('exec')
+        cmdLog = logging.getLogger('DeployClient.exec')
         cmdLog.debug(cmd)
         p = Popen(cmd.split(' '), stdout=PIPE, stderr=PIPE)
         std = p.communicate()
@@ -278,7 +278,7 @@ class ImageDeploy(object):
 
 def main():
 
-    logger = logging.getLogger()
+    logger = logging.getLogger("DeployClient")
     logger.setLevel(logging.DEBUG)
     formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
     #handler = logging.FileHandler(log_filename)
@@ -289,6 +289,7 @@ def main():
     ch.setLevel(logging.DEBUG)
     ch.setFormatter(formatter)
     logger.addHandler(ch)
+    logger.propagate=False #Do not propagate to others
 
     debugLevel = logging.INFO
  

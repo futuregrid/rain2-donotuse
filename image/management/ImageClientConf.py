@@ -7,6 +7,8 @@ import ConfigParser
 import string
 import sys
 
+configFileName = "config"
+
 class ImageClientConf(object):
 
     ############################################################
@@ -22,17 +24,23 @@ class ImageClientConf(object):
         try:
             self._fgpath = os.environ['FG_PATH']
         except KeyError:
-            self._fgpath = "../../"
+            self._fgpath = os.path.dirname(__file__) + "/../../"
 
         ##DEFAULT VALUES##
-        self._loghistdir = "~/.fg/"
+        self._localpath = "~/.fg/"
 
-        tempfile = os.path.expanduser(self._loghistdir) + "/config"
+        self._configfile = os.path.expanduser(self._localpath) + "/" + configFileName
+        #print self._configfile
+        if not os.path.isfile(self._configfile):
+            self._configfile = os.path.expanduser(self._fgpath) + "/etc/" + configFileName
+            #print self._configfile
+            if not os.path.isfile(self._configfile):
+                self._configfile = os.path.expanduser(os.path.dirname(__file__)) + "/" + configFileName
+                #print self._configfile
 
-        if(os.path.isfile(tempfile)):
-            self._configfile = tempfile
-        else:
-            self._configfile = os.path.expanduser(self._fgpath) + "/etc/config"
+                if not os.path.isfile(self._configfile):   
+                    print "ERROR: configuration file not found"
+                    sys.exit(1)
         ####################################
 
         #image generation
@@ -52,13 +60,7 @@ class ImageClientConf(object):
         self._xcatmachine = ""
 
         self._config = ConfigParser.ConfigParser()
-        if(os.path.isfile(self._configfile)):
-            self._config.read(self._configfile)
-        else:
-            print "Error: Config file not found" + self._configfile
-            sys.exit(0)
-            
-
+        self._config.read(self._configfile)
 
     ############################################################
     # getConfigFile
@@ -117,19 +119,22 @@ class ImageClientConf(object):
             self._serverdir = os.path.expanduser(self._config.get('Generation', 'serverdir', 0))
         except ConfigParser.NoOptionError:
             print "Error: No serverdir option found in section Generation"
-            sys.exit(0)
+            sys.exit(1)
+        except ConfigParser.NoSectionError:
+            print "Error: no section "+section+" found in the "+self._configfile+" config file"
+            sys.exit(1)
         #Server address
         try:
-            self._serveraddr = os.path.expanduser(self._config.get('Generation', 'serveraddr', 0))
+            self._serveraddr = self._config.get('Generation', 'serveraddr', 0)
         except ConfigParser.NoOptionError:
             print "Error: No serveraddr option found in section Generation"
-            sys.exit(0)
+            sys.exit(1)
         
         try:
             self._logfile_gen = os.path.expanduser(self._config.get('Generation', 'log', 0))
         except ConfigParser.NoOptionError:
             print "Error: No log option found in section Generation"
-            sys.exit(0)
+            sys.exit(1)
       
 
     ############################################################
@@ -138,20 +143,23 @@ class ImageClientConf(object):
     def load_deployConfig(self):
                 
         try:
-            self._xcat_port = int(os.path.expanduser(self._config.get('Deploy', 'xcat_port', 0)))
+            self._xcat_port = int(self._config.get('Deploy', 'xcat_port', 0))
         except ConfigParser.NoOptionError:
             print "Error: No xcat_port option found in section Deploy"
-            sys.exit(0)        
+            sys.exit(1)  
+        except ConfigParser.NoSectionError:
+            print "Error: no section "+section+" found in the "+self._configfile+" config file"
+            sys.exit(1)      
         try:
-            self._moab_port = int(os.path.expanduser(self._config.get('Deploy', 'moab_port', 0)))
+            self._moab_port = int(self._config.get('Deploy', 'moab_port', 0))
         except ConfigParser.NoOptionError:
             print "Error: No moab_port option found in section Deploy"
-            sys.exit(0)         
+            sys.exit(1)         
         try:
-            self._http_server = os.path.expanduser(self._config.get('Deploy', 'http_server', 0))
+            self._http_server = self._config.get('Deploy', 'http_server', 0)
         except ConfigParser.NoOptionError:
             print "Error: No http_server option found in section Deploy"
-            sys.exit(0)
+            sys.exit(1)
         try:
             self._tempdir = os.path.expanduser(self._config.get('Deploy', 'tempdir', 0))
         except ConfigParser.NoOptionError:
@@ -166,20 +174,23 @@ class ImageClientConf(object):
             self._shareddir = os.path.expanduser(self._config.get(machine, 'shareddir', 0))
         except ConfigParser.NoOptionError:
             print "Error: No shareddir option found in section " + machine
-            sys.exit(0)        
+            sys.exit(1)
+        except ConfigParser.NoSectionError:
+            print "Error: no section "+section+" found in the "+self._configfile+" config file"
+            sys.exit(1)      
         try:
-            self._loginmachine = os.path.expanduser(self._config.get(machine, 'loginmachine', 0))
+            self._loginmachine = self._config.get(machine, 'loginmachine', 0)
         except ConfigParser.NoOptionError:
             print "Error: No loginmachine option found in section " + machine
-            sys.exit(0)         
+            sys.exit(1)         
         try:
-            self._moabmachine = os.path.expanduser(self._config.get(machine, 'moabmachine', 0))
+            self._moabmachine = self._config.get(machine, 'moabmachine', 0)
         except ConfigParser.NoOptionError:
             print "Error: No moabmachine option found in section " + machine
-            sys.exit(0)
+            sys.exit(1)
         try:
-            self._xcatmachine = os.path.expanduser(self._config.get(machine, 'xcatmachine', 0))
+            self._xcatmachine = self._config.get(machine, 'xcatmachine', 0)
         except ConfigParser.NoOptionError:
             print "Error: No xcatmachine option found in section " + machine
-            sys.exit(0) 
+            sys.exit(1) 
 

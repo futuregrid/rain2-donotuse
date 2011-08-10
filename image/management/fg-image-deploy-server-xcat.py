@@ -12,20 +12,14 @@ from subprocess import *
 import logging
 import logging.handlers
 import time
+from IMServerConf import IMServerConf
 
-#Global vars. This will be in a config file
-port = 56789
-xcatInstallPath = '/install/netboot/'
-http_server = "http://fg-gravel3.futuregrid.iu.edu/"
-log_filename = 'fg-image-deploy-server-xcat.log'
+class DeployXcatServer(object):
 
-
-class deployXcatServer(object):
-
-    def __init__(self, logger):
-        super(deployXcatServer, self).__init__()
+    def __init__(self):
+        super(DeployXcatServer, self).__init__()
         
-        self.logger = logger
+        
         self.prefix = ""
         self.path = ""
         
@@ -40,23 +34,44 @@ class deployXcatServer(object):
         self.machine = "" #india, minicluster,...
 
 
+        #load from config file
+        self._deployConf = IMServerConf()
+        self._deployConf.load_deployServerXcatConfig() 
+        self.port = self._deployConf.getXcatPort()
+        self.xcatNetbootImgPath = self._deployConf.getXcatNetbootImgPath()
+        self.http_server = self._deployConf.getHttpServer()
+        self.log_filename = self._deployConf.getLogXcat()
+        self.logLevel = self._deployConf.getLogLevelXcat()
+
+        print "\nReading Configuration file from "+self._deployConf.getConfigFile()+"\n"
+        
+        self.logger = self.setup_logger()
+        
+        
+    def setup_logger(self):
+        #Setup logging
+        logger = logging.getLogger("DeployXcat")
+        logger.setLevel(self.logLevel)
+        formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+        handler = logging.FileHandler(self.log_filename)
+        handler.setLevel(self.logLevel)
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+        logger.propagate = False
+        
+        return logger
+
     def start(self):
 
-        self.logger.info('Starting Server on port ' + str(port))
+        self.logger.info('Starting Server on port ' + str(self.port))
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.bind(('', port))
+        sock.bind(('', self.port))
         sock.listen(1)
-        skip_sock=True
         while True:
-            channel, details = sock.accept()
-            msg=""
             while True:
     
                 self.logger.info('Accepted new connection')
-                if not skip_sock:
-                    channel, details = sock.accept()
-                skip_sock=False
-                
+                channel, details = sock.accept()                
                 #receive the message
                 data = channel.recv(2048)
                 params = data.split(',')
@@ -79,12 +94,12 @@ class deployXcatServer(object):
     
     
                 if len(params) != self.numparams:
-                    msg="ERROR: incorrect message"
+                    msg = "ERROR: incorrect message"
                     self.errormsg(channel, msg)
                     break
     
                 if not os.path.isfile(self.tempdir + '/' + self.name + '.tgz'):
-                    msg="ERROR: file not found"
+                    msg = "ERROR: file not found"
                     self.errormsg(channel, msg)
                     break
     
@@ -95,14 +110,12 @@ class deployXcatServer(object):
                 #Build filesystem    
                 #Create Directory structure
                 #/install/netboot/<name>/<arch>/compute/
-                self.path = xcatInstallPath + self.prefix + self.operatingsystem + '' + self.name + '/' + self.arch + '/compute/'
-                cmd = 'mkdir -p ' + self.path
-                status = self.runCmd(cmd)    
-    
+                self.path = self.xcatNetbootImgPath + self.prefix + self.operatingsystem + '' + self.name + '/' + self.arch + '/compute/'
+                
                 cmd = 'mkdir -p ' + self.path + 'rootimg ' + self.path + 'temp'
                 status = self.runCmd(cmd)    
                 if status != 0:
-                    msg="ERROR: creating directory rootimg"
+                    msg = "ERROR: creating directory rootimg"
                     self.errormsg(channel, msg)
                     break
     
@@ -110,7 +123,7 @@ class deployXcatServer(object):
                 cmd = 'tar xfz ' + self.tempdir + '/' + self.name + '.tgz -C ' + self.path
                 status = self.runCmd(cmd)    
                 if status != 0:
-                    msg="ERROR: extracting image"
+                    msg = "ERROR: extracting image"
                     self.errormsg(channel, msg)
                     break                    
                 cmd = 'rm -f ' + self.tempdir + '/' + self.name + '.tgz ' 
@@ -120,14 +133,14 @@ class deployXcatServer(object):
                 cmd = 'mount -o loop ' + self.path + '' + self.name + '.img ' + self.path + 'temp'
                 status = self.runCmd(cmd)    
                 if status != 0:
-                    msg="ERROR: mounting image"
+                    msg = "ERROR: mounting image"
                     self.errormsg(channel, msg)
                     break
                 #copy files keeping the permission (-p parameter)
                 cmd = 'cp -rp ' + self.path + 'temp/* ' + self.path + 'rootimg/'                
                 status = os.system(cmd)    
                 if status != 0:
-                    msg="ERROR: copying image"
+                    msg = "ERROR: copying image"
                     self.errormsg(channel, msg)
                     break    
                 cmd = 'umount ' + self.path + 'temp'
@@ -136,7 +149,7 @@ class deployXcatServer(object):
                 cmd = 'rm -rf ' + self.path + 'temp ' + self.path + '' + self.name + '.img ' + self.path + '' + self.name + '.manifest.xml'
                 status = self.runCmd(cmd)    
                 if status != 0:
-                    msg="ERROR: unmounting image"
+                    msg = "ERROR: unmounting image"
                     self.errormsg(channel, msg)
                     break
     
@@ -154,69 +167,69 @@ class deployXcatServer(object):
                     ############################
                                  
                     #getting initrd and kernel customized for xCAT
-                    cmd = 'wget ' + http_server + '/kernel/specialubuntu/initrd.gz -O ' + self.path + '/initrd-stateless.gz'
+                    cmd = 'wget ' + self.http_server + '/kernel/specialubuntu/initrd.gz -O ' + self.path + '/initrd-stateless.gz'
                     status = self.runCmd(cmd)    
                     if status != 0:
-                        msg="ERROR: retrieving/copying initrd.gz"
+                        msg = "ERROR: retrieving/copying initrd.gz"
                         self.errormsg(channel, msg)
                         break    
-                    cmd = 'wget ' + http_server + '/kernel/specialubuntu/kernel -O ' + self.path + '/kernel'
+                    cmd = 'wget ' + self.http_server + '/kernel/specialubuntu/kernel -O ' + self.path + '/kernel'
                     status = self.runCmd(cmd)    
                     if status != 0:
-                        msg="ERROR: retrieving/copying kernel"
+                        msg = "ERROR: retrieving/copying kernel"
                         self.errormsg(channel, msg)
                         break
                     
                     #getting generic initrd and kernel 
-                    cmd = 'wget ' + http_server + '/kernel/tftp/xcat/ubuntu10/' + self.arch + '/initrd.img -O ' + tftpimgdir + '/initrd.img'
+                    cmd = 'wget ' + self.http_server + '/kernel/tftp/xcat/ubuntu10/' + self.arch + '/initrd.img -O ' + tftpimgdir + '/initrd.img'
                     status = self.runCmd(cmd)
     
                     if status != 0:
-                        msg="ERROR: retrieving/copying initrd.img"
+                        msg = "ERROR: retrieving/copying initrd.img"
                         self.errormsg(channel, msg)
                         break
     
-                    cmd = 'wget ' + http_server + '/kernel/tftp/xcat/ubuntu10/' + self.arch + '/vmlinuz -O ' + tftpimgdir + '/vmlinuz'
+                    cmd = 'wget ' + self.http_server + '/kernel/tftp/xcat/ubuntu10/' + self.arch + '/vmlinuz -O ' + tftpimgdir + '/vmlinuz'
                     status = self.runCmd(cmd)
     
                     if status != 0:
-                        msg="ERROR: retrieving/copying vmlinuz"
+                        msg = "ERROR: retrieving/copying vmlinuz"
                         self.errormsg(channel, msg)
                         break
                     
                 else: #Centos
                     #Insert client stuff
-                    status=self.customize_centos_img()
+                    status = self.customize_centos_img()
                     if status != 0:
-                        msg="ERROR: customizing the image. Look into server logs for details"
+                        msg = "ERROR: customizing the image. Look into server logs for details"
                         self.errormsg(channel, msg)
                         break    
                     
                     #getting initrd and kernel customized for xCAT
-                    cmd = 'wget ' + http_server + '/kernel/initrd.gz -O ' + self.path + '/initrd-stateless.gz'
+                    cmd = 'wget ' + self.http_server + '/kernel/initrd.gz -O ' + self.path + '/initrd-stateless.gz'
                     status = self.runCmd(cmd)    
                     if status != 0:
-                        msg="ERROR: retrieving/copying initrd.gz"
+                        msg = "ERROR: retrieving/copying initrd.gz"
                         self.errormsg(channel, msg)
                         break    
-                    cmd = 'wget ' + http_server + '/kernel/kernel -O ' + self.path + '/kernel'
+                    cmd = 'wget ' + self.http_server + '/kernel/kernel -O ' + self.path + '/kernel'
                     status = self.runCmd(cmd)    
                     if status != 0:
-                        msg="ERROR: retrieving/copying kernel"
+                        msg = "ERROR: retrieving/copying kernel"
                         self.errormsg(channel, msg)
                         break
                     
                     #getting generic initrd and kernel
-                    cmd = 'wget ' + http_server + '/kernel/tftp/xcat/centos5/' + self.arch + '/initrd.img -O ' + tftpimgdir + '/initrd.img'
+                    cmd = 'wget ' + self.http_server + '/kernel/tftp/xcat/centos5/' + self.arch + '/initrd.img -O ' + tftpimgdir + '/initrd.img'
                     status = self.runCmd(cmd)    
                     if status != 0:
-                        msg="ERROR: retrieving/copying initrd.img"
+                        msg = "ERROR: retrieving/copying initrd.img"
                         self.errormsg(channel, msg)
                         break    
-                    cmd = 'wget ' + http_server + '/kernel/tftp/xcat/centos5/' + self.arch + '/vmlinuz -O ' + tftpimgdir + '/vmlinuz'
+                    cmd = 'wget ' + self.http_server + '/kernel/tftp/xcat/centos5/' + self.arch + '/vmlinuz -O ' + tftpimgdir + '/vmlinuz'
                     status = self.runCmd(cmd)    
                     if status != 0:
-                        msg="ERROR: retrieving/copying vmlinuz"
+                        msg = "ERROR: retrieving/copying vmlinuz"
                         self.errormsg(channel, msg)
                         break
                                     
@@ -239,10 +252,10 @@ class deployXcatServer(object):
                 cmd = 'packimage -o ' + self.prefix + self.operatingsystem + '' + self.name + ' -p compute -a ' + self.arch
                 self.logger.debug(cmd)
                 status = self.runCmd(cmd)
-#                status=0
+                status = 0
                 #    
                 if status != 0:
-                    msg="ERROR: packimage command"
+                    msg = "ERROR: packimage command"
                     self.errormsg(channel, msg)
                     break
                 
@@ -267,27 +280,23 @@ class deployXcatServer(object):
                 self.logger.debug(moabstring)    
                 channel.send(moabstring)
                 channel.close()
-    
-            #if something fails, we close the channel to prevent the client to wait forever
-            self.errormsg(channel,msg)
-            skip_sock=True
             
 
 
     def customize_centos_img(self):
-        status=0
+        status = 0
         self.logger.info('Installing torque')
         if(self.machine == "minicluster"):
             self.logger.info('Torque for minicluster')
-            status=self.runCmd('wget ' + http_server + '/torque/torque-2.5.1_minicluster/torque-2.5.1.tgz -O ' + self.path + '/torque-2.5.1.tgz')            
-            status=self.runCmd('wget ' + http_server + '/torque/torque-2.5.1_minicluster/var.tgz -O ' + self.path + '/var.tgz')            
+            status = self.runCmd('wget ' + self.http_server + '/torque/torque-2.5.1_minicluster/torque-2.5.1.tgz -O ' + self.path + '/torque-2.5.1.tgz')            
+            status = self.runCmd('wget ' + self.http_server + '/torque/torque-2.5.1_minicluster/var.tgz -O ' + self.path + '/var.tgz')            
             self.runCmd('tar xfz ' + self.path + '/torque-2.5.1.tgz -C ' + self.path + '/rootimg/usr/local/')
             self.runCmd('tar xfz ' + self.path + '/var.tgz -C ' + self.path + '/rootimg/')            
-            status=self.runCmd('wget ' + http_server + '/torque/torque-2.5.1_minicluster/pbs_mom -O ' + self.path + '/rootimg/etc/init.d/pbs_mom')            
+            status = self.runCmd('wget ' + self.http_server + '/torque/torque-2.5.1_minicluster/pbs_mom -O ' + self.path + '/rootimg/etc/init.d/pbs_mom')            
             self.runCmd('rm -f ' + self.path + '/torque-2.5.1.tgz ' + self.path + '/var.tgz')
 
             self.logger.info('Configuring network')
-            status=self.runCmd('wget ' + http_server + '/conf/centos/netsetup_minicluster.tgz -O ' + self.path + 'netsetup_minicluster.tgz')
+            status = self.runCmd('wget ' + self.http_server + '/conf/centos/netsetup_minicluster.tgz -O ' + self.path + 'netsetup_minicluster.tgz')
 
             self.runCmd('tar xfz ' + self.path + 'netsetup_minicluster.tgz -C ' + self.path + '/rootimg/etc/')
             self.runCmd('chmod +x ' + self.path + '/rootimg/etc/netsetup/netsetup.sh')
@@ -326,19 +335,19 @@ sysfs   /sys     sysfs    defaults       0 0
 
         elif(self.machine == "india"):#Later we should be able to chose the cluster where is deployed
             self.logger.info('Torque for India')            
-            status=self.runCmd('wget ' + http_server + '/torque/torque-2.4.8_india/opt.tgz -O ' + self.path + '/opt.tgz')
-            status=self.runCmd('wget ' + http_server + '/torque/torque-2.4.8_india/var.tgz -O ' + self.path + '/var.tgz')
+            status = self.runCmd('wget ' + self.http_server + '/torque/torque-2.4.8_india/opt.tgz -O ' + self.path + '/opt.tgz')
+            status = self.runCmd('wget ' + self.http_server + '/torque/torque-2.4.8_india/var.tgz -O ' + self.path + '/var.tgz')
             self.runCmd('tar xfz ' + self.path + '/opt.tgz -C ' + self.path + '/rootimg/')
             self.runCmd('tar xfz ' + self.path + '/var.tgz -C ' + self.path + '/rootimg/')
-            status=self.runCmd('wget ' + http_server + '/torque/torque-2.4.8_india/pbs_mom -O ' + self.path + '/rootimg/etc/init.d/pbs_mom')
+            status = self.runCmd('wget ' + self.http_server + '/torque/torque-2.4.8_india/pbs_mom -O ' + self.path + '/rootimg/etc/init.d/pbs_mom')
             self.runCmd('rm -f ' + self.path + '/opt.tgz ' + self.path + '/var.tgz')
             
             self.logger.info('Configuring network')
-            status=self.runCmd('wget ' + http_server + '/conf/centos/netsetup.sh_india -O ' + self.path + '/rootimg/etc/init.d/netsetup.sh')
+            status = self.runCmd('wget ' + self.http_server + '/conf/centos/netsetup.sh_india -O ' + self.path + '/rootimg/etc/init.d/netsetup.sh')
             self.runCmd('chmod +x ' + self.path + '/rootimg/etc/init.d/netsetup.sh')
             self.runCmd('chroot ' + self.path + '/rootimg/ /sbin/chkconfig --add netsetup.sh')
             
-            status=self.runCmd('wget ' + http_server + '/conf/hosts_india -O ' + self.path + '/rootimg/etc/hosts')
+            status = self.runCmd('wget ' + self.http_server + '/conf/hosts_india -O ' + self.path + '/rootimg/etc/hosts')
             self.runCmd('mkdir -p ' + self.path + '/rootimg/root/.ssh')
  
             f = open('./_authorized_keys', 'a') #Create it in a unique directory
@@ -392,7 +401,7 @@ sysfs   /sys     sysfs    defaults       0 0
         
         #Inject the kernel
         self.logger.info('Retrieving kernel ' + self.kernel)
-        status=self.runCmd('wget ' + http_server + '/kernel/' + self.kernel + '.modules.tar.gz -O ' + self.path + '' + self.kernel + '.modules.tar.gz')
+        status = self.runCmd('wget ' + self.http_server + '/kernel/' + self.kernel + '.modules.tar.gz -O ' + self.path + '' + self.kernel + '.modules.tar.gz')
         self.runCmd('tar xfz ' + self.path + '' + self.kernel + '.modules.tar.gz --directory ' + self.path + '/rootimg/lib/modules/')
         self.runCmd('rm -f ' + self.path + '' + self.kernel + '.modules.tar.gz')
         self.logger.info('Injected kernel ' + self.kernel)
@@ -405,7 +414,7 @@ sysfs   /sys     sysfs    defaults       0 0
         channel.close()
     
     def runCmd(self, cmd):
-        cmdLog = logging.getLogger('exec')
+        cmdLog = logging.getLogger('DeployXcat.exec')
         cmdLog.debug(cmd)
         p = Popen(cmd.split(' '), stdout=PIPE, stderr=PIPE)
         std = p.communicate()
@@ -425,24 +434,8 @@ def main():
     if os.getuid() != 0:
         print "Sorry, you need to run with root privileges"
         sys.exit(1)
-        
-    #Setup logging    
-    #logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",datefmt='%a, %d %b %Y %H:%M:%S',filemode='w',filename=log_filename,level=logging.DEBUG)
-    logger = logging.getLogger()
-    logger.setLevel(logging.DEBUG)
-    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-    handler = logging.FileHandler(log_filename)
-    handler.setLevel(logging.DEBUG)
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
-    
-    #print log screen. This will be controlled by a parameter 
-    ch = logging.StreamHandler()
-    ch.setLevel(logging.DEBUG)
-    ch.setFormatter(formatter)
-    logger.addHandler(ch)
 
-    server = deployXcatServer(logger)
+    server = DeployXcatServer()
     server.start()
 
 if __name__ == "__main__":
