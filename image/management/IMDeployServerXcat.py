@@ -238,7 +238,7 @@ class IMDeployServerXcat(object):
                         'osimage.imagetype=linux osimage.provmethod=netboot osimage.osname=linux osimage.osvers=' + self.prefix + self.operatingsystem + '' + self.name + \
                         ' osimage.osarch=' + self.arch + ''
                 self.logger.debug(cmd)
-                status = os.system(cmd)
+#                status = os.system(cmd)
     
                 if (self.machine == "india"):
                     cmd = 'chtab boottarget.bprofile=' + self.prefix + self.operatingsystem + '' + self.name + ' boottarget.kernel=\'xcat/netboot/' + self.prefix + \
@@ -246,12 +246,12 @@ class IMDeployServerXcat(object):
                           '' + self.name + '/' + self.arch + '/compute/initrd-stateless.gz\' boottarget.kcmdline=\'imgurl=http://172.29.202.149/install/netboot/' + self.prefix + \
                           self.operatingsystem + '' + self.name + '/' + self.arch + '/compute/rootimg.gz console=ttyS0,115200n8r\''                          
                     self.logger.debug(cmd)
-                    status = os.system(cmd)
+#                    status = os.system(cmd)
     
                 #Pack image
                 cmd = 'packimage -o ' + self.prefix + self.operatingsystem + '' + self.name + ' -p compute -a ' + self.arch
                 self.logger.debug(cmd)
-                status = self.runCmd(cmd)
+#                status = self.runCmd(cmd)
                 status = 0
                 #    
                 if status != 0:
