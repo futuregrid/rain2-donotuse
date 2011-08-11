@@ -15,7 +15,7 @@ import logging.handlers
 import time
 from IMServerConf import IMServerConf
 
-TEST_MODE=True
+
 
 class IMDeployServerXcat(object):
 
@@ -45,7 +45,8 @@ class IMDeployServerXcat(object):
         self.http_server = self._deployConf.getHttpServer()
         self.log_filename = self._deployConf.getLogXcat()
         self.logLevel = self._deployConf.getLogLevelXcat()
-
+        self.test_mode = self._deployConf.getTestXcat()
+        print self.test_mode
         print "\nReading Configuration file from "+self._deployConf.getConfigFile()+"\n"
         
         self.logger = self.setup_logger()
@@ -241,7 +242,7 @@ class IMDeployServerXcat(object):
                         'osimage.imagetype=linux osimage.provmethod=netboot osimage.osname=linux osimage.osvers=' + self.prefix + self.operatingsystem + '' + self.name + \
                         ' osimage.osarch=' + self.arch + ''
                 self.logger.debug(cmd)
-                if not TEST_MODE:
+                if not self.test_mode:
                     status = os.system(cmd)
     
                 if (self.machine == "india"):
@@ -250,13 +251,13 @@ class IMDeployServerXcat(object):
                           '' + self.name + '/' + self.arch + '/compute/initrd-stateless.gz\' boottarget.kcmdline=\'imgurl=http://172.29.202.149/install/netboot/' + self.prefix + \
                           self.operatingsystem + '' + self.name + '/' + self.arch + '/compute/rootimg.gz console=ttyS0,115200n8r\''                          
                     self.logger.debug(cmd)
-                    if not TEST_MODE:
+                    if not self.test_mode:
                         status = os.system(cmd)
     
                 #Pack image
                 cmd = 'packimage -o ' + self.prefix + self.operatingsystem + '' + self.name + ' -p compute -a ' + self.arch
                 self.logger.debug(cmd)
-                if not TEST_MODE:
+                if not self.test_mode:
                     status = self.runCmd(cmd)
                 else:
                     status = 0

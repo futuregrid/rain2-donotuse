@@ -19,6 +19,7 @@ from subprocess import *
 #from xml.dom.ext import *
 from xml.dom.minidom import Document, parse
 from time import time
+from IMClientConf import IMClientConf
 
 class IMGenerate(object):
     def __init__(self, arch, OS, version, user, auth, software, givenname, desc, logger):
@@ -187,13 +188,17 @@ def main():
 
     (ops, args) = parser.parse_args()
 
+    if (len(sys.argv) == 1):
+        parser.print_help()
+        sys.exit(1)
+
     try:
         user = os.environ['FG_USER']
     except KeyError:
         if type(ops.user) is not NoneType:
             user = ops.user
         else:
-            logger.info("FG_USER is not defined, we are using default user name")
+            logger.debug("FG_USER is not defined, we are using default user name")
             user = "default"
 
     #Turn debugging off

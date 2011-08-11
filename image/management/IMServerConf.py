@@ -66,6 +66,7 @@ class IMServerConf(object):
         self._http_server = ""
         self._log_xcat = ""
         self._logLevel_xcat = ""
+        self._test_xcat = ""
 
         #image server moab
         self._moab_port = 0
@@ -129,6 +130,8 @@ class IMServerConf(object):
         return self._log_xcat
     def getLogLevelXcat(self):
         return self._logLevel_xcat
+    def getTestXcat(self):
+        return self._test_xcat
     
     #image server moab    
     def getMoabPort(self):
@@ -250,7 +253,14 @@ class IMServerConf(object):
             print "Log level " + tempLevel + " not supported. Using the default one " + self._logLevel_default
             tempLevel = self._logLevel_default
         self._logLevel_xcat = eval("logging." + tempLevel)
-
+        try:
+             aux = string.lower(self._config.get(section, 'test_mode', 0))
+             if aux == "true":
+                 self._test_xcat=True
+             else:
+                 self._test_xcat=False
+        except ConfigParser.NoOptionError:
+            self._test_xcat=False
       
 
     ############################################################
