@@ -164,7 +164,7 @@ class IMGenerateServer(object):
                 if out == 0:
                     os.system("rm -f " + self.tempdirserver + "" + status + ".manifest.xml " + self.tempdirserver + "" + status + ".img")
     
-                print tempdirserver + "" + status + ".tgz"
+                print self.tempdirserver + "" + status + ".tgz"
     
             self.logger.info("Umount scratch directory in the VM")
             cmd = "ssh -q " + self.rootId + "@" + vmaddr
