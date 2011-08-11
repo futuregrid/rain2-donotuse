@@ -90,7 +90,7 @@ class IMGenerateServer(object):
     
     def setup_logger(self):
         #Setup logging
-        logger = logging.getLogger("DeployMoab")
+        logger = logging.getLogger("GenerateServer")
         logger.setLevel(self.logLevel)    
         formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
         handler = logging.FileHandler(self.log_filename)
@@ -251,7 +251,7 @@ class IMGenerateServer(object):
                 nics = manifest.getElementsByTagName('NIC')
     
                 for i in range(len(nics)):
-                    if(nics[i].childNodes[0].firstChild.nodeValue.strip() == bridge):
+                    if(nics[i].childNodes[0].firstChild.nodeValue.strip() == self.bridge):
                         vmaddr = nics[i].childNodes[1].firstChild.nodeValue.strip()
     
                 self.logger.debug("IP of the VM " + str(vm[1]) + " is " + str(vmaddr))
