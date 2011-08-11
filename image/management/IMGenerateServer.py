@@ -111,13 +111,13 @@ class IMGenerateServer(object):
         options = ''   
                 
         if self.os == "ubuntu":
-            self.vmfile = self.vmfile_ubuntu
+            vmfile = self.vmfile_ubuntu
         elif self.os == "debian":
-            self.vmfile = self.vmfile_debian
+            vmfile = self.vmfile_debian
         elif self.os == "rhel":
-            self.vmfile = self.vmfile_rhel
+            vmfile = self.vmfile_rhel
         elif self.os == "centos":
-            self.vmfile = self.vmfile_centos
+            vmfile = self.vmfile_centos
     
         ##############
         #GET oneadmin password encoded in SHA1
