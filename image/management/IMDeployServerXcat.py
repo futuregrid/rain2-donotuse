@@ -46,7 +46,7 @@ class IMDeployServerXcat(object):
         self.log_filename = self._deployConf.getLogXcat()
         self.logLevel = self._deployConf.getLogLevelXcat()
         self.test_mode = self._deployConf.getTestXcat()
-        print self.test_mode
+        
         print "\nReading Configuration file from "+self._deployConf.getConfigFile()+"\n"
         
         self.logger = self.setup_logger()

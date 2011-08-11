@@ -57,7 +57,7 @@ class IMServerConf(object):
         self._bcfg2_url = ""
         self._bcfg2_port = 0
         self._log_gen = ""
-        self._log_level_gen=""
+        self._logLevel_gen=""
 
 
         #image server xcat
@@ -117,7 +117,7 @@ class IMServerConf(object):
     def getLogGen(self):
         return self._log_gen
     def getLogLevelGen(self):
-        return self._log_level_gen
+        return self._logLevel_gen
     
     #image server xcat    
     def getXcatPort(self):
