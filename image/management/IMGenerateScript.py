@@ -102,6 +102,7 @@ def main():
         sys.exit(1)
     if type(ops.bcfg2port) is not NoneType:
         bcfg2port=int(ops.bcfg2port)
+    else:
         logging.error("You need to provide the port of the machine where IMBcfg2GroupManagerServer.py is listening")
         sys.exit(1)
     
