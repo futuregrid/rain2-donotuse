@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Class to read Image Management Server configuration
 """

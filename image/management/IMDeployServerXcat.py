@@ -1,9 +1,8 @@
-#/usr/bin/env python
+#!/usr/bin/env python
 """
 Description: xCAT image deployment server WITHOUT the MOAB PART.  Customizes and Deploys images given by IMDeploy onto 
 # xCAT bare metal
 """
-
 __author__ = 'Javier Diaz, Andrew Young'
 __version__ = '0.1'
 

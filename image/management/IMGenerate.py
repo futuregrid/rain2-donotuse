@@ -1,8 +1,7 @@
-#/usr/bin/env python
+#!/usr/bin/env python
 """
 Command line front end for image generator
 """
-
 __author__ = 'Javier Diaz, Andrew Young'
 __version__ = '0.1'
 

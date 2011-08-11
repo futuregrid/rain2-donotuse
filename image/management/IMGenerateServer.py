@@ -1,4 +1,4 @@
-#/usr/bin/env python
+#!/usr/bin/env python
 """
 Server that manage the image generation by provisioning VM and interacting with IMGenerateScript
 """

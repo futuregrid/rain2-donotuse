@@ -1,4 +1,4 @@
-#/usr/bin/env python
+#!/usr/bin/env python
 """
 Class to read Image Management Client configuration
 """

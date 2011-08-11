@@ -1,4 +1,4 @@
-#/usr/bin/env python
+#!/usr/bin/env python
 """
 xCAT image deployment server that DO REGISTER AN IMAGE IN MOAB.
 """
