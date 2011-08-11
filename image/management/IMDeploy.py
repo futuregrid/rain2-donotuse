@@ -1,8 +1,10 @@
-#!/usr/bin/python
-# Description: Command line front end for image generator
-#
-# Author: Andrew J. Younge and Javier Diaz
-#
+#/usr/bin/env python
+"""
+Command line front end for image deployment
+"""
+
+__author__ = 'Javier Diaz, Andrew Young'
+__version__ = '0.1'
 
 from optparse import OptionParser
 import sys

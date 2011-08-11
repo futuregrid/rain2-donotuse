@@ -1,8 +1,10 @@
-#!/usr/bin/python
-# Description: Command line front end for image generator
-#
-# Author: Javier Diaz & Andrew J. Younge & Fugang Wang
-#
+#/usr/bin/env python
+"""
+Command line front end for image generator
+"""
+
+__author__ = 'Javier Diaz, Andrew Young'
+__version__ = '0.1'
 
 from optparse import OptionParser
 from types import *
@@ -19,26 +21,136 @@ from subprocess import *
 from xml.dom.minidom import Document, parse
 from time import time
 
+class IMGenerate(object):
+    def __init__(self, arch, OS, version, user, auth, software, givenname, desc, logger):
+        super(IMGenerate, self).__init__()
+        
+        self.arch=arch
+        self.OS=OS
+        self.version=version
+        self.user=user
+        self.auth=auth
+        self.software=software
+        self.givenname=givenname
+        self.desc=desc
+        self.logger=logger
+        
+        #Load Configuration from file
+        self._genConf = IMClientConf()
+        self._genConf.load_generationConfig()        
+        serveraddr = self._genConf.getServerdir()
+        serverdir = self._genConf.getServeraddr()
+        #this user will be changed to the normal userId 
+        userId = self._genConf.getUser() #user to scp and run VM
+        ####
+
+    def generate(self):
+        #generate string with options in the previous ifs
+        
+        options = "-a " + self.arch + " -o " + self.OS + " -v " + self.version + " -u " + self.user
+    
+    
+        if type(self.givenname) is not NoneType:
+            options += " -n " + self.givenname
+        if type(self.desc) is not NoneType:
+            options += " -e " + self.desc
+        if type(self.auth) is not NoneType:
+            options += " -l " + self.auth
+        if type(self.software) is not NoneType:
+            options += " -s " + self.software
+    
+        cmdexec = " '" + serverdir + "IMGenerateServer.py " + options + " '"
+    
+        print "Generating the image"
+    
+        uid = self._rExec(userId, cmdexec, logger, serveraddr)
+    
+        status = uid[0].strip()#it contains error or filename
+        logger.info("Status: " + str(status))
+        
+        output=None
+        if status == "error":
+            print "The image has not been generated properly. Exit error:" + uid[1]
+            sys.exit(1)
+        else:
+            output=self._retrieveImg(status)
+    
+        #imgIds = status.split("/")
+        #imgId = imgIds[len(imgIds) - 1]
+    
+        return output
+        
+
+    ############################################################
+    # _rExec
+    ############################################################
+    def _rExec(self, userId, cmdexec, logger, serveraddr):
+    
+        #TODO: do we want to use the .format statement from python to make code more readable?
+        #Set up random string    
+        random.seed()
+        randid = str(random.getrandbits(32))
+    
+        cmdssh = "ssh " + userId + "@" + serveraddr
+        tmpFile = "/tmp/" + str(time()) + str(randid)
+        #print tmpFile
+        cmdexec = cmdexec + " > " + tmpFile
+        cmd = cmdssh + cmdexec
+    
+        self.logger.debug(str(cmd))
+    
+        stat = os.system(cmd)
+        if (str(stat) != "0"):
+            #print stat
+            self.logger.debug(str(stat))
+        f = open(tmpFile, "r")
+        outputs = f.readlines()
+        f.close()
+        os.system("rm -f " + tmpFile)
+        #output = ""
+        #for line in outputs:
+        #    output += line.strip()
+        #print outputs
+        return outputs
+    
+    ############################################################
+    # _retrieveImg
+    ############################################################
+    def _retrieveImg(self, dir):
+        imgURI = self.serveraddr + ":" + dir
+        imgIds = imgURI.split("/")
+        imgId = imgIds[len(imgIds) - 1]
+    
+        cmdscp = "scp " + self.userId + "@" + imgURI + " ."
+        output = ""
+        try:
+            print "Retrieving the image"
+            self.logger.debug(cmdscp)
+            stat = os.system(cmdscp)
+            stat = 0
+            if (stat == 0):
+                output = "The image " + imgId + " is located in " + os.popen('pwd', 'r').read().strip() + "/" + imgId
+                cmdrm = " rm -f " + dir
+                print "Post processing"
+                self.logger.debug(cmdrm)
+                self._rExec(cmdrm)
+            else:
+                print "Error retrieving the image. Exit status " + str(stat)
+                #remove the temporal file
+        except os.error:
+            print "Error, The image cannot be retieved" + str(sys.exc_info())
+            output = None
+    
+        return output
 
 def main():
-
-    ##configuration
-    serveraddr = "fg-gravel6.futuregrid.iu.edu"
-    serverdir = "/srv/cloud/one/fg-management/"
-    ####
-
-    options = ''
+    
+    
 
     #Set up logging
-    log_filename = 'fg-image-generate-client.log'
-    #logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",datefmt='%a, %d %b %Y %H:%M:%S',filemode='w',filename=log_filename,level=logging.DEBUG)
-    logger = logging.getLogger()
+    logger = logging.getLogger('GenerateClient')
     logger.setLevel(logging.DEBUG)
-    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-    handler = logging.FileHandler(log_filename)
-    handler.setLevel(logging.DEBUG)
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
+    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")    
     ch = logging.StreamHandler()
     ch.setLevel(logging.DEBUG)
     ch.setFormatter(formatter)
@@ -49,11 +161,11 @@ def main():
     #Default params
     base_os = ""
     spacer = "-"
-    latest_ubuntu = "lucid"
-    latest_debian = "lenny"
-    latest_rhel = "5.5"
-    latest_centos = "5.6"
-    latest_fedora = "13"
+    default_ubuntu = "lucid"
+    default_debian = "lenny"
+    default_rhel = "5.5"
+    default_centos = "5.6"
+    default_fedora = "13"
     #kernel = "2.6.27.21-0.1-xen"
 
     #ubuntu-distro = ['lucid', 'karmic', 'jaunty']
@@ -61,8 +173,7 @@ def main():
     #rhel-distro = ['5.5', '5.4', '4.8']
     #fedora-distro = ['14','12']
 
-    logging.info('Image generator client...')
-
+    print 'Image generator client...'
 
     #help is auto-generated
     parser.add_option("-o", "--os", dest = "OS", help = "specify destination Operating System")
@@ -77,24 +188,18 @@ def main():
 
     (ops, args) = parser.parse_args()
 
-
-    #this user will be changed to the normal userId 
-    userId = 'oneadmin'
-
     try:
         user = os.environ['FG_USER']
     except KeyError:
         if type(ops.user) is not NoneType:
             user = ops.user
         else:
-            logging.info("FG_USER is not defined, we are using default user name")
+            logger.info("FG_USER is not defined, we are using default user name")
             user = "default"
-
 
     #Turn debugging off
     if not ops.debug:
-        logging.basicConfig(level = logging.INFO)
-        #ch.setLevel(logging.INFO)
+        ch.setLevel(logging.INFO)
 
     #TODO: authenticate user via promting for CERT or password to auth against LDAP db
 
@@ -110,7 +215,7 @@ def main():
             parser.error("Incorrect architecture type specified (i386|x86_64)")
             sys.exit(1)
 
-    logging.debug('Selected Architecture: ' + arch)
+    logger.debug('Selected Architecture: ' + arch)
 
 
     #TODO: Authorization mechanism TBD
@@ -124,132 +229,43 @@ def main():
     if ops.OS == "Ubuntu" or ops.OS == "ubuntu":
         OS = "ubuntu"
         if type(ops.version) is NoneType:
-            version = latest_ubuntu
+            version = default_ubuntu
         elif ops.version == "10.04" or ops.version == "lucid":
             version = "lucid"
         elif ops.version == "9.10" or ops.version == "karmic":
             version = "karmic"
     elif ops.OS == "Debian" or ops.OS == "debian":
         OS = "debian"
-        version = latest_debian
+        version = default_debian
     elif ops.OS == "Redhat" or ops.OS == "redhat" or ops.OS == "rhel":
         OS = "rhel"
-        version = latest_rhel
+        version = default_rhel
     elif ops.OS == "CentOS" or ops.OS == "CentOS" or ops.OS == "centos":
         OS = "centos"
         if type(ops.version) is NoneType:
-            version = latest_centos
+            version = default_centos
         #later control supported versions
         else:
-            version = latest_centos
+            version = default_centos
     elif ops.OS == "Fedora" or ops.OS == "fedora":
         OS = "fedora"
-        version = latest_fedora
+        version = default_fedora
     else:
         parser.error("Incorrect OS type specified")
         sys.exit(1)
 
 
 
-    #generate string with options in the previous ifs
-
-    options += "-a " + ops.arch + " -o " + ops.OS + " -v " + version + " -u " + user
-
-
-    if type(ops.givenname) is not NoneType:
-        options += " -n " + ops.givenname
-    if type(ops.desc) is not NoneType:
-        options += " -e " + ops.desc
-    if type(ops.auth) is not NoneType:
-        options += " -l " + ops.auth
-    if type(ops.software) is not NoneType:
-        options += " -s " + ops.software
-
-    cmdexec = " '" + serverdir + "IMGenerateServer.py " + options + " '"
-
-    logging.info("Generating the image")
-
-    uid = _rExec(userId, cmdexec, logging, serveraddr)
-
-    status = uid[0].strip()#it contains error or filename
-
-    logging.info("Status: " + str(status))
-
-    if status == "error":
-        print "The image has not been generated properly. Exit error:" + uid[1]
-    else:
-        _retrieveImg(userId, status, logging, serveraddr)
-
-    imgIds = status.split("/")
-    imgId = imgIds[len(imgIds) - 1]
-    logging.info('Generated image and the manifest are packed in the file ' + imgId + '.  Please be aware that this FutureGrid image is packaged '
-                  'without a kernel and fstab and is not built for any deployment type.  To deploy the new image, use the IMDeploy command.')
-
+    imgen = IMGenerate(arch, OS, version, user, ops.auth, ops.software, ops.givenname, ops.desc, logger)
+    output=imgen.generate()
+    
+    if output != None:
+        
+        print 'Generated image and the manifest are packed in the file ' + status + '.  Please be aware that this FutureGrid ' +\
+                'image is packaged without a kernel and fstab and is not built for any deployment type.  To deploy the new ' +\
+                'image, use the IMDeploy command.'
     #server return addr of the img and metafeile compressed in a tgz or None
-    #get tgz 
-    #delete remote files
 
-############################################################
-# _rExec
-############################################################
-def _rExec(userId, cmdexec, logging, serveraddr):
-
-    #TODO: do we want to use the .format statement from python to make code more readable?
-    #Set up random string    
-    random.seed()
-    randid = str(random.getrandbits(32))
-
-    cmdssh = "ssh " + userId + "@" + serveraddr
-    tmpFile = "/tmp/" + str(time()) + str(randid)
-    #print tmpFile
-    cmdexec = cmdexec + " > " + tmpFile
-    cmd = cmdssh + cmdexec
-
-    logging.info(str(cmd))
-
-    stat = os.system(cmd)
-    if (str(stat) != "0"):
-        #print stat
-        logging.info(str(stat))
-    f = open(tmpFile, "r")
-    outputs = f.readlines()
-    f.close()
-    os.system("rm -f " + tmpFile)
-    #output = ""
-    #for line in outputs:
-    #    output += line.strip()
-    #print outputs
-    return outputs
-
-############################################################
-# _retrieveImg
-############################################################
-def _retrieveImg(userId, dir, logging, serveraddr):
-    imgURI = serveraddr + ":" + dir
-    imgIds = imgURI.split("/")
-    imgId = imgIds[len(imgIds) - 1]
-
-    cmdscp = "scp " + userId + "@" + imgURI + " ."
-    output = ""
-    try:
-        logging.info("Retrieving the image")
-        logging.info(cmdscp)
-        stat = os.system(cmdscp)
-        stat = 0
-        if (stat == 0):
-            output = "The image " + imgId + " is located in " + os.popen('pwd', 'r').read().strip() + "/" + imgId
-            cmdrm = " rm -f " + dir
-            logging.info("Post processing")
-            logging.info(cmdrm)
-            _rExec(userId, cmdrm, logging, serveraddr)
-        else:
-            logging.error("Error retrieving the image. Exit status " + str(stat))
-            #remove the temporal file
-    except os.error:
-        logging.error("Error, The image cannot be retieved" + str(sys.exc_info()))
-        output = None
-
-    return output
 
 if __name__ == "__main__":
     main()

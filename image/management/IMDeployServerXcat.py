@@ -1,9 +1,11 @@
-#!/usr/bin/python
-# Description: xCAT image deployment server WITHOUT the MOAB PART.  Deploys images given by fg-image-deploy onto xCAT bare metal
-#
-# Author: Andrew J. Younge, Javier Diaz
-#
+#/usr/bin/env python
+"""
+Description: xCAT image deployment server WITHOUT the MOAB PART.  Customizes and Deploys images given by IMDeploy onto 
+# xCAT bare metal
+"""
 
+__author__ = 'Javier Diaz, Andrew Young'
+__version__ = '0.1'
 
 import socket
 import sys

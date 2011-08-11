@@ -1,6 +1,10 @@
+#/usr/bin/env python
 """
 Class to read Image Management Client configuration
 """
+
+__author__ = 'Javier Diaz'
+__version__ = '0.1'
 
 import os
 import ConfigParser
@@ -18,8 +22,7 @@ class IMClientConf(object):
     def __init__(self):
         super(IMClientConf, self).__init__()
 
-        ###################################
-        #These should be sent from the Shell. We leave it for now to have an independent tool.   
+ 
         self._fgpath = ""
         try:
             self._fgpath = os.environ['FG_PATH']
@@ -41,11 +44,11 @@ class IMClientConf(object):
                 if not os.path.isfile(self._configfile):   
                     print "ERROR: configuration file not found"
                     sys.exit(1)
-        ####################################
 
         #image generation
         self._serverdir = ""
         self._serveraddr = ""
+        self._user=""
 
         #image deploy
         self._xcat_port = 0
@@ -69,37 +72,24 @@ class IMClientConf(object):
         return self._configfile
     
     #Image Generation
-    ############################################################
-    # getServerdir
-    ############################################################
     def getServerdir(self):
         return self._serverdir
-    ############################################################
-    # getServeraddr
-    ############################################################
     def getServeraddr(self):
         return self._serveraddr
+    def getUser(self):
+        return self._user
 
     #Image deployment
-    ############################################################
-    # getXcatPort
-    ############################################################
     def getXcatPort(self):
         return self._xcat_port
-    ############################################################
-    # getMoabPort
-    ############################################################
     def getMoabPort(self):
         return self._moab_port
-    ############################################################
-    # getHttpServer
-    ############################################################
     def getHttpServer(self):
-        return self._http_server
-            
+        return self._http_server            
     def getTempDir(self):
         return self._tempdir
 
+    #Machines information
     def getSharedDir(self):
         return self._shareddir
     def getLoginMachine(self):
@@ -114,26 +104,26 @@ class IMClientConf(object):
     ############################################################
     def load_generationConfig(self):        
         
-        #Server dir where the software is installed
+        section="Generation"
         try:
-            self._serverdir = os.path.expanduser(self._config.get('Generation', 'serverdir', 0))
+            self._serverdir = os.path.expanduser(self._config.get(section, 'serverdir', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No serverdir option found in section Generation"
+            print "Error: No serverdir option found in section "+section
             sys.exit(1)
         except ConfigParser.NoSectionError:
             print "Error: no section "+section+" found in the "+self._configfile+" config file"
             sys.exit(1)
         #Server address
         try:
-            self._serveraddr = self._config.get('Generation', 'serveraddr', 0)
+            self._serveraddr = self._config.get(section, 'serveraddr', 0)
         except ConfigParser.NoOptionError:
-            print "Error: No serveraddr option found in section Generation"
+            print "Error: No serveraddr option found in section "+section
             sys.exit(1)
         
         try:
-            self._logfile_gen = os.path.expanduser(self._config.get('Generation', 'log', 0))
+            self._user = os.path.expanduser(self._config.get(section, 'user', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No log option found in section Generation"
+            print "Error: No user option found in section "+section
             sys.exit(1)
       
 
@@ -141,27 +131,28 @@ class IMClientConf(object):
     # load_deployConfig
     ############################################################
     def load_deployConfig(self):
-                
+        
+        section = "Deploy"        
         try:
-            self._xcat_port = int(self._config.get('Deploy', 'xcat_port', 0))
+            self._xcat_port = int(self._config.get(section, 'xcat_port', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No xcat_port option found in section Deploy"
+            print "Error: No xcat_port option found in section "+section
             sys.exit(1)  
         except ConfigParser.NoSectionError:
             print "Error: no section "+section+" found in the "+self._configfile+" config file"
             sys.exit(1)      
         try:
-            self._moab_port = int(self._config.get('Deploy', 'moab_port', 0))
+            self._moab_port = int(self._config.get(section, 'moab_port', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No moab_port option found in section Deploy"
+            print "Error: No moab_port option found in section "+section
             sys.exit(1)         
         try:
-            self._http_server = self._config.get('Deploy', 'http_server', 0)
+            self._http_server = self._config.get(section, 'http_server', 0)
         except ConfigParser.NoOptionError:
-            print "Error: No http_server option found in section Deploy"
+            print "Error: No http_server option found in section "+section
             sys.exit(1)
         try:
-            self._tempdir = os.path.expanduser(self._config.get('Deploy', 'tempdir', 0))
+            self._tempdir = os.path.expanduser(self._config.get(section, 'tempdir', 0))
         except ConfigParser.NoOptionError:
             self._tempdir = "./" 
 
@@ -169,7 +160,7 @@ class IMClientConf(object):
     # load_machineConfig
     ############################################################
     def load_machineConfig(self, machine):
-                
+        
         try:
             self._shareddir = os.path.expanduser(self._config.get(machine, 'shareddir', 0))
         except ConfigParser.NoOptionError:

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#/usr/bin/env python
 # Description: Command line front end for image generator
 #
 # Author: Andrew J. Younge

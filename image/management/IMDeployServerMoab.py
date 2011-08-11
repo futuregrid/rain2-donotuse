@@ -1,8 +1,10 @@
-#!/usr/bin/python2.7
-# Description: xCAT image deployment server that DO REGISTER AN IMAGE IN MOAB. 
-#
-# Author: Andrew J. Younge, Javier Diaz
-#
+#/usr/bin/env python
+"""
+xCAT image deployment server that DO REGISTER AN IMAGE IN MOAB.
+"""
+
+__author__ = 'Javier Diaz, Andrew Young'
+__version__ = '0.1'
 
 
 import socket

@@ -1,8 +1,9 @@
-#!/usr/bin/python
-# Description: Command line front end for image generator
-#
-# Author: Andrew J. Younge & Javier Diaz
-#
+#/usr/bin/env python
+"""
+It generates the images for different OS
+"""
+__author__ = 'Javier Diaz, Andrew Young'
+__version__ = '0.1'
 
 from optparse import OptionParser
 from types import *
@@ -19,35 +20,22 @@ import time
 #from xml.dom.ext import *
 from xml.dom.minidom import Document, parse
 
-#This enable some extra config for the mini-cluster
+#This enable some extra config for the mini-cluster.
+#it will be removed as soon as we code the ubuntu part in deployserverxcat
 TEST_MODE = True
-
-#global vars
-base_url = "http://fg-gravel3.futuregrid.iu.edu/"
-bcfg2_url = 'fg-gravel3.futuregrid.iu.edu'
-bcfg2_port = 45678
 
 
 def main():
     global tempdir
     global namedir #this == name is to clean up when something fails
-    global logger
-
+    global http_server
+    global bcfg2_url
+    global bcfg2_port
     #Set up logging
     log_filename = 'fg-image-generate.log'
-    logging.basicConfig(format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s", datefmt = '%a, %d %b %Y %H:%M:%S', filemode = 'w', filename = log_filename, level = logging.DEBUG)
-    #logger = logging.getLogger()
-    #logger.setLevel(logging.DEBUG)
-    #formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-    #handler = logging.FileHandler(log_filename)
-    #handler.setLevel(logging.DEBUG)
-    #handler.setFormatter(formatter)
-    #logger.addHandler(handler)
-
-    #ch = logging.StreamHandler()
-    #ch.setLevel(logging.DEBUG)
-    #ch.setFormatter(formatter)
-    #logger.addHandler(ch)
+    logging.basicConfig(format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s", datefmt = '%a, %d %b %Y %H:%M:%S', 
+                        filemode = 'w', filename = log_filename, level = logging.DEBUG)
+    
 
     #Set up random string    
     random.seed()
@@ -76,7 +64,7 @@ def main():
 
     #Check if we have root privs 
     if os.getuid() != 0:
-        print "Sorry, you need to run with root privileges"
+        logging.error("Sorry, you need to run with root privileges")
         sys.exit(1)
 
     #help is auto-generated
@@ -90,6 +78,9 @@ def main():
     parser.add_option("-n", "--name", dest = "givenname", help = "Desired recognizable name of the image")
     parser.add_option("-e", "--description", dest = "desc", help = "Short description of the image and its purpose")
     parser.add_option("-t", "--tempdir", dest = "tempdir", help = "directory to be use in to generate the image")
+    parser.add_option("-c", "--httpserver", dest = "httpserver", help = "httpserver to download config files")
+    parser.add_option("-b", "--bcfg2url", dest = "bcfg2url", help = "address where our IMBcfg2GroupManagerServer is listening")
+    parser.add_option("-p", "--bcfg2port", dest = "bcfg2port", help = "port where our IMBcfg2GroupManagerServer is listening")
 
     (ops, args) = parser.parse_args()
 
@@ -99,8 +90,21 @@ def main():
         logging.basicConfig(level = logging.INFO)
         #ch.setLevel(logging.INFO)
 
-
-
+    if type(ops.httpserver) is not NoneType:
+        http_server=ops.httpserver
+    else:
+        logging.error("You need to provide the http server that contains files needed to create images")
+        sys.exit(1)
+    if type(ops.bcfg2url) is not NoneType:
+        bcfg2url=ops.bcfg2url
+    else:
+        logging.error("You need to provide the address of the machine where IMBcfg2GroupManagerServer.py is listening")
+        sys.exit(1)
+    if type(ops.bcfg2port) is not NoneType:
+        bcfg2port=int(ops.bcfg2port)
+        logging.error("You need to provide the port of the machine where IMBcfg2GroupManagerServer.py is listening")
+        sys.exit(1)
+    
     if type(ops.tempdir) is not NoneType:
         tempdir = ops.tempdir
         if(tempdir[len(tempdir) - 1:] != "/"):
@@ -114,14 +118,6 @@ def main():
         user = ops.user
     else:
         user = "default"
-
-    #if type(os.getenv('FG_USER')) is not NoneType:
-    #    user = os.getenv('FG_USER')
-    #elif type(ops.user) is not NoneType:
-    #    user = ops.user
-    #else:
-        #user = "default"
-    #TODO: authenticate user via promting for CERT or password to auth against LDAP db
 
     logging.debug('FG User: ' + user)
 
@@ -216,7 +212,7 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
     if not base_os:
         ubuntuLog.info('Retrieving Image: ubuntu-' + version + '-' + arch + '-base.img')
         #Download base image from repository
-        runCmd('wget ' + base_url + 'base_os/ubuntu-' + version + '-' + arch + '-base.img -O ' + tempdir + ' ' + name + '.img')
+        runCmd('wget ' + http_server + 'base_os/ubuntu-' + version + '-' + arch + '-base.img -O ' + tempdir + ' ' + name + '.img')
     elif base_os:
         ubuntuLog.info('Generation Image: centos-' + version + '-' + arch + '-base.img')
 
@@ -260,7 +256,7 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
     #TODO: Set mirros to IU/FGt
     ubuntuLog.info('Configuring repositories')
 
-    runCmd('wget ' + base_url + '/conf/ubuntu/' + version + '-sources.list -O ' + tempdir + '' + name + '/etc/apt/sources.list')
+    runCmd('wget ' + http_server + '/conf/ubuntu/' + version + '-sources.list -O ' + tempdir + '' + name + '/etc/apt/sources.list')
     runCmd('chroot ' + tempdir + '' + name + ' apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 98932BEC')
     runCmd('chroot ' + tempdir + '' + name + ' apt-get update')
 
@@ -293,16 +289,16 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
         #env DEBIAN_FRONTEND="noninteractive" chroot /tmp/javi3789716749 /bin/bash -c 'apt-get --force-yes -y install ldap-utils libpam-ldap libpam-ldap libnss-ldap nss-updatedb libnss-db'
 
         ubuntuLog.info('Configuring LDAP access')
-        runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/nsswitch.conf -O ' + tempdir + '' + name + '/etc/nsswitch.conf')
+        runCmd('wget '+ http_server +'/ldap/nsswitch.conf -O ' + tempdir + '' + name + '/etc/nsswitch.conf')
         runCmd('mkdir -p ' + tempdir + '' + name + '/etc/ldap/cacerts ' + tempdir + '' + name + '/N/u')
-        runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/cacerts/12d3b66a.0 -O ' + tempdir + '' + name + '/etc/ldap/cacerts/12d3b66a.0')
-        runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/cacerts/cacert.pem -O ' + tempdir + '' + name + '/etc/ldap/cacerts/cacert.pem')
-        runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/ldap.conf -O ' + tempdir + '' + name + '/etc/ldap.conf')
-        runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/openldap/ldap.conf -O ' + tempdir + '' + name + '/etc/ldap/ldap.conf')
+        runCmd('wget '+ http_server +'/ldap/cacerts/12d3b66a.0 -O ' + tempdir + '' + name + '/etc/ldap/cacerts/12d3b66a.0')
+        runCmd('wget '+ http_server +'/ldap/cacerts/cacert.pem -O ' + tempdir + '' + name + '/etc/ldap/cacerts/cacert.pem')
+        runCmd('wget '+ http_server +'/ldap/ldap.conf -O ' + tempdir + '' + name + '/etc/ldap.conf')
+        runCmd('wget '+ http_server +'/ldap/openldap/ldap.conf -O ' + tempdir + '' + name + '/etc/ldap/ldap.conf')
         os.system('sed -i \'s/openldap/ldap/g\' ' + tempdir + '' + name + '/etc/ldap/ldap.conf')
         os.system('sed -i \'s/openldap/ldap/g\' ' + tempdir + '' + name + '/etc/ldap.conf')
 
-        runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/sshd_ubuntu -O ' + tempdir + '' + name + '/usr/sbin/sshd')
+        runCmd('wget '+ http_server +'/ldap/sshd_ubuntu -O ' + tempdir + '' + name + '/usr/sbin/sshd')
         os.system('echo "UseLPK yes" >> ' + tempdir + '' + name + '/etc/ssh/sshd_config')
         os.system('echo "LpkLdapConf /etc/ldap.conf" >> ' + tempdir + '' + name + '/etc/ssh/sshd_config')
 
@@ -311,11 +307,11 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
     os.system('echo localhost > ' + tempdir + '' + name + '/etc/hostname')
     runCmd('hostname localhost')
 
-
+    #this if will be removed, since this is going to be done in deployserverxcat
     if(TEST_MODE):
         #this eth1 is just for miniclusetr. comment this and uncomment the next one for india
-        runCmd('wget ' + base_url + '/conf/ubuntu/interfaces_minicluster_tc2 -O ' + tempdir + '' + name + '/etc/network/interfaces')
-        #runCmd('wget ' + base_url + '/conf/ubuntu/interfaces_minicluster_tc1 -O '+tempdir+''+name + '/etc/network/interfaces')
+        runCmd('wget ' + http_server + '/conf/ubuntu/interfaces_minicluster_tc2 -O ' + tempdir + '' + name + '/etc/network/interfaces')
+        #runCmd('wget ' + http_server + '/conf/ubuntu/interfaces_minicluster_tc1 -O '+tempdir+''+name + '/etc/network/interfaces')
         os.system('echo "172.29.200.1 t1 tm1" >> ' + tempdir + '' + name + '/etc/hosts')
         os.system('echo "172.29.200.3 tc1" >> ' + tempdir + '' + name + '/etc/hosts')
         os.system('echo "149.165.145.35 tc1r.tidp.iu.futuregrid.org tc1r" >> ' + tempdir + '' + name + '/etc/hosts')
@@ -330,7 +326,7 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
         os.system('chmod 600 ' + tempdir + '' + name + '/root/.ssh/authorized_keys')
 
     else:
-        runCmd('wget ' + base_url + '/conf/ubuntu/interfaces -O ' + tempdir + '' + name + '/etc/network/interfaces')
+        runCmd('wget ' + http_server + '/conf/ubuntu/interfaces -O ' + tempdir + '' + name + '/etc/network/interfaces')
 
     ubuntuLog.info('Injected networking configuration')
 
@@ -351,9 +347,9 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
 
     #Configure BCFG2 client
     ubuntuLog.info('Configuring BCFG2')
-    runCmd('wget ' + base_url + '/bcfg2/bcfg2.conf -O '+tempdir+''+name + '/etc/bcfg2.conf')
-    runCmd('wget ' + base_url + '/bcfg2/bcfg2.ca -O '+tempdir+''+name + '/etc/bcfg2.ca')
-    runCmd('wget ' + base_url + '/bcfg2/default -O '+tempdir+''+name + '/etc/default/bcfg2')
+    runCmd('wget ' + http_server + '/bcfg2/bcfg2.conf -O '+tempdir+''+name + '/etc/bcfg2.conf')
+    runCmd('wget ' + http_server + '/bcfg2/bcfg2.ca -O '+tempdir+''+name + '/etc/bcfg2.ca')
+    runCmd('wget ' + http_server + '/bcfg2/default -O '+tempdir+''+name + '/etc/default/bcfg2')
     ubuntuLog.info('Injected FG deployment files')
 
     #Inject group info for Probes
@@ -407,7 +403,7 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
     if not base_os:
         centosLog.info('Retrieving Image: centos-' + version + '-' + arch + '-base.img')
         #Download base image from repository
-        runCmd('wget ' + base_url + 'base_os/centos-' + version + '-' + arch + '-base.img -O ' + tempdir + '' + name + '.img')
+        runCmd('wget ' + http_server + 'base_os/centos-' + version + '-' + arch + '-base.img -O ' + tempdir + '' + name + '.img')
     elif base_os:
         centosLog.info('Generation Image: centos-' + version + '-' + arch + '-base.img')
 
@@ -464,15 +460,15 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
         runCmd('chroot ' + tempdir + '' + name + ' yum -y install openldap-clients nss_ldap')
 
         centosLog.info('Configuring LDAP access')
-        runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/nsswitch.conf -O ' + tempdir + '' + name + '/etc/nsswitch.conf')
+        runCmd('wget '+ http_server +'/ldap/nsswitch.conf -O ' + tempdir + '' + name + '/etc/nsswitch.conf')
         runCmd('mkdir -p ' + tempdir + '' + name + '/etc/openldap/cacerts ' + tempdir + '' + name + '/N/u')
-        runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/cacerts/12d3b66a.0 -O ' + tempdir + '' + name + '/etc/openldap/cacerts/12d3b66a.0')
-        runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/cacerts/cacert.pem -O ' + tempdir + '' + name + '/etc/openldap/cacerts/cacert.pem')
-        runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/ldap.conf -O ' + tempdir + '' + name + '/etc/ldap.conf')
-        runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/openldap/ldap.conf -O ' + tempdir + '' + name + '/etc/openldap/ldap.conf')
+        runCmd('wget '+ http_server +'/ldap/cacerts/12d3b66a.0 -O ' + tempdir + '' + name + '/etc/openldap/cacerts/12d3b66a.0')
+        runCmd('wget '+ http_server +'/ldap/cacerts/cacert.pem -O ' + tempdir + '' + name + '/etc/openldap/cacerts/cacert.pem')
+        runCmd('wget '+ http_server +'/ldap/ldap.conf -O ' + tempdir + '' + name + '/etc/ldap.conf')
+        runCmd('wget '+ http_server +'/ldap/openldap/ldap.conf -O ' + tempdir + '' + name + '/etc/openldap/ldap.conf')
         os.system('sed -i \'s/enforcing/disabled/g\' ' + tempdir + '' + name + '/etc/selinux/config')
 
-        runCmd('wget fg-gravel3.futuregrid.iu.edu/ldap/sshd_centos -O ' + tempdir + '' + name + '/usr/sbin/sshd')
+        runCmd('wget '+ http_server +'/ldap/sshd_centos -O ' + tempdir + '' + name + '/usr/sbin/sshd')
         os.system('echo "UseLPK yes" >> ' + tempdir + '' + name + '/etc/ssh/sshd_config')
         os.system('echo "LpkLdapConf /etc/ldap.conf" >> ' + tempdir + '' + name + '/etc/ssh/sshd_config')
 
@@ -483,7 +479,7 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
 
     #Setup networking
 
-    runCmd('wget ' + base_url + '/conf/centos/ifcfg-eth0 -O ' + tempdir + '' + name + '/etc/sysconfig/network-scripts/ifcfg-eth0')
+    runCmd('wget ' + http_server + '/conf/centos/ifcfg-eth0 -O ' + tempdir + '' + name + '/etc/sysconfig/network-scripts/ifcfg-eth0')
 
     centosLog.info('Injected generic networking configuration')
 
@@ -506,9 +502,9 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
     
     #Configure BCFG2 client
     centosLog.info('Configuring BCFG2')
-    runCmd('wget ' + base_url + '/bcfg2/bcfg2.conf -O '+tempdir+''+name + '/etc/bcfg2.conf')
-    runCmd('wget ' + base_url + '/bcfg2/bcfg2.ca -O '+tempdir+''+name + '/etc/bcfg2.ca')
-    runCmd('wget ' + base_url + '/bcfg2/default -O '+tempdir+''+name + '/etc/default/bcfg2')
+    runCmd('wget ' + http_server + '/bcfg2/bcfg2.conf -O '+tempdir+''+name + '/etc/bcfg2.conf')
+    runCmd('wget ' + http_server + '/bcfg2/bcfg2.ca -O '+tempdir+''+name + '/etc/bcfg2.ca')
+    runCmd('wget ' + http_server + '/bcfg2/default -O '+tempdir+''+name + '/etc/default/bcfg2')
     centosLog.info('Injected FG deployment files')
 
     #Inject group info for Probes
