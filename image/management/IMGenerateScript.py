@@ -96,12 +96,12 @@ def main():
         logging.error("You need to provide the http server that contains files needed to create images")
         sys.exit(1)
     if type(ops.bcfg2url) is not NoneType:
-        bcfg2url=ops.bcfg2url
+        bcfg2_url=ops.bcfg2url
     else:
         logging.error("You need to provide the address of the machine where IMBcfg2GroupManagerServer.py is listening")
         sys.exit(1)
     if type(ops.bcfg2port) is not NoneType:
-        bcfg2port=int(ops.bcfg2port)
+        bcfg2_port=int(ops.bcfg2port)
     else:
         logging.error("You need to provide the port of the machine where IMBcfg2GroupManagerServer.py is listening")
         sys.exit(1)
