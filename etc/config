@@ -57,12 +57,14 @@ log_level=debug
 #  serveraddr: Address of the server machine
 #
 #  serverdir: Path where the server software is installed
+#
+#  user: user that will be used to scp and execute server commands
 #******************************************************************************
 
 [Generation]
 serveraddr = fg-gravel6.futuregrid.iu.edu
 serverdir = /srv/cloud/one/fg-management/
-
+user = oneadmin
 #******************************************************************************
 # Image Deploy Client Configuration
 #------------------------------------------------------------------------------
@@ -106,10 +108,12 @@ xcatmachine=localhost
 #xcatmachine=tm1r.tidp.iu.futuregrid.org
 
 [india]
-shareddir=/share/project/FG82/
+shareddir=/tmp/ 
+#/share/project/FG82/
 loginmachine=localhost
 moabmachine=localhost
-xcatmachine=im1
+xcatmachine=localhost 
+#im1
 #loginmachine=india.futuregrid.org
 #moabmachine=india.futuregrid.org
 #xcatmachine=im1r.idp.iu.futuregrid.org

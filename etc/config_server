@@ -6,6 +6,58 @@
 #
 #******************************************************************************
 
+#******************************************************************************
+# Image Generate Server configuration
+#------------------------------------------------------------------------------
+#  vmfile_*: Is the OpenNebula template to boot the proper VM where the image
+#  will be generated. Currently four VM are considered
+#
+#  xmlrpcserver: Server address to interact with OpenNebula
+# 
+#  bridge: To identify the IP that will be used to interact with the VM
+#
+#  serverdir: path where to locate IMGenerateScript.py. If not provided, it 
+#  will be used the same directory where IMGenerateServer.py is. Optional 
+#  parameter
+#
+#  addrnfs: address of the machine that shares the directory tempserver
+# 
+#  tempdirserver: name of the shared dir in the server. This directory will be
+#  used as scratch partition for the VM. In this way, the VM disks can be small
+#
+#  tempdir: name of the shared dir in the VM. This is where the previous dir is
+#  mounted in the VM.
+#
+#  http_server: Address of the http server that keeps config files 
+#  for the images. This information is for IMGenerateScript.py
+#
+#  bcfg2_url: Address of the machine where our IMBcfg2GroupManagerServer.py
+#  is running. This information is for IMGenerateScript.py
+#
+#  bcfg2_port: Port where the previous service is listening. This information
+#  is for IMGenerateScript.py
+#
+#  log: file where logs are stored. You should include
+#  the full path, otherwise it will use the current directory. 
+#
+#  log_level: debug level. It can be debug, error, info, warning
+#******************************************************************************
+[GenerateServer]
+vmfile_centos = /srv/cloud/one/share/examples/centos_context.one
+vmfile_rhel = 
+vmfile_ubuntu = /srv/cloud/one/share/examples/ubuntu_context.one
+vmfile_debian = 
+xmlrpcserver = 'http://localhost:2633/RPC2'
+bridge = "br1"
+serverdir = "/srv/cloud/one/fg-management"
+addrnfs = "192.168.1.6"
+tempdirserver = "/srv/scratch/"
+tempdir = "/media/" 
+http_server = "http://fg-gravel3.futuregrid.iu.edu/"
+bcfg2_url = 'fg-gravel3.futuregrid.iu.edu'
+bcfg2_port = 45678
+log = 'fg-image-generate-server.log'
+log_level=debug
 
 #******************************************************************************
 # Image Server xCAT configuration
