@@ -44,7 +44,7 @@ def main():
 class IMGenerateServer(object):
 
     def __init__(self, os, version, arch, auth, software, user, givenname, desc):
-        super(IMGenerate, self).__init__()
+        super(IMGenerateServer, self).__init__()
 
         #*********************
         #Static Configuration.

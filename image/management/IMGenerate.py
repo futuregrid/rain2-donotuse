@@ -38,10 +38,10 @@ class IMGenerate(object):
         #Load Configuration from file
         self._genConf = IMClientConf()
         self._genConf.load_generationConfig()        
-        serveraddr = self._genConf.getServerdir()
-        serverdir = self._genConf.getServeraddr()
+        self.serveraddr = self._genConf.getServeraddr()
+        self.serverdir = self._genConf.getServerdir()
         #this user will be changed to the normal userId 
-        userId = self._genConf.getUser() #user to scp and run VM
+        self.userId = self._genConf.getUser() #user to scp and run VM
         ####
 
     def generate(self):
@@ -59,13 +59,13 @@ class IMGenerate(object):
         if type(self.software) is not NoneType:
             options += " -s " + self.software
     
-        cmdexec = " '" + serverdir + "IMGenerateServer.py " + options + " '"
+        cmdexec = " '" + self.serverdir + "IMGenerateServer.py " + options + " '"
     
         print "Generating the image"
     
-        uid = self._rExec(userId, cmdexec, logger, serveraddr)
+        uid = self._rExec(cmdexec)
     
-        status = uid[0].strip()#it contains error or filename
+        status = uid[0].strip() #it contains error or filename
         logger.info("Status: " + str(status))
         
         output=None
@@ -84,14 +84,14 @@ class IMGenerate(object):
     ############################################################
     # _rExec
     ############################################################
-    def _rExec(self, userId, cmdexec, logger, serveraddr):
+    def _rExec(self, cmdexec):
     
         #TODO: do we want to use the .format statement from python to make code more readable?
         #Set up random string    
         random.seed()
         randid = str(random.getrandbits(32))
-    
-        cmdssh = "ssh " + userId + "@" + serveraddr
+        
+        cmdssh = "ssh " + self.userId + "@" + self.serveraddr
         tmpFile = "/tmp/" + str(time()) + str(randid)
         #print tmpFile
         cmdexec = cmdexec + " > " + tmpFile
