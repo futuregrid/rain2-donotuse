@@ -189,6 +189,21 @@ class IMServerConf(object):
         except ConfigParser.NoOptionError:
             self._serverdir=None
         try:
+            self._addrnfs = self._config.get(section, 'addrnfs', 0)
+        except ConfigParser.NoOptionError:
+            print "Error: No addrnfs option found in section " + section
+            sys.exit(1)
+        try:
+            self._tempdirserver_gen = os.path.expanduser(self._config.get(section, 'tempdirserver', 0))
+        except ConfigParser.NoOptionError:
+            print "Error: No tempdirserver option found in section " + section
+            sys.exit(1)
+        try:
+            self._tempdir_gen = os.path.expanduser(self._config.get(section, 'tempdir', 0))
+        except ConfigParser.NoOptionError:
+            print "Error: No tempdir option found in section " + section
+            sys.exit(1)            
+        try:
             self._http_server_gen = self._config.get(section, 'http_server', 0)
         except ConfigParser.NoOptionError:
             print "Error: No http_server option found in section " + section
