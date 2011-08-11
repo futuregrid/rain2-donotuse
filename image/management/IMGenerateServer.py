@@ -21,26 +21,6 @@ import xmlrpclib
 import time
 from IMServerConf import IMServerConf
 
-def main():
-    
-
-    parser = OptionParser()
-
-    #help is auto-generated
-    parser.add_option("-o", "--os", dest="os", help="specify destination Operating System")
-    parser.add_option("-v", "--version", dest="version", help="Operating System version")
-    parser.add_option("-a", "--arch", dest="arch", help="Destination hardware architecture")
-    parser.add_option("-l", "--auth", dest="auth", help="Authentication mechanism")
-    parser.add_option("-s", "--software", dest="software", help="Software stack to be automatically installed")
-    parser.add_option("-u", "--user", dest="user", help="FutureGrid username")
-    parser.add_option("-n", "--name", dest="givenname", help="Desired recognizable name of the image")
-    parser.add_option("-e", "--description", dest="desc", help="Short description of the image and its purpose")
-
-    (ops, args) = parser.parse_args()
-
-    imgenserver = IMGenerateServer(ops.os, ops.version, ops.arch, ops.auth, ops.software, ops.user, ops.givenname, ops.desc)
-    imgenserver.generate()
-
 class IMGenerateServer(object):
 
     def __init__(self, os, version, arch, auth, software, user, givenname, desc):
@@ -303,7 +283,30 @@ class IMGenerateServer(object):
         #    output += line.strip()
         #print outputs
         return outputs
+    
+def main():
+    
 
+    parser = OptionParser()
+
+    #help is auto-generated
+    parser.add_option("-o", "--os", dest="os", help="specify destination Operating System")
+    parser.add_option("-v", "--version", dest="version", help="Operating System version")
+    parser.add_option("-a", "--arch", dest="arch", help="Destination hardware architecture")
+    parser.add_option("-l", "--auth", dest="auth", help="Authentication mechanism")
+    parser.add_option("-s", "--software", dest="software", help="Software stack to be automatically installed")
+    parser.add_option("-u", "--user", dest="user", help="FutureGrid username")
+    parser.add_option("-n", "--name", dest="givenname", help="Desired recognizable name of the image")
+    parser.add_option("-e", "--description", dest="desc", help="Short description of the image and its purpose")
+
+    (ops, args) = parser.parse_args()
+
+    if (len(sys.argv) == 1):
+        parser.print_help()
+        sys.exit(1)
+
+    imgenserver = IMGenerateServer(ops.os, ops.version, ops.arch, ops.auth, ops.software, ops.user, ops.givenname, ops.desc)
+    imgenserver.generate()
 
 if __name__ == "__main__":
     main()
