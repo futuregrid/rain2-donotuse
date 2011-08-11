@@ -148,7 +148,7 @@ class IMGenerateServer(object):
             if type(self.software) is not NoneType:
                 options += " -s " + self.software
     
-            options += " -c " + self.http_server + " -b " + self.bcfg2_url + " -p " + self.bcfg2_port
+            options += " -c " + self.http_server + " -b " + self.bcfg2_url + " -p " + str(self.bcfg2_port)
       
             cmdexec = " -q '/root/IMGenerateScript.py " + options + " '"
     
@@ -199,7 +199,7 @@ class IMGenerateServer(object):
         vm = server.one.vm.allocate(oneauth, s)
     
         if vm[0]:
-            self.logger.debug("VM ID:\n" + str(vm[1]))
+            self.logger.debug("VM ID: " + str(vm[1]))
     
             #monitor VM
             booted = False
