@@ -118,58 +118,58 @@ class IMGenerateServer(object):
         vmaddr = output[0]
         vmID = output[1]
         #####
-    
-        self.logger.info("The VM deployed is in " + vmaddr)
-    
-        self.logger.info("Mount scratch directory in the VM")
-        cmd = "ssh -q " + self.rootId + "@" + vmaddr
-        cmdmount = " mount -t nfs " + self.addrnfs + ":" + self.tempdirserver + " " + self.tempdir
-        self.logger.info(cmd + cmdmount)
-        stat = os.system(cmd + cmdmount)
-    
-    
-        if (stat == 0):
-            self.logger.info("Sending IMGenerateScript.py to the VM")
-            cmdscp = "scp -q " + self.serverdir + '/IMGenerateScript.py  ' + self.rootId + "@" + vmaddr + ":/root/"
-            self.logger.info(cmdscp)
-            stat = os.system(cmdscp)
-            if (stat != 0):
-                self.logger.error("Error sending IMGenerateScript.py to the VM. Exit status " + str(stat))
-    
-    
-            options += "-a " + self.arch + " -o " + self.os + " -v " + self.version + " -u " + self.user + " -t " + self.tempdir
-    
-            if type(self.givenname) is not NoneType:
-                options += " -n " + self.givenname
-            if type(self.desc) is not NoneType:
-                options += " -e " + self.desc
-            if type(self.auth) is not NoneType:
-                options += " -l " + self.auth
-            if type(self.software) is not NoneType:
-                options += " -s " + self.software
-    
-            options += " -c " + self.http_server + " -b " + self.bcfg2_url + " -p " + str(self.bcfg2_port)
-      
-            cmdexec = " -q '/root/IMGenerateScript.py " + options + " '"
-    
-            self.logger.info(cmdexec)
-    
-            uid = self._rExec(self.rootId, cmdexec, vmaddr)
-    
-            status = uid[0].strip() #it contains error or filename
-            if status == "error":
-                print uid
-            else:
-                out = os.system("tar cfz " + self.tempdirserver + "/" + status + ".tgz -C " + self.tempdirserver + " " + status + ".manifest.xml " + status + ".img")
-                if out == 0:
-                    os.system("rm -f " + self.tempdirserver + "" + status + ".manifest.xml " + self.tempdirserver + "" + status + ".img")
-    
-                print self.tempdirserver + "" + status + ".tgz"
-    
-            self.logger.info("Umount scratch directory in the VM")
+        if vmaddr != "fail":
+            self.logger.info("The VM deployed is in " + vmaddr)
+        
+            self.logger.info("Mount scratch directory in the VM")
             cmd = "ssh -q " + self.rootId + "@" + vmaddr
-            cmdmount = " umount " + self.tempdir
+            cmdmount = " mount -t nfs " + self.addrnfs + ":" + self.tempdirserver + " " + self.tempdir
+            self.logger.info(cmd + cmdmount)
             stat = os.system(cmd + cmdmount)
+        
+        
+            if (stat == 0):
+                self.logger.info("Sending IMGenerateScript.py to the VM")
+                cmdscp = "scp -q " + self.serverdir + '/IMGenerateScript.py  ' + self.rootId + "@" + vmaddr + ":/root/"
+                self.logger.info(cmdscp)
+                stat = os.system(cmdscp)
+                if (stat != 0):
+                    self.logger.error("Error sending IMGenerateScript.py to the VM. Exit status " + str(stat))
+        
+        
+                options += "-a " + self.arch + " -o " + self.os + " -v " + self.version + " -u " + self.user + " -t " + self.tempdir
+        
+                if type(self.givenname) is not NoneType:
+                    options += " -n " + self.givenname
+                if type(self.desc) is not NoneType:
+                    options += " -e " + self.desc
+                if type(self.auth) is not NoneType:
+                    options += " -l " + self.auth
+                if type(self.software) is not NoneType:
+                    options += " -s " + self.software
+        
+                options += " -c " + self.http_server + " -b " + self.bcfg2_url + " -p " + str(self.bcfg2_port)
+          
+                cmdexec = " -q '/root/IMGenerateScript.py " + options + " '"
+        
+                self.logger.info(cmdexec)
+        
+                uid = self._rExec(self.rootId, cmdexec, vmaddr)
+        
+                status = uid[0].strip() #it contains error or filename
+                if status == "error":
+                    print uid
+                else:
+                    out = os.system("tar cfz " + self.tempdirserver + "/" + status + ".tgz -C " + self.tempdirserver + " " + status + ".manifest.xml " + status + ".img")
+                    if out == 0:
+                        os.system("rm -f " + self.tempdirserver + "" + status + ".manifest.xml " + self.tempdirserver + "" + status + ".img")
+        
+                    print self.tempdirserver + "" + status + ".tgz"
+        
+                self.logger.info("Umount scratch directory in the VM")
+                cmd = "ssh -q " + self.rootId + "@" + vmaddr
+                cmdmount = " umount " + self.tempdir
+                stat = os.system(cmd + cmdmount)
     
         #destroy VM
         self.logger.info("Destroy VM")
