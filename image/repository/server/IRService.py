@@ -21,12 +21,6 @@ from IRTypes import IRUser
 from IRTypes import IRCredential
 import IRUtil
 import re
-#from IRDataAccess import AbstractImgStore
-#from IRDataAccess import AbstractImgMetaStore
-#from IRDataAccess import AbstractIRUserStore
-#from IRDataAccess import ImgStoreFS
-#from IRDataAccess import ImgMetaStoreFS
-#from IRDataAccess import IRUserStoreFS
 from IRDataAccessMongo import ImgStoreMongo
 from IRDataAccessMongo import ImgMetaStoreMongo
 from IRDataAccessMongo import IRUserStoreMongo
@@ -115,7 +109,7 @@ class IRService(object):
 
     def genImgId(self):
         """
-        return None if could not get an imgId
+        return None if it could not get an imgId
         """
         return self.metaStore.genImgId()
 
