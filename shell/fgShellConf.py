@@ -1,9 +1,12 @@
+#!/usr/bin/env python
 import os
 import ConfigParser
 import string
 import logging
 from futuregrid.utils import fgLog
 import sys
+
+configFileName = "fg-client.conf"
 
 class fgShellConf(object):
 
@@ -18,18 +21,23 @@ class fgShellConf(object):
         try:
             self._fgpath = os.environ['FG_PATH']
         except KeyError:
-            print "Please, define FG_PATH to indicate where fg.py is"
-            sys.exit()
+            self._fgpath = os.path.dirname(__file__) + "/../"
 
         ##DEFAULT VALUES##                
         self._loghistdir = "~/.fg/"
 
-        tempfile = os.path.expanduser(self._loghistdir) + "/config"
+        self._configfile = os.path.expanduser(self._loghistdir) + "/" + configFileName
+        #print self._configfile
+        if not os.path.isfile(self._configfile):
+            self._configfile = os.path.expanduser(self._fgpath) + "/etc/" + configFileName
+            #print self._configfile
+            if not os.path.isfile(self._configfile):
+                self._configfile = os.path.expanduser(os.path.dirname(__file__)) + "/" + configFileName
+                #print self._configfile
 
-        if(os.path.isfile(tempfile)):
-            self._configfile = tempfile
-        else:
-            self._configfile = self._fgpath + "/etc/config"
+                if not os.path.isfile(self._configfile):   
+                    print "ERROR: configuration file "+configFileName+" not found"
+                    sys.exit(1)
 
         self._logfile = "" #self._loghistdir__+"/fg.log"
         self._histfile = "" #self._loghistdir+"/hist.txt"        

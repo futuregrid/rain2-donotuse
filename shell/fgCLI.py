@@ -1,4 +1,4 @@
-#! /usr/bin/python
+#!/usr/bin/env python
 """
 FutureGrid Command Line Interface
 
@@ -19,7 +19,7 @@ from futuregrid.shell.fgShellHadoop import fgShellHadoop
 from futuregrid.shell.fgShellRain import fgShellRain
 from futuregrid.shell.fgShellConf import fgShellConf
 import logging
-from futuregrid.utils.syscheck import sysCheck
+#from futuregrid.utils.syscheck import sysCheck
 
 from futuregrid.utils.fgLog import fgLog
 import inspect
@@ -101,7 +101,7 @@ class fgShell(fgShellUtils,
             self.intro = self.loadBanner()
         ##Load History
         self.loadhist("no argument needed")
-        e = sysCheck()
+        #e = sysCheck()
 
     
 

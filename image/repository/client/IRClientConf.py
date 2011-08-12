@@ -1,6 +1,10 @@
+#!/usr/bin/env python
 """
 Class to read Image Repository Client configuration
 """
+
+__author__ = 'Javier Diaz'
+__version__ = '0.1'
 
 import os
 import ConfigParser
@@ -8,6 +12,7 @@ import string
 import sys
 import logging
 
+configFileName = "fg-client.conf"
 
 class IRClientConf(object):
 
@@ -24,18 +29,24 @@ class IRClientConf(object):
         try:
             self._fgpath = os.environ['FG_PATH']
         except KeyError:
-            print "Please, define FG_PATH to indicate where fg.py is"
-            sys.exit()
+            self._fgpath = os.path.dirname(__file__) + "/../../../"
 
         ##DEFAULT VALUES##
         self._loghistdir = "~/.fg/"
+        
+        self._configfile = os.path.expanduser(self._loghistdir) + "/" + configFileName
+        #print self._configfile
+        if not os.path.isfile(self._configfile):
+            self._configfile = os.path.expanduser(self._fgpath) + "/etc/" + configFileName
+            #print self._configfile
+            if not os.path.isfile(self._configfile):
+                self._configfile = os.path.expanduser(os.path.dirname(__file__)) + "/" + configFileName
+                #print self._configfile
 
-        tempfile = os.path.expanduser(self._loghistdir) + "/config"
-
-        if(os.path.isfile(tempfile)):
-            self._configfile = tempfile
-        else:
-            self._configfile = self._fgpath + "/etc/config"
+                if not os.path.isfile(self._configfile):   
+                    print "ERROR: configuration file "+configFileName+" not found"
+                    sys.exit(1)
+        
         ####################################
 
         #IR Server Config file
@@ -122,13 +133,13 @@ class IRClientConf(object):
             config.read(self._configfile)
         else:
             print "Error: Config file not found" + self._configfile
-            sys.exit(0)
+            sys.exit(1)
 
         try:
             self._loghistdir = os.path.expanduser(config.get('DEFAULT', 'loghistdir', 0))
         except ConfigParser.NoOptionError:
             print "Error: No loghistdir option found in section LogHist"
-            sys.exit(0)
+            sys.exit(1)
 
         #Directory where history and logs are
         if not (os.path.isdir(self._loghistdir)):
@@ -138,7 +149,7 @@ class IRClientConf(object):
             self._logfile = os.path.expanduser(config.get('Repo', 'log', 0))
         except ConfigParser.NoOptionError:
             print "Error: No log option found in section Repo"
-            sys.exit(0)
+            sys.exit(1)
 
         ##Log
         try:
@@ -156,19 +167,19 @@ class IRClientConf(object):
             self._serverdir = os.path.expanduser(config.get('Repo', 'serverdir', 0))
         except ConfigParser.NoOptionError:
             print "Error: No serverdir option found in section Repo"
-            sys.exit(0)
+            sys.exit(1)
         #Server address
         try:
             self._serveraddr = os.path.expanduser(config.get('Repo', 'serveraddr', 0))
         except ConfigParser.NoOptionError:
             print "Error: No serveraddr option found in section Repo"
-            sys.exit(0)
+            sys.exit(1)
          #Server address
         try:
             self._irconfig = os.path.expanduser(config.get('Repo', 'IRConfig', 0))
         except ConfigParser.NoOptionError:
             print "Error: No IRconfig option found in section Repo"
-            sys.exit(0)
+            sys.exit(1)
 
     ############################################################
     # _setupBackend 
@@ -201,7 +212,7 @@ class IRClientConf(object):
                 self._backend = f.readline()
                 if not (self._backend.strip() in self._backends):
                     print "Error in local config. Please remove file: " + self._irconfig
-                    exit(0)
+                    sys.exit(1)
                 self._fgirimgstore = f.readline()
                 f.close()
             except(IOError), e:

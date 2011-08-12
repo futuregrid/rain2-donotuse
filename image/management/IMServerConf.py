@@ -9,7 +9,7 @@ import string
 import sys
 import logging
 
-configFileName = "config_server"
+configFileName = "fg-server.conf"
 
 class IMServerConf(object):
 
@@ -39,7 +39,7 @@ class IMServerConf(object):
                 #print self._configfile
 
                 if not os.path.isfile(self._configfile):   
-                    print "ERROR: configuration file not found"
+                    print "ERROR: configuration file "+configFileName+" not found"
                     sys.exit(1)
         
         #image generation server

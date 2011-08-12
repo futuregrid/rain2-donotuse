@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 '''@package fgLog
 Easy to use logging. Poll test
 '''

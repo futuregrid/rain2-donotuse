@@ -11,7 +11,7 @@ import ConfigParser
 import string
 import sys
 
-configFileName = "config"
+configFileName = "fg-client.conf"
 
 class IMClientConf(object):
 
@@ -42,7 +42,7 @@ class IMClientConf(object):
                 #print self._configfile
 
                 if not os.path.isfile(self._configfile):   
-                    print "ERROR: configuration file not found"
+                    print "ERROR: configuration file "+configFileName+" not found"
                     sys.exit(1)
 
         #image generation
