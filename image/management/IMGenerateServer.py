@@ -172,6 +172,7 @@ class IMGenerateServer(object):
             stat = os.system(cmd + cmdmount)
     
         #destroy VM
+        self.logger.info("Destroy VM")
         server.one.vm.action(oneauth, "finalize", vmID)
     
     def boot_VM(self, server, oneauth, vmfile):

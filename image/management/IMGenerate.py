@@ -66,7 +66,7 @@ class IMGenerate(object):
         uid = self._rExec(cmdexec)
     
         status = uid[0].strip() #it contains error or filename
-        logger.info("Status: " + str(status))
+        self.logger.debug("Status: " + str(status))
         
         output=None
         if status == "error":
@@ -78,7 +78,12 @@ class IMGenerate(object):
         #imgIds = status.split("/")
         #imgId = imgIds[len(imgIds) - 1]
     
-        return output
+        if output != None:
+        
+                print 'Generated image and the manifest are packed in the file ' + status + '.  Please be aware that this FutureGrid ' +\
+                'image is packaged without a kernel and fstab and is not built for any deployment type.  To deploy the new ' +\
+                'image, use the IMDeploy command.'
+        #server return addr of the img and metafeile compressed in a tgz or None
         
 
     ############################################################
@@ -261,14 +266,9 @@ def main():
 
 
     imgen = IMGenerate(arch, OS, version, user, ops.auth, ops.software, ops.givenname, ops.desc, logger)
-    output=imgen.generate()
+    imgen.generate()
     
-    if output != None:
-        
-        print 'Generated image and the manifest are packed in the file ' + status + '.  Please be aware that this FutureGrid ' +\
-                'image is packaged without a kernel and fstab and is not built for any deployment type.  To deploy the new ' +\
-                'image, use the IMDeploy command.'
-    #server return addr of the img and metafeile compressed in a tgz or None
+
 
 
 if __name__ == "__main__":
