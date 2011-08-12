@@ -47,7 +47,7 @@ class ImgStoreSwiftMongo(ImgStoreMongo):
     ############################################################
     # __init__
     ############################################################
-    def __init__(self, address, addressS, fgirdir, log):
+    def __init__(self, address, userAdmin, configFile, addressS, userAdminS, configFileS, log):
         """
         Initialize object
         
@@ -64,13 +64,13 @@ class ImgStoreSwiftMongo(ImgStoreMongo):
         self._metacollection = "meta"
         self._dbConnection = None
         self._log = log
-        self._fgirdir = fgirdir
-        if (address != ""):
-            self._mongoAddress = address
-        else:
-            self._mongoAddress = self._getAddress()
+        self._mongoAddress = address
+        self._userAdmin = userAdmin
+        self._configFile = configFile
 
         self._swiftAddress = addressS
+        self._userAdminS = userAdminS
+        self._configFileS = configFileS
         self._swiftConnection = None
         self._containerName = "imagesMongo"
 
@@ -439,9 +439,10 @@ class ImgStoreSwiftMongo(ImgStoreMongo):
         """
         connected = False
 
-        #username an password will be moved to the config file
+        id = self._userAdminS #'test:tester'
+        pw = self.getPassword(self._configFileS) #'testing'
         try:
-            self._swiftConnection = cloudfiles.get_connection('test:tester', 'testing', authurl = 'https://' + self._swiftAddress + ':8080/auth/v1.0')
+            self._swiftConnection = cloudfiles.get_connection(id, pw, authurl = 'https://' + self._swiftAddress + ':8080/auth/v1.0')
             connected = True
         except:
             self._log.error("Error in swift connection. " + str(sys.exc_info()))
@@ -453,7 +454,7 @@ class ImgMetaStoreSwiftMongo(ImgMetaStoreMongo):
     ############################################################
     # __init__
     ############################################################
-    def __init__(self, address, fgirdir, log):
+    def __init__(self, address, userAdmin, configFile, log):
         """
         Initialize object
         
@@ -469,19 +470,17 @@ class ImgMetaStoreSwiftMongo(ImgMetaStoreMongo):
         self._datacollection = "data"
         self._metacollection = "meta"
         self._dbConnection = None
-        self._log = log
-
-        if (address != ""):
-            self._mongoAddress = address
-        else:
-            self._mongoAddress = self._getAddress()
+        self._log = log        
+        self._mongoAddress = address
+        self._userAdmin = userAdmin
+        self._configFile = configFile
 
 class IRUserStoreSwiftMongo(IRUserStoreMongo):
 
     ############################################################
     # __init__
     ############################################################
-    def __init__(self, address, fgirdir, log):
+    def __init__(self, address, userAdmin, configFile, log):
         """
         Initialize object
         
@@ -497,9 +496,8 @@ class IRUserStoreSwiftMongo(IRUserStoreMongo):
         self._usercollection = "users"
         self._dbConnection = None
         self._log = log
-
-        if (address != ""):
-            self._mongoAddress = address
-        else:
-            self._mongoAddress = self._getAddress()
+        self._mongoAddress = address
+        self._userAdmin = userAdmin
+        self._configFile = configFile
+        
 

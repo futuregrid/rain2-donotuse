@@ -50,13 +50,14 @@ import os
 import re
 import sys
 from random import randrange
+import ConfigParser
 
 class ImgStoreMongo(AbstractImgStore):
 
     ############################################################
     # __init__
     ############################################################
-    def __init__(self, address, fgirdir, log):
+    def __init__(self, address, userAdmin, configFile, log):
         """
         Initialize object
         
@@ -67,27 +68,19 @@ class ImgStoreMongo(AbstractImgStore):
         
         """
         super(ImgStoreMongo, self).__init__()
-
+        
+        self._mongoAddress = address
+        self._userAdmin = userAdmin
+        self._configFile = configFile
+        self._log = log
+        
         self._dbName = "images"
         self._datacollection = "data"
         self._metacollection = "meta"
         self._dbConnection = None
-        self._log = log
-
-        if (address != ""):
-            self._mongoAddress = address
-        else:
-            self._mongoAddress = self._getAddress()
-
-    ############################################################
-    # _getAddress
-    ############################################################
-    def _getAddress(self):
-        """Read from a config file and get the mongos address (list of address:port 
-        separated by commas)
-        """
-        return "192.168.1.1:23000,192.168.1.8:23000"
-
+        
+        
+        
     ############################################################
     # getItemUri
     ############################################################
@@ -318,9 +311,9 @@ class ImgStoreMongo(AbstractImgStore):
                         imgLinks.append(gridfsLink.get(ObjectId(imgId)))
 
                         collection.update({"_id": imgId},
-                                      {"$inc": {"accessCount": 1}, }, safe = True)
+                                      {"$inc": {"accessCount": 1}, }, safe=True)
                         collection.update({"_id": imgId},
-                                      {"$set": {"lastAccess": datetime.utcnow()}, }, safe = True)
+                                      {"$set": {"lastAccess": datetime.utcnow()}, }, safe=True)
                         #print "here"                                         
                         itemsFound += 1
             except pymongo.errors.AutoReconnect:
@@ -376,10 +369,10 @@ class ImgStoreMongo(AbstractImgStore):
 
                     if requestInstance == None:
                         with open(item._imgURI) as image:
-                            imgId = gridfsLink.put(image, chunksize = 4096 * 1024)
+                            imgId = gridfsLink.put(image, chunksize=4096 * 1024)
                     else:
                         requestInstance.file.seek(0)
-                        imgId = gridfsLink.put(requestInstance.file, chunksize = 4096 * 1024)
+                        imgId = gridfsLink.put(requestInstance.file, chunksize=4096 * 1024)
 
                     item._imgId = imgId.__str__().decode('utf-8') # we store an String instead of an ObjectId.
                     #item._imgMeta._imgId=imgId #not needed                                                                       
@@ -404,8 +397,8 @@ class ImgStoreMongo(AbstractImgStore):
                             "size" : item._size,
                             }
 
-                    collectionMeta.insert(meta, safe = True)
-                    collection.insert(data, safe = True)
+                    collectionMeta.insert(meta, safe=True)
+                    collection.insert(data, safe=True)
 
                     imgStored += 1
 
@@ -468,8 +461,8 @@ class ImgStoreMongo(AbstractImgStore):
                     size[0] = aux['size']
 
                     gridfsLink.delete(ObjectId(imgId))
-                    collection.remove({"_id": imgId}, safe = True) #Wait for replication? w=3 option
-                    collectionMeta.remove({"_id": imgId}, safe = True)
+                    collection.remove({"_id": imgId}, safe=True) #Wait for replication? w=3 option
+                    collectionMeta.remove({"_id": imgId}, safe=True)
                     removed = True
                 except pymongo.errors.AutoReconnect:  #TODO: Study what happens with that. store or not store the file
                     self._log.warning("Autoreconnected.")
@@ -634,7 +627,27 @@ class ImgStoreMongo(AbstractImgStore):
             self._log.error("TypeError in ImgStoreMongo - mongoConnection")
 
         return connected
-
+    #not used in mongodb yet, but it is used by swift and cumulus
+    def getPassword(self, config):
+        password=""
+        self._config = ConfigParser.ConfigParser()
+        if(os.path.isfile(config)):
+            self._config.read(config)
+        else:
+            self._log.error("Configuration file "+config+" not found")
+            sys.exit(1)
+        
+        section="client"
+        try:
+            password = self._config.get(section, 'password', 0)
+        except ConfigParser.NoOptionError:
+            self._log.error("No password option found in section " + section)
+            sys.exit(1)  
+        except ConfigParser.NoSectionError:
+            self._log.error("no section "+section+" found in the "+config+" config file")
+            sys.exit(1)
+            
+        return password
 """end of class"""
 
 class ImgMetaStoreMongo(AbstractImgMetaStore):
@@ -642,7 +655,7 @@ class ImgMetaStoreMongo(AbstractImgMetaStore):
     ############################################################
     # __init__
     ############################################################
-    def __init__(self, address, fgirdir, log):
+    def __init__(self, address, userAdmin, configFile, log):
         """
         Initialize object
         
@@ -652,25 +665,16 @@ class ImgMetaStoreMongo(AbstractImgMetaStore):
         """
         super(ImgMetaStoreMongo, self).__init__()
 
+        self._mongoAddress = address
+        self._userAdmin = userAdmin
+        self._configFile = configFile
+        self._log = log
+        
         self._dbName = "images"
         self._datacollection = "data"
         self._metacollection = "meta"
         self._dbConnection = None
-        self._log = log
-
-        if (address != ""):
-            self._mongoAddress = address
-        else:
-            self._mongoAddress = self._getAddress()
-
-    ############################################################
-    # _getAddress
-    ############################################################
-    def _getAddress(self):
-        """Read from a config file and get the mongos address (list of address:port 
-        separated by commas)
-        """
-        return "192.168.1.1:23000,192.168.1.8:23000"
+       
 
     ############################################################
     # getItem
@@ -812,7 +816,7 @@ class ImgMetaStoreMongo(AbstractImgMetaStore):
                     if len(dic) > 0:
 
                         collectionMeta.update({"_id": imgId},
-                                          {"$set": dic }, safe = True)
+                                          {"$set": dic }, safe=True)
 
                         imgUpdated = True
 
@@ -1049,6 +1053,29 @@ class ImgMetaStoreMongo(AbstractImgMetaStore):
             self._log.error("TypeError in ImgStoreMongo - mongoConnection")
 
         return connected
+    """
+    #not used in mongodb yet
+    def getPassword(self, config):
+        password=""
+        self._config = ConfigParser.ConfigParser()
+        if(os.path.isfile(config)):
+            self._config.read(config)
+        else:
+            self._log.error("Configuration file "+config+" not found")
+            sys.exit(1)
+        
+        section="client"
+        try:
+            password = self._config.get(section, 'password', 0)
+        except ConfigParser.NoOptionError:
+            self._log.error("No password option found in section " + section)
+            sys.exit(1)  
+        except ConfigParser.NoSectionError:
+            self._log.error("no section "+section+" found in the "+config+" config file")
+            sys.exit(1)
+            
+        return password
+    """
 
 class IRUserStoreMongo(AbstractIRUserStore):
     '''
@@ -1060,30 +1087,18 @@ class IRUserStoreMongo(AbstractIRUserStore):
     ############################################################
     # __init__
     ############################################################
-    def __init__(self, address, fgirdir, log):
+    def __init__(self, address, userAdmin, configFile, log):
         super(IRUserStoreMongo, self).__init__()
 
-        self._dbName = "images"   #file location for users
-        self._usercollection = "users"
-        self._dbConnection = None
+        self._mongoAddress = address
+        self._userAdmin = userAdmin
+        self._configFile = configFile
         self._log = log
-
-        if (address != ""):
-            self._mongoAddress = address
-        else:
-            self._mongoAddress = self._getAddress()
-
-    ############################################################
-    # _getAddress
-    ############################################################
-    def _getAddress(self):
-        """Read from a config file and get the mongos address (list of address:port 
-        separated by commas)
-        """
-        return "192.168.1.1:23000,192.168.1.8:23000"
-
-
-
+        
+        self._dbName = "images"
+        self._usercollection = "users"        
+        self._dbConnection = None
+        
     ############################################################
     # queryStore
     ############################################################
@@ -1189,7 +1204,7 @@ class IRUserStoreMongo(AbstractIRUserStore):
 
                 collection.update({"userId": userId},
                                   {"$set": {"fsUsed" : totalSize, "ownedImgs":total}
-                                            }, safe = True)
+                                            }, safe=True)
                 success = True
             except pymongo.errors.AutoReconnect:
                 self._log.warning("Autoreconnected in IRUserStoreMongo - updateAccounting")
@@ -1220,7 +1235,7 @@ class IRUserStoreMongo(AbstractIRUserStore):
 
                     collection.update({"userId": userIdtoModify},
                                       {"$set": {"role" : role}
-                                                }, safe = True)
+                                                }, safe=True)
                     success = True
             except pymongo.errors.AutoReconnect:
                 self._log.warning("Autoreconnected in IRUserStoreMongo - setRole")
@@ -1254,7 +1269,7 @@ class IRUserStoreMongo(AbstractIRUserStore):
 
                     collection.update({"userId": userIdtoModify},
                                       {"$set": {"fsCap" : quota}
-                                                }, safe = True)
+                                                }, safe=True)
                     success = True
             except pymongo.errors.AutoReconnect:
                 self._log.warning("Autoreconnected in IRUserStoreMongo - setRole")
@@ -1288,7 +1303,7 @@ class IRUserStoreMongo(AbstractIRUserStore):
 
                     collection.update({"userId": userIdtoModify},
                                       {"$set": {"status" : status}
-                                                }, safe = True)
+                                                }, safe=True)
                     success = True
             except pymongo.errors.AutoReconnect:
                 self._log.warning("Autoreconnected in IRUserStoreMongo - setUserStatus")
@@ -1321,7 +1336,7 @@ class IRUserStoreMongo(AbstractIRUserStore):
                     dbLink = self._dbConnection[self._dbName]
                     collection = dbLink[self._usercollection]
 
-                    collection.remove({"userId": userIdtoDel}, safe = True)
+                    collection.remove({"userId": userIdtoDel}, safe=True)
 
                     success = True
 
@@ -1400,7 +1415,7 @@ class IRUserStoreMongo(AbstractIRUserStore):
                                 }
 
                         if (collection.find_one({"userId": user._userId}) == None):
-                            collection.insert(meta, safe = True)
+                            collection.insert(meta, safe=True)
                             userStored += 1
                         else:
                             self._log.error("The userId " + user._userId + " exits in the database")
@@ -1499,3 +1514,26 @@ class IRUserStoreMongo(AbstractIRUserStore):
             self._log.error("TypeError in IRUserStoreMongo - mongoConnection")
 
         return connected
+    """
+    #not used in mongodb yet
+    def getPassword(self, config):
+        password=""
+        self._config = ConfigParser.ConfigParser()
+        if(os.path.isfile(config)):
+            self._config.read(config)
+        else:
+            self._log.error("Configuration file "+config+" not found")
+            sys.exit(1)
+        
+        section="client"
+        try:
+            password = self._config.get(section, 'password', 0)
+        except ConfigParser.NoOptionError:
+            self._log.error("No password option found in section " + section)
+            sys.exit(1)  
+        except ConfigParser.NoSectionError:
+            self._log.error("no section "+section+" found in the "+config+" config file")
+            sys.exit(1)
+            
+        return password
+    """

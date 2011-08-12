@@ -34,7 +34,7 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
     ############################################################
     # __init__
     ############################################################
-    def __init__(self, address, addressS, fgirdir, log):
+    def __init__(self, address, userAdmin, configFile, addressS, userAdminS, configFileS, log):
         """
         Initialize object
         
@@ -49,23 +49,18 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
         self._dbName = "imagesS"
         self._tabledata = "data"
         self._tablemeta = "meta"
-        self._mysqlcfg = IRUtil.getMysqlcfg()
-        self._iradminsuer = IRUtil.getMysqluser()
-
-        self._log = log
-
         self._dbConnection = None
-        if (address != ""):
-            self._mysqlAddress = address
-        else:
-            self._mysqlAddress = self._getAddress()
-
-
+        
+        self._mysqlAddress = address
+        self._userAdmin = userAdmin
+        self._configFile = configFile
+        self._log = log
+        
         self._swiftAddress = addressS
+        self._userAdminS = userAdminS
+        self._configFileS = configFileS 
         self._swiftConnection = None
         self._containerName = "images"
-
-
 
     ############################################################
     # getItemUri
@@ -316,8 +311,8 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
             ##Solve with this. LOOK INTO MYSQL CONNECTIONS
             con = MySQLdb.connect(host = self._mysqlAddress,
                                            db = self._dbName,
-                                           read_default_file = self._mysqlcfg,
-                                           user = self._iradminsuer)
+                                           read_default_file = self._configFile,
+                                           user = self._userAdmin)
             if(self.existAndOwner(imgId, userId) or admin):
                 try:
                     cursor = con.cursor()
@@ -424,9 +419,10 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
         """
         connected = False
 
-        #username an password will be moved to the config file
+        id = self._userAdminS #'test:tester'
+        pw = self.getPassword(self._configFileS) #'testing'
         try:
-            self._swiftConnection = cloudfiles.get_connection('test:tester', 'testing', authurl = 'https://' + self._swiftAddress + ':8080/auth/v1.0')
+            self._swiftConnection = cloudfiles.get_connection(id, pw, authurl = 'https://' + self._swiftAddress + ':8080/auth/v1.0')
             connected = True
         except:
             self._log.error("Error in swift connection. " + str(sys.exc_info()))
@@ -439,7 +435,7 @@ class ImgMetaStoreSwiftMysql(ImgMetaStoreMysql):
     ############################################################
     # __init__
     ############################################################
-    def __init__(self, address, fgirdir, log):
+    def __init__(self, address, userAdmin, configFile, log):
         """
         Initialize object
         
@@ -453,22 +449,20 @@ class ImgMetaStoreSwiftMysql(ImgMetaStoreMysql):
 
         self._dbName = "imagesS"
         self._tabledata = "data"
-        self._tablemeta = "meta"
-        self._mysqlcfg = IRUtil.getMysqlcfg()
-        self._iradminsuer = IRUtil.getMysqluser()
+        self._tablemeta = "meta"        
         self._log = log
-        self._dbConnection = None
-        if (address != ""):
-            self._mysqlAddress = address
-        else:
-            self._mysqlAddress = self._getAddress()
+        self._dbConnection = None        
+        self._mysqlAddress = address
+        self._userAdmin = userAdmin
+        self._configFile = configFile
+        
 
 class IRUserStoreSwiftMysql(IRUserStoreMysql):
 
     ############################################################
     # __init__
     ############################################################
-    def __init__(self, address, fgirdir, log):
+    def __init__(self, address, userAdmin, configFile, log):
         """
         Initialize object
         
@@ -485,11 +479,10 @@ class IRUserStoreSwiftMysql(IRUserStoreMysql):
         self._mysqlcfg = IRUtil.getMysqlcfg()
         self._iradminsuer = IRUtil.getMysqluser()
         self._log = log
-
-        self._dbConnection = None
-        if (address != ""):
-            self._mysqlAddress = address
-        else:
-            self._mysqlAddress = self._getAddress()
+        self._dbConnection = None        
+        self._mysqlAddress = address
+        self._userAdmin = userAdmin
+        self._configFile = configFile
+        
 
 

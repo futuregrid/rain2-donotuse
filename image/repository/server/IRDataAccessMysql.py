@@ -28,6 +28,7 @@ import MySQLdb
 import string
 import IRUtil
 from random import randrange
+import ConfigParser
 
 
 class ImgStoreMysql(AbstractImgStore):
@@ -35,7 +36,7 @@ class ImgStoreMysql(AbstractImgStore):
     ############################################################
     # __init__
     ############################################################
-    def __init__(self, address, fgirdir, log):
+    def __init__(self, address, userAdmin, configFile, log):
         """
         Initialize object
         
@@ -50,25 +51,12 @@ class ImgStoreMysql(AbstractImgStore):
         self._dbName = "images"
         self._tabledata = "data"
         self._tablemeta = "meta"
-        self._mysqlcfg = IRUtil.getMysqlcfg()
-        self._iradminsuer = IRUtil.getMysqluser()
-
-        self._log = log
-
         self._dbConnection = None
-        if (address != ""):
-            self._mysqlAddress = address
-        else:
-            self._mysqlAddress = self._getAddress()
-
-    ############################################################
-    # _getAddress
-    ############################################################
-    def _getAddress(self):
-        """Read from a config file and get the mongos address (list of address:port 
-        separated by commas)
-        """
-        return "192.168.1.1"
+        
+        self._mysqlAddress = address
+        self._userAdmin = userAdmin
+        self._configFile = configFile        
+        self._log = log
 
     ############################################################
     # getItemUri
@@ -356,10 +344,10 @@ class ImgStoreMysql(AbstractImgStore):
         if (self.mysqlConnection()):             ##Error 2006: MySQL server has gone away???
 
             ##Solve with this. LOOK INTO MYSQL CONNECTIONS
-            con = MySQLdb.connect(host = self._mysqlAddress,
-                                           db = self._dbName,
-                                           read_default_file = self._mysqlcfg,
-                                           user = self._iradminsuer)
+            con = MySQLdb.connect(host=self._mysqlAddress,
+                                           db=self._dbName,
+                                           read_default_file=self._configFile,
+                                           user=self._userAdmin)
             if(self.existAndOwner(imgId, userId) or admin):
                 try:
                     cursor = con.cursor()
@@ -541,10 +529,10 @@ class ImgStoreMysql(AbstractImgStore):
         #TODO: change to a global connection??                
         connected = False
         try:
-            self._dbConnection = MySQLdb.connect(host = self._mysqlAddress,
-                                           db = self._dbName,
-                                           read_default_file = self._mysqlcfg,
-                                           user = self._iradminsuer)
+            self._dbConnection = MySQLdb.connect(host=self._mysqlAddress,
+                                           db=self._dbName,
+                                           read_default_file=self._configFile,
+                                           user=self._userAdmin)
             connected = True
 
         except MySQLdb.Error, e:
@@ -554,9 +542,27 @@ class ImgStoreMysql(AbstractImgStore):
 
         return connected
 
-
-
-
+    #not needed in mysql, but it is used by swift and cumulus when inherit 
+    def getPassword(self, config):
+        password=""
+        self._config = ConfigParser.ConfigParser()
+        if(os.path.isfile(config)):
+            self._config.read(config)
+        else:
+            self._log.error("Configuration file "+config+" not found")
+            sys.exit(1)
+        
+        section="client"
+        try:
+            password = self._config.get(section, 'password', 0)
+        except ConfigParser.NoOptionError:
+            self._log.error("No password option found in section " + section)
+            sys.exit(1)  
+        except ConfigParser.NoSectionError:
+            self._log.error("no section "+section+" found in the "+config+" config file")
+            sys.exit(1)
+            
+        return password
 
 """end of class"""
 
@@ -565,7 +571,7 @@ class ImgMetaStoreMysql(AbstractImgMetaStore):
     ############################################################
     # __init__
     ############################################################
-    def __init__(self, address, fgirdir, log):
+    def __init__(self, address, userAdmin, configFile, log):
         """
         Initialize object
         
@@ -578,24 +584,13 @@ class ImgMetaStoreMysql(AbstractImgMetaStore):
         self._dbName = "images"
         self._tabledata = "data"
         self._tablemeta = "meta"
-        self._mysqlcfg = IRUtil.getMysqlcfg()
-        self._iradminsuer = IRUtil.getMysqluser()
-        self._log = log
         self._dbConnection = None
-        if (address != ""):
-            self._mysqlAddress = address
-        else:
-            self._mysqlAddress = self._getAddress()
-
-    ############################################################
-    # _getAddress
-    ############################################################
-    def _getAddress(self):
-        """Read from a config file and get the mongos address (list of address:port 
-        separated by commas)
-        """
-        return "192.168.1.1:23000,192.168.1.8:23000"
-
+        
+        self._mysqlAddress = address
+        self._userAdmin = userAdmin
+        self._configFile = configFile
+        self._log = log
+        
     ############################################################
     # getItem
     ############################################################
@@ -1010,10 +1005,11 @@ class ImgMetaStoreMysql(AbstractImgMetaStore):
         #TODO: change to a global connection??                
         connected = False
         try:
-            self._dbConnection = MySQLdb.connect(host = self._mysqlAddress,
-                                           db = self._dbName,
-                                           read_default_file = self._mysqlcfg,
-                                           user = self._iradminsuer)
+            self._dbConnection = MySQLdb.connect(host=self._mysqlAddress,
+                                           db=self._dbName,
+
+                                           read_default_file=self._configFile,
+                                           user=self._userAdmin)
             connected = True
 
         except MySQLdb.Error, e:
@@ -1034,30 +1030,18 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
     ############################################################
     # __init__
     ############################################################
-    def __init__(self, address, fgirdir, log):
+    def __init__(self, address, userAdmin, configFile, log):
         super(IRUserStoreMysql, self).__init__()
         #self._items = []        
         self._dbName = "images"
         self._tabledata = "users"
-        self._mysqlcfg = IRUtil.getMysqlcfg()
-        self._iradminsuer = IRUtil.getMysqluser()
-        self._log = log
-
         self._dbConnection = None
-        if (address != ""):
-            self._mysqlAddress = address
-        else:
-            self._mysqlAddress = self._getAddress()
-
-    ############################################################
-    # _getAddress
-    ############################################################
-    def _getAddress(self):
-        """Read from a config file and get the mongos address (list of address:port 
-        separated by commas)
-        """
-        return "192.168.1.1:23000,192.168.1.8:23000"
-
+        
+        self._mysqlAddress = address
+        self._userAdmin = userAdmin
+        self._configFile = configFile
+        self._log = log
+       
 
     ############################################################
     # queryStore
@@ -1479,10 +1463,10 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
         #TODO: change to a global connection??                
         connected = False
         try:
-            self._dbConnection = MySQLdb.connect(host = self._mysqlAddress,
-                                           db = self._dbName,
-                                           read_default_file = self._mysqlcfg,
-                                           user = self._iradminsuer)
+            self._dbConnection = MySQLdb.connect(host=self._mysqlAddress,
+                                           db=self._dbName,
+                                           read_default_file=self._configFile,
+                                           user=self._userAdmin)
             connected = True
 
         except MySQLdb.Error, e:

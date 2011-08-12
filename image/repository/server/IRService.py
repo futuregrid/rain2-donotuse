@@ -21,50 +21,30 @@ from IRTypes import IRUser
 from IRTypes import IRCredential
 import IRUtil
 import re
-from IRDataAccess import AbstractImgStore
-from IRDataAccess import AbstractImgMetaStore
-from IRDataAccess import AbstractIRUserStore
-
-if(IRUtil.getBackend() == "mongodb"):
-    from IRDataAccessMongo import ImgStoreMongo
-    from IRDataAccessMongo import ImgMetaStoreMongo
-    from IRDataAccessMongo import IRUserStoreMongo
-elif(IRUtil.getBackend() == "mysql"):
-    from IRDataAccessMysql import ImgStoreMysql
-    from IRDataAccessMysql import ImgMetaStoreMysql
-    from IRDataAccessMysql import IRUserStoreMysql
-elif(IRUtil.getBackend() == "swiftmysql"):
-    from IRDataAccessMysql import ImgStoreMysql
-    from IRDataAccessMysql import ImgMetaStoreMysql
-    from IRDataAccessMysql import IRUserStoreMysql
-    from IRDataAccessSwiftMysql import ImgStoreSwiftMysql
-    from IRDataAccessSwiftMysql import ImgMetaStoreSwiftMysql
-    from IRDataAccessSwiftMysql import IRUserStoreSwiftMysql
-elif(IRUtil.getBackend() == "swiftmongo"):
-    from IRDataAccessMongo import ImgStoreMongo
-    from IRDataAccessMongo import ImgMetaStoreMongo
-    from IRDataAccessMongo import IRUserStoreMongo
-    from IRDataAccessSwiftMongo import ImgStoreSwiftMongo
-    from IRDataAccessSwiftMongo import ImgMetaStoreSwiftMongo
-    from IRDataAccessSwiftMongo import IRUserStoreSwiftMongo
-elif(IRUtil.getBackend() == "cumulusmysql"):
-    from IRDataAccessMysql import ImgStoreMysql
-    from IRDataAccessMysql import ImgMetaStoreMysql
-    from IRDataAccessMysql import IRUserStoreMysql
-    from IRDataAccessCumulusMysql import ImgStoreCumulusMysql
-    from IRDataAccessCumulusMysql import ImgMetaStoreCumulusMysql
-    from IRDataAccessCumulusMysql import IRUserStoreCumulusMysql
-elif(IRUtil.getBackend() == "cumulusmongo"):
-    from IRDataAccessMongo import ImgStoreMongo
-    from IRDataAccessMongo import ImgMetaStoreMongo
-    from IRDataAccessMongo import IRUserStoreMongo
-    from IRDataAccessCumulusMongo import ImgStoreCumulusMongo
-    from IRDataAccessCumulusMongo import ImgMetaStoreCumulusMongo
-    from IRDataAccessCumulusMongo import IRUserStoreCumulusMongo
-else:
-    from IRDataAccess import ImgStoreFS
-    from IRDataAccess import ImgMetaStoreFS
-    from IRDataAccess import IRUserStoreFS
+#from IRDataAccess import AbstractImgStore
+#from IRDataAccess import AbstractImgMetaStore
+#from IRDataAccess import AbstractIRUserStore
+#from IRDataAccess import ImgStoreFS
+#from IRDataAccess import ImgMetaStoreFS
+#from IRDataAccess import IRUserStoreFS
+from IRDataAccessMongo import ImgStoreMongo
+from IRDataAccessMongo import ImgMetaStoreMongo
+from IRDataAccessMongo import IRUserStoreMongo
+from IRDataAccessMysql import ImgStoreMysql
+from IRDataAccessMysql import ImgMetaStoreMysql
+from IRDataAccessMysql import IRUserStoreMysql
+from IRDataAccessSwiftMysql import ImgStoreSwiftMysql
+from IRDataAccessSwiftMysql import ImgMetaStoreSwiftMysql
+from IRDataAccessSwiftMysql import IRUserStoreSwiftMysql
+from IRDataAccessSwiftMongo import ImgStoreSwiftMongo
+from IRDataAccessSwiftMongo import ImgMetaStoreSwiftMongo
+from IRDataAccessSwiftMongo import IRUserStoreSwiftMongo
+from IRDataAccessCumulusMysql import ImgStoreCumulusMysql
+from IRDataAccessCumulusMysql import ImgMetaStoreCumulusMysql
+from IRDataAccessCumulusMysql import IRUserStoreCumulusMysql
+from IRDataAccessCumulusMongo import ImgStoreCumulusMongo
+from IRDataAccessCumulusMongo import ImgMetaStoreCumulusMongo
+from IRDataAccessCumulusMongo import IRUserStoreCumulusMongo
 
 import string
 
@@ -77,6 +57,7 @@ except:
     sys.path.append(os.path.dirname(__file__) + "/../../../") #Directory where fg.py is
     from utils import fgLog
 
+from IRServerConf import IRServerConf
 
 class IRService(object):
 
@@ -86,39 +67,47 @@ class IRService(object):
     def __init__(self):
         super(IRService, self).__init__()
 
-        #Config in IRUtil
-        self._backend = IRUtil.getBackend()
-        self._address = IRUtil.getAddress()
-        self._fgirimgstore = IRUtil.getFgirimgstore()
-        self._fgserverdir = IRUtil.getFgserverdir()
+        #load config
+        self._repoConf=IRServerConf()
+        self._repoConf.loadRepoServerConfig()        
+        self._backend = self._repoConf.getBackend()
+        
+        self._address = self._repoConf.getAddress()
+        self._userAdmin=self._repoConf.getUserAdmin()
+        self._configFile=self._repoConf.getConfigFile()        
+        self._imgStore = self._repoConf.getImgStore()
+        self._addressS = self._repoConf.getAddressS()
+        self._userAdminS=self._repoConf.getUserAdminS()
+        self._configFileS=self._repoConf.getConfigFileS()
 
         #Setup log. 
         #When integrate ALL FG software, we may need to create this somewhere else and send the log object to all classes like this        
-        self._log = fgLog.fgLog(IRUtil.getLogFile(), IRUtil.getLogLevel(), "Img Repo Server", False)
+        self._log = fgLog.fgLog(self._repoConf.getLogRepo(), self._repoConf.getLogLevelRepo(), "Img Repo Server", False)
+        
         if (self._backend == "mongodb"):
-            self.metaStore = ImgMetaStoreMongo(self._address, self._fgserverdir, self._log)
-            self.imgStore = ImgStoreMongo(self._address, self._fgserverdir, self._log)
-            self.userStore = IRUserStoreMongo(self._address, self._fgserverdir, self._log)
+            self.metaStore = ImgMetaStoreMongo(self._address, self._userAdmin, self._configFile, self._log)
+            self.imgStore = ImgStoreMongo(self._address, self._userAdmin, self._configFile, self._log)
+            self.userStore = IRUserStoreMongo(self._address, self._userAdmin, self._configFile, self._log)
         elif(self._backend == "mysql"):
-            self.metaStore = ImgMetaStoreMysql(self._address, self._fgserverdir, self._log)
-            self.imgStore = ImgStoreMysql(self._address, self._fgserverdir, self._log)
-            self.userStore = IRUserStoreMysql(self._address, self._fgserverdir, self._log)
+            self.metaStore = ImgMetaStoreMysql(self._address, self._userAdmin, self._configFile, self._log)
+            self.imgStore = ImgStoreMysql(self._address, self._userAdmin, self._configFile, self._log)
+            self.userStore = IRUserStoreMysql(self._address, self._userAdmin, self._configFile, self._log)
         elif(self._backend == "swiftmysql"):
-            self.metaStore = ImgMetaStoreSwiftMysql(self._address, self._fgserverdir, self._log)
-            self.imgStore = ImgStoreSwiftMysql(self._address, IRUtil.getAddressS(), self._fgserverdir, self._log)
-            self.userStore = IRUserStoreSwiftMysql(self._address, self._fgserverdir, self._log)
+            self.metaStore = ImgMetaStoreSwiftMysql(self._address, self._userAdmin, self._configFile, self._log)
+            self.imgStore = ImgStoreSwiftMysql(self._address, self._userAdmin, self._configFile, self._addressS, self._userAdminS, self._configFileS, self._log)
+            self.userStore = IRUserStoreSwiftMysql(self._address, self._userAdmin, self._configFile, self._log)
         elif(self._backend == "swiftmongo"):
-            self.metaStore = ImgMetaStoreSwiftMongo(self._address, self._fgserverdir, self._log)
-            self.imgStore = ImgStoreSwiftMongo(self._address, IRUtil.getAddressS(), self._fgserverdir, self._log)
-            self.userStore = IRUserStoreSwiftMongo(self._address, self._fgserverdir, self._log)
+            self.metaStore = ImgMetaStoreSwiftMongo(self._address, self._userAdmin, self._configFile, self._log)
+            self.imgStore = ImgStoreSwiftMongo(self._address, self._userAdmin, self._configFile, self._addressS, self._userAdminS, self._configFileS, self._log)
+            self.userStore = IRUserStoreSwiftMongo(self._address, self._userAdmin, self._configFile, self._log)
         elif(self._backend == "cumulusmysql"):
-            self.metaStore = ImgMetaStoreCumulusMysql(self._address, self._fgserverdir, self._log)
-            self.imgStore = ImgStoreCumulusMysql(self._address, IRUtil.getAddressS(), self._fgserverdir, self._log)
-            self.userStore = IRUserStoreCumulusMysql(self._address, self._fgserverdir, self._log)
+            self.metaStore = ImgMetaStoreCumulusMysql(self._address, self._userAdmin, self._configFile, self._log)
+            self.imgStore = ImgStoreCumulusMysql(self._address, self._userAdmin, self._configFile, self._addressS, self._userAdminS, self._configFileS, self._log)
+            self.userStore = IRUserStoreCumulusMysql(self._address, self._userAdmin, self._configFile, self._log)
         elif(self._backend == "cumulusmongo"):
-            self.metaStore = ImgMetaStoreCumulusMongo(self._address, self._fgserverdir, self._log)
-            self.imgStore = ImgStoreCumulusMongo(self._address, IRUtil.getAddressS(), self._fgserverdir, self._log)
-            self.userStore = IRUserStoreCumulusMongo(self._address, self._fgserverdir, self._log)
+            self.metaStore = ImgMetaStoreCumulusMongo(self._address, self._userAdmin, self._configFile, self._log)
+            self.imgStore = ImgStoreCumulusMongo(self._address, self._userAdmin, self._configFile, self._addressS, self._userAdminS, self._configFileS, self._log)
+            self.userStore = IRUserStoreCumulusMongo(self._address, self._userAdmin, self._configFile, self._log)
         else:
             self.metaStore = ImgMetaStoreFS()
             self.imgStore = ImgStoreFS()
@@ -132,6 +121,11 @@ class IRService(object):
 
     def getLog(self):
         return self._log
+
+    def getBackend(self):
+        return self._backend
+    def getImgStore(self):
+        return self._imgStore
 
     ############################################################
     # uploadValidator
@@ -232,13 +226,13 @@ class IRService(object):
             if type(imgFile) == cherrypy._cpreqbody.Part:
                 self._log.info("user:" + userId + " command:put args={imgId:" + imgId + ", imgFile:" + imgId + ", metadata:" + attributeString + ", size:" + str(size) + "}")
                 aMeta = self._createImgMeta(userId, imgId, attributeString, False)
-                aImg = ImgEntry(imgId, aMeta, self._fgirimgstore + "/" + imgId, size)
+                aImg = ImgEntry(imgId, aMeta, self._imgStore + "/" + imgId, size)
                 #it sends the imgEntry and the requestInstance
                 statusImg = self.imgStore.addItem(aImg, imgFile)
 
             else:
                 self._log.info("user:" + userId + " command:put args={imgId:" + imgId + ", imgFile:" + imgFile + ", metadata:" + attributeString + ", size:" + str(size) + "}")
-                fileLocation = self._fgirimgstore + imgId
+                fileLocation = self._imgStore + imgId
                 if(os.path.isfile(fileLocation)):
                         #parse attribute string and construct image metadata
                         aMeta = self._createImgMeta(userId, imgId, attributeString, False)
@@ -251,7 +245,7 @@ class IRService(object):
                 #put metadata into the image meta store
 
                 #with MongoDB I put the metadata with the ImgEntry, so it skips meta add                    
-                if(re.search("mongo", IRUtil.getBackend()) == None):
+                if(re.search("mongo", self._backend) == None):
                     statusMeta = self.metaStore.addItem(aMeta)
                 else:
                     statusMeta = True
@@ -532,8 +526,8 @@ def main():
         elif o in ("--genImgId"):
             print service.genImgId()
         elif o in ("--getBackend"):
-            print service._backend
-            print service._fgirimgstore
+            print service.getBackend()
+            print service.getImgStore()
         elif o in ("-m", "--modify"):
             print service.updateItem(os.popen('whoami', 'r').read().strip(), args[0], args[1])
             #print service.updateItem(os.popen('whoami', 'r').read().strip(), "4d681d65577d703439000000", "vmtype=vmware|os=windows")

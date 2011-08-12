@@ -45,13 +45,12 @@ from boto.s3.key import Key
 from boto.s3.connection import OrdinaryCallingFormat
 from boto.s3.connection import S3Connection
 
-
 class ImgStoreCumulusMongo(ImgStoreMongo):
 
     ############################################################
     # __init__
     ############################################################
-    def __init__(self, address, addressS, fgirdir, log):
+    def __init__(self, address, userAdmin, configFile, addressS, userAdminS, configFileS, log):
         """
         Initialize object
         
@@ -66,18 +65,17 @@ class ImgStoreCumulusMongo(ImgStoreMongo):
         self._dbName = "imagesC"
         self._datacollection = "data"
         self._metacollection = "meta"
-        self._dbConnection = None
-        self._log = log
-
-        if (address != ""):
-            self._mongoAddress = address
-        else:
-            self._mongoAddress = self._getAddress()
+        self._dbConnection = None        
+        self._mongoAddress = address
+        self._userAdmin = userAdmin
+        self._configFile = configFile
 
         self._cumulusAddress = addressS
+        self._userAdminS = userAdminS
+        self._configFileS = configFileS        
         self._cumulusConnection = None
         self._containerName = "imagesmongo"  ##bucket
-
+        self._log = log
     ############################################################
     # getItemUri
     ############################################################
@@ -157,9 +155,9 @@ class ImgStoreCumulusMongo(ImgStoreMongo):
                         imgLinks.append(imagepath)
 
                         collection.update({"_id": imgId},
-                                      {"$inc": {"accessCount": 1}, }, safe = True)
+                                      {"$inc": {"accessCount": 1}, }, safe=True)
                         collection.update({"_id": imgId},
-                                      {"$set": {"lastAccess": datetime.utcnow()}, }, safe = True)
+                                      {"$set": {"lastAccess": datetime.utcnow()}, }, safe=True)
                         #print "here"                                         
                         itemsFound += 1
             except pymongo.errors.AutoReconnect:
@@ -250,8 +248,8 @@ class ImgStoreCumulusMongo(ImgStoreMongo):
                             "size" : item._size,
                             }
 
-                    collectionMeta.insert(meta, safe = True)
-                    collection.insert(data, safe = True)
+                    collectionMeta.insert(meta, safe=True)
+                    collection.insert(data, safe=True)
 
                     imgStored += 1
 
@@ -316,8 +314,8 @@ class ImgStoreCumulusMongo(ImgStoreMongo):
                     aux = collection.find_one({"_id": imgId})
                     size[0] = aux['size']
 
-                    collection.remove({"_id": imgId}, safe = True) #Wait for replication? w=3 option
-                    collectionMeta.remove({"_id": imgId}, safe = True)
+                    collection.remove({"_id": imgId}, safe=True) #Wait for replication? w=3 option
+                    collectionMeta.remove({"_id": imgId}, safe=True)
                     removed = True
                 except pymongo.errors.AutoReconnect:  #TODO: Study what happens with that. store or not store the file
                     self._log.warning("Autoreconnected.")
@@ -398,52 +396,52 @@ class ImgStoreCumulusMongo(ImgStoreMongo):
         """
         connected = False
 
-        #username an password will be moved to the config file
-        id = 'PgkhmT23FUv7aRZND7BOW'
-        pw = 'Bf9ppgw9mzxe2EoKjbVl0wjaNJoHlIPxJ6QAgA0pOj'
+        id = self._userAdminS #'PgkhmT23FUv7aRZND7BOW'
+        pw = self.getPassword(self._configFileS) #'Bf9ppgw9mzxe2EoKjbVl0wjaNJoHlIPxJ6QAgA0pOj'
         cf = OrdinaryCallingFormat()
         try:
-            self._cumulusConnection = S3Connection(id, pw, host = self._cumulusAddress, port = 8888, is_secure = False, calling_format = cf)
+            self._cumulusConnection = S3Connection(id, pw, host=self._cumulusAddress, port=8888, is_secure=False, calling_format=cf)
             connected = True
         except:
             self._log.error("Error in cumulus connection. " + str(sys.exc_info()))
 
         return connected
 
+        
+
 class ImgMetaStoreCumulusMongo(ImgMetaStoreMongo):
 
     ############################################################
     # __init__
     ############################################################
-    def __init__(self, address, fgirdir, log):
+    def __init__(self, address, userAdmin, configFile, log):
         """
         Initialize object
         
         Keyword parameters:             
-        _mongoaddress = mongos addresses and ports separated by commas (optional if config file exits)
+        _mongoaddress = mongos addresses and ports separated by commas
         _items = list of imgEntry
-        _dbName = name of the database
-        
+        _dbName = name of the database        
         """
+        
         super(ImgMetaStoreMongo, self).__init__()
 
         self._dbName = "imagesC"
         self._datacollection = "data"
         self._metacollection = "meta"
         self._dbConnection = None
+        
+        self._mongoAddress = address
+        self._userAdmin = userAdmin
+        self._configFile = configFile
         self._log = log
-
-        if (address != ""):
-            self._mongoAddress = address
-        else:
-            self._mongoAddress = self._getAddress()
 
 class IRUserStoreCumulusMongo(IRUserStoreMongo):
 
     ############################################################
     # __init__
     ############################################################
-    def __init__(self, address, fgirdir, log):
+    def __init__(self, address, userAdmin, configFile, log):
         """
         Initialize object
         
@@ -458,10 +456,9 @@ class IRUserStoreCumulusMongo(IRUserStoreMongo):
         self._dbName = "imagesC"   #file location for users
         self._usercollection = "users"
         self._dbConnection = None
+        
+        self._mongoAddress = address
+        self._userAdmin = userAdmin
+        self._configFile = configFile
         self._log = log
-
-        if (address != ""):
-            self._mongoAddress = address
-        else:
-            self._mongoAddress = self._getAddress()
 

@@ -37,37 +37,26 @@ class ImgStoreCumulusMysql(ImgStoreMysql):
     ############################################################
     # __init__
     ############################################################
-    def __init__(self, address, addressS, fgirdir, log):
-        """
-        Initialize object
-        
-        Keyword parameters:             
-        _mongoaddress = mongos addresses and ports separated by commas (optional if config file exits)
-        _items = list of imgEntry
-        _dbName = name of the database
-        
-        """
+    def __init__(self, address, userAdmin, configFile, addressS, userAdminS, configFileS, log):
+
         super(ImgStoreMysql, self).__init__()
 
         self._dbName = "imagesC"
         self._tabledata = "data"
         self._tablemeta = "meta"
-        self._mysqlcfg = IRUtil.getMysqlcfg()
-        self._iradminsuer = IRUtil.getMysqluser()
-
-        self._log = log
-
+        
         self._dbConnection = None
-        if (address != ""):
-            self._mysqlAddress = address
-        else:
-            self._mysqlAddress = self._getAddress()
-
-
+        self._mysqlAddress = address
+        self._userAdmin = userAdmin
+        self._configFile = configFile
+        
         self._cumulusAddress = addressS
+        self._userAdminS = userAdminS
+        self._configFileS = configFileS    
         self._cumulusConnection = None
         self._containerName = "images"
 
+        self._log = log
 
 
     ############################################################
@@ -284,8 +273,8 @@ class ImgStoreCumulusMysql(ImgStoreMysql):
             ##Solve with this. LOOK INTO MYSQL CONNECTIONS
             con = MySQLdb.connect(host = self._mysqlAddress,
                                            db = self._dbName,
-                                           read_default_file = self._mysqlcfg,
-                                           user = self._iradminsuer)
+                                           read_default_file = self._configFile,
+                                           user = self._userAdmin)
             if(self.existAndOwner(imgId, userId) or admin):
                 try:
                     cursor = con.cursor()
@@ -387,9 +376,8 @@ class ImgStoreCumulusMysql(ImgStoreMysql):
         """
         connected = False
 
-        #username an password will be moved to the config file
-        id = 'PgkhmT23FUv7aRZND7BOW'
-        pw = 'Bf9ppgw9mzxe2EoKjbVl0wjaNJoHlIPxJ6QAgA0pOj'
+        id = self._userAdminS #'PgkhmT23FUv7aRZND7BOW'
+        pw = self.getPassword(self._configFileS) #'Bf9ppgw9mzxe2EoKjbVl0wjaNJoHlIPxJ6QAgA0pOj'
         cf = OrdinaryCallingFormat()
         try:
             self._cumulusConnection = S3Connection(id, pw, host = self._cumulusAddress, port = 8888, is_secure = False, calling_format = cf)
@@ -404,57 +392,38 @@ class ImgMetaStoreCumulusMysql(ImgMetaStoreMysql):
     ############################################################
     # __init__
     ############################################################
-    def __init__(self, address, fgirdir, log):
-        """
-        Initialize object
-        
-        Keyword parameters:             
-        _mongoaddress = mongos addresses and ports separated by commas (optional if config file exits)
-        _items = list of imgEntry
-        _dbName = name of the database
-        
-        """
+    def __init__(self, address, userAdmin, configFile, log):
+
         super(ImgMetaStoreMysql, self).__init__()
 
         self._dbName = "imagesC"
         self._tabledata = "data"
         self._tablemeta = "meta"
-        self._mysqlcfg = IRUtil.getMysqlcfg()
-        self._iradminsuer = IRUtil.getMysqluser()
+        self._mysqlAddress = address
+        self._userAdmin = userAdmin
+        self._configFile = configFile
         self._log = log
         self._dbConnection = None
-        if (address != ""):
-            self._mysqlAddress = address
-        else:
-            self._mysqlAddress = self._getAddress()
+        
 
 class IRUserStoreCumulusMysql(IRUserStoreMysql):
 
     ############################################################
     # __init__
     ############################################################
-    def __init__(self, address, fgirdir, log):
-        """
-        Initialize object
-        
-        Keyword parameters:             
-        _mongoaddress = mongos addresses and ports separated by commas (optional if config file exits)
-        _items = list of imgEntry
-        _dbName = name of the database
-        
-        """
+    def __init__(self, address, userAdmin, configFile, log):
+
         super(IRUserStoreMysql, self).__init__()
 
         self._dbName = "imagesC"
         self._tabledata = "users"
-        self._mysqlcfg = IRUtil.getMysqlcfg()
-        self._iradminsuer = IRUtil.getMysqluser()
+        self._mysqlAddress = address
+        self._userAdmin = userAdmin
+        self._configFile = configFile
         self._log = log
-
         self._dbConnection = None
-        if (address != ""):
-            self._mysqlAddress = address
-        else:
-            self._mysqlAddress = self._getAddress()
+        
+        
+        
 
 
