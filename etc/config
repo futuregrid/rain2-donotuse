@@ -46,7 +46,7 @@ log_level=debug
 #******************************************************************************
 [Repo]
 serverdir=/opt/futuregrid/futuregrid/image/repository/server/
-serveraddr="localhost"
+serveraddr=localhost
 IRconfig=%(loghistdir)s/.IRconfig
 log=%(loghistdir)s/repo.log
 log_level=debug
