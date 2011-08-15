@@ -116,6 +116,11 @@ class IMDeployServerXcat(object):
                 #/install/netboot/<name>/<arch>/compute/
                 self.path = self.xcatNetbootImgPath + self.prefix + self.operatingsystem + '' + self.name + '/' + self.arch + '/compute/'
                 
+                if os.path.isdir(self.path):
+                    msg = "ERROR: The image already exists"
+                    self.errormsg(channel, msg)
+                    break
+                
                 cmd = 'mkdir -p ' + self.path + 'rootimg ' + self.path + 'temp'
                 status = self.runCmd(cmd)    
                 if status != 0:
