@@ -37,7 +37,7 @@ class ImgStoreCumulusMysql(ImgStoreMysql):
     ############################################################
     # __init__
     ############################################################
-    def __init__(self, address, userAdmin, configFile, addressS, userAdminS, configFileS, log):
+    def __init__(self, address, userAdmin, configFile, addressS, userAdminS, configFileS, imgStore, log):
 
         super(ImgStoreMysql, self).__init__()
 
@@ -57,6 +57,7 @@ class ImgStoreCumulusMysql(ImgStoreMysql):
         self._containerName = "images"
 
         self._log = log
+        self._imgStore=imgStore
 
 
     ############################################################
@@ -117,19 +118,20 @@ class ImgStoreCumulusMysql(ImgStoreMysql):
                         access = True
 
                     if (access):
-                        sql = "SELECT accessCount FROM %s WHERE imgId = '%s' " % (self._tabledata, imgId)
+                        sql = "SELECT accessCount, extension FROM %s WHERE imgId = '%s' " % (self._tabledata, imgId)
                         #print sql
                         cursor.execute(sql)
                         results = cursor.fetchone()
 
                         if(results != None):
                             k.key = imgId
+                            extension = results[1]
                             #Boto does not stream, so we have to create the file here instead of in getItem
-                            imagepath = '/tmp/' + imgId + ".img"
+                            imagepath = self._imgStore + '/' + imgId + "" + extension.strip()
 
                             if os.path.isfile(imagepath):
                                 for i in range(1000):
-                                    imagepath = "/tmp/" + imgId + ".img" + i.__str__()
+                                    imagepath = self._imgStore + "/" + imgId + "" + extension.strip() + "_" + i.__str__()
                                     if not os.path.isfile(imagepath):
                                         break
 
@@ -212,9 +214,9 @@ class ImgStoreCumulusMysql(ImgStoreMysql):
                     else:
                         requestInstance.file.seek(0)
                         k.set_contents_from_file(requestInstance.file)
-                    sql = "INSERT INTO %s (imgId, imgMetaData, imgUri, createdDate, lastAccess, accessCount, size) \
-       VALUES ('%s', '%s', '%s', '%s', '%s', '%d', '%d' )" % \
-       (self._tabledata, item._imgId, item._imgId, "", datetime.utcnow(), datetime.utcnow(), 0, item._size)
+                    sql = "INSERT INTO %s (imgId, imgMetaData, imgUri, createdDate, lastAccess, accessCount, size, extension) \
+       VALUES ('%s', '%s', '%s', '%s', '%s', '%d', '%d', '%s' )" % \
+       (self._tabledata, item._imgId, item._imgId, "", datetime.utcnow(), datetime.utcnow(), 0, item._size, item._extension)
 
                     cursor.execute(sql)
                     self._dbConnection.commit()

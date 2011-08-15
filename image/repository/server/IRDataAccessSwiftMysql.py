@@ -83,16 +83,17 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
         """
 
         imgLinks = []
-        result = self.queryStore([imgId], imgLinks, userId, admin)
+        extension = []
+        result = self.queryStore([imgId], imgLinks, userId, admin, extension)
 
         """
         if (result):
-            filename="/tmp/"+imgId+".img"
+            filename = self._imgStore + "/" + imgId + "" + extension[0].strip()
             if not os.path.isfile(filename):
                 f = open(filename, 'w')
             else:
                 for i in range(1000):
-                    filename="/tmp/"+imgId+".img"+i.__str__()
+                    filename = self._imgStore + "/" + imgId + "" + extension[0].strip() + "_" + i.__str__()
                     if not os.path.isfile(filename):
                         f = open(filename, 'w')
                         break
@@ -118,7 +119,7 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
     ############################################################
     # queryStore
     ############################################################
-    def queryStore(self, imgIds, imgLinks, userId, admin):
+    def queryStore(self, imgIds, imgLinks, userId, admin, extension):
         """        
         Query the DB and provide the uri.    
         
@@ -142,20 +143,23 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
                         access = True
 
                     if (access):
-                        sql = "SELECT accessCount FROM %s WHERE imgId = '%s' " % (self._tabledata, imgId)
+                        sql = "SELECT accessCount, extension FROM %s WHERE imgId = '%s' " % (self._tabledata, imgId)
                         #print sql
                         cursor.execute(sql)
                         results = cursor.fetchone()
 
                         if(results != None):
+                            #extension.append(results[1])
                             #imgLinks.append(contain.get_object(imgId))
 
+                            
                             ##to skip the python api
-                            imagepath = '/tmp/' + imgId + ".img"
-
+                            ext= results[1].strip()
+                            imagepath = self._imgStore + '/' + imgId + "" + ext
+                            
                             if os.path.isfile(imagepath):
-                                for i in range(1000):
-                                    imagepath = "/tmp/" + imgId + ".img" + i.__str__()
+                                for i in range(1000):                                    
+                                    imagepath = self._imgStore + "/" + imgId + "" + ext + "_" + i.__str__()
                                     if not os.path.isfile(imagepath):
                                         break
 
@@ -249,9 +253,9 @@ class ImgStoreSwiftMysql(ImgStoreMysql):
                         loaded = True
                     ##to skip the python api
                     if loaded:
-                        sql = "INSERT INTO %s (imgId, imgMetaData, imgUri, createdDate, lastAccess, accessCount, size) \
-           VALUES ('%s', '%s', '%s', '%s', '%s', '%d', '%d' )" % \
-           (self._tabledata, item._imgId, item._imgId, "", datetime.utcnow(), datetime.utcnow(), 0, item._size)
+                        sql = "INSERT INTO %s (imgId, imgMetaData, imgUri, createdDate, lastAccess, accessCount, size, extension) \
+           VALUES ('%s', '%s', '%s', '%s', '%s', '%d', '%d', '%s' )" % \
+           (self._tabledata, item._imgId, item._imgId, "", datetime.utcnow(), datetime.utcnow(), 0, item._size, item._extension)
 
                         cursor.execute(sql)
                         self._dbConnection.commit()

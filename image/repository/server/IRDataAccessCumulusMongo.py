@@ -50,7 +50,7 @@ class ImgStoreCumulusMongo(ImgStoreMongo):
     ############################################################
     # __init__
     ############################################################
-    def __init__(self, address, userAdmin, configFile, addressS, userAdminS, configFileS, log):
+    def __init__(self, address, userAdmin, configFile, addressS, userAdminS, configFileS, imgStore, log):
         """
         Initialize object
         
@@ -76,6 +76,7 @@ class ImgStoreCumulusMongo(ImgStoreMongo):
         self._cumulusConnection = None
         self._containerName = "imagesmongo"  ##bucket
         self._log = log
+        self._imgStore=imgStore
     ############################################################
     # getItemUri
     ############################################################
@@ -138,15 +139,16 @@ class ImgStoreCumulusMongo(ImgStoreMongo):
                         access = True
                         #self._log.debug("ifpublic "+str(access))
                     if (access):
-
+                        extension=collection.find_one({'_id':imgId})['extension']
+                        
                         k.key = imgId
 
                         #Boto does not stream, so we have to create the file here instead of in getItem
-                        imagepath = '/tmp/' + imgId + ".img"
+                        imagepath = self._imgStore + '/' + imgId + "" + extension.strip()
 
                         if os.path.isfile(imagepath):
                             for i in range(1000):
-                                imagepath = "/tmp/" + imgId + ".img" + i.__str__()
+                                imagepath = self._imgStore + "/" + imgId + "" + extension.strip() + "_" + i.__str__()
                                 if not os.path.isfile(imagepath):
                                     break
 
@@ -246,6 +248,7 @@ class ImgStoreCumulusMongo(ImgStoreMongo):
                             "lastAccess" : datetime.utcnow(),
                             "accessCount" : 0,
                             "size" : item._size,
+                            "extension" : item._extension,
                             }
 
                     collectionMeta.insert(meta, safe=True)
@@ -271,10 +274,9 @@ class ImgStoreCumulusMongo(ImgStoreMongo):
         else:
             self._log.error("Could not get access to the database. The file has not been stored")
 
-        for item in items:
-            if (re.search('^/tmp/', item._imgURI)):
-                cmd = "rm -f " + item._imgURI
-                os.system(cmd)
+        for item in items:            
+            cmd = "rm -f " + item._imgURI
+            os.system(cmd)
 
         if (imgStored == len(items)):
             return True

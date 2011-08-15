@@ -26,7 +26,6 @@ import os
 import re
 import MySQLdb
 import string
-import IRUtil
 from random import randrange
 import ConfigParser
 
@@ -36,7 +35,7 @@ class ImgStoreMysql(AbstractImgStore):
     ############################################################
     # __init__
     ############################################################
-    def __init__(self, address, userAdmin, configFile, log):
+    def __init__(self, address, userAdmin, configFile, imgStore, log):
         """
         Initialize object
         
@@ -57,6 +56,7 @@ class ImgStoreMysql(AbstractImgStore):
         self._userAdmin = userAdmin
         self._configFile = configFile        
         self._log = log
+        self._imgStore=imgStore
 
     ############################################################
     # getItemUri
@@ -76,7 +76,7 @@ class ImgStoreMysql(AbstractImgStore):
         
         return the Image file as a str
         """
-        imgLinks = []
+        imgLinks = []        
         result = self.queryStore([imgId], imgLinks, userId, admin)
 
         if (result):
@@ -282,15 +282,15 @@ class ImgStoreMysql(AbstractImgStore):
                 cursor = self._dbConnection.cursor()
                 for item in items:
 
-                    sql = "INSERT INTO %s (imgId, imgMetaData, imgUri, createdDate, lastAccess, accessCount, size) \
-       VALUES ('%s', '%s', '%s', '%s', '%s', '%d', '%d' )" % \
-       (self._tabledata, item._imgId, item._imgId, item._imgURI, datetime.utcnow(), datetime.utcnow(), 0, item._size)
+                    sql = "INSERT INTO %s (imgId, imgMetaData, imgUri, createdDate, lastAccess, accessCount, size, extension) \
+       VALUES ('%s', '%s', '%s', '%s', '%s', '%d', '%d', '%s' )" % \
+       (self._tabledata, item._imgId, item._imgId, item._imgURI + "" + item._extension, datetime.utcnow(), datetime.utcnow(), 0, item._size, item._extension)
 
                     cursor.execute(sql)
                     self._dbConnection.commit()
 
                 if requestInstance != None:
-                    filename = IRUtil.__fgirimgstore__ + "" + item._imgId
+                    filename = item._imgURI + "" + item._extension.strip()
                     if not os.path.isfile(filename):
                         f = open(filename, 'w')
                         requestInstance.file.seek(0)
@@ -299,7 +299,11 @@ class ImgStoreMysql(AbstractImgStore):
                         f.close()
                         imgStored += 1
                 else:
-                    imgStored += 1
+                    try:
+                        os.rename(item._imgURI, item._imgURI + "" + item._extension.strip())
+                        imgStored += 1
+                    except OSError:
+                        self._log.error("Error renaming image in ImgStoreMysql - persistToStore " + str(sys.exc_info()))
 
 
             except MySQLdb.Error, e:
@@ -914,7 +918,7 @@ class ImgMetaStoreMysql(AbstractImgMetaStore):
     ############################################################
     def existAndOwner(self, imgId, ownerId):
         """
-        To verify if the file exists and I am the owner
+        To verify that I am the owner
         
         keywords:
         imgId: The id of the image
@@ -930,17 +934,6 @@ class ImgMetaStoreMysql(AbstractImgMetaStore):
         try:
             cursor = self._dbConnection.cursor()
 
-            sql = "SELECT imgUri FROM %s WHERE imgId = '%s' " % (self._tabledata, imgId)
-            #print sql
-            cursor.execute(sql)
-            results = cursor.fetchone()
-            #print results
-
-            if(results != None):
-                if (os.path.isfile(results[0]) or os.path.isfile(IRUtil.getFgirimgstore() + "/" + results[0])):
-                    exists = True
-
-
             sql = "SELECT owner FROM %s WHERE imgId='%s' and owner='%s'" % (self._tablemeta, imgId, ownerId)
             #print sql
             cursor.execute(sql)
@@ -949,6 +942,7 @@ class ImgMetaStoreMysql(AbstractImgMetaStore):
             #print results
             if(results != None):
                 owner = True
+                exists = True
 
         except MySQLdb.Error, e:
             self._log.error("Error %d: %s" % (e.args[0], e.args[1]))

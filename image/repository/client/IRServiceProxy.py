@@ -172,11 +172,13 @@ class IRServiceProxy(object):
 
             size = os.path.getsize(imgFile)
 
+            extension = os.path.splitext(imgFile)[1]
+            if extension == "":
+                extension = "\" \""
+                        
             self._log.debug("Checking quota")
             cmdexec = " '" + self._serverdir + \
                     "IRService.py --uploadValidator " + str(size) + "'"
-
-
 
             isPermitted = self._rExec(userId, cmdexec)
             #print isPermitted[0].strip()      
@@ -205,7 +207,7 @@ class IRServiceProxy(object):
                     print stat
                 print "Registering the Image"
                 cmdexec = " '" + self._serverdir + "IRService.py --put " + \
-                             imgId + " " + fileLocation + " \"" + attributeString + "\" " + str(size) + "'"
+                             imgId + " " + fileLocation + " \"" + attributeString + "\" " + str(size) + " "+ extension +"'"
                 #print cmdexec
                 uid = self._rExec(userId, cmdexec)
 
@@ -342,21 +344,24 @@ class IRServiceProxy(object):
         #output = ""
         #for line in outputs:
         #    output += line.strip()
-        #print outputs
+        print outputs
         return outputs
 
     ############################################################
     # _retrieveImg
     ############################################################
     def _retrieveImg(self, userId, imgId, imgURI):
-        cmdscp = "scp " + userId + "@" + imgURI + " ./" + imgId + ".img"
-        #print cmdscp
+        
+        extension=os.path.splitext(imgURI)[1]
+        extension=string.split(extension, "_")[0]
+        cmdscp = "scp " + userId + "@" + imgURI + " ./" + imgId + "" + extension
+        print cmdscp
         output = ""
         try:
             print "Retrieving the image"
             stat = os.system(cmdscp)
             if (stat == 0):
-                output = "The image " + imgId + " is located in " + os.popen('pwd', 'r').read().strip() + "/" + imgId + ".img"
+                output = "The image " + imgId + " is located in " + os.popen('pwd', 'r').read().strip() + "/" + imgId + "" + extension
                 if (self._backend.strip() == "mongodb" or self._backend.strip() == "swiftmysql" or self._backend.strip() == "swiftmongo"
                     or self._backend.strip() == "cumulusmysql" or self._backend.strip() == "cumulusmongo"):
                     cmdrm = " rm -f " + (imgURI).split(":")[1]

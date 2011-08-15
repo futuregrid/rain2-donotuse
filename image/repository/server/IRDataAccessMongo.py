@@ -57,7 +57,7 @@ class ImgStoreMongo(AbstractImgStore):
     ############################################################
     # __init__
     ############################################################
-    def __init__(self, address, userAdmin, configFile, log):
+    def __init__(self, address, userAdmin, configFile, imgStore, log):
         """
         Initialize object
         
@@ -73,6 +73,7 @@ class ImgStoreMongo(AbstractImgStore):
         self._userAdmin = userAdmin
         self._configFile = configFile
         self._log = log
+        self._imgStore=imgStore
         
         self._dbName = "images"
         self._datacollection = "data"
@@ -101,15 +102,18 @@ class ImgStoreMongo(AbstractImgStore):
         """
 
         imgLinks = []
-        result = self.queryStore([imgId], imgLinks, userId, admin)
-
+        extension= []
+        result = self.queryStore([imgId], imgLinks, userId, admin, extension)
+        self._log.debug("extension: "+extension[0])
+        
         if (result):
-            filename = "/tmp/" + imgId + ".img"
+            filename = self._imgStore + "/" + imgId + "" + extension[0].strip()
+            self._log.debug(filename)
             if not os.path.isfile(filename):
                 f = open(filename, 'w')
             else:
                 for i in range(1000):
-                    filename = "/tmp/" + imgId + ".img" + i.__str__()
+                    filename = self._imgStore + "/" + imgId + "" + extension[0].strip() + "_" + i.__str__()
                     if not os.path.isfile(filename):
                         f = open(filename, 'w')
                         break
@@ -280,7 +284,7 @@ class ImgStoreMongo(AbstractImgStore):
     ############################################################
     # queryStore
     ############################################################
-    def queryStore(self, imgIds, imgLinks, userId, admin):
+    def queryStore(self, imgIds, imgLinks, userId, admin, extension):
         """        
         Query the DB and provide the GridOut of the Images to create them with read method.    
         
@@ -310,6 +314,8 @@ class ImgStoreMongo(AbstractImgStore):
                     if (access):
                         imgLinks.append(gridfsLink.get(ObjectId(imgId)))
 
+                        extension.append(collection.find_one({'_id':imgId})['extension'])
+                        
                         collection.update({"_id": imgId},
                                       {"$inc": {"accessCount": 1}, }, safe=True)
                         collection.update({"_id": imgId},
@@ -395,6 +401,7 @@ class ImgStoreMongo(AbstractImgStore):
                             "lastAccess" : datetime.utcnow(),
                             "accessCount" : 0,
                             "size" : item._size,
+                            "extension" : item._extension,
                             }
 
                     collectionMeta.insert(meta, safe=True)
@@ -419,10 +426,9 @@ class ImgStoreMongo(AbstractImgStore):
         else:
             self._log.error("Could not get access to the database. The file has not been stored")
 
-        for item in items:
-            if (re.search('^/tmp/', item._imgURI)):
-                cmd = "rm -f " + item._imgURI
-                os.system(cmd)
+        for item in items:            
+            cmd = "rm -f " + item._imgURI
+            os.system(cmd)
 
         if (imgStored == len(items)):
             return True
@@ -697,7 +703,7 @@ class ImgMetaStoreMongo(AbstractImgMetaStore):
     ############################################################
     def existAndOwner(self, imgId, ownerId):
         """
-        To verify if the file exists and I am the owner
+        To verify that I am the owner
         
         keywords:
         imgId: The id of the image
@@ -712,14 +718,13 @@ class ImgMetaStoreMongo(AbstractImgMetaStore):
             dbLink = self._dbConnection[self._dbName]
             collection = dbLink[self._metacollection]
             gridfsLink = gridfs.GridFS(dbLink)
-
-            exists = gridfsLink.exists(ObjectId(imgId))
-
+            
             aux = collection.find_one({"_id": imgId, "owner": ownerId})
             if (aux == None):
                 isOwner = False
             else:
                 isOwner = True
+                exists=True
             #print imgId
             #print ownerId               
         except pymongo.errors.AutoReconnect:  #TODO: Study what happens with that. store or not store the file

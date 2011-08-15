@@ -62,17 +62,17 @@ class IRService(object):
         super(IRService, self).__init__()
 
         #load config
-        self._repoConf=IRServerConf()
+        self._repoConf = IRServerConf()
         self._repoConf.loadRepoServerConfig()        
         self._backend = self._repoConf.getBackend()
         
         self._address = self._repoConf.getAddress()
-        self._userAdmin=self._repoConf.getUserAdmin()
-        self._configFile=self._repoConf.getConfigFile()        
+        self._userAdmin = self._repoConf.getUserAdmin()
+        self._configFile = self._repoConf.getConfigFile()        
         self._imgStore = self._repoConf.getImgStore()
         self._addressS = self._repoConf.getAddressS()
-        self._userAdminS=self._repoConf.getUserAdminS()
-        self._configFileS=self._repoConf.getConfigFileS()
+        self._userAdminS = self._repoConf.getUserAdminS()
+        self._configFileS = self._repoConf.getConfigFileS()
 
         #Setup log. 
         #When integrate ALL FG software, we may need to create this somewhere else and send the log object to all classes like this        
@@ -80,27 +80,27 @@ class IRService(object):
         
         if (self._backend == "mongodb"):
             self.metaStore = ImgMetaStoreMongo(self._address, self._userAdmin, self._configFile, self._log)
-            self.imgStore = ImgStoreMongo(self._address, self._userAdmin, self._configFile, self._log)
+            self.imgStore = ImgStoreMongo(self._address, self._userAdmin, self._configFile, self._imgStore, self._log)
             self.userStore = IRUserStoreMongo(self._address, self._userAdmin, self._configFile, self._log)
         elif(self._backend == "mysql"):
             self.metaStore = ImgMetaStoreMysql(self._address, self._userAdmin, self._configFile, self._log)
-            self.imgStore = ImgStoreMysql(self._address, self._userAdmin, self._configFile, self._log)
+            self.imgStore = ImgStoreMysql(self._address, self._userAdmin, self._configFile, self._imgStore, self._log)
             self.userStore = IRUserStoreMysql(self._address, self._userAdmin, self._configFile, self._log)
         elif(self._backend == "swiftmysql"):
             self.metaStore = ImgMetaStoreSwiftMysql(self._address, self._userAdmin, self._configFile, self._log)
-            self.imgStore = ImgStoreSwiftMysql(self._address, self._userAdmin, self._configFile, self._addressS, self._userAdminS, self._configFileS, self._log)
+            self.imgStore = ImgStoreSwiftMysql(self._address, self._userAdmin, self._configFile, self._addressS, self._userAdminS, self._configFileS, self._imgStore, self._log)
             self.userStore = IRUserStoreSwiftMysql(self._address, self._userAdmin, self._configFile, self._log)
         elif(self._backend == "swiftmongo"):
             self.metaStore = ImgMetaStoreSwiftMongo(self._address, self._userAdmin, self._configFile, self._log)
-            self.imgStore = ImgStoreSwiftMongo(self._address, self._userAdmin, self._configFile, self._addressS, self._userAdminS, self._configFileS, self._log)
+            self.imgStore = ImgStoreSwiftMongo(self._address, self._userAdmin, self._configFile, self._addressS, self._userAdminS, self._configFileS, self._imgStore, self._log)
             self.userStore = IRUserStoreSwiftMongo(self._address, self._userAdmin, self._configFile, self._log)
         elif(self._backend == "cumulusmysql"):
             self.metaStore = ImgMetaStoreCumulusMysql(self._address, self._userAdmin, self._configFile, self._log)
-            self.imgStore = ImgStoreCumulusMysql(self._address, self._userAdmin, self._configFile, self._addressS, self._userAdminS, self._configFileS, self._log)
+            self.imgStore = ImgStoreCumulusMysql(self._address, self._userAdmin, self._configFile, self._addressS, self._userAdminS, self._configFileS, self._imgStore, self._log)
             self.userStore = IRUserStoreCumulusMysql(self._address, self._userAdmin, self._configFile, self._log)
         elif(self._backend == "cumulusmongo"):
             self.metaStore = ImgMetaStoreCumulusMongo(self._address, self._userAdmin, self._configFile, self._log)
-            self.imgStore = ImgStoreCumulusMongo(self._address, self._userAdmin, self._configFile, self._addressS, self._userAdminS, self._configFileS, self._log)
+            self.imgStore = ImgStoreCumulusMongo(self._address, self._userAdmin, self._configFile, self._addressS, self._userAdminS, self._configFileS, self._imgStore, self._log)
             self.userStore = IRUserStoreCumulusMongo(self._address, self._userAdmin, self._configFile, self._log)
         else:
             self.metaStore = ImgMetaStoreFS()
@@ -203,7 +203,7 @@ class IRService(object):
     ############################################################
     # put
     ############################################################
-    def put(self, userId, imgId, imgFile, attributeString, size):
+    def put(self, userId, imgId, imgFile, attributeString, size, extension):
         """
         Register the file in the database
         
@@ -218,20 +218,22 @@ class IRService(object):
 
         if (size > 0):
             if type(imgFile) == cherrypy._cpreqbody.Part:
-                self._log.info("user:" + userId + " command:put args={imgId:" + imgId + ", imgFile:" + imgId + ", metadata:" + attributeString + ", size:" + str(size) + "}")
+                self._log.info("user:" + userId + " command:put args={imgId:" + imgId + ", imgFile:" + imgId + ", metadata:" + attributeString + \
+                               ", size:" + str(size) + ", extension:" + extension + "}")
                 aMeta = self._createImgMeta(userId, imgId, attributeString, False)
-                aImg = ImgEntry(imgId, aMeta, self._imgStore + "/" + imgId, size)
+                aImg = ImgEntry(imgId, aMeta, self._imgStore + "/" + imgId, size, extension)
                 #it sends the imgEntry and the requestInstance
                 statusImg = self.imgStore.addItem(aImg, imgFile)
 
             else:
-                self._log.info("user:" + userId + " command:put args={imgId:" + imgId + ", imgFile:" + imgFile + ", metadata:" + attributeString + ", size:" + str(size) + "}")
+                self._log.info("user:" + userId + " command:put args={imgId:" + imgId + ", imgFile:" + imgFile + ", metadata:" + attributeString + \
+                               ", size:" + str(size) + ", extension:" + extension + "}")
                 fileLocation = self._imgStore + imgId
                 if(os.path.isfile(fileLocation)):
                         #parse attribute string and construct image metadata
                         aMeta = self._createImgMeta(userId, imgId, attributeString, False)
                         #put image item in the image store        
-                        aImg = ImgEntry(imgId, aMeta, fileLocation, size)
+                        aImg = ImgEntry(imgId, aMeta, fileLocation, size, extension.strip())
                         #it sends the imgEntry and None                
                         statusImg = self.imgStore.addItem(aImg, None)
 
@@ -499,10 +501,7 @@ def main():
             print service.get(os.popen('whoami', 'r').read().strip(), args[0], args[1])
             #print service.get(os.popen('whoami', 'r').read().strip(), "img", "4d4c2e6e577d70102a000000")
         elif o in ("-p", "--put"):
-            print service.put(os.popen('whoami', 'r').read().strip(), args[0], args[1], args[2], int(args[3]))
-
-            #print service.put(os.popen('whoami', 'r').read().strip(), "id536785449", "/home/jav/tst3.iso","vmtype=kvm|imgtype=Nimbus|os=RHEL5|arch=i386|owner=tstuser1|description=this is a test description|tag=tsttag1, tsttag2|permission=private" )
-            #print service.put(os.popen('whoami', 'r').read().strip(), "id536785449", "ttylinux1.img", "vmType=kvm|imgType=opennebula|os=UBUNTU|arch=x86_64| owner=tstuser2| description=another test| tag=tsttaga, tsttagb")
+            print service.put(os.popen('whoami', 'r').read().strip(), args[0], args[1], args[2], int(args[3]), args[4])
         elif o in ("-r", "--remove"):
             print service.remove(os.popen('whoami', 'r').read().strip(), args[0])
             #print service.remove(os.popen('whoami', 'r').read().strip(), "4d4b0b8a577d700d2b000000")

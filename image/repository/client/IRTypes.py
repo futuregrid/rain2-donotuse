@@ -155,6 +155,7 @@ class ImgEntry(object):
                  imgMeta,
                  imgURI,
                  size,
+                 extension,
                  createdDate = datetime.utcnow(),
                  lastAccess = datetime.utcnow(),
                  accessCount = 0
@@ -167,23 +168,24 @@ class ImgEntry(object):
         self._lastAccess = lastAccess
         self._accessCount = accessCount
         self._size = size
+        self._extension=extension
 
 
     ############################################################
     # __repr__
     ############################################################
     def __repr__(self):
-        return "\"imgId=%s, imgURI=%s, createdDate=%s, lastAccess=%s, accessCount=%s, size=%s\"" % \
+        return "\"imgId=%s, imgURI=%s, createdDate=%s, lastAccess=%s, accessCount=%s, size=%s, extension=%s\"" % \
                 (self._imgId, self._imgURI, self._createdDate, self._lastAccess, \
-                 self._accessCount, self._size)
+                 self._accessCount, self._size, self._extension)
 
     ############################################################
     # __str__
     ############################################################
     def __str__(self):
-        return "\"%s, %s, %s, %s, %s, %s\"" % \
+        return "\"%s, %s, %s, %s, %s, %s, %s\"" % \
                 (self._imgId, self._imgURI, self._createdDate, self._lastAccess, \
-                 self._accessCount, self._size)
+                 self._accessCount, self._size, self._extension)
 
     ############################################################
     # get

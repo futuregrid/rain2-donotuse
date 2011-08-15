@@ -47,7 +47,7 @@ class ImgStoreSwiftMongo(ImgStoreMongo):
     ############################################################
     # __init__
     ############################################################
-    def __init__(self, address, userAdmin, configFile, addressS, userAdminS, configFileS, log):
+    def __init__(self, address, userAdmin, configFile, addressS, userAdminS, configFileS, imgStore, log):
         """
         Initialize object
         
@@ -67,6 +67,7 @@ class ImgStoreSwiftMongo(ImgStoreMongo):
         self._mongoAddress = address
         self._userAdmin = userAdmin
         self._configFile = configFile
+        self._imgStore=imgStore
 
         self._swiftAddress = addressS
         self._userAdminS = userAdminS
@@ -94,15 +95,16 @@ class ImgStoreSwiftMongo(ImgStoreMongo):
         """
 
         imgLinks = []
-        result = self.queryStore([imgId], imgLinks, userId, admin)
+        extension = []
+        result = self.queryStore([imgId], imgLinks, userId, admin, extension)
         """
         if (result):
-            filename="/tmp/"+imgId+".img"
+            filename = self._imgStore + "/" + imgId + "" + extension[0].strip()
             if not os.path.isfile(filename):
                 f = open(filename, 'w')
             else:
                 for i in range(1000):
-                    filename="/tmp/"+imgId+".img"+i.__str__()
+                    filename = self._imgStore + "/" + imgId + "" + extension[0].strip() + "_" + i.__str__()
                     if not os.path.isfile(filename):
                         f = open(filename, 'w')
                         break
@@ -127,7 +129,7 @@ class ImgStoreSwiftMongo(ImgStoreMongo):
     ############################################################
     # queryStore
     ############################################################
-    def queryStore(self, imgIds, imgLinks, userId, admin):
+    def queryStore(self, imgIds, imgLinks, userId, admin, extension):
         """        
         Query the DB and provide a generator object of the Images to create them with strean method.    
         
@@ -157,15 +159,16 @@ class ImgStoreSwiftMongo(ImgStoreMongo):
                         access = True
                         #self._log.debug("ifpublic "+str(access))
                     if (access):
-
+                        #extension.append(collection.find_one({'_id':imgId})['extension'])                        
                         #imgLinks.append(contain.get_object(imgId))
 
                         ##to skip the python api
-                        imagepath = '/tmp/' + imgId + ".img"
+                        ext = collection.find_one({'_id':imgId})['extension']
+                        imagepath = self._imgStore + '/' + imgId + "" + ext.strip()
 
                         if os.path.isfile(imagepath):
                             for i in range(1000):
-                                imagepath = "/tmp/" + imgId + ".img" + i.__str__()
+                                imagepath = self._imgStore + "/" + imgId + "" + ext.strip() + "_" + i.__str__()
                                 if not os.path.isfile(imagepath):
                                     break
 
@@ -178,9 +181,9 @@ class ImgStoreSwiftMongo(ImgStoreMongo):
 
 
                         collection.update({"_id": imgId},
-                                      {"$inc": {"accessCount": 1}, }, safe = True)
+                                      {"$inc": {"accessCount": 1}, }, safe=True)
                         collection.update({"_id": imgId},
-                                      {"$set": {"lastAccess": datetime.utcnow()}, }, safe = True)
+                                      {"$set": {"lastAccess": datetime.utcnow()}, }, safe=True)
                         #print "here"                                         
                         itemsFound += 1
             except pymongo.errors.AutoReconnect:
@@ -190,7 +193,7 @@ class ImgStoreSwiftMongo(ImgStoreMongo):
             except TypeError as detail:
                 self._log.error("TypeError in ImgStoreSwiftMongo - queryStore")
             except bson.errors.InvalidId:
-                self._log.error("There is no Image with such Id. (ImgStoreMongo - queryStore)")
+                self._log.error("There is no Image with such Id. (ImgStoreSwiftMongo - queryStore)")
             except gridfs.errors.NoFile:
                 self._log.error("File not found")
             except cloudfiles.errors.NoSuchObject:
@@ -253,7 +256,7 @@ class ImgStoreSwiftMongo(ImgStoreMongo):
                             self._log.error("Error in ImgStoreSwiftMysql - trytoload "+str(sys.exc_info()))  
                     """
 
-                    s = os.chdir("/tmp")#self._fgirdir)
+                    s = os.chdir(self._imgStore)#self._fgirdir)
                     cmd = "$HOME/swift/trunk/bin/st upload -q " + self._containerName + " " + item._imgId + " -A https://192.168.11.40:8080/auth/v1.0 -U test:tester -K testing"
                     status = os.system(cmd)
                     self._log.debug(" swift upload image status: " + str(status))
@@ -279,10 +282,11 @@ class ImgStoreSwiftMongo(ImgStoreMongo):
                                 "lastAccess" : datetime.utcnow(),
                                 "accessCount" : 0,
                                 "size" : item._size,
+                                "extension" : item._extension,
                                 }
 
-                        collectionMeta.insert(meta, safe = True)
-                        collection.insert(data, safe = True)
+                        collectionMeta.insert(meta, safe=True)
+                        collection.insert(data, safe=True)
 
                         imgStored += 1
 
@@ -352,8 +356,8 @@ class ImgStoreSwiftMongo(ImgStoreMongo):
 
                     #contain.delete_object(imgId)
 
-                        collection.remove({"_id": imgId}, safe = True) #Wait for replication? w=3 option
-                        collectionMeta.remove({"_id": imgId}, safe = True)
+                        collection.remove({"_id": imgId}, safe=True) #Wait for replication? w=3 option
+                        collectionMeta.remove({"_id": imgId}, safe=True)
                         removed = True
                 except pymongo.errors.AutoReconnect:  #TODO: Study what happens with that. store or not store the file
                     self._log.warning("Autoreconnected.")
@@ -442,7 +446,7 @@ class ImgStoreSwiftMongo(ImgStoreMongo):
         id = self._userAdminS #'test:tester'
         pw = self.getPassword(self._configFileS) #'testing'
         try:
-            self._swiftConnection = cloudfiles.get_connection(id, pw, authurl = 'https://' + self._swiftAddress + ':8080/auth/v1.0')
+            self._swiftConnection = cloudfiles.get_connection(id, pw, authurl='https://' + self._swiftAddress + ':8080/auth/v1.0')
             connected = True
         except:
             self._log.error("Error in swift connection. " + str(sys.exc_info()))

@@ -134,7 +134,7 @@ if [ ! -e "server.csr" ]; then
 else
     if [ ! -e "server.crt" ]; then
 	echo "Getting private key"
-	/usr/local/ssl/bin/openssl x509 -req -days 60 -in server.csr -signkey server.key -out server.crt
+	/usr/local/ssl/bin/openssl x509 -req -days 600 -in server.csr -signkey server.key -out server.crt
     fi
 fi
 
