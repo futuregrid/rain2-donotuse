@@ -79,9 +79,10 @@ class IMGenerate(object):
             
             output = self._retrieveImg(ret)            
         
-            if output != None:            
-                    print 'Generated image and the manifest are packed in the file ' + status + '.  Please be aware that this FutureGrid ' + \
-                    'image is packaged without a kernel and fstab and is not built for any deployment type.  To deploy the new ' + \
+            if output != None:  
+                    print output          
+                    print '\n Generated image and the manifest are packed in the previous file.  Please be aware that this FutureGrid ' + \
+                    'image is packaged without a kernel and fstab. Thus, it is not built for any deployment type.  To deploy the new ' + \
                     'image, use the IMDeploy command.'
             #server return addr of the img and metafeile compressed in a tgz or None
         
