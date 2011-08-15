@@ -43,6 +43,7 @@ class IMServerConf(object):
                     sys.exit(1)
         
         #image generation server
+        self._gen_port = 0
         self._vmfile_centos = ""
         self._vmfile_rhel = ""
         self._vmfile_ubuntu ="" 
@@ -88,6 +89,8 @@ class IMServerConf(object):
         return self._configfile
     
     #image generation server
+    def getGenPort(self):
+        return self._gen_port
     def getVmFileCentos(self):
         return self._vmfile_centos
     def getVmFileRhel(self):
@@ -152,12 +155,17 @@ class IMServerConf(object):
     def load_generateServerConfig(self):        
         section = "GenerateServer"
         try:
+            self._gen_port = int(self._config.get(section, 'gen_port', 0))
+        except ConfigParser.NoOptionError:
+            print "Error: No gen_port option found in section " + section
+            sys.exit(1)
+        except ConfigParser.NoSectionError:
+            print "Error: no section "+section+" found in the "+self._configfile+" config file"
+            sys.exit(1)
+        try:
             self._vmfile_centos = os.path.expanduser(self._config.get(section, 'vmfile_centos', 0))
         except ConfigParser.NoOptionError:
             print "Error: No vmfile_centos option found in section " + section
-            sys.exit(1)            
-        except ConfigParser.NoSectionError:
-            print "Error: no section "+section+" found in the "+self._configfile+" config file"
             sys.exit(1)
         try:
             self._vmfile_rhel = os.path.expanduser(self._config.get(section, 'vmfile_rhel', 0))

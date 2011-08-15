@@ -47,8 +47,7 @@ class IMClientConf(object):
 
         #image generation
         self._serverdir = ""
-        self._serveraddr = ""
-        self._user=""
+        self._gen_port = 0        
 
         #image deploy
         self._xcat_port = 0
@@ -74,10 +73,8 @@ class IMClientConf(object):
     #Image Generation
     def getServerdir(self):
         return self._serverdir
-    def getServeraddr(self):
-        return self._serveraddr
-    def getUser(self):
-        return self._user
+    def getGenPort(self):
+        return self._gen_port
 
     #Image deployment
     def getXcatPort(self):
@@ -119,11 +116,10 @@ class IMClientConf(object):
         except ConfigParser.NoOptionError:
             print "Error: No serveraddr option found in section "+section
             sys.exit(1)
-        
         try:
-            self._user = os.path.expanduser(self._config.get(section, 'user', 0))
+            self._gen_port = int(self._config.get(section, 'gen_port', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No user option found in section "+section
+            print "Error: No gen_port option found in section " + section
             sys.exit(1)
       
 

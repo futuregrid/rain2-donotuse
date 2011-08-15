@@ -17,7 +17,7 @@ import sys
 import socket
 from subprocess import *
 #from xml.dom.ext import *
-from xml.dom.minidom import Document, parse
+#from xml.dom.minidom import Document, parse
 from time import time
 from IMClientConf import IMClientConf
 
@@ -39,51 +39,47 @@ class IMGenerate(object):
         self._genConf = IMClientConf()
         self._genConf.load_generationConfig()        
         self.serveraddr = self._genConf.getServeraddr()
-        self.serverdir = self._genConf.getServerdir()
-        #this user will be changed to the normal userId 
-        self.userId = self._genConf.getUser() #user to scp and run VM
-        ####
+        self.gen_port = self._genConf.getGenPort()
+        
 
     def generate(self):
-        #generate string with options in the previous ifs
+        #generate string with options separated by | character
         
-        options = "-a " + self.arch + " -o " + self.OS + " -v " + self.version + " -u " + self.user
-    
-    
-        if type(self.givenname) is not NoneType:
-            options += " -n " + self.givenname
-        if type(self.desc) is not NoneType:
-            options += " -e " + self.desc
-        if type(self.auth) is not NoneType:
-            options += " -l " + self.auth
-        if type(self.software) is not NoneType:
-            options += " -s " + self.software
-    
-        cmdexec = " '" + self.serverdir + "IMGenerateServer.py " + options + " '"
-    
+        #params[0] is auth
+        #params[1] is user
+        #params[2] is operating system
+        #params[3] is version
+        #params[4] is arch
+        #params[5] is software
+        #params[6] is givenname
+        #params[7] is the description
+        
+        options = self.auth + "&" +  self.user + "&"  + self.OS + "&" + self.version +"&"+ self.arch + "&" + \
+                self.software + "&" + self.givenname + "&" + self.desc 
+           
         print "Generating the image"
-    
-        uid = self._rExec(cmdexec)
-    
-        status = uid[0].strip() #it contains error or filename
-        self.logger.debug("Status: " + str(status))
         
-        output=None
-        if status == "error":
-            print "The image has not been generated properly. Exit error:" + uid[1]
-            sys.exit(1)
-        else:
-            output=self._retrieveImg(status)
-    
-        #imgIds = status.split("/")
-        #imgId = imgIds[len(imgIds) - 1]
-    
-        if output != None:
+        #Notify xCAT deployment to finish the job
+        genServer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        genServer.connect((self.serveraddr, self.gen_port))
+
+        genServer.send(msg)
+        #check if the server received all parameters
+        ret = genServer.recv(2048)
         
-                print 'Generated image and the manifest are packed in the file ' + status + '.  Please be aware that this FutureGrid ' +\
-                'image is packaged without a kernel and fstab and is not built for any deployment type.  To deploy the new ' +\
-                'image, use the IMDeploy command.'
-        #server return addr of the img and metafeile compressed in a tgz or None
+        if (re.search('^ERROR', ret)):
+            self.logger.error('The image has not been generated properly. Exit error:' + ret)
+            
+        else:                    
+            self.logger.debug("Returned string: " + str(ret))
+            
+            output=self._retrieveImg(ret)            
+        
+            if output != None:            
+                    print 'Generated image and the manifest are packed in the file ' + status + '.  Please be aware that this FutureGrid ' +\
+                    'image is packaged without a kernel and fstab and is not built for any deployment type.  To deploy the new ' +\
+                    'image, use the IMDeploy command.'
+            #server return addr of the img and metafeile compressed in a tgz or None
         
 
     ############################################################

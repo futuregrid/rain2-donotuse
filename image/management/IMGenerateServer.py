@@ -16,31 +16,34 @@ import sys
 import socket
 from subprocess import *
 #from xml.dom.ext import *
-from xml.dom.minidom import Document, parseString
+#from xml.dom.minidom import Document, parseString
 import xmlrpclib
 import time
 from IMServerConf import IMServerConf
 
 class IMGenerateServer(object):
 
-    def __init__(self, os, version, arch, auth, software, user, givenname, desc):
+    def __init__(self, oneadmin):
         super(IMGenerateServer, self).__init__()
 
         #*********************
         #Static Configuration.
         #*********************        
         #this is to login in the VM. This MUST be root because IMGenerateScript needs this access.
-        self.rootId = 'root'         
+        self.rootId = 'root'
+        self.numparams = 8
+        
+        self.oneadmin = oneadmin      
         
         #this is the user that requested the image
-        self.user = user
-        self.os = os
-        self.version = version
-        self.arch = arch
-        self.auth = auth
-        self.software = software        
-        self.givenname = givenname
-        self.desc = desc
+        self.user = ""
+        self.os = ""
+        self.version = ""
+        self.arch = ""
+        self.auth = ""
+        self.software = ""        
+        self.givenname = ""
+        self.desc = ""
         
         #load configuration
         self._genConf = IMServerConf()
@@ -103,77 +106,144 @@ class IMGenerateServer(object):
         #GET oneadmin password encoded in SHA1
         ##############
         p = Popen('oneuser list', stdout=PIPE, shell=True)
-        p1 = Popen('grep oneadmin', stdin=p.stdout, stdout=PIPE, shell=True)
+        p1 = Popen('grep ' + self.oneadmin, stdin=p.stdout, stdout=PIPE, shell=True)
         p2 = Popen('cut -d\" \" -f13', stdin=p1.stdout, shell=True, stdout=PIPE)
         oneadminpass = p2.stdout.read().strip()
         
     
         # ---Start xmlrpc client to opennebula server-------------
-        server = xmlrpclib.ServerProxy(self.xmlrpcserver)
-        oneauth = "oneadmin:" + oneadminpass
-        ###########
-        #BOOT VM##
-        ##########
-        output = self.boot_VM(server, oneauth, vmfile)
-        vmaddr = output[0]
-        vmID = output[1]
-        #####
-        if vmaddr != "fail":
-            self.logger.info("The VM deployed is in " + vmaddr)
+        try:
+            server = xmlrpclib.ServerProxy(self.xmlrpcserver)
+        except:
+            self.logger.error("Error connection with OpenNebula " + str(sys.exc_info()))
+            print "Error connecting with OpenNebula " + str(sys.exc_info())
+            sys.exit(1)
+            
+        oneauth = self.oneadmin + ":" + oneadminpass
         
-            self.logger.info("Mount scratch directory in the VM")
-            cmd = "ssh -q " + self.rootId + "@" + vmaddr
-            cmdmount = " mount -t nfs " + self.addrnfs + ":" + self.tempdirserver + " " + self.tempdir
-            self.logger.info(cmd + cmdmount)
-            stat = os.system(cmd + cmdmount)
+        #loop
+        self.logger.info('Starting Server on port ' + str(self.port))
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.bind(('', self.port))
+        sock.listen(1)
         
+        vmID = 0
         
-            if (stat == 0):
-                self.logger.info("Sending IMGenerateScript.py to the VM")
-                cmdscp = "scp -q " + self.serverdir + '/IMGenerateScript.py  ' + self.rootId + "@" + vmaddr + ":/root/"
-                self.logger.info(cmdscp)
-                stat = os.system(cmdscp)
-                if (stat != 0):
-                    self.logger.error("Error sending IMGenerateScript.py to the VM. Exit status " + str(stat))
-        
-        
-                options += "-a " + self.arch + " -o " + self.os + " -v " + self.version + " -u " + self.user + " -t " + self.tempdir
-        
-                if type(self.givenname) is not NoneType:
-                    options += " -n " + self.givenname
-                if type(self.desc) is not NoneType:
-                    options += " -e " + self.desc
-                if type(self.auth) is not NoneType:
-                    options += " -l " + self.auth
-                if type(self.software) is not NoneType:
-                    options += " -s " + self.software
-        
-                options += " -c " + self.http_server + " -b " + self.bcfg2_url + " -p " + str(self.bcfg2_port)
-          
-                cmdexec = " -q '/root/IMGenerateScript.py " + options + " '"
-        
-                self.logger.info(cmdexec)
-        
-                uid = self._rExec(self.rootId, cmdexec, vmaddr)
-        
-                status = uid[0].strip() #it contains error or filename
-                if status == "error":
-                    print uid
-                else:
-                    out = os.system("tar cfz " + self.tempdirserver + "/" + status + ".tgz -C " + self.tempdirserver + " " + status + ".manifest.xml " + status + ".img")
-                    if out == 0:
-                        os.system("rm -f " + self.tempdirserver + "" + status + ".manifest.xml " + self.tempdirserver + "" + status + ".img")
-        
-                    print self.tempdirserver + "" + status + ".tgz"
-        
-                self.logger.info("Umount scratch directory in the VM")
-                cmd = "ssh -q " + self.rootId + "@" + vmaddr
-                cmdmount = " umount " + self.tempdir
-                stat = os.system(cmd + cmdmount)
+        while True:
+            while True:
     
-        #destroy VM
-        self.logger.info("Destroy VM")
-        server.one.vm.action(oneauth, "finalize", vmID)
+                self.logger.info('Accepted new connection')
+                channel, details = sock.accept()                
+                #receive the message
+                data = channel.recv(2048)
+                params = data.split('|')
+    
+                #params[0] is auth
+                #params[1] is user
+                #params[2] is operating system
+                #params[3] is version
+                #params[4] is arch
+                #params[5] is software
+                #params[6] is givenname
+                #params[7] is the description
+    
+                self.auth = params[0]
+                self.user =  params[1]                 
+                self.os = params[2]
+                self.version = params[3] 
+                self.arch = params[4]
+                self.software = params[5]        
+                self.givenname = params[6]
+                self.desc = params[7]
+        
+                if len(params) != self.numparams:
+                    msg = "ERROR: incorrect message"
+                    self.errormsg(channel, msg)
+                    break
+        
+                ###########
+                #BOOT VM##
+                ##########
+                output = self.boot_VM(server, oneauth, vmfile)
+                vmaddr = output[0]
+                vmID = output[1]
+                #####
+                if vmaddr != "fail":
+                    self.logger.info("The VM deployed is in " + vmaddr)
+                
+                    self.logger.info("Mount scratch directory in the VM")
+                    cmd = "ssh -q " + self.rootId + "@" + vmaddr
+                    cmdmount = " mount -t nfs " + self.addrnfs + ":" + self.tempdirserver + " " + self.tempdir
+                    self.logger.info(cmd + cmdmount)
+                    stat = os.system(cmd + cmdmount)
+                
+                
+                    if (stat == 0):
+                        self.logger.info("Sending IMGenerateScript.py to the VM")
+                        cmdscp = "scp -q " + self.serverdir + '/IMGenerateScript.py  ' + self.rootId + "@" + vmaddr + ":/root/"
+                        self.logger.info(cmdscp)
+                        stat = os.system(cmdscp)
+                        if (stat != 0):
+                            msg="ERROR: sending IMGenerateScript.py to the VM. Exit status " + str(stat)
+                            self.errormsg(channel, msg)
+                            break
+                                
+                        options += "-a " + self.arch + " -o " + self.os + " -v " + self.version + " -u " + self.user + " -t " + self.tempdir
+                
+                        if type(self.givenname) is not NoneType:
+                            options += " -n " + self.givenname
+                        if type(self.desc) is not NoneType:
+                            options += " -e " + self.desc
+                        if type(self.auth) is not NoneType:
+                            options += " -l " + self.auth
+                        if type(self.software) is not NoneType:
+                            options += " -s " + self.software
+                
+                        options += " -c " + self.http_server + " -b " + self.bcfg2_url + " -p " + str(self.bcfg2_port)
+                  
+                        cmdexec = " -q '/root/IMGenerateScript.py " + options + " '"
+                
+                        self.logger.info(cmdexec)
+                
+                        uid = self._rExec(self.rootId, cmdexec, vmaddr)
+                
+                        status = uid[0].strip() #it contains error or filename
+                        if status == "error":
+                            msg = "ERROR: "+uid
+                            errormsg(channel, msg)
+                            break
+                        else:
+                            out = os.system("tar cfz " + self.tempdirserver + "/" + status + ".tgz -C " + self.tempdirserver + \
+                                            " " + status + ".manifest.xml " + status + ".img")
+                            if out == 0:
+                                os.system("rm -f " + self.tempdirserver + "" + status + ".manifest.xml " + self.tempdirserver + \
+                                          "" + status + ".img")
+                            else:
+                                msg = "ERROR: generating compressed file with the image and manifest"
+                                errormsg(channel, msg)
+                                break 
+                            
+                            #send back the url where the image is
+                            channel.send(self.tempdirserver + "" + status + ".tgz")
+                            channel.close()
+                
+                        self.logger.info("Umount scratch directory in the VM")
+                        cmd = "ssh -q " + self.rootId + "@" + vmaddr
+                        cmdmount = " umount " + self.tempdir
+                        stat = os.system(cmd + cmdmount)
+            
+                #destroy VM
+                self.logger.info("Destroy VM")
+                server.one.vm.action(oneauth, "finalize", vmID)
+            
+            #destroy VM if something fails
+            self.logger.info("Destroy VM")
+            server.one.vm.action(oneauth, "finalize", vmID)
+    
+    def errormsg(self, channel, msg):
+        self.logger.error(msg)
+        channel.send(msg)
+        channel.close()
     
     def boot_VM(self, server, oneauth, vmfile):
         """
@@ -286,27 +356,12 @@ class IMGenerateServer(object):
         return outputs
     
 def main():
+        
+    print "\n Remember that you must be the OpenNebula Admin to execute this service \n"
     
-
-    parser = OptionParser()
-
-    #help is auto-generated
-    parser.add_option("-o", "--os", dest="os", help="specify destination Operating System")
-    parser.add_option("-v", "--version", dest="version", help="Operating System version")
-    parser.add_option("-a", "--arch", dest="arch", help="Destination hardware architecture")
-    parser.add_option("-l", "--auth", dest="auth", help="Authentication mechanism")
-    parser.add_option("-s", "--software", dest="software", help="Software stack to be automatically installed")
-    parser.add_option("-u", "--user", dest="user", help="FutureGrid username")
-    parser.add_option("-n", "--name", dest="givenname", help="Desired recognizable name of the image")
-    parser.add_option("-e", "--description", dest="desc", help="Short description of the image and its purpose")
-
-    (ops, args) = parser.parse_args()
-
-    if (len(sys.argv) == 1):
-        parser.print_help()
-        sys.exit(1)
-
-    imgenserver = IMGenerateServer(ops.os, ops.version, ops.arch, ops.auth, ops.software, ops.user, ops.givenname, ops.desc)
+    oneadmin = os.popen('whoami', 'r').read().strip()
+    
+    imgenserver = IMGenerateServer()
     imgenserver.generate()
 
 if __name__ == "__main__":
