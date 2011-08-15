@@ -7,20 +7,21 @@ python --version
 #-------------------------- Open SSL installation -------------------------
 
 # which returns the number of failed arguments
-which openssl
-
+cd ../server/utils
+python -c "import distributions; x = distributions.Distributions(); x.checkopenssl()"
 if [[ $? -eq 1 ]]; then
-    cd ../../../utils
-    python -c "import distributions; distributions.Distributions().getopenssl(ssl)"
-    cd -
+    echo "unable to find openssl distribution, installing "
     # if return code is non-zero then there was an error in the installation
+    python -c "import distributions; x = distributions.Distributions(); x.getopenssl('ssl')"
     if [[ $? -eq 0 ]];  then
-	echo "compiling ssl  distribution "
-	cd ssl
+	cd -
+	echo "compiling ssl distribution "
+	cd ../server/utils/ssl
 	./config ; sudo make install
-	cd ..
+	cd -
+	sudo rm -rf ../server/utils/ssl
 
-	which openssl
+	python -c "import distributions; x = distributions.Distributions(); x.checkopenssl()"
 	if [[ $? -eq 1 ]]; then
 	    echo " Unable to generate library for openssl distribution "
 	fi
@@ -33,16 +34,18 @@ else
 fi
 
 
-#------------------------ mongodb, pymongo ----------------------
+#------------------------ mongodb  ----------------------
 which mongod
 
 if [[ $? -eq 1 ]]; then
-#    cd ../../../utils
-    python -c "import distributions; distributions.Distributions().getmongo(mongodb)"
-#    cd -
+    cd ../server/utils
+    echo "Retrieving mongo distribution "
+    python -c "import distributions; x = distributions.Distributions(); x.getmongo('mongodb')"
     if [[ $? -eq 0 ]]; then
-	echo " Successful retrieving mongo and pymongo distribution "
+	echo " Successful retrieving mongo distribution "
 	sudo cp -rf mongodb /usr/local/mongodb
+    else
+	echo " Unsuccessful  installation of mongodb "
     fi
 
     if [ ! -e "/usr/local/mongodb/bin/mongod" ]; then
@@ -51,23 +54,32 @@ if [[ $? -eq 1 ]]; then
 	echo " Able to copy into /usr/local, removing distribution from curr dir "
 	sudo rm -rf mongodb*
     fi
+    cd -
 else 
     echo  "Found mongod installation no need to install "
 fi
 
 
-#----------------------check pymongo --------------------------
-# Checks if loading the library is successful
+#---------------------- pymongo --------------------------
+# Checks if loading the library is successful, getpymongo call installs and loads library if successful
 # for consistency:  0 returns successful import 1 returns unsuccessful import
 cd ../server/utils
-python -c "import distributions; distributions.Distributions().checkmongo()"
-cd -
+python -c "import distributions; x = distributions.Distributions(); x.checkpymongo()"
 if [[ $? -eq 0 ]]; then 
-    echo " Successful importing pymongo library "
+    echo " pymongo library already imported, no need for installation"
 else
-    echo " Not successful importing pymongo library "
-fi    
+    echo " Installing and importing pymongo "
+    python -c "import distributions; x = distributions.Distributions(); x.getpymongo()"
+    if [[ $? -eq 0 ]]; then
+	echo "Successful importing library"
+    else	
+	echo "Unsuccessful importing pymongo library exiting "
+	exit 1
+    fi
+fi
+cd -    
 
+exit 1
 
 
 
@@ -77,27 +89,25 @@ fi
 # Checks if loading library is successful
 cd ../server/utils
 python -c "import distributions; distributions.Distributions().checkcherrypy()"
-cd -
 if [[ $? -eq 0 ]]; then
     echo " Successful in importing the cherrypy library, no need for installation "
 else
-    cd ../server/utils
     python -c "import distributions; x = distributions.Distributions(); x.getcherrypy('cherrypy')"
-    cd -
     if [[ $? -eq 0 ]]; then 
 	echo " Successful retrieving the cherrypy distribution "
 	cd cherrypy
 	sudo python setup.py install
     fi
 #--------------Re- Check cherrypy inport -----------------------
-    cd ../server/utils
-    python -c "import distributions; distributions.Distributions().checkcherrypy()"
+    python -c "import distributions; x = distributions.Distributions(); x.checkcherrypy()"
     if [[ $? -eq 0 ]]; then
 	echo " Successful in importing the cherrypy library "
     else
 	echo " Not successful in importing the cherrypy library "
     fi
 fi
+cd -
+
 
 #-------Generating keys and certificates ---------------
 
