@@ -361,7 +361,7 @@ def main():
     
     oneadmin = os.popen('whoami', 'r').read().strip()
     
-    imgenserver = IMGenerateServer()
+    imgenserver = IMGenerateServer(oneadmin)
     imgenserver.generate()
 
 if __name__ == "__main__":
