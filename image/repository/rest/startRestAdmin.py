@@ -256,8 +256,8 @@ class AdminRestService(object):
             self.setMessage("The image Id or option is empty! Please input both the image Id and option")
             raise cherrypy.HTTPRedirect("results")
 
-        serve_file(filepath, "application/x-download", "attachment")
-        raise cherrypy.HTTPRedirect("results")
+        return serve_file(filepath, "application/x-download", "attachment")
+        
 
     actionGet.exposed = True
 
@@ -300,10 +300,12 @@ class AdminRestService(object):
             if (isPermitted == True):
                 imgId = self.service.genImgId() #this is needed when we are not using mongodb as image storage backend
                 if imgId != None:
-                    imageId = self.service.put(userId, imgId, imageFileName, attributeString, size)
+                    extension = os.path.splitext(imageFileName.filename)[1]
+                    imageId = self.service.put(userId, imgId, imageFileName, attributeString, size, extension)
 
                     self.msg = "Image %s successfully uploaded." % imageFileName.filename
                     self.msg += " Image size %s " % size
+                    self.msg += " Image extension is %s " % extension
                     self.msg += "<br> The image ID is %s " % imageId
                 else:
                     self.msg += "Error generating the imgId"
