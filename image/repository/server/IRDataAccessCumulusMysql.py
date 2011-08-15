@@ -238,10 +238,9 @@ class ImgStoreCumulusMysql(ImgStoreMysql):
         else:
             self._log.error("Could not get access to the database. The file has not been stored")
 
-        for item in items:
-            if (re.search('^/tmp/', item._imgURI)):
-                cmd = "rm -f " + item._imgURI
-                os.system(cmd)
+        for item in items:            
+            cmd = "rm -f " + item._imgURI
+            os.system(cmd)
 
         if (imgStored == len(items)):
             return True
