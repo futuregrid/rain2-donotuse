@@ -48,6 +48,7 @@ class IMGenerateServer(object):
         #load configuration
         self._genConf = IMServerConf()
         self._genConf.load_generateServerConfig()
+        self.port = self._genConf.getGenPort()
         self.vmfile_centos = self._genConf.getVmFileCentos()
         self.vmfile_rhel = self._genConf.getVmFileRhel()
         self.vmfile_ubuntu = self._genConf.getVmFileUbuntu()
@@ -136,6 +137,9 @@ class IMGenerateServer(object):
                 channel, details = sock.accept()                
                 #receive the message
                 data = channel.recv(2048)
+                
+                self.logger.debug("received data: "+data)
+                
                 params = data.split('|')
     
                 #params[0] is auth

@@ -25,15 +25,15 @@ class IMGenerate(object):
     def __init__(self, arch, OS, version, user, auth, software, givenname, desc, logger):
         super(IMGenerate, self).__init__()
         
-        self.arch=arch
-        self.OS=OS
-        self.version=version
-        self.user=user
-        self.auth=auth
-        self.software=software
-        self.givenname=givenname
-        self.desc=desc
-        self.logger=logger
+        self.arch = arch
+        self.OS = OS
+        self.version = version
+        self.user = user
+        self.auth = auth
+        self.software = software
+        self.givenname = givenname
+        self.desc = desc
+        self.logger = logger
         
         #Load Configuration from file
         self._genConf = IMClientConf()
@@ -54,8 +54,8 @@ class IMGenerate(object):
         #params[6] is givenname
         #params[7] is the description
         
-        options = self.auth + "&" +  self.user + "&"  + self.OS + "&" + self.version +"&"+ self.arch + "&" + \
-                self.software + "&" + self.givenname + "&" + self.desc 
+        options = self.auth + "|" + self.user + "|" + self.OS + "|" + self.version + "|" + self.arch + "|" + \
+                self.software + "|" + self.givenname + "|" + self.desc 
            
         print "Generating the image"
         
@@ -73,11 +73,11 @@ class IMGenerate(object):
         else:                    
             self.logger.debug("Returned string: " + str(ret))
             
-            output=self._retrieveImg(ret)            
+            output = self._retrieveImg(ret)            
         
             if output != None:            
-                    print 'Generated image and the manifest are packed in the file ' + status + '.  Please be aware that this FutureGrid ' +\
-                    'image is packaged without a kernel and fstab and is not built for any deployment type.  To deploy the new ' +\
+                    print 'Generated image and the manifest are packed in the file ' + status + '.  Please be aware that this FutureGrid ' + \
+                    'image is packaged without a kernel and fstab and is not built for any deployment type.  To deploy the new ' + \
                     'image, use the IMDeploy command.'
             #server return addr of the img and metafeile compressed in a tgz or None
         
@@ -177,15 +177,15 @@ def main():
     print 'Image generator client...'
 
     #help is auto-generated
-    parser.add_option("-o", "--os", dest = "OS", help = "specify destination Operating System")
-    parser.add_option("-v", "--version", dest = "version", help = "Operating System version")
-    parser.add_option("-a", "--arch", dest = "arch", help = "Destination hardware architecture")
-    parser.add_option("-l", "--auth", dest = "auth", help = "Authentication mechanism")
-    parser.add_option("-s", "--software", dest = "software", help = "Software stack to be automatically installed")
-    parser.add_option("-d", "--debug", action = "store_true", dest = "debug", help = "Enable debugging")
-    parser.add_option("-u", "--user", dest = "user", help = "FutureGrid username")
-    parser.add_option("-n", "--name", dest = "givenname", help = "Desired recognizable name of the image")
-    parser.add_option("-e", "--description", dest = "desc", help = "Short description of the image and its purpose")
+    parser.add_option("-o", "--os", dest="OS", help="specify destination Operating System")
+    parser.add_option("-v", "--version", dest="version", help="Operating System version")
+    parser.add_option("-a", "--arch", dest="arch", help="Destination hardware architecture")
+    parser.add_option("-l", "--auth", dest="auth", help="Authentication mechanism")
+    parser.add_option("-s", "--software", dest="software", help="Software stack to be automatically installed")
+    parser.add_option("-d", "--debug", action="store_true", dest="debug", help="Enable debugging")
+    parser.add_option("-u", "--user", dest="user", help="FutureGrid username")
+    parser.add_option("-n", "--name", dest="givenname", help="Desired recognizable name of the image")
+    parser.add_option("-e", "--description", dest="desc", help="Short description of the image and its purpose")
 
     (ops, args) = parser.parse_args()
 
