@@ -16,7 +16,7 @@ import sys
 import socket
 from subprocess import *
 #from xml.dom.ext import *
-#from xml.dom.minidom import Document, parseString
+from xml.dom.minidom import Document, parseString
 import xmlrpclib
 import time
 from IMServerConf import IMServerConf
