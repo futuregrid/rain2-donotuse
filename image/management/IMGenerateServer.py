@@ -90,19 +90,9 @@ class IMGenerateServer(object):
     
         self.logger.info('Starting Image generator server')
         #it will have the IP of the VM
-        vmaddr = ""
-        vmfile = ""
-        options = ''   
-                
-        if self.os == "ubuntu":
-            vmfile = self.vmfile_ubuntu
-        elif self.os == "debian":
-            vmfile = self.vmfile_debian
-        elif self.os == "rhel":
-            vmfile = self.vmfile_rhel
-        elif self.os == "centos":
-            vmfile = self.vmfile_centos
-    
+        vmaddr = ""        
+        options = ''           
+        
         ##############
         #GET oneadmin password encoded in SHA1
         ##############
@@ -159,11 +149,21 @@ class IMGenerateServer(object):
                 self.software = params[5]        
                 self.givenname = params[6]
                 self.desc = params[7]
-        
+                
                 if len(params) != self.numparams:
                     msg = "ERROR: incorrect message"
                     self.errormsg(channel, msg)
                     break
+        
+                vmfile = ""
+                if self.os == "ubuntu":
+                    vmfile = self.vmfile_ubuntu
+                elif self.os == "debian":
+                    vmfile = self.vmfile_debian
+                elif self.os == "rhel":
+                    vmfile = self.vmfile_rhel
+                elif self.os == "centos":
+                    vmfile = self.vmfile_centos
         
                 ###########
                 #BOOT VM##

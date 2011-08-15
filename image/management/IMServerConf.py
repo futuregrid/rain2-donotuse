@@ -155,9 +155,9 @@ class IMServerConf(object):
     def load_generateServerConfig(self):        
         section = "GenerateServer"
         try:
-            self._gen_port = int(self._config.get(section, 'gen_port', 0))
+            self._gen_port = int(self._config.get(section, 'port', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No gen_port option found in section " + section
+            print "Error: No port option found in section " + section
             sys.exit(1)
         except ConfigParser.NoSectionError:
             print "Error: no section "+section+" found in the "+self._configfile+" config file"

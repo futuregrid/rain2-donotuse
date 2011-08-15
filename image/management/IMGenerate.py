@@ -54,16 +54,20 @@ class IMGenerate(object):
         #params[6] is givenname
         #params[7] is the description
         
-        options = self.auth + "|" + self.user + "|" + self.OS + "|" + self.version + "|" + self.arch + "|" + \
-                self.software + "|" + self.givenname + "|" + self.desc 
-           
+        options = str(self.auth) + "|" + str(self.user) + "|" + str(self.OS) + "|" + str(self.version) + "|" + str(self.arch) + "|" + \
+                str(self.software) + "|" + str(self.givenname) + "|" + str(self.desc) 
+        
+        self.logger.debug("string to send: "+options)
+        
         print "Generating the image"
         
         #Notify xCAT deployment to finish the job
         genServer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        
+        self.logger.debug("Connecting server: "+ self.serveraddr +":"+str(self.gen_port))
         genServer.connect((self.serveraddr, self.gen_port))
 
-        genServer.send(msg)
+        genServer.send(options)
         #check if the server received all parameters
         ret = genServer.recv(2048)
         
@@ -92,7 +96,7 @@ class IMGenerate(object):
         random.seed()
         randid = str(random.getrandbits(32))
         
-        cmdssh = "ssh " + self.userId + "@" + self.serveraddr
+        cmdssh = "ssh " + self.serveraddr
         tmpFile = "/tmp/" + str(time()) + str(randid)
         #print tmpFile
         cmdexec = cmdexec + " > " + tmpFile
@@ -122,7 +126,7 @@ class IMGenerate(object):
         imgIds = imgURI.split("/")
         imgId = imgIds[len(imgIds) - 1]
     
-        cmdscp = "scp " + self.userId + "@" + imgURI + " ."
+        cmdscp = "scp " + imgURI + " ."
         output = ""
         try:
             print "Retrieving the image"

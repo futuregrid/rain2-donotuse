@@ -46,7 +46,7 @@ class IMClientConf(object):
                     sys.exit(1)
 
         #image generation
-        self._serverdir = ""
+        self._serveraddr = ""
         self._gen_port = 0        
 
         #image deploy
@@ -71,8 +71,8 @@ class IMClientConf(object):
         return self._configfile
     
     #Image Generation
-    def getServerdir(self):
-        return self._serverdir
+    def getServeraddr(self):
+        return self._serveraddr
     def getGenPort(self):
         return self._gen_port
 
@@ -103,23 +103,18 @@ class IMClientConf(object):
         
         section="Generation"
         try:
-            self._serverdir = os.path.expanduser(self._config.get(section, 'serverdir', 0))
-        except ConfigParser.NoOptionError:
-            print "Error: No serverdir option found in section "+section
-            sys.exit(1)
-        except ConfigParser.NoSectionError:
-            print "Error: no section "+section+" found in the "+self._configfile+" config file"
-            sys.exit(1)
-        #Server address
-        try:
             self._serveraddr = self._config.get(section, 'serveraddr', 0)
         except ConfigParser.NoOptionError:
             print "Error: No serveraddr option found in section "+section
             sys.exit(1)
+        except ConfigParser.NoSectionError:
+            print "Error: no section "+section+" found in the "+self._configfile+" config file"
+            sys.exit(1)
+        #Server address        
         try:
-            self._gen_port = int(self._config.get(section, 'gen_port', 0))
+            self._gen_port = int(self._config.get(section, 'port', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No gen_port option found in section " + section
+            print "Error: No port option found in section " + section
             sys.exit(1)
       
 
