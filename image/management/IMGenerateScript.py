@@ -364,6 +364,10 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
         ubuntuLog.info('Installing user-defined packages')
         runCmd('chroot ' + tempdir + '' + name + ' apt-get -y install ' + pkgs)  #NON_INTERACTIVE
         ubuntuLog.info('Installed user-defined packages')
+        
+    ubuntuLog.info('Upgrading image')
+    runCmd('chroot ' + tempdir + '' + name + ' apt-get update')
+    runCmd('chroot ' + tempdir + '' + name + ' apt-get -y upgrade')
 
     #Setup BCFG2 server groups
     success = push_bcfg2_group(name, pkgs, 'ubuntu', version)
@@ -452,7 +456,7 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
         #base_os done
 
     centosLog.info('Installing some util packages')
-    runCmd('chroot ' + tempdir + '' + name + ' yum -y install wget nfs-utils gcc make man')
+    runCmd('chroot ' + tempdir + '' + name + ' yum -y install wget nfs-utils gcc make man python26')
 
 #Move ldap to deploy    
     if (ldap):
