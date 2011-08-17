@@ -44,6 +44,8 @@ class IMServerConf(object):
         
         #image generation server
         self._gen_port = 0
+        self._proc_max = 0
+        self._refresh_status = 0
         self._vmfile_centos = ""
         self._vmfile_rhel = ""
         self._vmfile_ubuntu ="" 
@@ -91,6 +93,10 @@ class IMServerConf(object):
     #image generation server
     def getGenPort(self):
         return self._gen_port
+    def getProcMax():
+        return self._proc_max
+    def getRefreshStatus():
+        self._refresh_status
     def getVmFileCentos(self):
         return self._vmfile_centos
     def getVmFileRhel(self):
@@ -161,6 +167,16 @@ class IMServerConf(object):
             sys.exit(1)
         except ConfigParser.NoSectionError:
             print "Error: no section "+section+" found in the "+self._configfile+" config file"
+            sys.exit(1)
+        try:
+            self._proc_max = int(self._config.get(section, 'proc_max', 0))
+        except ConfigParser.NoOptionError:
+            print "Error: No proc_max option found in section " + section
+            sys.exit(1)
+        try:
+            self._refresh_status = int(self._config.get(section, 'refresh', 0))
+        except ConfigParser.NoOptionError:
+            print "Error: No refresh option found in section " + section
             sys.exit(1)
         try:
             self._vmfile_centos = os.path.expanduser(self._config.get(section, 'vmfile_centos', 0))

@@ -50,6 +50,8 @@ class IMGenerateServer(object):
         self._genConf = IMServerConf()
         self._genConf.load_generateServerConfig()
         self.port = self._genConf.getGenPort()
+        self.proc_max = self._genConf.getProcMax()
+        self.refresh_status = self._genConf.getRefreshStatus()
         self.vmfile_centos = self._genConf.getVmFileCentos()
         self.vmfile_rhel = self._genConf.getVmFileRhel()
         self.vmfile_ubuntu = self._genConf.getVmFileUbuntu()
@@ -103,11 +105,11 @@ class IMGenerateServer(object):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.bind(('', self.port))
         sock.listen(1) #Maximum of unaccepted connections
-        proc_max=2
+                
         proc_list=[]
-            
+        total_count=0
         while True:        
-            if len(proc_list)==proc_max:
+            if len(proc_list)==self.proc_max:
                 full=True
                 while full:
                     for i in range(len(proc_list)-1,-1,-1):
@@ -117,17 +119,17 @@ class IMGenerateServer(object):
                             proc_list.pop(i)
                             full=False
                     if full:
-                        time.sleep(10)
-                    
-            channel, details = sock.accept()
-            pid=None
-            proc_list.append(Process(target=self.generate, args=(channel,details, pid)))            
+                        time.sleep(self.refresh_status)
+            
+            total_count+=1
+            channel, details = sock.accept()            
+            proc_list.append(Process(target=self.generate, args=(channel,details, total_count)))            
             proc_list[len(proc_list)-1].start()    
       
     def generate(self, channel, details, pid):
         #this runs in a different proccess
         
-        self.logger=logging.getLogger("GenerateServer."+pid)
+        self.logger=logging.getLogger("GenerateServer."+str(pid))
         
         self.logger.info('Processing an image generation request')
         #it will have the IP of the VM
