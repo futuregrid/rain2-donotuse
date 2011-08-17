@@ -242,6 +242,7 @@ class IMGenerateServer(object):
                         cmdmount = " umount " + self.tempdir
                         self.logger.debug(cmd + cmdmount)
                         stat = os.system(cmd + cmdmount)
+                        self.logger.debug("exit status "+str(stat))
                             #if stat != 0:
                             #    time.sleep(2)
                         
@@ -260,8 +261,6 @@ class IMGenerateServer(object):
                         #send back the url where the image is
                         channel.send(self.tempdirserver + "" + status + ".tgz")
                         channel.close()
-            
-
     
             #destroy VM
             self.logger.info("Destroy VM")
