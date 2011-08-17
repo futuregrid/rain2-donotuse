@@ -52,6 +52,7 @@ class IRServerConf(object):
         self._backend=""
         self._log_repo=""
         self._logLevel_repo=""
+        self._idp = ""
         #image repo server backends
         self._address=""
         self._userAdmin=""
@@ -80,12 +81,16 @@ class IRServerConf(object):
         
         return logger
     
+    def getServerConfig(self):
+	return self._configfile
     def getLogRepo(self):
         return self._log_repo
     def getLogLevelRepo(self):
         return self._logLevel_repo    
     def getBackend(self):
         return self._backend
+    def getIdp(self):
+	return self._idp
     
     def getAddress(self):
         return self._address
@@ -111,6 +116,14 @@ class IRServerConf(object):
             self._backend = self._config.get(section, 'backend', 0)
         except ConfigParser.NoOptionError:
             self._log.error("No backend option found in section " + section)
+            sys.exit(1)  
+        except ConfigParser.NoSectionError:
+            self._log.error("no section "+section+" found in the "+self._configfile+" config file")
+            sys.exit(1)
+        try:
+            self._idp = self._config.get(section, 'idp', 0)
+        except ConfigParser.NoOptionError:
+            self._log.error("No idp option found in section " + section)
             sys.exit(1)  
         except ConfigParser.NoSectionError:
             self._log.error("no section "+section+" found in the "+self._configfile+" config file")

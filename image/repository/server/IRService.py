@@ -181,9 +181,10 @@ class IRService(object):
             print "Status not valid. Status available: " + str(IRUser.Status)
             return False
 
-    def auth(self, userId):
+    def auth(self, userId, userCred):
         # to be implemented when integrating with the security framework
-        return IRUtil.auth(userId, None)
+        cred = IRCredential(self._repoConf.getIdp(), userCred)
+        return IRUtil.auth(userId, cred)
 
     def query(self, userId, queryString):
         self._log.info("user:" + userId + " command:list args={queryString:" + queryString + "}")

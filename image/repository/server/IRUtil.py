@@ -5,130 +5,23 @@ utility class for static methods
 from random import randrange
 import logging
 import sys, os
-################
-#BACKEND CONFIG
-################
+import ConfigParser
+import hashlib
+import base64
+import binascii
+import ldap
+import MySQLdb
+from IRTypes import IRCredential
+from IRServerConf import IRServerConf
 
-#MongoDB config
-__backend__ = "mongodb"
-__address__ = "localhost:23000"
-__fgirimgstore__ = "/tmp/"
+sys.path.append(os.getcwd())
 
-"""
-#Mysql config
-__backend__= "mysql"
-__address__= "localhost"
-__fgirimgstore__="/srv/irstore/"
-"""
-"""
-#Swift-Mysql
-__backend__= "swiftmysql"
-__address__= "localhost"  #MysqlAddress
-__addressS__= "192.168.1.2" #Swift proxy address
-__fgirimgstore__="/tmp/"
-"""
-"""
-#Swift-Mongo
-__backend__= "swiftmongo"
-__address__="localhost:23000"  #Mongos address
-__addressS__= "192.168.1.2"#Swift proxy address
-__fgirimgstore__="/tmp/"
-"""
-"""
-#Cumulus-Mysql
-__backend__= "cumulusmysql"
-__address__="localhost"  #Mongos address
-__addressS__= "192.168.1.2"#cumulus address
-__fgirimgstore__="/tmp/"
-"""
-"""
-#Cumulus-Mongo
-__backend__= "cumulusmongo"
-__address__="localhost:23000"  #Mongos address
-__addressS__= "192.168.1.2"#cumulus address
-__fgirimgstore__="/tmp/"
-"""
-
-
-############################################
-#DIR WHERE THE SERVER SOFTWARE IS INSTALLED (Only used to store the log and in Mysql to keep the pass)
-############################################
-__fgserverdir__ = "/opt/futuregrid/futuregrid/"
-#__fgserverdir__="/N/u/fuwang/fgir/"
-
-##############################
-#Mysql CONFIG
-##############################
-#File with the MySQL password
-__mysqlcfg__ = __fgserverdir__ + "/var/.mysql.cnf"
-__iradmin__ = "IRUser"
-
-########################
-#Log Options
-########################
-##At the end, it should be in /var/log or a var directory in the Futuregrid software
-__logfile__ = __fgserverdir__ + "/var/reposerver.log"
-__logLevel__ = logging.DEBUG
-
-
-############################################################
-# getFgserverdir
-############################################################
-def getFgserverdir():
-    return __fgserverdir__
-
-############################################################
-# getMysqlcfg
-############################################################
-def getMysqlcfg():
-    return __mysqlcfg__
-
-############################################################
-# getMysqluser
-############################################################
-def getMysqluser():
-    return __iradmin__
-
-
-############################################################
-# getFgirimgstore
-############################################################
-def getFgirimgstore():
-    return __fgirimgstore__
-
-############################################################
-# getLogFile
-############################################################
-def getLogFile():
-    return __logfile__
-
-############################################################
-# getLogLevel
-############################################################
-def getLogLevel():
-    return __logLevel__
-
-
-############################################################
-# getBackend
-############################################################
-def getBackend():
-    return __backend__
-
-############################################################
-# getAddress
-############################################################
-def getAddress():
-    return __address__
-
-
-############################################################
-# getAddressS
-############################################################
-def getAddressS():
-    return __addressS__
-
-
+try:
+    from futuregrid.utils import fgLog
+except:
+    sys.path.append(os.getcwd() + "/../../../") #Directory where fg.py is
+    from utils import fgLog
+    
 ############################################################
 # getImgId
 ############################################################
@@ -136,9 +29,91 @@ def getImgId():
     imgId = str(randrange(999999999999999999999999))
     return imgId
 
-
 ############################################################
 # auth
 ############################################################
 def auth(userId, cred):
-    return True
+    ret = False
+    configFile = IRServerConf().getServerConfig()
+    config = ConfigParser.ConfigParser()
+    config.read(configFile)
+    logfile = config.get("RepoServer", "log")
+    
+    log = fgLog.fgLog(logfile, logging.INFO, "IRUtil Auth", False)
+
+    authProvider = cred._provider
+    authCred = cred._cred
+    # print "'" + userId + "':'" + authProvider + "':'" + authCred + "'"
+    if(authProvider == "ldappass"):
+        if(authCred != ""):
+	    host = config.get('LDAP', 'LDAPHOST')
+            adminuser = config.get('LDAP', 'LDAPUSER')
+            adminpass = config.get('LDAP', 'LDAPPASS')
+            #print adminuser, adminpass
+            userdn = "uid=" + userId + ",ou=People,dc=futuregrid,dc=org"
+            #print userdn
+            ldapconn = ldap.initialize("ldap://" + host)
+            log.info("Initializing the LDAP connection to server: " + host)
+            try:
+                ldapconn.start_tls_s()
+                log.info("tls started...")
+                ldapconn.bind_s(adminuser, adminpass)
+                m = hashlib.md5()
+                m.update(authCred)
+                passwd_input = m.hexdigest()
+                #print passwd_input
+                passwd_processed = "{MD5}" + base64.b64encode(binascii.unhexlify(passwd_input))
+                #print passwd_processed
+                #print base64.b64encode(passwd_processed)
+                if(ldapconn.compare_s(userdn, 'userPassword', passwd_processed)):
+                    ret = True
+                    log.info("User '" + userId + "' successfully authenticated")
+                else:
+		    ret = False
+		    log.info("User '" + userId + "' failed to authenticate due to incorrect credential")
+                #print ldapconn.compare_s(userdn, 'mail', "kevinwangfg@gmail.com")
+                #basedn = "ou=People,dc=futuregrid,dc=org"
+                #filter = "(uid=" + userId + ")"
+                #attrs = ['userPassword']
+                #print ldapconn.search_s( basedn, ldap.SCOPE_SUBTREE, filter, attrs )
+            except ldap.INVALID_CREDENTIALS:
+                log.info("Your username or password is incorrect. Cannot bind as admin.")
+                ret = False
+            except ldap.LDAPError:
+		log.info("User '" + userId + "' failed to authenticate due to LDAP error. The user may not exist.")
+                ret = False
+            finally:
+                log.info("Unbinding from the LDAP.")
+                ldapconn.unbind()
+    elif(authProvider == "drupalplain"):
+        if(authCred != ""):
+            m = hashlib.md5()
+            m.update(authCred)
+            passwd_input = m.hexdigest()
+
+            dbhost = config.get('PortalDB', 'host')
+            dbuser = config.get('PortalDB', 'user')
+            dbpasswd = config.get('PortalDB', 'passwd')
+            dbname = config.get('PortalDB', 'db')
+            
+            conn = MySQLdb.connect(dbhost,dbuser,dbpasswd,dbname)
+            cursor = conn.cursor()
+            queryuser = "select pass from users where name='" + userId + "'"
+            cursor.execute(queryuser)
+            passwd_db = ""
+            passwd = cursor.fetchall()
+            for thepass in passwd:
+                passwd_db = list(thepass)[0]
+            if(passwd_db != "" and passwd_db==passwd_input):
+                ret = True
+                log.info("User " + userId + " successfully authenticated")
+            else:
+		log.info("User " + userId + " failed to authenticate")
+    return ret
+
+if __name__ == "__main__":
+    cred = IRCredential("ldappass", "REMOVED")
+    if(auth("testuser", cred)):
+        print "logged in"
+    else:
+        print "access denied"

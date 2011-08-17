@@ -13,7 +13,7 @@ import cherrypy.lib.sessions
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../server/')
 from IRService import IRService
 import IRUtil
-from IRTypes import ImgMeta, IRUser
+from IRTypes import ImgMeta, IRUser, IRCredential
 from cherrypy.lib.static import serve_file
 import textwrap
 from random import randrange
@@ -166,10 +166,12 @@ class AdminRestService(object):
 
     ## Callback function to the list service
     # @param userId user id to represent list
+    # @param userCred user password in MD5 digested format
     # @param queryString (not required) string to help narrow down the query 
-    def actionList (self, userId, queryString) :
-
-        if (len(userId) > 0):
+    def actionList (self, userId, userCred, queryString) :
+        userId = userId.strip()
+        #userCred = IRCredential("ldappass", userCred)
+        if (len(userId) > 0 and self.service.auth(userId, userCred)):
             if (len(queryString) == 0):
                 imgsList = self.service.query(userId.strip(), "*")
             else:
@@ -184,14 +186,15 @@ class AdminRestService(object):
             else:
                 self.msg = "No list of images returned"
         else:
-            self.msg = "you need to specify an userId"
+            self.msg = "Please specify valid username/password"
         raise cherrypy.HTTPRedirect("results")
     actionList.exposed = True
 
     ## list service
     def list (self) :
         self.msg = """ <form method=get action=actionList> 
-        UserId: <input type=string name=userId> <br> 
+        Username: <input type=string name=userId><br>
+        Password: <input type=password name=userCred><br>
         Query string: <input type=string name=queryString> <br> 
         <input type=submit> </form> """
         return self.msg;
@@ -200,71 +203,75 @@ class AdminRestService(object):
     ## Callback function to the set permission service
     # @param userId login/account name of the Rest user to invoke this service
     # @param imgId id of the uploaded Rest image for the specified user.
+    # @param userCred user password in MD5 digested format
     # @permissionString permission string
-    def actionSetPermission (self, userId = None, imgId = None, permissionString = None) :
+    def actionSetPermission (self, userId, userCred, imgId = None, permissionString = None) :
         self.msg = ""
         userId = userId.strip()
         imgId = imgId.strip()
-        permstring = permstring.strip()
-
-        if (len(permissionString) > 0 and len(userId) > 0 and len(imgId) > 0):
-            permstring = "permission=" + permissionString
-            status = self.service.updateItem(userId, imgId, permstring)
-            if(status == True):
-                self.setMessage("Permission of img " + imgId + " updated")
-            else:
-                self.setMessage("The permission has not been changed.")
-        else :
-            self.setMessage("Please verify the input information, you need to include userId, permission and imgId")
-
-        raise cherrypy.HTTPRedirect("results")
+        permstring = permissionString.strip()
+        #userCred = IRCredential("ldappass", userCred)
+        if (len(userId) > 0 and self.service.auth(userId, userCred)):
+            if (len(permissionString) > 0 and len(imgId) > 0):
+                permstring = "permission=" + permissionString
+                status = self.service.updateItem(userId, imgId, permstring)
+                if(status == True):
+                    self.setMessage("Permission of img " + imgId + " updated")
+                else:
+                    self.setMessage("The permission has not been changed.")
+            else :
+                self.setMessage("Please verify the input information, you need to include userId, permission and imgId")
+    
+            raise cherrypy.HTTPRedirect("results")
     actionSetPermission.exposed = True;
 
     ## Set permission service
     def setPermission (self):
-      message = """ <form method=get action=actionSetPermission>
+        message = """ <form method=get action=actionSetPermission>
         UserId: <input type=string name=userId> <br>
         Image Id: <input type=string name=imgId> <br>                                                                                 
         Permission string: <input type=string name=permissionString> <br>                                                              
         <input type=submit> </form> """
-      return message
+        return message
     setPermission.exposed = True;
 
     ## Callback function to the get service. 
     # @param userId login/account name of the Rest user to invoke this service
+    # @param userCred user password in MD5 digested format
     # @param option specify exactly 'img' or 'uri' 
     # @param imgId id of the uploaded Rest image for a specified user.
-    def actionGet(self, userId, option, imgId):
+    def actionGet(self, userId, userCred, option, imgId):
         self.msg = ""
 
         option = option.strip()
         imgId = imgId.strip()
         userId = userId.strip()
-
-        if(len(imgId) > 0 and len(option) > 0 and len(userId)):
-
-            filepath = self.service.get(userId, option, imgId)
-            if (filepath != None):
-                if (len(imgId) > 0) :
-                    self.setMessage("Downloading img to %s " % filepath.__str__())
-                else :
-                    self.setMessage("URL:  %s " % filepath.__str__())
-            else:
-                self.setMessage("Cannot get access to the image with imgId = " + imgId)
+        #userCred = IRCredential("ldappass", userCred)
+        if (len(userId) > 0 and self.service.auth(userId, userCred)):
+            if(len(imgId) > 0 and len(option) > 0):    
+                filepath = self.service.get(userId, option, imgId)
+                if (filepath != None):
+                    if (len(imgId) > 0) :
+                        self.setMessage("Downloading img to %s " % filepath.__str__())
+                    else :
+                        self.setMessage("URL:  %s " % filepath.__str__())
+                else:
+                    self.setMessage("Cannot get access to the image with imgId = " + imgId)
+                    raise cherrypy.HTTPRedirect("results")
+            else :
+                self.setMessage("The image Id or option is empty! Please input both the image Id and option")
                 raise cherrypy.HTTPRedirect("results")
-        else :
-            self.setMessage("The image Id or option is empty! Please input both the image Id and option")
-            raise cherrypy.HTTPRedirect("results")
-
-        return serve_file(filepath, "application/x-download", "attachment")
-        
+    
+            return serve_file(filepath, "application/x-download", "attachment")
+        raise cherrypy.HTTPRedirect("results")
 
     actionGet.exposed = True
 
     ## get Rest service. Retrieves image
     def get (self):
         return """<html><body><form method=get action=actionGet>
-         User Id: <input type=string name=userId><br>
+         Username: <input type=string name=userId><br>
+         Password: <input type=password name=userCred><br>
          Image Id: <input type=string name=imgId> <br>
          Option ('img' or 'uri'): <input type=string name=option> <br> 
          <input type=submit> </form> </body></html>
@@ -273,9 +280,10 @@ class AdminRestService(object):
 
     ## Callback function to the put service
     # @param userId login/account name of the Rest user to invoke this service
+    # @param userCred user password in MD5 digested format
     # @param imageFileName request based object file representing the user file name
     # @param attributeString attribute string
-    def actionPut (self, userId = None, imageFileName = None, attributeString = None):
+    def actionPut (self, userId, userCred, imageFileName = None, attributeString = None):
 
         # retrieve the data                                                                                                                       
         size = 0
@@ -283,51 +291,53 @@ class AdminRestService(object):
         self.msg = ""
         userId = userId.strip()
         attributeString = attributeString.strip()
-
-        while 1:
-            data = imageFileName.file.read(1024 * 8) # Read blocks of 8KB at a time                                                               
-            size += len(data)
-            if not data: break
-
-
-        #check metadata
-        correct = self.checkMeta(attributeString)
-        if correct:
-            #check quota
-            isPermitted = self.service.uploadValidator(userId.strip(), size)
-
-
-            if (isPermitted == True):
-                imgId = self.service.genImgId() #this is needed when we are not using mongodb as image storage backend
-                if imgId != None:
-                    extension = os.path.splitext(imageFileName.filename)[1]
-                    imageId = self.service.put(userId, imgId, imageFileName, attributeString, size, extension)
-
-                    self.msg = "Image %s successfully uploaded." % imageFileName.filename
-                    self.msg += " Image size %s " % size
-                    self.msg += " Image extension is %s " % extension
-                    self.msg += "<br> The image ID is %s " % imageId
+        #userCred = IRCredential("ldappass", userCred)
+        if (len(userId) > 0 and self.service.auth(userId, userCred)):
+            while 1:
+                data = imageFileName.file.read(1024 * 8) # Read blocks of 8KB at a time                                                               
+                size += len(data)
+                if not data: break
+    
+    
+            #check metadata
+            correct = self.checkMeta(attributeString)
+            if correct:
+                #check quota
+                isPermitted = self.service.uploadValidator(userId.strip(), size)
+    
+    
+                if (isPermitted == True):
+                    imgId = self.service.genImgId() #this is needed when we are not using mongodb as image storage backend
+                    if imgId != None:
+                        extension = os.path.splitext(imageFileName.filename)[1]
+                        imageId = self.service.put(userId, imgId, imageFileName, attributeString, size, extension)
+    
+                        self.msg = "Image %s successfully uploaded." % imageFileName.filename
+                        self.msg += " Image size %s " % size
+                        self.msg += " Image extension is %s " % extension
+                        self.msg += "<br> The image ID is %s " % imageId
+                    else:
+                        self.msg += "Error generating the imgId"
+                elif (isPermitted.strip() == "NoUser"):
+                    self.msg = "the image has NOT been uploaded<br>"
+                    self.msg = "The User does not exist"
+                elif (isPermitted.strip() == "NoActive"):
+                    self.msg = "The image has NOT been uploaded<br>"
+                    self.msg = "The User is not active"
                 else:
-                    self.msg += "Error generating the imgId"
-            elif (isPermitted.strip() == "NoUser"):
-                self.msg = "the image has NOT been uploaded<br>"
-                self.msg = "The User does not exist"
-            elif (isPermitted.strip() == "NoActive"):
-                self.msg = "The image has NOT been uploaded<br>"
-                self.msg = "The User is not active"
+                    self.msg = "The image has NOT been uploaded"
+                    self.msg = "The file exceed the quota"
             else:
-                self.msg = "The image has NOT been uploaded"
-                self.msg = "The file exceed the quota"
-        else:
-            self.msg += "The image has NOT been uploaded. Please, verify that the metadata string is valid"
+                self.msg += "The image has NOT been uploaded. Please, verify that the metadata string is valid"
         raise cherrypy.HTTPRedirect("results")
     actionPut.exposed = True
 
     ## put Rest service. Download an image to the Rest service.
     def put (self) :
-       return """<html><body><form method=post action=actionPut enctype="multipart/form-data">
+        return """<html><body><form method=post action=actionPut enctype="multipart/form-data">
        Upload a file: <input type=file name=imageFileName><br>
-       User Id: <input type=string name=userId> <br>
+       Username: <input type=string name=userId><br>
+       Password: <input type=password name=userCred><br>
        attributeString: <input type=string name=attributeString> <br>
        <input type=submit></form></body></html>      
         """
@@ -377,25 +387,25 @@ class AdminRestService(object):
 
     ## Callback function to the modify service. Modifies the imageid based on attribute string
     # @param userId login/account name of the Rest user to invoke this service
+    # @param userCred user password in MD5 digested format
     # @param imgId id of the uploaded Rest image for the specified user.
     # @param attributeString
-    def actionModify (self, userId = None, imgId = None, attributeString = None):
-        fname = sys._getframe().f_code.co_name
+    def actionModify (self, userId, userCred, imgId = None, attributeString = None):
         self.msg = ""
         success = False
-
         userId = userId.strip()
         imgId = imgId.strip()
         attributeString = attributeString.strip()
-
-        if(len(imgId) > 0 and len(userId) > 0 and len(attributeString) > 0):
-            if self.checkMeta(attributeString):
-                success = self.service.updateItem(userId, imgId, attributeString)
-
-        if (success):
-            self.msg = "The image %s was successfully updated" % imgId
-        else:
-            self.msg += "Error in the update.<br>Please verify that you are the owner or that you introduced the correct arguments"
+        #userCred = IRCredential("ldappass", userCred)
+        if (len(userId) > 0 and self.service.auth(userId, userCred)):
+            if(len(imgId) > 0 and len(attributeString) > 0):
+                if self.checkMeta(attributeString):
+                    success = self.service.updateItem(userId, imgId, attributeString)
+    
+            if (success):
+                self.msg = "The image %s was successfully updated" % imgId
+            else:
+                self.msg += "Error in the update.<br>Please verify that you are the owner or that you introduced the correct arguments"
         raise cherrypy.HTTPRedirect("results")
     actionModify.exposed = writeMethodsExposed;
 
@@ -412,19 +422,19 @@ class AdminRestService(object):
 
     ## Callback function to the remove Rest service
     # @param userId login/account name of the Rest user to invoke this service
+    # @param userCred user password in MD5 digested format
     # @param imgId id of the uploaded Rest image for the specified user.
-    def actionRemove (self, userId = None, imgId = None):
-        fname = sys._getframe().f_code.co_name
-
+    def actionRemove (self, userId, userCred, imgId = None):
         userId = userId.strip()
         imgId = imgId.strip()
-
-        status = self.service.remove(userId, imgId)
-        self.msg = ""
-        if (status == True):
-            self.msg = "The image with imgId=" + imgId + " has been removed"
-        else:
-            self.msg = "The image with imgId=" + imgId + " has NOT been removed.</br>Please verify the imgId and if you are the image owner"
+        #userCred = IRCredential("ldappass", userCred)
+        if (len(userId) > 0 and self.service.auth(userId, userCred)):
+            status = self.service.remove(userId, imgId)
+            self.msg = ""
+            if (status == True):
+                self.msg = "The image with imgId=" + imgId + " has been removed"
+            else:
+                self.msg = "The image with imgId=" + imgId + " has NOT been removed.</br>Please verify the imgId and if you are the image owner"
         raise cherrypy.HTTPRedirect("results")
     actionRemove.exposed = True;
 
@@ -440,15 +450,14 @@ class AdminRestService(object):
 
     ## Callback function to the histimage service
     # @param userId login/account name of the Rest user to invoke this service
+    # @param userCred user password in MD5 digested format
     # @param imgId id of the uploaded Rest image for the specified user.
-    def actionHistImage (self, userId, imgId):
-        fname = sys._getframe().f_code.co_name
+    def actionHistImage (self, userId, userCred, imgId):
         self.msg = ""
-
         userId = userId.strip()
         imgId = imgId.strip()
-
-        if(len(userId) > 0):
+        #userCred = IRCredential("ldappass", userCred)
+        if (len(userId) > 0 and self.service.auth(userId, userCred)):
             if(len(imgId) > 0):
                 imgsList = self.service.histImg(userId, imgId)
             else:
@@ -481,15 +490,14 @@ class AdminRestService(object):
 
     ## Callback function to the histuser service
     # @param userId login/account name of the Rest user to invoke this service
+    # @param userCred user password in MD5 digested format
     # @param userIdtoSearch user id that is the subject of the search
-    def actionHistUser (self, userId, userIdtoSearch):
-        fname = sys._getframe().f_code.co_name
-
+    def actionHistUser (self, userId, userCred, userIdtoSearch):
         self.msg = ""
         userId = userId.strip()
         userIdtoSearch = userIdtoSearch.strip()
-
-        if (len(userId) > 0):
+        #userCred = IRCredential("ldappass", userCred)
+        if (len(userId) > 0 and self.service.auth(userId, userCred)):
             if (len(userIdtoSearch) > 0):
                 userList = self.service.histUser(userId, userIdtoSearch)
             else:
@@ -522,72 +530,80 @@ class AdminRestService(object):
 
 
     ## Callback function to the userAdd Rest service
-    # @param userId login/account name of the Rest user to invoke this service
+    # @param adminId login/account name of the admin user to invoke this service
+    # @param adminCred user password in MD5 digested format
+    # @param userCred user password in MD5 digested format
     # @param userIdtoAdd user id that is the subject of the add in the datbase
-    def actionUserAdd (self, userId, userIdtoAdd):
+    def actionUserAdd (self, adminId, adminCred, userIdtoAdd):
         self.msg = ""
-        userId = userId.strip()
+        adminId = adminId.strip()
         userIdtoAdd = userIdtoAdd.strip()
-
-        if (len(userId) > 0 and len(userIdtoAdd) > 0):
-            status = self.service.userAdd(userId, userIdtoAdd)
-            if(status):
-                self.msg = "User created successfully.</br>"
-                self.msg = self.msg + "Remember that you still need to activate this user (see setuserstatus command)</br>"
+        #adminCred = IRCredential("ldappass", adminCred)
+        if (len(adminId) > 0 and self.service.auth(adminId, adminCred)):
+            if (len(userIdtoAdd) > 0):
+                status = self.service.userAdd(adminId, userIdtoAdd)
+                if(status):
+                    self.msg = "User created successfully.</br>"
+                    self.msg = self.msg + "Remember that you still need to activate this user (see setuserstatus command)</br>"
+                else:
+                    self.msg = "The user has not been created.</br>"
+                    self.msg = self.msg + "Please verify that you are admin and that the username does not exist </br>"
             else:
-                self.msg = "The user has not been created.</br>"
-                self.msg = self.msg + "Please verify that you are admin and that the username does not exist </br>"
-        else:
-            self.msg = "Please introduce your userId and the userId to add"
+                self.msg = "Please introduce your userId and the userId to add"
         raise cherrypy.HTTPRedirect("results")
     actionUserAdd.exposed = True
 
     ## useradd Rest service.  Adding a new user to the database
     def useradd (self, userId = None) :
         self.msg = """ <form method=get action=actionUserAdd>
-        UserId: <input type=string name=userId> <br>
+        Admin Username: <input type=string name=adminId><br>
+        Admin Password: <input type=password name=adminCred><br>
         UserId to Add: <input type=string name=userIdtoAdd> <br>
         <input type=submit> </form> """
         return self.msg
     useradd.exposed = True;
 
     ## Callback function to the userdel Rest service
-    # @param userId login/account name of the Rest user to invoke this service
+    # @param adminId login/account name of the Rest user to invoke this service
+    # @param adminCred user password in MD5 digested format
     # @param userIdtoDel user id that is the subject of the delete in the datbase
-    def actionUserDel(self, userId, userIdtoDel):
-        userId = userId.strip()
+    def actionUserDel(self, adminId, adminCred, userIdtoDel):
+        adminId = adminId.strip()
         userIdtoDel = userIdtoDel.strip()
-        if (len(userId) > 0 and len(userIdtoDel) > 0):
-            status = self.service.userDel(userId, userIdtoDel)
-            self.msg = ""
-            if(status == True):
-                self.msg = "User deleted successfully."
+        #adminCred = IRCredential("ldappass", adminCred)
+        if (len(adminId) > 0 and self.service.auth(adminId, adminCred)):
+            if (len(userIdtoDel) > 0):
+                status = self.service.userDel(adminId, userIdtoDel)
+                self.msg = ""
+                if(status == True):
+                    self.msg = "User deleted successfully."
+                else:
+                    self.msg = "The user has not been deleted.</br>"
+                    self.msg = self.msg + "Please verify that you are admin and that the username exists \n"
             else:
-                self.msg = "The user has not been deleted.</br>"
-                self.msg = self.msg + "Please verify that you are admin and that the username exists \n"
-        else:
-            self.msg = "Please introduce your userId and the userId to del"
+                self.msg = "Please introduce your userId and the userId to del"
         raise cherrypy.HTTPRedirect("results")
     actionUserDel.exposed = True
 
     ## userdel Rest service. Removing a user from the database.
     def userdel (self, userId = None) :
         self.msg = """ <form method=get action=actionUserDel>
-        UserId: <input type=string name=userId> <br>
-        UserId to Del: <input type=string name=userIdtoDel> <br>
+        Admin Username: <input type=string name=adminId><br>
+        Admin Password: <input type=password name=adminCred><br>
+        UserId to Delete: <input type=string name=userIdtoDel> <br>
         <input type=submit> </form> """
         return self.msg
     userdel.exposed = True
 
     ## Callback function to the userlist Rest service
-    # @param userId login/account name of the Rest user to invoke this service
-    def actionUserList(self, userId):
-        fname = sys._getframe().f_code.co_name
-
+    # @param adminId login/account name of the Rest user to invoke this service
+    # @param adminCred user password in MD5 digested format
+    def actionUserList(self, adminId, adminCred):
         self.msg = ""
-        userId = userId.strip()
-        if (len(userId) > 0) :
-            usersList = self.service.userList(userId)
+        adminId = adminId.strip()
+        #adminCred = IRCredential("ldappass", adminCred)
+        if (len(adminId) > 0 and self.service.auth(adminId, adminCred)):
+            usersList = self.service.userList(adminId)
             if (usersList != None):
                 try:
                     self.msg = "<br>" + str(len(usersList)) + " users found </br>"
@@ -610,32 +626,36 @@ class AdminRestService(object):
     ## userlist Rest service. 
     def userlist (self, userId = None) :
         self.msg = """ <form method=get action=actionUserList>
-        UserId: <input type=string name=userId> <br>        
+        Admin Username: <input type=string name=adminId><br>
+        Admin Password: <input type=password name=adminCred><br>     
         <input type=submit> </form> """
         return self.msg
     userlist.exposed = True;
 
     ## Callback function to the setquota Rest service
-    # @param userId login/account name of the Rest user to invoke this service
+    # @param adminId login/account name of the admin user to invoke this service
+    # @param adminCred user password in MD5 digested format
     # @param userIdtoModify user id where the quota is modified
     # @param quota quota of the specified user
-    def actionQuota (self, userId, userIdtoModify, quota) :
+    def actionQuota (self, adminId, adminCred, userIdtoModify, quota) :
 
-        userId = userId.strip()
+        adminId = adminId.strip()
         userIdtoModify = userIdtoModify.strip()
-        try:
-            quota = eval(quota)
-            if (len(userId) > 0 and len(userIdtoModify) > 0):
-                status = self.service.setUserQuota(userId, userIdtoModify, quota)
-                if(status == True):
-                    self.msg = "Quota changed successfully."
+        #adminCred = IRCredential("ldappass", adminCred)
+        if (len(adminId) > 0 and self.service.auth(adminId, adminCred)):
+            try:
+                quota = eval(quota)
+                if (len(userIdtoModify) > 0):
+                    status = self.service.setUserQuota(adminId, userIdtoModify, quota)
+                    if(status == True):
+                        self.msg = "Quota changed successfully."
+                    else:
+                        self.msg = "The user quota has not been changed.</br>"
+                        self.msg = self.msg + "Please verify that you are admin and that the username exists"
                 else:
-                    self.msg = "The user quota has not been changed.</br>"
-                    self.msg = self.msg + "Please verify that you are admin and that the username exists"
-            else:
-                self.msg = "<br> Please introduce your userId, the userId to modify and the quota in bytes (math operation allowed)"
-        except:
-            self.msg = "<br> The quota must be a number or a valid math function"
+                    self.msg = "<br> Please introduce your userId, the userId to modify and the quota in bytes (math operation allowed)"
+            except:
+                self.msg = "<br> The quota must be a number or a valid math function"
 
         raise cherrypy.HTTPRedirect("results")
         return self.msg
@@ -644,7 +664,8 @@ class AdminRestService(object):
     # setquota Rest service
     def setquota (self) :
         self.msg = """ <form method=get action=actionQuota>
-        UserId: <input type=string name=userId> <br>
+        Admin Username: <input type=string name=adminId><br>
+        Admin Password: <input type=password name=adminCred><br>
         UserId to Modify: <input type=string name=userIdtoModify> <br>
         Quota : <input type=string name=quota> <br>
         <input type=submit> </form> """
@@ -652,68 +673,71 @@ class AdminRestService(object):
     setquota.exposed = True;
 
     ## Callback function to Rest service setrole.
-    # @param userId login/account name of the Rest user to invoke this service
+    # @param adminId login/account name of the admin user to invoke this service
+    # @param adminCred user password in MD5 digested format
     # @param userIdtoModify user id that is the subject of the set role in the datbase
     # @param role
-    def actionUserRole (self, userId, userIdtoModify, role) :
-        userId = userId.strip()
+    def actionUserRole (self, adminId, adminCred, userIdtoModify, role) :
+        adminId = adminId.strip()
         userIdtoModify = userIdtoModify.strip()
         role = role.strip()
-
-        if (len(userId) > 0 and len(userIdtoModify) > 0 and len(role) > 0):
-            # User name based on admin file
-            status = self.service.setUserRole(userId, userIdtoModify, role)
-
-            self.msg = ""
-            if (status == True):
-                self.msg = "Role changed successfully."
+        #adminCred = IRCredential("ldappass", adminCred)
+        if (len(adminId) > 0 and self.service.auth(adminId, adminCred)):
+            if (len(userIdtoModify) > 0 and len(role) > 0):
+                # User name based on admin file
+                status = self.service.setUserRole(adminId, userIdtoModify, role)
+    
+                self.msg = ""
+                if (status == True):
+                    self.msg = "Role changed successfully."
+                else:
+                    self.msg = "The user role has not been changed </br>"
+                    self.msg = self.msg + "Please verify that you are admin and that the username exists"
             else:
-                self.msg = "The user role has not been changed </br>"
-                self.msg = self.msg + "Please verify that you are admin and that the username exists"
-        else:
-            self.msg = "<br> Please introduce your userId, the userId to modify and the role"
+                self.msg = "<br> Please introduce your userId, the userId to modify and the role"
         raise cherrypy.HTTPRedirect("results")
     actionUserRole.exposed = True
 
     ## setrole Rest service
     def setrole (self) :
-        fname = sys._getframe().f_code.co_name
         self.msg = """ <form method=post action=actionUserRole>
-                UserId: <input type=string name=userId> <br>
-                User To Modify : <input type=string name=userIdtoModify> <br>
+                        Admin Username: <input type=string name=adminId><br>
+                        Admin Password: <input type=password name=adminCred><br>
+                        UserId to Modify: <input type=string name=userIdtoModify> <br>
                 Role : <input type=string name=role> <br>
                 <input type=submit> </form> """
         return self.msg;
     setrole.exposed = True;
 
     ## Callback function to the setuserstatus Rest service.
-    # @param userId login/account name of the Rest user to invoke this service
+    # @param adminId login/account name of the admin user to invoke this service
+    # @param adminCred user password in MD5 digested format
     # @param userIdtoModfiy user id that is the subject of the delete in the datbase
     # @param status 
-    def actionUserStatus (self, userId, userIdtoModify, status) :
-        userId = userId.strip()
+    def actionUserStatus (self, adminId, adminCred, userIdtoModify, status) :
+        adminId = adminId.strip()
         userIdtoModify = userIdtoModify.strip()
         status = status.strip()
-
-        if (len(userId) > 0 and len(userIdtoModify) > 0 and len(status) > 0):
-            status = self.service.setUserStatus(userId, userIdtoModify, status)
-            self.msg = ""
-            if(status == True):
-                self.msg = "Status changed successfully."
+        #adminCred = IRCredential("ldappass", adminCred)
+        if (len(adminId) > 0 and self.service.auth(adminId, adminCred)):
+            if (len(userIdtoModify) > 0 and len(status) > 0):
+                status = self.service.setUserStatus(adminId, userIdtoModify, status)
+                self.msg = ""
+                if(status == True):
+                    self.msg = "Status changed successfully."
+                else:
+                    self.msg = "The user status has not been changed.</br>"
+                    self.msg = self.msg + "Please verify that you are admin and that the username exists \n"
             else:
-                self.msg = "The user status has not been changed.</br>"
-                self.msg = self.msg + "Please verify that you are admin and that the username exists \n"
-        else:
-            self.msg = "<br> Please introduce your userId, the userId to modify and the status"
+                self.msg = "<br> Please introduce your userId, the userId to modify and the status"
         raise cherrypy.HTTPRedirect("results")
     actionUserStatus.exposed = True
 
     ## setuserstatus Rest service
     def setuserstatus (self) :
-        fname = sys._getframe().f_code.co_name
-
         self.msg = """ <form method=post action=actionUserStatus>
-        UserId: <input type=string name=userId> <br>
+        Admin Username: <input type=string name=adminId><br>
+        Admin Password: <input type=password name=adminCred><br>
         UserId to Modify: <input type=string name=userIdtoModify> <br>
         Status : <input type=string name=status> <br>
         <input type=submit> </form> """
