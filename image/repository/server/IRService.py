@@ -21,26 +21,8 @@ from IRTypes import IRUser
 from IRTypes import IRCredential
 import IRUtil
 import re
-from IRDataAccessMongo import ImgStoreMongo
-from IRDataAccessMongo import ImgMetaStoreMongo
-from IRDataAccessMongo import IRUserStoreMongo
-from IRDataAccessMysql import ImgStoreMysql
-from IRDataAccessMysql import ImgMetaStoreMysql
-from IRDataAccessMysql import IRUserStoreMysql
-from IRDataAccessSwiftMysql import ImgStoreSwiftMysql
-from IRDataAccessSwiftMysql import ImgMetaStoreSwiftMysql
-from IRDataAccessSwiftMysql import IRUserStoreSwiftMysql
-from IRDataAccessSwiftMongo import ImgStoreSwiftMongo
-from IRDataAccessSwiftMongo import ImgMetaStoreSwiftMongo
-from IRDataAccessSwiftMongo import IRUserStoreSwiftMongo
-from IRDataAccessCumulusMysql import ImgStoreCumulusMysql
-from IRDataAccessCumulusMysql import ImgMetaStoreCumulusMysql
-from IRDataAccessCumulusMysql import IRUserStoreCumulusMysql
-from IRDataAccessCumulusMongo import ImgStoreCumulusMongo
-from IRDataAccessCumulusMongo import ImgMetaStoreCumulusMongo
-from IRDataAccessCumulusMongo import IRUserStoreCumulusMongo
-
 import string
+
 
 sys.path.append(os.getcwd())
 
@@ -79,26 +61,44 @@ class IRService(object):
         self._log = fgLog.fgLog(self._repoConf.getLogRepo(), self._repoConf.getLogLevelRepo(), "Img Repo Server", False)
         
         if (self._backend == "mongodb"):
+            from IRDataAccessMongo import ImgStoreMongo
+            from IRDataAccessMongo import ImgMetaStoreMongo
+            from IRDataAccessMongo import IRUserStoreMongo
             self.metaStore = ImgMetaStoreMongo(self._address, self._userAdmin, self._configFile, self._log)
             self.imgStore = ImgStoreMongo(self._address, self._userAdmin, self._configFile, self._imgStore, self._log)
             self.userStore = IRUserStoreMongo(self._address, self._userAdmin, self._configFile, self._log)
         elif(self._backend == "mysql"):
+            from IRDataAccessMysql import ImgStoreMysql
+            from IRDataAccessMysql import ImgMetaStoreMysql
+            from IRDataAccessMysql import IRUserStoreMysql
             self.metaStore = ImgMetaStoreMysql(self._address, self._userAdmin, self._configFile, self._log)
             self.imgStore = ImgStoreMysql(self._address, self._userAdmin, self._configFile, self._imgStore, self._log)
             self.userStore = IRUserStoreMysql(self._address, self._userAdmin, self._configFile, self._log)
         elif(self._backend == "swiftmysql"):
+            from IRDataAccessSwiftMysql import ImgStoreSwiftMysql
+            from IRDataAccessSwiftMysql import ImgMetaStoreSwiftMysql
+            from IRDataAccessSwiftMysql import IRUserStoreSwiftMysql
             self.metaStore = ImgMetaStoreSwiftMysql(self._address, self._userAdmin, self._configFile, self._log)
             self.imgStore = ImgStoreSwiftMysql(self._address, self._userAdmin, self._configFile, self._addressS, self._userAdminS, self._configFileS, self._imgStore, self._log)
             self.userStore = IRUserStoreSwiftMysql(self._address, self._userAdmin, self._configFile, self._log)
         elif(self._backend == "swiftmongo"):
+            from IRDataAccessSwiftMongo import ImgStoreSwiftMongo
+            from IRDataAccessSwiftMongo import ImgMetaStoreSwiftMongo
+            from IRDataAccessSwiftMongo import IRUserStoreSwiftMongo
             self.metaStore = ImgMetaStoreSwiftMongo(self._address, self._userAdmin, self._configFile, self._log)
             self.imgStore = ImgStoreSwiftMongo(self._address, self._userAdmin, self._configFile, self._addressS, self._userAdminS, self._configFileS, self._imgStore, self._log)
             self.userStore = IRUserStoreSwiftMongo(self._address, self._userAdmin, self._configFile, self._log)
         elif(self._backend == "cumulusmysql"):
+            from IRDataAccessCumulusMysql import ImgStoreCumulusMysql
+            from IRDataAccessCumulusMysql import ImgMetaStoreCumulusMysql
+            from IRDataAccessCumulusMysql import IRUserStoreCumulusMysql
             self.metaStore = ImgMetaStoreCumulusMysql(self._address, self._userAdmin, self._configFile, self._log)
             self.imgStore = ImgStoreCumulusMysql(self._address, self._userAdmin, self._configFile, self._addressS, self._userAdminS, self._configFileS, self._imgStore, self._log)
             self.userStore = IRUserStoreCumulusMysql(self._address, self._userAdmin, self._configFile, self._log)
         elif(self._backend == "cumulusmongo"):
+            from IRDataAccessCumulusMongo import ImgStoreCumulusMongo
+            from IRDataAccessCumulusMongo import ImgMetaStoreCumulusMongo
+            from IRDataAccessCumulusMongo import IRUserStoreCumulusMongo
             self.metaStore = ImgMetaStoreCumulusMongo(self._address, self._userAdmin, self._configFile, self._log)
             self.imgStore = ImgStoreCumulusMongo(self._address, self._userAdmin, self._configFile, self._addressS, self._userAdminS, self._configFileS, self._imgStore, self._log)
             self.userStore = IRUserStoreCumulusMongo(self._address, self._userAdmin, self._configFile, self._log)
