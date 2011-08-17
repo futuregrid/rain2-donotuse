@@ -489,7 +489,7 @@ def main():
         elif o in ("-l", "--auth"):
             #username = os.system("whoami")
             #service.auth(username)
-            print service.auth("fuwang")
+            print service.auth("fuwang", "PASS")
         elif o in ("-q", "--list"):
             imgs = service.query(os.popen('whoami', 'r').read().strip(), args[0])
             #for key in imgs.keys():

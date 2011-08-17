@@ -413,6 +413,7 @@ class AdminRestService(object):
     def modify (self, imgId = None, attributeString = None):
         self.msg = """ <form method=get action=actionModify>
         User Id: <input type=string name=userId> <br>
+        Password: <input type=password name=userCred><br>
         Image Id: <input type=string name=imgId> <br>
         Atribute String: <input type=string name=attributeString> <br> 
          <input type=submit> </form> """
@@ -443,6 +444,7 @@ class AdminRestService(object):
     def remove (self):
         self.msg = """ <form method=get action=actionRemove>
         User Id: <input type=string name=userId> <br>
+        Password: <input type=password name=userCred><br>
         Image Id: <input type=string name=imgId> <br>
         <input type=submit> </form> """
         return self.msg
@@ -482,6 +484,7 @@ class AdminRestService(object):
     def histimg (self):
         self.msg = """ <form method=get action=actionHistImage>
         User Id: <input type=string name=userId> <br>
+        Password: <input type=password name=userCred><br>
         Image Id: <input type=string name=imgId> <br>
         <input type=submit> </form> """
         return self.msg;
@@ -489,19 +492,20 @@ class AdminRestService(object):
 
 
     ## Callback function to the histuser service
-    # @param userId login/account name of the Rest user to invoke this service
+    # @param adminId login/account name of the admin user to invoke this service
+    # @param adminCred user password in MD5 digested format
     # @param userCred user password in MD5 digested format
     # @param userIdtoSearch user id that is the subject of the search
-    def actionHistUser (self, userId, userCred, userIdtoSearch):
+    def actionHistUser (self, adminId, adminCred, userIdtoSearch):
         self.msg = ""
-        userId = userId.strip()
+        adminId = adminId.strip()
         userIdtoSearch = userIdtoSearch.strip()
         #userCred = IRCredential("ldappass", userCred)
-        if (len(userId) > 0 and self.service.auth(userId, userCred)):
+        if (len(adminId) > 0 and self.service.auth(adminId, adminCred)):
             if (len(userIdtoSearch) > 0):
-                userList = self.service.histUser(userId, userIdtoSearch)
+                userList = self.service.histUser(adminId, userIdtoSearch)
             else:
-                userList = self.service.histUser(userId, "None")
+                userList = self.service.histUser(adminId, "None")
 
             try:
                 users = userList
@@ -522,7 +526,8 @@ class AdminRestService(object):
     ## histuser Rest service
     def histuser (self) :
         self.msg = """ <form method=get action=actionHistUser>
-        UserId: <input type=string name=userId> <br>
+        Admin Username: <input type=string name=adminId><br>
+        Admin Password: <input type=password name=adminCred><br>
         UserId to Search: <input type=string name=userIdtoSearch> <br>
         <input type=submit> </form> """
         return self.msg
