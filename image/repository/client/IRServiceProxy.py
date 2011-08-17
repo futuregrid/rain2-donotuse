@@ -344,7 +344,7 @@ class IRServiceProxy(object):
         #output = ""
         #for line in outputs:
         #    output += line.strip()
-        print outputs
+        #print outputs
         return outputs
 
     ############################################################
