@@ -233,7 +233,11 @@ class IMGenerateServer(object):
                     self.logger.info(cmdexec)
             
                     uid = self._rExec(self.rootId, cmdexec, vmaddr)
-            
+                    
+                    self.logger.info("copying fg-image-generate.log to scrach partition "+self.tempdirserver)
+                    cmdscp = "scp -q " + self.rootId + "@" + vmaddr + ":/root/fg-image-generate.log "+self.tempdirserver+"/"+vmID+"_gen.log"
+                    os.system(cmdscp)
+                    
                     status = uid[0].strip() #it contains error or filename
                     if status == "error":
                         msg = "ERROR: "+uid
