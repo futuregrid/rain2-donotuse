@@ -93,9 +93,9 @@ class IMServerConf(object):
     #image generation server
     def getGenPort(self):
         return self._gen_port
-    def getProcMax():
+    def getProcMax(self):
         return self._proc_max
-    def getRefreshStatus():
+    def getRefreshStatus(self):
         self._refresh_status
     def getVmFileCentos(self):
         return self._vmfile_centos
