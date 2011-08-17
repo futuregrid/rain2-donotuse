@@ -69,6 +69,12 @@ class IMGenerate(object):
 
         genServer.send(options)
         #check if the server received all parameters
+        print "Your image request is in the queue to be processed"
+        
+        ret = genServer.recv(1024)
+        if (ret == "OK"):
+            print "Your image request is being processed"
+        
         ret = genServer.recv(2048)
         
         if (re.search('^ERROR', ret)):

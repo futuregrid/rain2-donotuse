@@ -163,6 +163,10 @@ class IMGenerateServer(object):
             #break
             sys.exit(1)
 
+        
+        channel.send("OK")
+        
+
         vmfile = ""
         if self.os == "ubuntu":
             vmfile = self.vmfile_ubuntu
@@ -231,6 +235,17 @@ class IMGenerateServer(object):
                         msg = "ERROR: "+uid
                         errormsg(channel, msg)
                     else:
+                        #stat = 0
+                        #while stat != 0 and :
+                        self.logger.info("Umount scratch directory in the VM")
+                        cmd = "ssh -q " + self.rootId + "@" + vmaddr
+                        cmdmount = " umount " + self.tempdir
+                        self.logger.debug(cmd + cmdmount)
+                        stat = os.system(cmd + cmdmount)
+                            #if stat != 0:
+                            #    time.sleep(2)
+                        
+                        self.logger.debug("Generating tgz with image and manifest files")
                         out = os.system("tar cfz " + self.tempdirserver + "/" + status + ".tgz -C " + self.tempdirserver + \
                                         " " + status + ".manifest.xml " + status + ".img")
                         if out == 0:
@@ -246,11 +261,7 @@ class IMGenerateServer(object):
                         channel.send(self.tempdirserver + "" + status + ".tgz")
                         channel.close()
             
-                self.logger.info("Umount scratch directory in the VM")
-                cmd = "ssh -q " + self.rootId + "@" + vmaddr
-                cmdmount = " umount " + self.tempdir
-                self.logger.debug(cmd + cmdmount)
-                stat = os.system(cmd + cmdmount)
+
     
             #destroy VM
             self.logger.info("Destroy VM")
