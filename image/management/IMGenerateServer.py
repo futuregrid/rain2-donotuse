@@ -99,9 +99,9 @@ class IMGenerateServer(object):
         return oneadmin + ":" + oneadminpass
     
     def start(self):
-        #self.logger.info('Starting Server on port ' + str(self.port))
+        self.logger.info('Starting Server on port ' + str(self.port))
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.bind(('', imgenserver.port))
+        sock.bind(('', self.port))
         sock.listen(1) #Maximum of unaccepted connections
         proc_max=2
         proc_list=[]
