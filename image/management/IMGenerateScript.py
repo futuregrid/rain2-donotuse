@@ -24,7 +24,7 @@ from xml.dom.minidom import Document, parse
 #it will be removed as soon as we code the ubuntu part in deployserverxcat
 TEST_MODE = True
 
-
+logger=None
 def main():
     global tempdir
     global namedir #this == name is to clean up when something fails
@@ -33,8 +33,15 @@ def main():
     global bcfg2_port
     #Set up logging
     log_filename = 'fg-image-generate.log'
-    logging.basicConfig(format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s", datefmt = '%a, %d %b %Y %H:%M:%S', 
-                        filemode = 'w', filename = log_filename, level = logging.DEBUG)
+    
+    logger = logging.getLogger("GenerateScript")
+    logger.setLevel(logging.DEBUG)    
+    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    handler = logging.FileHandler(log_filename)
+    handler.setLevel(logging.DEBUG)
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+    logger.propagate = False
     
 
     #Set up random string    
@@ -60,11 +67,11 @@ def main():
 
 
 
-    logging.info('Starting image generator...')
+    logger.info('Starting image generator...')
 
     #Check if we have root privs 
     if os.getuid() != 0:
-        logging.error("Sorry, you need to run with root privileges")
+        logger.error("Sorry, you need to run with root privileges")
         sys.exit(1)
 
     #help is auto-generated
@@ -86,24 +93,24 @@ def main():
 
 
     #Turn debugging off
-    if not ops.debug:
-        logging.basicConfig(level = logging.INFO)
+    #if not ops.debug:
+    #    logging.basicConfig(level = logging.INFO)
         #ch.setLevel(logging.INFO)
 
     if type(ops.httpserver) is not NoneType:
         http_server=ops.httpserver
     else:
-        logging.error("You need to provide the http server that contains files needed to create images")
+        logger.error("You need to provide the http server that contains files needed to create images")
         sys.exit(1)
     if type(ops.bcfg2url) is not NoneType:
         bcfg2_url=ops.bcfg2url
     else:
-        logging.error("You need to provide the address of the machine where IMBcfg2GroupManagerServer.py is listening")
+        logger.error("You need to provide the address of the machine where IMBcfg2GroupManagerServer.py is listening")
         sys.exit(1)
     if type(ops.bcfg2port) is not NoneType:
         bcfg2_port=int(ops.bcfg2port)
     else:
-        logging.error("You need to provide the port of the machine where IMBcfg2GroupManagerServer.py is listening")
+        logger.error("You need to provide the port of the machine where IMBcfg2GroupManagerServer.py is listening")
         sys.exit(1)
     
     if type(ops.tempdir) is not NoneType:
@@ -120,7 +127,7 @@ def main():
     else:
         user = "default"
 
-    logging.debug('FG User: ' + user)
+    logger.debug('FG User: ' + user)
 
     namedir = user + '' + randid
 
@@ -138,7 +145,7 @@ def main():
             parser.error("Incorrect architecture type specified (i386|x86_64)")
             sys.exit(1)
     """
-    logging.debug('Selected Architecture: ' + arch)
+    logger.debug('Selected Architecture: ' + arch)
 
     #Parse Software stack list
     if type(ops.software) is not NoneType:
@@ -147,7 +154,7 @@ def main():
         packages = re.split('[, ]', ops.software)
         #packages = ops.software.split(', ')
         packs = ' '.join(packages)
-        logging.debug('Selected software packages: ' + packs)
+        logger.debug('Selected software packages: ' + packs)
     else:
         packs = 'wget'
 
@@ -163,7 +170,7 @@ def main():
     if ops.os == "ubuntu":
         base_os = base_os + "ubuntu" + spacer
 
-        logging.info('Building Ubuntu ' + version + ' image')
+        logger.info('Building Ubuntu ' + version + ' image')
 
         create_base_os = True
         config_ldap = True
@@ -177,7 +184,7 @@ def main():
     elif ops.os == "centos":
         base_os = base_os + "centos" + spacer
 
-        logging.info('Building Centos ' + version + ' image')
+        logger.info('Building Centos ' + version + ' image')
         create_base_os = True
         config_ldap = True
 
@@ -186,7 +193,7 @@ def main():
     elif ops.os == "fedora":
         base_os = base_os + "fedora" + spacer
 
-   # logging.info('Generated image is available at '+tempdir+' ' + img + '.img.  Please be aware that this FutureGrid image is packaged without a kernel and fstab and is not built for any deployment type.  To deploy the new image, use the fg-image-deploy command.')
+   # logger.info('Generated image is available at '+tempdir+' ' + img + '.img.  Please be aware that this FutureGrid image is packaged without a kernel and fstab and is not built for any deployment type.  To deploy the new image, use the fg-image-deploy command.')
 
     if type(ops.givenname) is NoneType:
         ops.givenname = img
@@ -207,7 +214,7 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
     output = ""
     namedir = name
 
-    ubuntuLog = logging.getLogger('ubuntu')
+    ubuntuLog = logging.getLogger('GenerateScript.ubuntu')
 
 
     if not base_os:
@@ -364,10 +371,6 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
         ubuntuLog.info('Installing user-defined packages')
         runCmd('chroot ' + tempdir + '' + name + ' apt-get -y install ' + pkgs)  #NON_INTERACTIVE
         ubuntuLog.info('Installed user-defined packages')
-        
-    ubuntuLog.info('Upgrading image')
-    runCmd('chroot ' + tempdir + '' + name + ' apt-get update')
-    runCmd('chroot ' + tempdir + '' + name + ' apt-get -y upgrade')
 
     #Setup BCFG2 server groups
     success = push_bcfg2_group(name, pkgs, 'ubuntu', version)
@@ -403,7 +406,7 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
     output = ""
     namedir = name
 
-    centosLog = logging.getLogger('centos')
+    centosLog = logging.getLogger('GenerateScript.centos')
 
     if not base_os:
         centosLog.info('Retrieving Image: centos-' + version + '-' + arch + '-base.img')
@@ -547,7 +550,7 @@ def buildFedora(name, version, arch, pkgs, tempdir):
 
 
 def runCmd(cmd):
-    cmdLog = logging.getLogger('exec')
+    cmdLog = logging.getLogger('GenerateScript.exec')
     cmdLog.debug(cmd)
 
     #os.system(cmd)
@@ -571,7 +574,7 @@ def runCmd(cmd):
 
 def cleanup(name):
     #Cleanup
-    cleanupLog = logging.getLogger('cleanup')
+    cleanupLog = logger.getLogger('cleanup')
     if (name.strip() != ""):
         os.system('umount ' + tempdir + '' + name + '/proc')
         os.system('umount ' + tempdir + '' + name + '/dev/pts')
@@ -593,7 +596,7 @@ def cleanup(name):
 
 def manifest(user, name, os, version, arch, pkgs, givenname, description, tempdir):
 
-    manifestLog = logging.getLogger('manifest')
+    manifestLog = logging.getLogger('GenerateScript.manifest')
 
     manifest = Document()
 
@@ -672,28 +675,28 @@ def push_bcfg2_group(name, pkgs, os, version):
     bcfg2.send(name)
     ret = bcfg2.recv(100)
     if ret != 'OK':
-        logging.error('Incorrect reply from the server:' + ret)
+        logger.error('Incorrect reply from the server:' + ret)
         success = False
     else:
         #Send OS 
         bcfg2.send(os)
         ret = bcfg2.recv(100)
         if ret != 'OK':
-            logging.error('Incorrect reply from the server:' + ret)
+            logger.error('Incorrect reply from the server:' + ret)
             success = False
         else:
             #Send OS Version
             bcfg2.send(version)
             ret = bcfg2.recv(100)
             if ret != 'OK':
-                logging.error('Incorrect reply from the server:' + ret)
+                logger.error('Incorrect reply from the server:' + ret)
                 success = False
             else:
                 #Send package information
                 bcfg2.send(pkgs)
                 ret = bcfg2.recv(100)
                 if ret != 'OK':
-                    logging.error('Incorrect reply from the server:' + ret)
+                    logger.error('Incorrect reply from the server:' + ret)
                     success = False
 
     return success

@@ -70,7 +70,7 @@ class IMDeployServerXcat(object):
         self.logger.info('Starting Server on port ' + str(self.port))
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.bind(('', self.port))
-        sock.listen(1)
+        sock.listen(100) #Maximum of unaccepted connections
         while True:
             while True:
     
