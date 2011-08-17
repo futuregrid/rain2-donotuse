@@ -121,14 +121,13 @@ class IMGenerateServer(object):
                     
             channel, details = sock.accept()
             pid=None
-            proc_list.append(Process(target=self.generate, args=(channel,details, pid)))
-            pid=proc_list[len(proc_list)-1].pid
+            proc_list.append(Process(target=self.generate, args=(channel,details, pid)))            
             proc_list[len(proc_list)-1].start()    
       
-    def generate(self, channel, details, pid):
+    def generate(self, channel, details):
         #this runs in a different proccess
         
-        self.logger.info("pid is:" +str(pid))
+        self.logger.info("pid is:" +str(self.pid))
         
         self.logger.info('Processing an image generation request')
         #it will have the IP of the VM
