@@ -14,8 +14,13 @@ import logging
 import logging.handlers
 import time
 from IMServerConf import IMServerConf
+from xml.dom.minidom import Document, parse
 
 
+#Default Kernels to use for each deployment
+default_xcat_kernel = '2.6.18-164.el5'
+default_xcat_kernel_ubuntu = '2.6.35-22-generic'
+default_euca_kernel = '2.6.27.21-0.1-xen'
 
 class IMDeployServerXcat(object):
 
@@ -26,14 +31,14 @@ class IMDeployServerXcat(object):
         self.prefix = ""
         self.path = ""
         
-        self.numparams = 7   #name,os,version,arch,kernel,dir,machine
+        self.numparams = 2   #image path
         
         self.name = ""
         self.operatingsystem = ""
         self.version = ""
         self.arch = ""
         self.kernel = ""
-        self.tempdir = ""
+        
         self.machine = "" #india, minicluster,...
 
 
@@ -46,6 +51,7 @@ class IMDeployServerXcat(object):
         self.log_filename = self._deployConf.getLogXcat()
         self.logLevel = self._deployConf.getLogLevelXcat()
         self.test_mode = self._deployConf.getTestXcat()
+        self.tempdir = "/media/"
         
         print "\nReading Configuration file from "+self._deployConf.getConfigFile()+"\n"
         
@@ -70,7 +76,7 @@ class IMDeployServerXcat(object):
         self.logger.info('Starting Server on port ' + str(self.port))
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.bind(('', self.port))
-        sock.listen(100) #Maximum of unaccepted connections
+        sock.listen(1)
         while True:
             while True:
     
@@ -80,88 +86,36 @@ class IMDeployServerXcat(object):
                 data = channel.recv(2048)
                 params = data.split(',')
     
-                #params[0] is name
-                #params[1] is operating system
-                #params[2] is version
-                #params[3] is arch
-                #params[4] is kernel
-                #params[5] is dir where img is placed
-                #params[6] is the targeted machine (india, minicluster..) 
+                #params[0] is image path
+                #params[1] is the kernel
                 
-                self.name = params[0]    
-                self.operatingsystem = params[1]    
-                self.version = params[2]    
-                self.arch = params[3]
-                self.kernel = params[4]
-                self.tempdir = params[5]
-                self.machine = params[6]
-    
+                image=params[0]
+                self.kernel=params[1].strip()
+                               
     
                 if len(params) != self.numparams:
                     msg = "ERROR: incorrect message"
                     self.errormsg(channel, msg)
                     break
     
-                if not os.path.isfile(self.tempdir + '/' + self.name + '.tgz'):
-                    msg = "ERROR: file not found"
+                if not os.path.isfile(image):
+                    msg = "ERROR: file "+image+" not found"
                     self.errormsg(channel, msg)
                     break
     
-                #Hook for Debian based systems to work in xCAT                
-                if self.operatingsystem == 'ubuntu' or self.operatingsystem == 'debian':
-                    self.prefix = 'rhels5.4'
+                #extracts image/manifest, read manifest and copy image right directory
+                if not self.handle_image(image, channel):
+                    break            
     
-                #Build filesystem    
-                #Create Directory structure
-                #/install/netboot/<name>/<arch>/compute/
-                self.path = self.xcatNetbootImgPath + self.prefix + self.operatingsystem + '' + self.name + '/' + self.arch + '/compute/'
+                #Select kernel version
+                #This is not yet supported as we get always the same kernel
+                self.logger.debug("kernel: "+self.kernel)
+                if self.kernel == "None":
+                    if (self.operatingsystem != "ubuntu"):
+                        self.kernel = default_xcat_kernel
+                    elif (self.operatingsystem == "ubuntu"):
+                        self.kernel = default_xcat_kernel_ubuntu
                 
-                if os.path.isdir(self.path):
-                    msg = "ERROR: The image already exists"
-                    self.errormsg(channel, msg)
-                    break
-                
-                cmd = 'mkdir -p ' + self.path + 'rootimg ' + self.path + 'temp'
-                status = self.runCmd(cmd)    
-                if status != 0:
-                    msg = "ERROR: creating directory rootimg"
-                    self.errormsg(channel, msg)
-                    break
-    
-                #extract image. This can be changed later
-                cmd = 'tar xfz ' + self.tempdir + '/' + self.name + '.tgz -C ' + self.path
-                status = self.runCmd(cmd)    
-                if status != 0:
-                    msg = "ERROR: extracting image"
-                    self.errormsg(channel, msg)
-                    break                    
-                cmd = 'rm -f ' + self.tempdir + '/' + self.name + '.tgz ' 
-                status = self.runCmd(cmd)
-    
-                #mount image to extract files
-                cmd = 'mount -o loop ' + self.path + '' + self.name + '.img ' + self.path + 'temp'
-                status = self.runCmd(cmd)    
-                if status != 0:
-                    msg = "ERROR: mounting image"
-                    self.errormsg(channel, msg)
-                    break
-                #copy files keeping the permission (-p parameter)
-                cmd = 'cp -rp ' + self.path + 'temp/* ' + self.path + 'rootimg/'                
-                status = os.system(cmd)    
-                if status != 0:
-                    msg = "ERROR: copying image"
-                    self.errormsg(channel, msg)
-                    break    
-                cmd = 'umount ' + self.path + 'temp'
-                status = self.runCmd(cmd)
-                #we need to read the manifest if we send here the image from the repository directly
-                cmd = 'rm -rf ' + self.path + 'temp ' + self.path + '' + self.name + '.img ' + self.path + '' + self.name + '.manifest.xml'
-                status = self.runCmd(cmd)    
-                if status != 0:
-                    msg = "ERROR: unmounting image"
-                    self.errormsg(channel, msg)
-                    break
-    
                 #create directory that contains initrd.img and vmlinuz
                 tftpimgdir = '/tftpboot/xcat/' + self.prefix + self.operatingsystem + '' + self.name + '/' + self.arch
                 cmd = 'mkdir -p ' + tftpimgdir
@@ -288,16 +242,120 @@ class IMDeployServerXcat(object):
                 """
     
                 channel.send("OK")    
-                self.logger.debug("sending to the client the info needed to register the image in Moab")    
-                moabstring = self.prefix    
+                self.logger.debug("sending to the client the info needed to register the image in Moab")
+
+                moabstring = self.prefix + ',' + self.name + ',' + self.operatingsystem + ',' + self.arch    
                 self.logger.debug(moabstring)    
                 channel.send(moabstring)
                 channel.close()
             
 
+    def handle_image(self, image, channel):
+
+        success=True   
+        urlparts = image.split("/")
+        self.logger.debug("urls parts: "+str(urlparts))
+        if len(urlparts) == 1:
+            nameimg = urlparts[0].split(".")[0]
+        elif len(urlparts) == 2:
+            nameimg = urlparts[1].split(".")[0]
+        else:
+            nameimg = urlparts[len(urlparts) - 1].split(".")[0]
+
+        self.logger.debug("image name "+nameimg)
+
+        localtempdir = self.tempdir + "/" + nameimg + "_0/"
+
+        cmd = 'mkdir -p ' + localtempdir
+        self.runCmd(cmd)
+
+        self.logger.info('untar file with image and manifest')
+        cmd = "tar xvfz " + image + " -C " + localtempdir
+        #self.logger.debug(cmd)
+        stat = self.runCmd(cmd)
+
+        cmd = 'rm -f ' + image 
+        status = self.runCmd(cmd)
+        
+        if (stat != 0):
+            msg="Error: the files were not extracted"
+            self.errormsg(channel, msg)
+            return False
+        
+        self.manifestname = nameimg + ".manifest.xml"
+
+        manifestfile = open(localtempdir + "/" + self.manifestname, 'r')
+        manifest = parse(manifestfile)
+
+        self.name = manifest.getElementsByTagName('name')[0].firstChild.nodeValue.strip()
+        self.givenname = manifest.getElementsByTagName('givenname')
+        self.operatingsystem = manifest.getElementsByTagName('os')[0].firstChild.nodeValue.strip()
+        self.version = manifest.getElementsByTagName('version')[0].firstChild.nodeValue.strip()
+        self.arch = manifest.getElementsByTagName('arch')[0].firstChild.nodeValue.strip()
+        #kernel = manifest.getElementsByTagName('kernel')[0].firstChild.nodeValue.strip()
+
+        self.logger.debug(self.name + " " + self.operatingsystem + " " + self.version + " " + self.arch)
+
+        #Hook for Debian based systems to work in xCAT                
+        if self.operatingsystem == 'ubuntu' or self.operatingsystem == 'debian':
+            self.prefix = 'rhels5.4'
+
+        #Build filesystem    
+        #Create Directory structure
+        #/install/netboot/<name>/<arch>/compute/
+        self.path = self.xcatNetbootImgPath + self.prefix + self.operatingsystem + '' + self.name + '/' + self.arch + '/compute/'
+        
+        if os.path.isdir(self.path):
+            msg = "ERROR: The image already exists"
+            self.errormsg(channel, msg)
+            return False
+        
+        cmd = 'mkdir -p ' + self.path + 'rootimg ' + self.path + 'temp'
+        status = self.runCmd(cmd)    
+        if status != 0:
+            msg = "ERROR: creating directory rootimg"
+            self.errormsg(channel, msg)
+            return False
+
+        cmd = 'mv -f '+localtempdir + "/" + nameimg + ".img "+self.path
+        status = self.runCmd(cmd) 
+        if status != 0:
+            msg = "ERROR: creating directory rootimg"
+            self.errormsg(channel, msg)
+            return False
+        
+        cmd = 'rm -rf '+localtempdir
+        status = self.runCmd(cmd)
+
+        #mount image to extract files
+        cmd = 'mount -o loop ' + self.path + '' + self.name + '.img ' + self.path + 'temp'
+        status = self.runCmd(cmd)    
+        if status != 0:
+            msg = "ERROR: mounting image"
+            self.errormsg(channel, msg)
+            return False
+        #copy files keeping the permission (-p parameter)
+        cmd = 'cp -rp ' + self.path + 'temp/* ' + self.path + 'rootimg/'                
+        status = os.system(cmd)    
+        if status != 0:
+            msg = "ERROR: copying image"
+            self.errormsg(channel, msg)
+            return False    
+        cmd = 'umount ' + self.path + 'temp'
+        status = self.runCmd(cmd)
+        #we need to read the manifest if we send here the image from the repository directly
+        cmd = 'rm -rf ' + self.path + 'temp ' + self.path + '' + self.name + '.img ' + self.path + '' + self.name + '.manifest.xml'
+        status = self.runCmd(cmd)    
+        if status != 0:
+            msg = "ERROR: unmounting image"
+            self.errormsg(channel, msg)
+            return False
+
+        return True
 
     def customize_centos_img(self):
         status = 0
+        fstab=""
         self.logger.info('Installing torque')
         if(self.machine == "minicluster"):
             self.logger.info('Torque for minicluster')

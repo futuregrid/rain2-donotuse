@@ -18,12 +18,6 @@ from xml.dom.minidom import Document, parse
 from IMClientConf import IMClientConf
 
 
-#Default Kernels to use for each deployment
-default_xcat_kernel = '2.6.18-164.el5'
-default_xcat_kernel_ubuntu = '2.6.35-22-generic'
-default_euca_kernel = '2.6.27.21-0.1-xen'
-
-
 class IMDeploy(object):
     ############################################################
     # __init__
@@ -39,17 +33,15 @@ class IMDeploy(object):
         self.machine = ""  #(india or minicluster or ...)
         self.loginmachine = ""
         self.shareddirserver = "" 
-        
-        self.manifestname = ""
-        self.imagefile = "" #this is the name of the image
-        self.imagepath = "" #this is the path of the tgz that contains the image and manifest
-        
+               
+        """
         #from manifest
         self.name = ""
         self.givenname = ""
         self.operatingsystem = ""
         self.version = ""
         self.arch = ""
+        """
         
         #Load Configuration from file
         self._deployConf = IMClientConf()
@@ -59,56 +51,11 @@ class IMDeploy(object):
         self._http_server = self._deployConf.getHttpServer()
         self.tempdir = self._deployConf.getTempDir()  #root of the temporal directory to extract image
 
-    def handle_image(self, image):
-
-        self.imagepath = image
-        
-        urlparts = image.split("/")
-        self.logger.debug(str(urlparts))
-        if len(urlparts) == 1:
-            nameimg = urlparts[0].split(".")[0]
-        elif len(urlparts) == 2:
-            nameimg = urlparts[1].split(".")[0]
-        else:
-            nameimg = urlparts[len(urlparts) - 1].split(".")[0]
-
-        self.logger.debug(nameimg)
-
-        self.tempdir += nameimg + "_0/"
-
-        cmd = 'mkdir -p ' + self.tempdir
-        self.runCmd(cmd)
-
-        self.logger.info('untar file with image and manifest')
-        cmd = "tar xvfz " + image + " -C " + self.tempdir
-        self.logger.debug(cmd)
-        stat = os.system(cmd)
-
-        if (stat != 0):
-            print "Error: the files were not extracted"
-            sys.exit(1)
 
 
-        self.manifestname = nameimg + ".manifest.xml"
-
-        manifestfile = open(self.tempdir + "/" + self.manifestname, 'r')
-        manifest = parse(manifestfile)
-
-
-        self.imagefile = nameimg + '.img'
-        self.logger.info('Using image: ' + self.imagefile)
-
-        self.name = manifest.getElementsByTagName('name')[0].firstChild.nodeValue.strip()
-        self.givenname = manifest.getElementsByTagName('givenname')
-        self.operatingsystem = manifest.getElementsByTagName('os')[0].firstChild.nodeValue.strip()
-        self.version = manifest.getElementsByTagName('version')[0].firstChild.nodeValue.strip()
-        self.arch = manifest.getElementsByTagName('arch')[0].firstChild.nodeValue.strip()
-        #kernel = manifest.getElementsByTagName('kernel')[0].firstChild.nodeValue.strip()
-
-        self.logger.debug(self.name + " " + self.operatingsystem + " " + self.version + " " + self.arch)
-
-
+    #This need to be redo
     def euca_method(self):
+                
         if isinstance(self.kernel, NoneType):
             self.kernel = default_euca_kernel
 
@@ -172,7 +119,7 @@ class IMDeploy(object):
 
        
 
-    def xcat_method(self, xcat):
+    def xcat_method(self, xcat, image):
         
         #Load Machines configuration
         xcat = xcat.lower()
@@ -196,35 +143,36 @@ class IMDeploy(object):
         self.logger.debug("shared dir between login machine and xcat machine" + self.shareddirserver)
         #################
         
-        #Select kernel version
-        if isinstance(self.kernel, NoneType):
-            if (self.operatingsystem != "ubuntu"):
-                self.kernel = default_xcat_kernel
-            elif (self.operatingsystem == "ubuntu"):
-                self.kernel = default_xcat_kernel_ubuntu
+
         
-        #self.logger.info('Compressing image')
-        #cmd = ('tar cvfz ' + self.tempdir + '/' + self.imagefile + '.tgz -C ' + self.tempdir + ' ' + self.imagefile)
-        #self.runCmd(cmd)
+        urlparts = image.split("/")
+        self.logger.debug(str(urlparts))
+        if len(urlparts) == 1:
+            nameimg = urlparts[0].split(".")[0]
+        elif len(urlparts) == 2:
+            nameimg = urlparts[1].split(".")[0]
+        else:
+            nameimg = urlparts[len(urlparts) - 1].split(".")[0]
+
         
         #Copy the image to the Shared directory.
         if (self.loginmachine == "localhost" or self.loginmachine == "127.0.0.1"):
             self.logger.info('Copying the image to the right directory')
-            cmd = 'cp ' + self.imagepath + ' ' + self.shareddirserver + '/' + self.name + '.tgz'
+            cmd = 'cp ' + image + ' ' + self.shareddirserver + '/' + nameimg + '.tgz'
             self.logger.info(cmd)
             self.runCmd(cmd)
         else:                    
             self.logger.info('Uploading image. You may be asked for ssh/paraphrase password')
-            cmd = 'scp ' + self.imagepath + ' ' + self.user + '@' + self.loginmachine + ':' + self.shareddirserver + '/' + self.name + '.tgz'
+            cmd = 'scp ' + image + ' ' + self.user + '@' + self.loginmachine + ':' + self.shareddirserver + '/' + nameimg + '.tgz'
             self.logger.info(cmd)
             self.runCmd(cmd)
         
-        self.runCmd("rm -rf " + self.tempdir)
-
         #xCAT server                
         self.logger.info('Connecting to xCAT server')
 
-        msg = self.name + ',' + self.operatingsystem + ',' + self.version + ',' + self.arch + ',' + self.kernel + ',' + self.shareddirserver + ',' + self.machine
+        #msg = self.name + ',' + self.operatingsystem + ',' + self.version + ',' + self.arch + ',' + self.kernel + ',' + self.shareddirserver + ',' + self.machine
+        
+        msg=self.shareddirserver + '/' + nameimg + '.tgz, '+str(self.kernel)
         self.logger.debug('Sending message: ' + msg)
 
         #Notify xCAT deployment to finish the job
@@ -244,7 +192,7 @@ class IMDeploy(object):
 
         self.logger.info('Connecting to Moab server')
 
-        moabstring += ',' + self.name + ',' + self.operatingsystem + ',' + self.arch + ',' + self.machine
+        moabstring += ',' + self.machine
 
         self.logger.debug('Sending message: ' + moabstring)
 
@@ -312,7 +260,7 @@ def main():
     parser.add_option("-u", "--user", dest="user", help="FutureGrid username")
 
     parser.add_option("-d", "--debug", action="store_true", dest="debug", help="Enable debug logs")
-    parser.add_option("-k", "--kernel", dest="kernel", help="Specify the desired kernel (must be exact version and approved for use within FG")
+    parser.add_option("-k", "--kernel", dest="kernel", help="Specify the desired kernel (must be exact version and approved for use within FG). Not yet supported")
 
     (ops, args) = parser.parse_args()
 
@@ -338,10 +286,7 @@ def main():
     #Define the type
 
     #Get image destination
-    if not isinstance(ops.image, NoneType):
-        if(os.path.isfile(ops.image)):
-            imgdeploy.handle_image(ops.image)
-    else:
+    if isinstance(ops.image, NoneType) or not  os.path.isfile(ops.image):
         parser.error('You need to specify a tgz that contains the image and the manifest (-i option)')
         logger.error('Image file not found')
         sys.exit(1)
@@ -351,7 +296,7 @@ def main():
         imgdeploy.euca_method()
     #XCAT
     elif not isinstance(ops.xcat, NoneType):        
-        imgdeploy.xcat_method(ops.xcat)
+        imgdeploy.xcat_method(ops.xcat, ops.image)
 
     #NIMBUS
     elif not isinstance(ops.nimbus, NoneType):
