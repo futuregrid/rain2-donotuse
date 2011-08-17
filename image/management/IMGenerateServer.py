@@ -111,22 +111,26 @@ class IMGenerateServer(object):
                 full=True
                 while full:
                     for i in range(len(proc_list)-1,-1,-1):
-                        print str(proc_list[i])
+                        #self.logger.debug(str(proc_list[i]))
                         if not proc_list[i].is_alive():
-                            print "dead"                        
+                            #print "dead"                        
                             proc_list.pop(i)
                             full=False
                     if full:
                         time.sleep(10)
                     
             channel, details = sock.accept()
-            proc_list.append(Process(target=self.generate, args=(channel,details)))
+            pid=None
+            proc_list.append(Process(target=self.generate, args=(channel,details, pid)))
+            pid=proc_list[len(proc_list)-1].pid
             proc_list[len(proc_list)-1].start()    
       
-    def generate(self, channel, details):
-        #this runs in a thread
+    def generate(self, channel, details, pid):
+        #this runs in a different proccess
         
-        self.logger.info('Starting Image generator server')
+        self.logger.info("pid is:" +str(pid))
+        
+        self.logger.info('Processing an image generation request')
         #it will have the IP of the VM
         vmaddr = ""        
         options = ''    

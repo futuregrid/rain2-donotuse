@@ -574,7 +574,7 @@ def runCmd(cmd):
 
 def cleanup(name):
     #Cleanup
-    cleanupLog = logger.getLogger('cleanup')
+    cleanupLog = logging.getLogger('GenerateScript.cleanup')
     if (name.strip() != ""):
         os.system('umount ' + tempdir + '' + name + '/proc')
         os.system('umount ' + tempdir + '' + name + '/dev/pts')
