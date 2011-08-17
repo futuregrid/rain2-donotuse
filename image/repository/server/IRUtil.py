@@ -19,8 +19,12 @@ sys.path.append(os.getcwd())
 try:
     from futuregrid.utils import fgLog
 except:
-    sys.path.append(os.getcwd() + "/../../../") #Directory where fg.py is
-    from utils import fgLog
+    sys.path.append(os.path.dirname( __file__ ) + "/../../../") #Directory where fg.py is
+    try:
+        from utils import fgLog
+    except:
+        sys.path.append(os.getcwd() + "/../../../")
+        from utils import fgLog
     
 ############################################################
 # getImgId

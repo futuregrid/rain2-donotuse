@@ -71,6 +71,7 @@ Notes:
 
 
     first = True
+    message = ""
     for line in textwrap.wrap("vmtype= " + str(ImgMeta.VmType), 64):
         if first:
             print "         %s" % (line)
