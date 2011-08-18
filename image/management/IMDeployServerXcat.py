@@ -16,12 +16,6 @@ import time
 from IMServerConf import IMServerConf
 from xml.dom.minidom import Document, parse
 
-
-#Default Kernels to use for each deployment
-default_xcat_kernel = '2.6.18-164.el5'
-default_xcat_kernel_ubuntu = '2.6.35-22-generic'
-default_euca_kernel = '2.6.27.21-0.1-xen'
-
 class IMDeployServerXcat(object):
 
     def __init__(self):
@@ -51,7 +45,11 @@ class IMDeployServerXcat(object):
         self.log_filename = self._deployConf.getLogXcat()
         self.logLevel = self._deployConf.getLogLevelXcat()
         self.test_mode = self._deployConf.getTestXcat()
-        self.tempdir = "/media/"
+        self.tempdir = self._deployConf.getTempDirXcat()
+        #Default Kernels to use for each deployment
+        self.default_xcat_kernel_centos = self._deployConf.getDXKernelCentos()
+        self.default_xcat_kernel_ubuntu = self._deployConf.getDXKernelUbuntu()
+        
         
         print "\nReading Configuration file from "+self._deployConf.getConfigFile()+"\n"
         
@@ -111,10 +109,10 @@ class IMDeployServerXcat(object):
                 #This is not yet supported as we get always the same kernel
                 self.logger.debug("kernel: "+self.kernel)
                 if self.kernel == "None":
-                    if (self.operatingsystem != "ubuntu"):
-                        self.kernel = default_xcat_kernel
-                    elif (self.operatingsystem == "ubuntu"):
-                        self.kernel = default_xcat_kernel_ubuntu
+                    if (self.operatingsystem == "ubuntu"):
+                        self.kernel = self.default_xcat_kernel_ubuntu                        
+                    elif (self.operatingsystem == "centos"):
+                        self.kernel = self.default_xcat_kernel_centos
                 
                 #create directory that contains initrd.img and vmlinuz
                 tftpimgdir = '/tftpboot/xcat/' + self.prefix + self.operatingsystem + '' + self.name + '/' + self.arch

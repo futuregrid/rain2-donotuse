@@ -17,7 +17,7 @@ import logging.handlers
 from xml.dom.minidom import Document, parse
 from IMClientConf import IMClientConf
 
-
+default_euca_kernel = '2.6.27.21-0.1-xen'
 class IMDeploy(object):
     ############################################################
     # __init__

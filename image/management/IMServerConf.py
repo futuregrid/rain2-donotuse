@@ -70,6 +70,9 @@ class IMServerConf(object):
         self._log_xcat = ""
         self._logLevel_xcat = ""
         self._test_xcat = ""
+        self._default_xcat_kernel_centos = ""
+        self._default_xcat_kernel_ubuntu = ""
+        self._tempdir_xcat = ""
 
         #image server moab
         self._moab_port = 0
@@ -141,6 +144,12 @@ class IMServerConf(object):
         return self._logLevel_xcat
     def getTestXcat(self):
         return self._test_xcat
+    def getDXKernelCentos(self):
+        return self._default_xcat_kernel_centos
+    def getDXKernelUbuntu(self):
+        return self._default_xcat_kernel_ubuntu
+    def getTempDirXcat(self):
+        return self._tempdir_xcat
     
     #image server moab    
     def getMoabPort(self):
@@ -300,7 +309,22 @@ class IMServerConf(object):
                  self._test_xcat=False
         except ConfigParser.NoOptionError:
             self._test_xcat=False
-      
+        try:
+            self._default_xcat_kernel_centos = self._config.get(section, 'default_xcat_kernel_centos', 0)
+        except ConfigParser.NoOptionError:
+            print "Error: No default_xcat_kernel_centos option found in section " + section
+            sys.exit(1)
+        try:
+            self._default_xcat_kernel_ubuntu = self._config.get(section, 'default_xcat_kernel_ubuntu', 0)
+        except ConfigParser.NoOptionError:
+            print "Error: No default_xcat_kernel_ubuntu option found in section " + section
+            sys.exit(1)    
+        try:
+            self._tempdir_xcat = os.path.expanduser(self._config.get(section, 'tempdir', 0))
+        except ConfigParser.NoOptionError:
+            print "Error: No tempdir option found in section " + section
+            sys.exit(1)
+
 
     ############################################################
     # load_deployConfig
