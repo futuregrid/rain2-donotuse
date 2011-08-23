@@ -3,7 +3,7 @@
 Description: xCAT image deployment server WITHOUT the MOAB PART.  Customizes and Deploys images given by IMDeploy onto 
 # xCAT bare metal
 """
-__author__ = 'Javier Diaz, Andrew Young'
+__author__ = 'Javier Diaz, Andrew Younge'
 __version__ = '0.1'
 
 import socket

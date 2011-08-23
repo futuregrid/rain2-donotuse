@@ -2,7 +2,7 @@
 """
 Command line front end for image generator
 """
-__author__ = 'Javier Diaz, Andrew Young'
+__author__ = 'Javier Diaz, Andrew Younge'
 __version__ = '0.1'
 
 from optparse import OptionParser
