@@ -264,7 +264,24 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
     #TODO: Set mirros to IU/FGt
     ubuntuLog.info('Configuring repositories')
 
-    runCmd('wget ' + http_server + '/conf/ubuntu/' + version + '-sources.list -O ' + tempdir + '' + name + '/etc/apt/sources.list')
+    #runCmd('wget ' + http_server + '/conf/ubuntu/' + version + '-sources.list -O ' + tempdir + '' + name + '/etc/apt/sources.list')
+    f = open(tempdir + '' + name + '/etc/apt/source.list', 'w')
+    f.write('deb http://us.archive.ubuntu.com/ubuntu/ ' + version + ' main restricted \n' 
+    'deb-src http://us.archive.ubuntu.com/ubuntu/ ' + version + ' main restricted \n'      
+    'deb http://us.archive.ubuntu.com/ubuntu/ ' + version + '-updates main restricted \n' 
+    'deb-src http://us.archive.ubuntu.com/ubuntu/ ' + version + '-updates main restricted \n'
+    'deb http://us.archive.ubuntu.com/ubuntu/ ' + version + ' universe \n' 
+    'deb-src http://us.archive.ubuntu.com/ubuntu/ ' + version + ' universe \n' 
+    'deb http://us.archive.ubuntu.com/ubuntu/ ' + version + '-updates universe \n' 
+    'deb-src http://us.archive.ubuntu.com/ubuntu/ ' + version + '-updates universe \n'     
+    'deb http://us.archive.ubuntu.com/ubuntu/ ' + version + ' multiverse \n' 
+    'deb-src http://us.archive.ubuntu.com/ubuntu/ ' + version + ' multiverse \n' 
+    'deb http://us.archive.ubuntu.com/ubuntu/ ' + version + '-updates multiverse \n' 
+    'deb-src http://us.archive.ubuntu.com/ubuntu/ ' + version + '-updates multiverse ')
+    f.close()
+    
+
+    #key for bcfg2
     runCmd('chroot ' + tempdir + '' + name + ' apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 98932BEC')
     runCmd('chroot ' + tempdir + '' + name + ' apt-get update')
 
