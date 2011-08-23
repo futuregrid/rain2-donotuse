@@ -250,6 +250,10 @@ def main():
             version = "lucid"
         elif ops.version == "9.10" or ops.version == "karmic":
             version = "karmic"
+        elif ops.version == "10.10" or ops.version == "maverick":
+            version = "maverick"
+        elif ops.version == "11.04" or ops.version == "natty":
+            version = "natty"
     elif ops.OS == "Debian" or ops.OS == "debian":
         OS = "debian"
         version = default_debian
