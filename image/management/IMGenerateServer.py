@@ -255,6 +255,10 @@ class IMGenerateServer(object):
                             #if stat != 0:
                             #    time.sleep(2)
                         
+                        #destroy VM
+                        self.logger.info("Destroy VM")
+                        server.one.vm.action(self.oneauth, "finalize", vmID)
+                        
                         self.logger.debug("Generating tgz with image and manifest files")
                         out = os.system("tar cfz " + self.tempdirserver + "/" + status + ".tgz -C " + self.tempdirserver + \
                                         " " + status + ".manifest.xml " + status + ".img")
@@ -270,7 +274,7 @@ class IMGenerateServer(object):
                         #send back the url where the image is
                         channel.send(self.tempdirserver + "" + status + ".tgz")
                         channel.close()
-    
+            
             #destroy VM
             self.logger.info("Destroy VM")
             server.one.vm.action(self.oneauth, "finalize", vmID)
