@@ -126,7 +126,8 @@ class IMDeployServerXcat(object):
                     #############################
                     #Insert client stuff for ubuntu. To be created. We may use the same function but Torque binaries and network config must be different
                     ############################
-                                 
+                    #status = self.customize_ubuntu_img()
+                            
                     #getting initrd and kernel customized for xCAT
                     cmd = 'wget ' + self.http_server + '/kernel/specialubuntu/initrd.gz -O ' + self.path + '/initrd-stateless.gz'
                     status = self.runCmd(cmd)    
@@ -158,8 +159,7 @@ class IMDeployServerXcat(object):
                         self.errormsg(channel, msg)
                         break
                     
-                else: #Centos
-                    #Insert client stuff
+                else: #Centos                    
                     status = self.customize_centos_img()
                     if status != 0:
                         msg = "ERROR: customizing the image. Look into server logs for details"

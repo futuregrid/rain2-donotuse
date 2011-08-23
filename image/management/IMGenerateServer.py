@@ -241,7 +241,7 @@ class IMGenerateServer(object):
                     
                     status = uid[0].strip() #it contains error or filename
                     if status == "error":
-                        msg = "ERROR: "+uid
+                        msg = "ERROR: "+str(uid)
                         errormsg(channel, msg)
                     else:
                         #stat = 0
