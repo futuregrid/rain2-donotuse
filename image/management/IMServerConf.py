@@ -258,12 +258,12 @@ class IMServerConf(object):
             print "Error: No bcfg2_port option found in section " + section
             sys.exit(1)
         try:
-            self._oneuser = int(self._config.get(section, 'oneuser', 0))
+            self._oneuser = self._config.get(section, 'oneuser', 0)
         except ConfigParser.NoOptionError:
             print "Error: No oneuser option found in section " + section
             sys.exit(1)
         try:
-            self._onepass = int(self._config.get(section, 'onepass', 0))
+            self._onepass = self._config.get(section, 'onepass', 0)
         except ConfigParser.NoOptionError:
             print "Error: No onepass option found in section " + section
             sys.exit(1)

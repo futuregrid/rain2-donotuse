@@ -25,7 +25,7 @@ from IMServerConf import IMServerConf
 
 class IMGenerateServer(object):
 
-    def __init__(self, oneadmin):
+    def __init__(self):
         super(IMGenerateServer, self).__init__()
 
         #*********************
@@ -69,7 +69,7 @@ class IMGenerateServer(object):
         self.bcfg2_url = self._genConf.getBcfg2Url()
         self.bcfg2_port = self._genConf.getBcgf2Port()
         
-        self.oneauth = self._genConf.getOneUser() + ":" + self._genConf.getOnePass()
+        self.oneauth = self._genConf.getOneUser().strip() + ":" + self._genConf.getOnePass().strip()
         
         self.log_filename = self._genConf.getLogGen()
         self.logLevel = self._genConf.getLogLevelGen()
@@ -295,7 +295,7 @@ class IMGenerateServer(object):
         vmaddr = ""
         fail = False
     
-    
+        print vmfile
         #-----read template into string -------------------------
         #s=open('./share/examples/ubuntu_context.one','r').read()
         s = open(vmfile, 'r').read()
@@ -303,7 +303,10 @@ class IMGenerateServer(object):
     
         #-----Start VM-------------------------------------------
         vm = server.one.vm.allocate(self.oneauth, s)
-    
+        
+        print self.oneauth
+        print vm
+        
         if vm[0]:
             self.logger.debug("VM ID: " + str(vm[1]))
     
@@ -391,10 +394,7 @@ class IMGenerateServer(object):
         return outputs
     
 def main():
-        
-    print "\n Remember that you must be the OpenNebula Admin to execute this service \n"
-    
-    
+       
     
     imgenserver = IMGenerateServer()
     
