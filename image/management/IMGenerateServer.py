@@ -90,9 +90,18 @@ class IMGenerateServer(object):
         logger.propagate = False #Do not propagate to others
         
         return logger    
-    
-
-    
+    """
+    def get_adminpass(self, oneadmin):
+        ##############
+        #GET oneadmin password encoded in SHA1
+        ##############
+        p = Popen('oneuser list', stdout=PIPE, shell=True)
+        p1 = Popen('grep ' + oneadmin, stdin=p.stdout, stdout=PIPE, shell=True)
+        p2 = Popen('cut -d\" \" -f13', stdin=p1.stdout, shell=True, stdout=PIPE)
+        oneadminpass = p2.stdout.read().strip()
+            
+        return oneadmin + ":" + oneadminpass
+    """
     def start(self):
         self.logger.info('Starting Server on port ' + str(self.port))
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -313,28 +322,31 @@ class IMGenerateServer(object):
             #monitor VM
             booted = False
             while not booted:
-                #-------Get Info about VM -------------------------------
-                vminfo = server.one.vm.info(self.oneauth, vm[1])
-                #print  vminfo[1]
-                manifest = parseString(vminfo[1])
-    
-                #VM_status (init=0, pend=1, act=3, fail=7)
-                vm_status = manifest.getElementsByTagName('STATE')[0].firstChild.nodeValue.strip()
-    
-                if vm_status == "3":
-                    #LCM_status (prol=1,boot=2,runn=3, fail=14, unk=16)
-                    lcm_status = manifest.getElementsByTagName('LCM_STATE')[0].firstChild.nodeValue.strip()
-    
-                    if lcm_status == "3":
+                try:
+                    #-------Get Info about VM -------------------------------
+                    vminfo = server.one.vm.info(self.oneauth, vm[1])
+                    print  vminfo[1]
+                    manifest = parseString(vminfo[1])
+        
+                    #VM_status (init=0, pend=1, act=3, fail=7)
+                    vm_status = manifest.getElementsByTagName('STATE')[0].firstChild.nodeValue.strip()
+        
+                    if vm_status == "3":
+                        #LCM_status (prol=1,boot=2,runn=3, fail=14, unk=16)
+                        lcm_status = manifest.getElementsByTagName('LCM_STATE')[0].firstChild.nodeValue.strip()
+        
+                        if lcm_status == "3":
+                            booted = True
+                    elif vm_status == "7":
+                        self.logger.error("Fail to deploy VM " + str(vm[1]))
                         booted = True
-                elif vm_status == "7":
-                    self.logger.error("Fail to deploy VM " + str(vm[1]))
-                    booted = True
-                    fail = True
-                    vmaddr = "fail"
-                else:
-                    time.sleep(2)
-    
+                        fail = True
+                        vmaddr = "fail"
+                    else:
+                        time.sleep(5)
+                except:
+                    pass
+        
             if not fail:
                 #get IP
                 nics = manifest.getElementsByTagName('NIC')
