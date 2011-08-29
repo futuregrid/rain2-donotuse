@@ -10,7 +10,7 @@ from optparse import OptionParser
 import sys
 import os
 from types import *
-import socket
+import socket, ssl
 from subprocess import *
 import logging
 import logging.handlers
@@ -174,42 +174,53 @@ class IMDeploy(object):
         
         msg=self.shareddirserver + '/' + nameimg + '.tgz, '+str(self.kernel)
         self.logger.debug('Sending message: ' + msg)
+        moabstring = ""
 
         #Notify xCAT deployment to finish the job
-        xcatServer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        xcatServer.connect((self.xcatmachine, self._xcat_port))
-
-        xcatServer.send(msg)
-        #check if the server received all parameters
-        ret = xcatServer.recv(1024)
-        if ret != 'OK':
-            self.logger.error('Incorrect reply from the xCat server:' + ret)
-            sys.exit(1)
-
-        #recieve the prefix parameter from xcat server
-        moabstring = xcatServer.recv(2048)
-        self.logger.debug("String receved from xcat server " + moabstring)
-
-        params = moabstring.split(',')
-        imagename=params[0]+''+params[2]+''+params[1]
-
-        self.logger.info('Connecting to Moab server')
-
-        moabstring += ',' + self.machine
-
-        self.logger.debug('Sending message: ' + moabstring)
-
-        moabServer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        moabServer.connect((self.moabmachine, self._moab_port))
-        moabServer.send(moabstring)
-        ret = moabServer.recv(100)
-        if ret != 'OK':
-            self.logger.error('Incorrect reply from the Moab server:' + ret)
-            sys.exit(1)
-
-        self.logger.info('Your image has been deployed in xCAT as ' +imagename+'. Please allow a few minutes for xCAT '
-                         'to register the image before attempting to use it.')
-
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            xcatServer = ssl.wrap_socket(s,
+                                        ca_certs="./imdclient/cacert.pem",
+                                        certfile="./imdclient/imdccert.pem",
+                                        keyfile="./imdclient/privkey.pem",
+                                        cert_reqs=ssl.CERT_REQUIRED)
+            xcatServer.connect((self.xcatmachine, self._xcat_port))
+            xcatServer.write(msg)
+            print msg
+            ret = xcatServer.read(1024)
+            #check if the server received all parameters
+            if ret != 'OK':
+                self.logger.error('Incorrect reply from the xCat server:' + ret)
+                sys.exit(1)
+            #recieve the prefix parameter from xcat server
+            moabstring = xcatServer.read(2048)
+            self.logger.debug("String receved from xcat server " + moabstring)
+	    params = moabstring.split(',')
+	    imagename=params[0]+''+params[2]+''+params[1]
+            self.logger.info('Connecting to Moab server')	    
+            moabstring += ',' + self.machine
+    
+            self.logger.debug('Sending message: ' + moabstring)    
+        except ssl.SSLError:
+            print "CANNOT establish SSL connection. EXIT"
+        
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            moabServer = ssl.wrap_socket(s,
+                                        ca_certs="./imdclient/cacert.pem",
+                                        certfile="./imdclient/imdccert.pem",
+                                        keyfile="./imdclient/privkey.pem",
+                                        cert_reqs=ssl.CERT_REQUIRED)
+            moabServer.connect((self.moabmachine, self._moab_port))
+            moabServer.write(moabstring)
+            ret = moabServer.read(100)
+            if ret != 'OK':
+                self.logger.error('Incorrect reply from the Moab server:' + ret)
+                sys.exit(1)
+    
+            self.logger.info('Your image has been deployed in xCAT as ' + imagename + '. Please allow a few minutes for xCAT to register the image before attempting to use it.')
+        except ssl.SSLError:
+            print "CANNOT establish SSL connection. EXIT"
 
     def runCmd(self, cmd):
         cmdLog = logging.getLogger('DeployClient.exec')
