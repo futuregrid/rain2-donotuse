@@ -273,7 +273,9 @@ class IMGenerateServer(object):
             #destroy VM
             self.logger.info("Destroy VM")
             server.one.vm.action(self.oneauth, "finalize", vmID)
-
+        else:
+            msg="Error booting VM: "+vmID
+            errormsg(channel, msg)
     
     def errormsg(self, channel, msg):
         self.logger.error(msg)
