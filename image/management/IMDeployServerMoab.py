@@ -7,7 +7,7 @@ __author__ = 'Javier Diaz, Andrew Younge'
 __version__ = '0.1'
 
 
-import socket
+import socket, ssl
 import sys
 import os
 from subprocess import *
@@ -63,14 +63,29 @@ class IMDeployServerMoab(object):
         sock.bind(('', self.port))
         sock.listen(1)
         while True:
-            while True:
-    
-                channel, details = sock.accept()
+            newsocket, fromaddr = sock.accept()
+            connstream = 0
+            try:
+                connstream = ssl.wrap_socket(newsocket,
+                              server_side=True,
+                              ca_certs="./imdserver/cacert.pem",
+                              cert_reqs=ssl.CERT_REQUIRED,
+                              certfile="./imdserver/imdscert.pem",
+                              keyfile="./imdserver/privkey.pem",
+                              ssl_version=ssl.PROTOCOL_TLSv1)
+                self.process_client(connstream)
+            except ssl.SSLError:
+                print "Unsuccessful connection attempt from: " + repr(fromaddr)
+            finally:
+                if connstream is ssl.SSLSocket:
+                  connstream.shutdown(socket.SHUT_RDWR)
+                  connstream.close()
     
                 self.logger.info('Accepted new connection')
-    
+
+    def process_client(self, connstream):
                 #receive the message
-                data = channel.recv(2048)
+                data = connstream.read(2048)
                 params = data.split(',')
     
                 #params[0] is prefix
@@ -102,12 +117,14 @@ class IMDeployServerMoab(object):
                 if len(params) == self.numparams and status != 0:
                     msg = 'Error including image name in image.txt file'
                     self.logger.debug(msg)
-                    channel.send(msg)
-                    channel.close()
-                    break
+                    connstream.write(msg)
+                    connstream.shutdown(socket.SHUT_RDWR)
+                    connstream.close()
+                    return
                 else:
-                    channel.send('OK')
-                    channel.close()
+                    connstream.write('OK')
+                    connstream.shutdown(socket.SHUT_RDWR)
+                    connstream.close()
     
                 
 	            if not os.path.isfile('/tmp/image-deploy-fork.lock'):

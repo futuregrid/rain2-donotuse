@@ -6,7 +6,7 @@ Description: xCAT image deployment server WITHOUT the MOAB PART.  Customizes and
 __author__ = 'Javier Diaz, Andrew Younge'
 __version__ = '0.1'
 
-import socket
+import socket, ssl
 import sys
 import os
 from subprocess import *
@@ -76,14 +76,33 @@ class IMDeployServerXcat(object):
         sock.bind(('', self.port))
         sock.listen(1)
         while True:
-            while True:
-    
+            newsocket, fromaddr = sock.accept()
+            connstream = 0
+            try:
+                connstream = ssl.wrap_socket(newsocket,
+                              server_side=True,
+                              ca_certs="./imdserver/cacert.pem",
+                              cert_reqs=ssl.CERT_REQUIRED,
+                              certfile="./imdserver/imdscert.pem",
+                              keyfile="./imdserver/privkey.pem",
+                              ssl_version=ssl.PROTOCOL_TLSv1)
+                print connstream
+                self.process_client(connstream)
+            except ssl.SSLError:
+                print "Unsuccessful connection attempt from: " + repr(fromaddr)
+            finally:
+                if connstream is ssl.SSLSocket:
+                  connstream.shutdown(socket.SHUT_RDWR)
+                  connstream.close()
+                  
                 self.logger.info('Accepted new connection')
-                channel, details = sock.accept()                
+                
+    def process_client(self,connstream):
+                print "in process..."             
                 #receive the message
-                data = channel.recv(2048)
+                data = connstream.read(2048)
                 params = data.split(',')
-    
+                print data
                 #params[0] is image path
                 #params[1] is the kernel
                 
@@ -93,17 +112,17 @@ class IMDeployServerXcat(object):
     
                 if len(params) != self.numparams:
                     msg = "ERROR: incorrect message"
-                    self.errormsg(channel, msg)
-                    break
+                    self.errormsg(connstream, msg)
+                    return
     
                 if not os.path.isfile(image):
                     msg = "ERROR: file "+image+" not found"
-                    self.errormsg(channel, msg)
-                    break
+                    self.errormsg(connstream, msg)
+                    return
     
                 #extracts image/manifest, read manifest and copy image right directory
-                if not self.handle_image(image, channel):
-                    break            
+                if not self.handle_image(image, connstream):
+                    return            
     
                 #Select kernel version
                 #This is not yet supported as we get always the same kernel
@@ -119,7 +138,7 @@ class IMDeployServerXcat(object):
                 cmd = 'mkdir -p ' + tftpimgdir
                 status = self.runCmd(cmd)    
                 if status != 0:
-                    break
+                    return
                 
                 if (self.operatingsystem == "ubuntu"):
                     
@@ -133,14 +152,14 @@ class IMDeployServerXcat(object):
                     status = self.runCmd(cmd)    
                     if status != 0:
                         msg = "ERROR: retrieving/copying initrd.gz"
-                        self.errormsg(channel, msg)
-                        break    
+                        self.errormsg(connstream, msg)
+                        return    
                     cmd = 'wget ' + self.http_server + '/kernel/specialubuntu/kernel -O ' + self.path + '/kernel'
                     status = self.runCmd(cmd)    
                     if status != 0:
                         msg = "ERROR: retrieving/copying kernel"
-                        self.errormsg(channel, msg)
-                        break
+                        self.errormsg(connstream, msg)
+                        return
                     
                     #getting generic initrd and kernel 
                     cmd = 'wget ' + self.http_server + '/kernel/tftp/xcat/ubuntu10/' + self.arch + '/initrd.img -O ' + tftpimgdir + '/initrd.img'
@@ -148,51 +167,51 @@ class IMDeployServerXcat(object):
     
                     if status != 0:
                         msg = "ERROR: retrieving/copying initrd.img"
-                        self.errormsg(channel, msg)
-                        break
+                        self.errormsg(connstream, msg)
+                        return
     
                     cmd = 'wget ' + self.http_server + '/kernel/tftp/xcat/ubuntu10/' + self.arch + '/vmlinuz -O ' + tftpimgdir + '/vmlinuz'
                     status = self.runCmd(cmd)
     
                     if status != 0:
                         msg = "ERROR: retrieving/copying vmlinuz"
-                        self.errormsg(channel, msg)
-                        break
+                        self.errormsg(connstream, msg)
+                        return
                     
                 else: #Centos                    
                     status = self.customize_centos_img()
                     if status != 0:
                         msg = "ERROR: customizing the image. Look into server logs for details"
-                        self.errormsg(channel, msg)
-                        break    
+                        self.errormsg(connstream, msg)
+                        return    
                     
                     #getting initrd and kernel customized for xCAT
                     cmd = 'wget ' + self.http_server + '/kernel/initrd.gz -O ' + self.path + '/initrd-stateless.gz'
                     status = self.runCmd(cmd)    
                     if status != 0:
                         msg = "ERROR: retrieving/copying initrd.gz"
-                        self.errormsg(channel, msg)
-                        break    
+                        self.errormsg(connstream, msg)
+                        return    
                     cmd = 'wget ' + self.http_server + '/kernel/kernel -O ' + self.path + '/kernel'
                     status = self.runCmd(cmd)    
                     if status != 0:
                         msg = "ERROR: retrieving/copying kernel"
-                        self.errormsg(channel, msg)
-                        break
+                        self.errormsg(connstream, msg)
+                        return
                     
                     #getting generic initrd and kernel
                     cmd = 'wget ' + self.http_server + '/kernel/tftp/xcat/centos5/' + self.arch + '/initrd.img -O ' + tftpimgdir + '/initrd.img'
                     status = self.runCmd(cmd)    
                     if status != 0:
                         msg = "ERROR: retrieving/copying initrd.img"
-                        self.errormsg(channel, msg)
-                        break    
+                        self.errormsg(connstream, msg)
+                        return    
                     cmd = 'wget ' + self.http_server + '/kernel/tftp/xcat/centos5/' + self.arch + '/vmlinuz -O ' + tftpimgdir + '/vmlinuz'
                     status = self.runCmd(cmd)    
                     if status != 0:
                         msg = "ERROR: retrieving/copying vmlinuz"
-                        self.errormsg(channel, msg)
-                        break
+                        self.errormsg(connstream, msg)
+                        return
                                     
                 #XCAT tables                
                 cmd = 'chtab osimage.imagename=' + self.prefix + self.operatingsystem + '' + self.name + '-' + self.arch + '-netboot-compute osimage.profile=compute '\
@@ -221,8 +240,8 @@ class IMDeployServerXcat(object):
                 #    
                 if status != 0:
                     msg = "ERROR: packimage command"
-                    self.errormsg(channel, msg)
-                    break
+                    self.errormsg(connstream, msg)
+                    return
                 
                 #This should be done by qsub/msub by calling nodeset.
                 anotherdir = '/tftpboot/xcat/netboot/' + self.prefix + self.operatingsystem + '' + self.name + '/' + self.arch + '/compute/'
@@ -239,19 +258,21 @@ class IMDeployServerXcat(object):
                 self.runCmd('rpower tc1 boot')
                 """
     
-                channel.send("OK")    
+                connstream.write("OK")    
                 self.logger.debug("sending to the client the info needed to register the image in Moab")
 
                 moabstring = self.prefix + ',' + self.name + ',' + self.operatingsystem + ',' + self.arch    
                 self.logger.debug(moabstring)    
-                channel.send(moabstring)
-                channel.close()
+                connstream.write(moabstring)
+                connstream.shutdown(socket.SHUT_RDWR)
+                connstream.close()
             
 
-    def handle_image(self, image, channel):
-
+    def handle_image(self, image, connstream):
+        print image
         success=True   
         urlparts = image.split("/")
+        print urlparts
         self.logger.debug("urls parts: "+str(urlparts))
         if len(urlparts) == 1:
             nameimg = urlparts[0].split(".")[0]
@@ -262,7 +283,7 @@ class IMDeployServerXcat(object):
 
         self.logger.debug("image name "+nameimg)
 
-        localtempdir = self.tempdir + "/" + nameimg + "_0/"
+        localtempdir = self.tempdir + "/" + nameimg + "_0"
 
         cmd = 'mkdir -p ' + localtempdir
         self.runCmd(cmd)
@@ -277,7 +298,7 @@ class IMDeployServerXcat(object):
         
         if (stat != 0):
             msg="Error: the files were not extracted"
-            self.errormsg(channel, msg)
+            self.errormsg(connstream, msg)
             return False
         
         self.manifestname = nameimg + ".manifest.xml"
@@ -305,21 +326,22 @@ class IMDeployServerXcat(object):
         
         if os.path.isdir(self.path):
             msg = "ERROR: The image already exists"
-            self.errormsg(channel, msg)
+            self.errormsg(connstream, msg)
             return False
         
         cmd = 'mkdir -p ' + self.path + 'rootimg ' + self.path + 'temp'
         status = self.runCmd(cmd)    
         if status != 0:
             msg = "ERROR: creating directory rootimg"
-            self.errormsg(channel, msg)
+            self.errormsg(connstream, msg)
             return False
 
         cmd = 'mv -f '+localtempdir + "/" + nameimg + ".img "+self.path
+        print cmd
         status = self.runCmd(cmd) 
         if status != 0:
             msg = "ERROR: creating directory rootimg"
-            self.errormsg(channel, msg)
+            self.errormsg(connstream, msg)
             return False
         
         cmd = 'rm -rf '+localtempdir
@@ -330,14 +352,14 @@ class IMDeployServerXcat(object):
         status = self.runCmd(cmd)    
         if status != 0:
             msg = "ERROR: mounting image"
-            self.errormsg(channel, msg)
+            self.errormsg(connstream, msg)
             return False
         #copy files keeping the permission (-p parameter)
         cmd = 'cp -rp ' + self.path + 'temp/* ' + self.path + 'rootimg/'                
         status = os.system(cmd)    
         if status != 0:
             msg = "ERROR: copying image"
-            self.errormsg(channel, msg)
+            self.errormsg(connstream, msg)
             return False    
         cmd = 'umount ' + self.path + 'temp'
         status = self.runCmd(cmd)
@@ -346,7 +368,7 @@ class IMDeployServerXcat(object):
         status = self.runCmd(cmd)    
         if status != 0:
             msg = "ERROR: unmounting image"
-            self.errormsg(channel, msg)
+            self.errormsg(connstream, msg)
             return False
 
         return True
@@ -477,10 +499,11 @@ sysfs   /sys     sysfs    defaults       0 0
 
         return status
 
-    def errormsg(self, channel, msg):
+    def errormsg(self, connstream, msg):
         self.logger.error(msg)
-        channel.send(msg)
-        channel.close()
+        connstream.write(msg)
+        connstream.shutdown(socket.SHUT_RDWR)
+        connstream.close()
     
     def runCmd(self, cmd):
         cmdLog = logging.getLogger('DeployXcat.exec')
