@@ -304,7 +304,7 @@ class IMGenerateServer(object):
         vmaddr = ""
         fail = False
     
-        print vmfile
+        #print vmfile
         #-----read template into string -------------------------
         #s=open('./share/examples/ubuntu_context.one','r').read()
         s = open(vmfile, 'r').read()
@@ -313,8 +313,8 @@ class IMGenerateServer(object):
         #-----Start VM-------------------------------------------
         vm = server.one.vm.allocate(self.oneauth, s)
         
-        print self.oneauth
-        print vm
+        #print self.oneauth
+        #print vm
         
         if vm[0]:
             self.logger.debug("VM ID: " + str(vm[1]))
@@ -325,7 +325,7 @@ class IMGenerateServer(object):
                 try:
                     #-------Get Info about VM -------------------------------
                     vminfo = server.one.vm.info(self.oneauth, vm[1])
-                    print  vminfo[1]
+                    #print  vminfo[1]
                     manifest = parseString(vminfo[1])
         
                     #VM_status (init=0, pend=1, act=3, fail=7)
@@ -367,7 +367,7 @@ class IMGenerateServer(object):
                         access = True
                         self.logger.debug("The VM " + str(vm[1]) + " with ip " + str(vmaddr) + "is accessible")
                     else:
-                        time.sleep(2)
+                        time.sleep(5)
         else:
             vmaddr = "fail"
     
