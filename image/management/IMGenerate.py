@@ -22,7 +22,7 @@ from time import time
 from IMClientConf import IMClientConf
 
 class IMGenerate(object):
-    def __init__(self, arch, OS, version, user, auth, software, givenname, desc, logger):
+    def __init__(self, arch, OS, version, user, auth, software, givenname, desc, logger, getimg):
         super(IMGenerate, self).__init__()
         
         self.arch = arch
@@ -34,6 +34,7 @@ class IMGenerate(object):
         self.givenname = givenname
         self.desc = desc
         self.logger = logger
+        self.getimg = getimg
         
         #Load Configuration from file
         self._genConf = IMClientConf()
@@ -83,13 +84,17 @@ class IMGenerate(object):
         else:                    
             self.logger.debug("Returned string: " + str(ret))
             
-            output = self._retrieveImg(ret)            
+            if self.getimg:
+            
+                output = self._retrieveImg(ret)            
         
-            if output != None:  
+                if output != None:  
                     print output          
                     print '\n Generated image and the manifest are packed in the previous file.  Please be aware that this FutureGrid ' + \
-                    'image is packaged without a kernel and fstab. Thus, it is not built for any deployment type.  To deploy the new ' + \
-                    'image, use the IMDeploy command.'
+                        'image is packaged without a kernel and fstab. Thus, it is not built for any deployment type.  To deploy the new ' + \
+                        'image, use the IMDeploy command.'
+            
+                
             #server return addr of the img and metafeile compressed in a tgz or None
         
 
@@ -173,7 +178,7 @@ def main():
     #Default params
     base_os = ""
     spacer = "-"
-    default_ubuntu = "lucid"
+    default_ubuntu = "maverick"
     default_debian = "lenny"
     default_rhel = "5.5"
     default_centos = "5.6"
@@ -197,6 +202,7 @@ def main():
     parser.add_option("-u", "--user", dest="user", help="FutureGrid username")
     parser.add_option("-n", "--name", dest="givenname", help="Desired recognizable name of the image")
     parser.add_option("-e", "--description", dest="desc", help="Short description of the image and its purpose")
+    parser.add_option("-g", "--getimg", dest="getimg", default=False, action="store_true", help="Short description of the image and its purpose")
 
     (ops, args) = parser.parse_args()
 
@@ -246,10 +252,10 @@ def main():
         OS = "ubuntu"
         if type(ops.version) is NoneType:
             version = default_ubuntu
-        elif ops.version == "10.04" or ops.version == "lucid":
-            version = "lucid"
         elif ops.version == "9.10" or ops.version == "karmic":
             version = "karmic"
+        elif ops.version == "10.04" or ops.version == "lucid":
+            version = "lucid"
         elif ops.version == "10.10" or ops.version == "maverick":
             version = "maverick"
         elif ops.version == "11.04" or ops.version == "natty":
@@ -276,7 +282,7 @@ def main():
 
 
 
-    imgen = IMGenerate(arch, OS, version, user, ops.auth, ops.software, ops.givenname, ops.desc, logger)
+    imgen = IMGenerate(arch, OS, version, user, ops.auth, ops.software, ops.givenname, ops.desc, logger, ops.getimg)
     imgen.generate()
     
 

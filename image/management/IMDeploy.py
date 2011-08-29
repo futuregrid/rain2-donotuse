@@ -190,6 +190,9 @@ class IMDeploy(object):
         moabstring = xcatServer.recv(2048)
         self.logger.debug("String receved from xcat server " + moabstring)
 
+        params = moabstring.split(',')
+        imagename=params[0]+''+params[2]+''+params[1]
+
         self.logger.info('Connecting to Moab server')
 
         moabstring += ',' + self.machine
@@ -204,8 +207,8 @@ class IMDeploy(object):
             self.logger.error('Incorrect reply from the Moab server:' + ret)
             sys.exit(1)
 
-
-        self.logger.info('Image deployed to xCAT. Please allow a few minutes for xCAT to register the image before attempting to use it.')
+        self.logger.info('Your image has been deployed in xCAT as ' +imagename+'. Please allow a few minutes for xCAT '
+                         'to register the image before attempting to use it.')
 
 
     def runCmd(self, cmd):

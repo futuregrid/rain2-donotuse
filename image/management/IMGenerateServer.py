@@ -69,12 +69,14 @@ class IMGenerateServer(object):
         self.bcfg2_url = self._genConf.getBcfg2Url()
         self.bcfg2_port = self._genConf.getBcgf2Port()
         
+        self.oneauth = self._genConf.getOneUser() + ":" + self._genConf.getOnePass()
+        
         self.log_filename = self._genConf.getLogGen()
         self.logLevel = self._genConf.getLogLevelGen()
     
         self.logger = self.setup_logger()
                 
-        self.oneauth = self.get_adminpass(oneadmin)    
+            
     
     def setup_logger(self):
         #Setup logging
@@ -89,16 +91,7 @@ class IMGenerateServer(object):
         
         return logger    
     
-    def get_adminpass(self, oneadmin):
-        ##############
-        #GET oneadmin password encoded in SHA1
-        ##############
-        p = Popen('oneuser list', stdout=PIPE, shell=True)
-        p1 = Popen('grep ' + oneadmin, stdin=p.stdout, stdout=PIPE, shell=True)
-        p2 = Popen('cut -d\" \" -f13', stdin=p1.stdout, shell=True, stdout=PIPE)
-        oneadminpass = p2.stdout.read().strip()
-            
-        return oneadmin + ":" + oneadminpass
+
     
     def start(self):
         self.logger.info('Starting Server on port ' + str(self.port))
@@ -271,6 +264,8 @@ class IMGenerateServer(object):
                             #break
                             sys.exit(1) 
                         
+                        
+                        
                         #send back the url where the image is
                         channel.send(self.tempdirserver + "" + status + ".tgz")
                         channel.close()
@@ -399,9 +394,9 @@ def main():
         
     print "\n Remember that you must be the OpenNebula Admin to execute this service \n"
     
-    oneadmin = os.popen('whoami', 'r').read().strip()
     
-    imgenserver = IMGenerateServer(oneadmin)
+    
+    imgenserver = IMGenerateServer()
     
     imgenserver.start()            
         

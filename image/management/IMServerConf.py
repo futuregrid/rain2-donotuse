@@ -59,6 +59,8 @@ class IMServerConf(object):
         self._http_server_gen = ""
         self._bcfg2_url = ""
         self._bcfg2_port = 0
+        self._oneuser = ""
+        self._onepass = ""
         self._log_gen = ""
         self._logLevel_gen=""
 
@@ -126,6 +128,10 @@ class IMServerConf(object):
         return self._bcfg2_url
     def getBcgf2Port(self):
         return self._bcfg2_port
+    def getOneUser(self):
+        return self._oneuser
+    def getOnePass(self):
+        return self._onepass
     def getLogGen(self):
         return self._log_gen
     def getLogLevelGen(self):
@@ -250,6 +256,16 @@ class IMServerConf(object):
             self._bcfg2_port = int(self._config.get(section, 'bcfg2_port', 0))
         except ConfigParser.NoOptionError:
             print "Error: No bcfg2_port option found in section " + section
+            sys.exit(1)
+        try:
+            self._oneuser = int(self._config.get(section, 'oneuser', 0))
+        except ConfigParser.NoOptionError:
+            print "Error: No oneuser option found in section " + section
+            sys.exit(1)
+        try:
+            self._onepass = int(self._config.get(section, 'onepass', 0))
+        except ConfigParser.NoOptionError:
+            print "Error: No onepass option found in section " + section
             sys.exit(1)
         try:
             self._log_gen = os.path.expanduser(self._config.get(section, 'log', 0))
