@@ -235,7 +235,7 @@ class IMGenerateServer(object):
                     status = uid[0].strip() #it contains error or filename
                     if status == "error":
                         msg = "ERROR: "+str(uid)
-                        errormsg(channel, msg)
+                        self.errormsg(channel, msg)
                     else:
                         #stat = 0
                         #while stat != 0 and :
@@ -260,7 +260,7 @@ class IMGenerateServer(object):
                                       "" + status + ".img")
                         else:
                             msg = "ERROR: generating compressed file with the image and manifest"
-                            errormsg(channel, msg)
+                            self.errormsg(channel, msg)
                             #break
                             sys.exit(1) 
                         
@@ -275,7 +275,7 @@ class IMGenerateServer(object):
             server.one.vm.action(self.oneauth, "finalize", vmID)
         else:
             msg="Error booting VM: "+vmID
-            errormsg(channel, msg)
+            self.errormsg(channel, msg)
     
     def errormsg(self, channel, msg):
         self.logger.error(msg)
