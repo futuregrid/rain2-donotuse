@@ -252,7 +252,7 @@ class IMGenerateServer(object):
                     status = uid[0].strip() #it contains error or filename
                     if status == "error":
                         msg = "ERROR: "+str(uid)
-                        errormsg(channel, msg)
+                        self.errormsg(channel, msg)
                     else:
                         #stat = 0
                         #while stat != 0 and :
@@ -277,7 +277,7 @@ class IMGenerateServer(object):
                                       "" + status + ".img")
                         else:
                             msg = "ERROR: generating compressed file with the image and manifest"
-                            errormsg(channel, msg)
+                            self.errormsg(channel, msg)
                             #break
                             sys.exit(1) 
                                            
@@ -286,34 +286,35 @@ class IMGenerateServer(object):
                             channel.send(self.tempdirserver + "" + status + ".tgz")
                             channel.close()
                         else:                                                        
-                            status=""
+                            status_repo=""
                             error_repo = False
                             #send back the ID of the image in the repository
                             try:
-                                status=self._reposervice.put(self.user, None, self.tempdirserver + "" + status + ".tgz", "os="+\
+                                self.logger("Storing image "+self.tempdirserver + "/" + status + ".tgz"+" in the repository")
+                                status_repo=self._reposervice.put(self.user, None, self.tempdirserver + "" + status + ".tgz", "os="+\
                                                              self.os+"_"+self.version+"|arch="+self.arch+"|description="+self.desc )
-                                if(status == "0"):                                
+                                if(status_repo == "0"):                                
                                     msg= "ERROR: uploading image to the repository. File does not exists or metadata string is invalid"
                                     error_repo = True
-                                elif(status == "-1"):                                
+                                elif(status_repo == "-1"):                                
                                     msg= "ERROR: uploading image to the repository. The User does not exist"
                                     error_repo = True
-                                elif(status == "-2"):                                
+                                elif(status_repo == "-2"):                                
                                     msg= "ERROR: uploading image to the repository. The User is not active"
                                     error_repo = True
-                                elif(status == "-3"):
+                                elif(status_repo == "-3"):
                                     msg= "ERROR: uploading image to the repository. The file exceed the quota"
                                     error_repo = True
                                 else:
-                                    channel.send(str(status))
+                                    channel.send(str(status_repo))
                                     channel.close()
                             except:
                                 msg= "ERROR: uploading image to the repository. "+str(sys.exc_info())
                                 error_repo = True
                                 
                             if error_repo:
-                                errormsg(channel, msg)
-                                os.system("rm -f "+self.tempdirserver + "" + status + ".tgz")                                
+                                self.errormsg(channel, msg)
+                                os.system("rm -f "+self.tempdirserver + "/" + status + ".tgz")                                
                             
             
             #destroy VM
