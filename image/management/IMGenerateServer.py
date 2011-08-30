@@ -26,7 +26,7 @@ from IMServerConf import IMServerConf
 #Import client repository
 sys.path.append(os.getcwd())
 sys.path.append(os.path.dirname(__file__) + "/../")
-import repository.client.IRServiceProxy
+from repository.client.IRServiceProxy import IRServiceProxy
 
 class IMGenerateServer(object):
 
