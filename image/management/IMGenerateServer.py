@@ -82,7 +82,7 @@ class IMGenerateServer(object):
     
         self.logger = self.setup_logger()
                 
-        self._reposervice = IRServiceProxy()
+        self._reposervice = IRServiceProxy(False)
     
     def setup_logger(self):
         #Setup logging

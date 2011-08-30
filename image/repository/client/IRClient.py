@@ -146,7 +146,7 @@ def main():
     if (len(opts) == 0):
         usage()
     else:
-        service = IRServiceProxy()
+        service = IRServiceProxy(True)
 
         for o, v in opts:
             if o in ("-h", "--help"):

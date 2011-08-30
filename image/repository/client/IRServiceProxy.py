@@ -39,7 +39,7 @@ class IRServiceProxy(object):
     ############################################################
     # __init__
     ############################################################
-    def __init__(self):
+    def __init__(self, verbose):
         super(IRServiceProxy, self).__init__()
 
         #Load Config
@@ -50,7 +50,7 @@ class IRServiceProxy(object):
         self._serveraddr = self._conf.getServeraddr()
 
         #Setup log        
-        self._log = fgLog.fgLog(self._conf.getLogFile(), self._conf.getLogLevel(), "Img Repo Client", True)
+        self._log = fgLog.fgLog(self._conf.getLogFile(), self._conf.getLogLevel(), "Img Repo Client", verbose)
 
     ############################################################
     # auth
