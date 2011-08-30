@@ -290,7 +290,7 @@ class IMGenerateServer(object):
                             error_repo = False
                             #send back the ID of the image in the repository
                             try:
-                                self.logger("Storing image "+self.tempdirserver + "/" + status + ".tgz"+" in the repository")
+                                self.logger.info("Storing image "+self.tempdirserver + "/" + status + ".tgz"+" in the repository")
                                 status_repo=self._reposervice.put(self.user, None, self.tempdirserver + "" + status + ".tgz", "os="+\
                                                              self.os+"_"+self.version+"|arch="+self.arch+"|description="+self.desc )
                                 if(status_repo == "0"):                                
