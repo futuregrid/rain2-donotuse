@@ -200,7 +200,7 @@ class IRServiceProxy(object):
                 #cmd = 'scp ' + imgFile + ' ' + userId + "@" + \
                 #        self._serveraddr + ":" + fileLocation
                 
-                cmd = 'scp ' + imgFile + " " + \
+                cmd = 'scp -q ' + imgFile + " " + \
                         self._serveraddr + ":" + fileLocation
                 
                 print "uploading file through scp:"
