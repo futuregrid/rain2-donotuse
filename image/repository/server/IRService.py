@@ -45,7 +45,9 @@ class IRService(object):
 
         #load config
         self._repoConf = IRServerConf()
-        self._repoConf.loadRepoServerConfig()        
+        self._repoConf.loadRepoServerConfig()
+        
+        self._authorizedUsers=self._repoConf.getAuthorizedUsers()    
         self._backend = self._repoConf.getBackend()
         
         self._address = self._repoConf.getAddress()
@@ -115,7 +117,8 @@ class IRService(object):
 
     def getLog(self):
         return self._log
-
+    def getAuthorizedUsers(self):
+        return self._authorizedUsers
     def getBackend(self):
         return self._backend
     def getImgStore(self):
@@ -477,16 +480,19 @@ def main():
         print "%s" % err
         sys.exit(2)
 
-    #Security mechanism. We create a list of users that can use this interface. For example, image generation user must be able to run this.
-    #AuthorizedUsers = ["jdiaz"]
-    #if not os.popen('whoami', 'r').read().strip() in AuthorizedUsers:
-    #    print "Error. your are not authorized to use this"
-    #    sys.exit(1)
+    
 
     service = IRService()
 
     if(len(opts) == 0):
         usage()
+
+    #Security mechanism. We create a list of users that can use this interface. For example, image generation user must be able to run this.
+    AuthorizedUsers = service.getAuthorizedUsers()
+    if not os.popen('whoami', 'r').read().strip() in AuthorizedUsers:
+        if not (os.popen('whoami', 'r').read().strip() == args[0]):    
+            print "Error. your are not authorized to use another user name"
+            sys.exit(1)
 
     for o, v in opts:
         #print o, v

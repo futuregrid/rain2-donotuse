@@ -49,6 +49,7 @@ class IRServerConf(object):
                     sys.exit(1)
         
         #image repo server
+        self._authorizedUsers=[]
         self._backend=""
         self._log_repo=""
         self._logLevel_repo=""
@@ -82,11 +83,14 @@ class IRServerConf(object):
         return logger
     
     def getServerConfig(self):
-	return self._configfile
+        return self._configfile
     def getLogRepo(self):
         return self._log_repo
     def getLogLevelRepo(self):
-        return self._logLevel_repo    
+        return self._logLevel_repo
+    
+    def getAuthorizedUsers(self):
+        return self._authorizedUsers    
     def getBackend(self):
         return self._backend
     def getIdp(self):
@@ -113,13 +117,22 @@ class IRServerConf(object):
     def loadRepoServerConfig(self):
         section="RepoServer"
         try:
-            self._backend = self._config.get(section, 'backend', 0)
+            aux = self._config.get(section, 'authorizedusers', 0)
+            aux1=aux.split(",")
+            for i in aux1:
+                if (i.strip()!=""):
+                    self._authorizedUsers.append(i.strip())
         except ConfigParser.NoOptionError:
-            self._log.error("No backend option found in section " + section)
+            self._log.error("No authorizedusers option found in section " + section)
             sys.exit(1)  
         except ConfigParser.NoSectionError:
             self._log.error("no section "+section+" found in the "+self._configfile+" config file")
             sys.exit(1)
+        try:
+            self._backend = self._config.get(section, 'backend', 0)
+        except ConfigParser.NoOptionError:
+            self._log.error("No backend option found in section " + section)
+            sys.exit(1)          
         try:
             self._idp = self._config.get(section, 'idp', 0)
         except ConfigParser.NoOptionError:
