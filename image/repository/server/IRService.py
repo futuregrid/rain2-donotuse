@@ -477,6 +477,12 @@ def main():
         print "%s" % err
         sys.exit(2)
 
+    #Security mechanism. We create a list of users that can use this interface. For example, image generation user must be able to run this.
+    #AuthorizedUsers = ["jdiaz"]
+    #if not os.popen('whoami', 'r').read().strip() in AuthorizedUsers:
+    #    print "Error. your are not authorized to use this"
+    #    sys.exit(1)
+
     service = IRService()
 
     if(len(opts) == 0):
@@ -491,31 +497,31 @@ def main():
             #service.auth(username)
             print service.auth("fuwang", "PASS")
         elif o in ("-q", "--list"):
-            imgs = service.query(os.popen('whoami', 'r').read().strip(), args[0])
+            imgs = service.query(args[0], args[1])
             #for key in imgs.keys():
             #    print imgs[key]
             print imgs
             #service.query("tstuser2", "imgId=fakeid4950877")
         elif o in ("-a", "--setPermission"): ##THIS is not used from client side. We call directly updateItem
-            print service.updateItem(os.popen('whoami', 'r').read().strip(), args[0], args[1])
+            print service.updateItem(args[0], args[1], args[2])
         elif o in ("-g", "--get"):
-            print service.get(os.popen('whoami', 'r').read().strip(), args[0], args[1])
-            #print service.get(os.popen('whoami', 'r').read().strip(), "img", "4d4c2e6e577d70102a000000")
+            print service.get(args[0], args[1], args[2])
+            #print service.get(args[], "img", "4d4c2e6e577d70102a000000")
         elif o in ("-p", "--put"):
-            print service.put(os.popen('whoami', 'r').read().strip(), args[0], args[1], args[2], int(args[3]), args[4])
+            print service.put(args[0], args[1], args[2], args[3], int(args[4]), args[5])
         elif o in ("-r", "--remove"):
-            print service.remove(os.popen('whoami', 'r').read().strip(), args[0])
-            #print service.remove(os.popen('whoami', 'r').read().strip(), "4d4b0b8a577d700d2b000000")
+            print service.remove(args[0], args[1])
+            #print service.remove(args[], "4d4b0b8a577d700d2b000000")
         elif o in ("-i", "--histimg"):
-            imgs = service.histImg(os.popen('whoami', 'r').read().strip(), args[0])
+            imgs = service.histImg(args[0], args[1])
 
             print service.printHistImg(imgs)
 
         elif o in ("-u", "--histuser"):
-            print service.histUser(os.popen('whoami', 'r').read().strip(), args[0])
+            print service.histUser(args[0], args[1])
 
         elif o in ("--uploadValidator"):
-            print service.uploadValidator(os.popen('whoami', 'r').read().strip(), int(args[0]))
+            print service.uploadValidator(args[0], int(args[1]))
             #print service.uploadValidator("javi", 0)
         elif o in ("--genImgId"):
             print service.genImgId()
@@ -523,27 +529,27 @@ def main():
             print service.getBackend()
             print service.getImgStore()
         elif o in ("-m", "--modify"):
-            print service.updateItem(os.popen('whoami', 'r').read().strip(), args[0], args[1])
-            #print service.updateItem(os.popen('whoami', 'r').read().strip(), "4d681d65577d703439000000", "vmtype=vmware|os=windows")
+            print service.updateItem(args[0], args[1], args[2])
+            #print service.updateItem(args[], "4d681d65577d703439000000", "vmtype=vmware|os=windows")
 
 #This commands only can be used by users with Admin Role.
         elif o in ("--useradd"):  #args[0] is the username. It MUST be the same that the system user
-            print service.userAdd(os.popen('whoami', 'r').read().strip(), args[0])
+            print service.userAdd(args[0], args[1])
 
         elif o in ("--userdel"):
-            print service.userDel(os.popen('whoami', 'r').read().strip(), args[0])
+            print service.userDel(args[0], args[1])
 
         elif o in ("--userlist"):
-            print service.userList(os.popen('whoami', 'r').read().strip())
+            print service.userList(args[0])
 
         elif o in ("--setUserQuota"):
-            print service.setUserQuota(os.popen('whoami', 'r').read().strip(), args[0], int(args[1]))
+            print service.setUserQuota(args[0], args[1], int(args[2]))
 
         elif o in ("--setUserRole"):
-            print service.setUserRole(os.popen('whoami', 'r').read().strip(), args[0], args[1])
+            print service.setUserRole(args[0], args[1], args[2])
 
         elif o in ("--setUserStatus"):
-            print service.setUserStatus(os.popen('whoami', 'r').read().strip(), args[0], args[1])
+            print service.setUserStatus(args[0], args[1], args[2])
 
         else:
             assert False, "unhandled option"

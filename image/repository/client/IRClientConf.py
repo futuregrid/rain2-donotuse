@@ -32,9 +32,9 @@ class IRClientConf(object):
             self._fgpath = os.path.dirname(__file__) + "/../../../"
 
         ##DEFAULT VALUES##
-        self._loghistdir = "~/.fg/"
+        self._localpath = "~/.fg/"
         
-        self._configfile = os.path.expanduser(self._loghistdir) + "/" + configFileName
+        self._configfile = os.path.expanduser(self._localpath) + "/" + configFileName
         #print self._configfile
         if not os.path.isfile(self._configfile):
             self._configfile = os.path.expanduser(self._fgpath) + "/etc/" + configFileName
@@ -57,7 +57,7 @@ class IRClientConf(object):
         self._backend = ""
         self._fgirimgstore = ""
 
-        self._logfile = "" #self._loghistdir__+"/fg.log"
+        self._logfile = "" #self._localpath__+"/fg.log"
         self._logLevel = "DEBUG"
         self._logType = ["DEBUG", "INFO", "WARNING", "ERROR"]
 
@@ -73,7 +73,7 @@ class IRClientConf(object):
     # getLogHistDir
     ############################################################
     def getLogHistDir(self):
-        return self._loghistdir
+        return self._localpath
 
     ############################################################
     # getConfigFile
@@ -134,23 +134,18 @@ class IRClientConf(object):
         else:
             print "Error: Config file not found" + self._configfile
             sys.exit(1)
-
-        try:
-            self._loghistdir = os.path.expanduser(config.get('DEFAULT', 'loghistdir', 0))
-        except ConfigParser.NoOptionError:
-            print "Error: No loghistdir option found in section LogHist"
-            sys.exit(1)
-
-        #Directory where history and logs are
-        if not (os.path.isdir(self._loghistdir)):
-            os.system("mkdir " + self._loghistdir)
-
+                
         try:
             self._logfile = os.path.expanduser(config.get('Repo', 'log', 0))
         except ConfigParser.NoOptionError:
             print "Error: No log option found in section Repo"
             sys.exit(1)
-
+        except ConfigParser.NoSectionError:
+            print "Error: no section Repo found in the "+self._configfile+" config file"
+            sys.exit(1)
+        dir=os.path.dirname(self._logfile)
+        if not (os.path.isdir(dir)):
+            os.system("mkdir -p " + dir)
         ##Log
         try:
             tempLevel = string.upper(config.get('Repo', 'log_level', 0))
@@ -180,6 +175,10 @@ class IRClientConf(object):
         except ConfigParser.NoOptionError:
             print "Error: No IRconfig option found in section Repo"
             sys.exit(1)
+            
+        dir=os.path.dirname(self._irconfig)
+        if not (os.path.isdir(dir)):
+            os.system("mkdir -p " + dir)
 
     ############################################################
     # _setupBackend 

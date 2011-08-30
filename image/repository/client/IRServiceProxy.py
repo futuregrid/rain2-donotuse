@@ -67,7 +67,7 @@ class IRServiceProxy(object):
     ############################################################
     def userAdd(self, userId, userIdtoAdd):
         cmdexec = " '" + self._serverdir + \
-                    "IRService.py --useradd " + userIdtoAdd + "'"
+                    "IRService.py --useradd " + userId + " " + userIdtoAdd + "'"
 
         return self._rExec(userId, cmdexec)[0].strip()
 
@@ -76,7 +76,7 @@ class IRServiceProxy(object):
     ############################################################
     def userDel(self, userId, userIdtoDel):
         cmdexec = " '" + self._serverdir + \
-                    "IRService.py --userdel " + userIdtoDel + "'"
+                    "IRService.py --userdel " + userId + " " + userIdtoDel + "'"
 
         return self._rExec(userId, cmdexec)[0].strip()
 
@@ -94,7 +94,7 @@ class IRServiceProxy(object):
     ############################################################
     def setUserQuota(self, userId, userIdtoModify, quota):
         cmdexec = " '" + self._serverdir + \
-                    "IRService.py --setUserQuota " + userIdtoModify + " " + str(eval(quota)) + "'"
+                    "IRService.py --setUserQuota " + userId + " " + userIdtoModify + " " + str(eval(quota)) + "'"
 
         return self._rExec(userId, cmdexec)[0].strip()
 
@@ -105,7 +105,7 @@ class IRServiceProxy(object):
         success = ["False"]
         if(role in IRUser.Role):
             cmdexec = " '" + self._serverdir + \
-                        "IRService.py --setUserRole " + userIdtoModify + " " + role + "'"
+                        "IRService.py --setUserRole " + userId + " " + userIdtoModify + " " + role + "'"
 
             success = self._rExec(userId, cmdexec)
         else:
@@ -121,7 +121,7 @@ class IRServiceProxy(object):
         success = ["False"]
         if(status in IRUser.Status):
             cmdexec = " '" + self._serverdir + \
-                        "IRService.py --setUserStatus " + userIdtoModify + " " + status + "'"
+                        "IRService.py --setUserStatus " + userId + " " + userIdtoModify + " " + status + "'"
 
             success = self._rExec(userId, cmdexec)
         else:
@@ -134,7 +134,7 @@ class IRServiceProxy(object):
     ############################################################
     def query(self, userId, queryString):
         cmdexec = " '" + self._serverdir + \
-                    "IRService.py --list \"" + queryString + "\"'"
+                    "IRService.py --list " + userId + " \"" + queryString + "\"'"
 
         return self._rExec(userId, cmdexec)
 
@@ -143,7 +143,7 @@ class IRServiceProxy(object):
     ############################################################
     def get(self, userId, option, imgId):
         cmdexec = " '" + self._serverdir + \
-                    "IRService.py --get " + option + " " + imgId + "'"
+                    "IRService.py --get " + userId + " " + option + " " + imgId + "'"
         #print cmdexec
 
         imgURI = self._rExec(userId, cmdexec)[0].strip()
@@ -178,7 +178,7 @@ class IRServiceProxy(object):
                         
             self._log.debug("Checking quota")
             cmdexec = " '" + self._serverdir + \
-                    "IRService.py --uploadValidator " + str(size) + "'"
+                    "IRService.py --uploadValidator " + userId + " " + str(size) + "'"
 
             isPermitted = self._rExec(userId, cmdexec)
             #print isPermitted[0].strip()      
@@ -197,16 +197,19 @@ class IRServiceProxy(object):
 
                 fileLocation = self._fgirimgstore + imgId
 
-                cmd = 'scp ' + imgFile + ' ' + userId + "@" + \
+                #cmd = 'scp ' + imgFile + ' ' + userId + "@" + \
+                #        self._serveraddr + ":" + fileLocation
+                
+                cmd = 'scp ' + imgFile + " " + \
                         self._serveraddr + ":" + fileLocation
-
+                
                 print "uploading file through scp:"
                 #print cmd
                 stat = os.system(cmd)
                 if (str(stat) != "0"):
                     print stat
                 print "Registering the Image"
-                cmdexec = " '" + self._serverdir + "IRService.py --put " + \
+                cmdexec = " '" + self._serverdir + "IRService.py --put " + userId + " " + \
                              imgId + " " + fileLocation + " \"" + attributeString + "\" " + str(size) + " "+ extension +"'"
                 #print cmdexec
                 uid = self._rExec(userId, cmdexec)
@@ -226,7 +229,7 @@ class IRServiceProxy(object):
     def updateItem(self, userId, imgId, attributeString):
         success = "False"  #A string because _rExec return a string ;)
         if (self.checkMeta(attributeString)):
-            cmdexec = " '" + self._serverdir + "IRService.py --modify " + \
+            cmdexec = " '" + self._serverdir + "IRService.py --modify " + userId + " " + \
                          imgId + " \"" + attributeString + "\"'"
             #print cmdexec
             success = self._rExec(userId, cmdexec)
@@ -240,7 +243,7 @@ class IRServiceProxy(object):
     def setPermission(self, userId, imgId, permission):
         success = ["False"]
         if(permission in ImgMeta.Permission):
-            cmdexec = " '" + self._serverdir + "IRService.py --modify " + \
+            cmdexec = " '" + self._serverdir + "IRService.py --modify " + userId + " " + \
                          imgId + " \"permission=" + permission + "\"'"
             #print cmdexec
             success = self._rExec(userId, cmdexec)
@@ -255,7 +258,7 @@ class IRServiceProxy(object):
     ############################################################
     def remove(self, userId, imgId):
         cmdexec = " '" + self._serverdir + \
-                    "IRService.py --remove " + " " + imgId + "'"
+                    "IRService.py --remove " + userId + " " + imgId + "'"
         #print cmd
 
         deleted = self._rExec(userId, cmdexec)[0].strip()
@@ -267,7 +270,7 @@ class IRServiceProxy(object):
     ############################################################
     def histImg(self, userId, imgId):
         cmdexec = " '" + self._serverdir + \
-                    "IRService.py --histimg " + " " + imgId + "'"
+                    "IRService.py --histimg " + userId + " " + imgId + "'"
 
         return self._rExec(userId, cmdexec)
 
@@ -276,7 +279,7 @@ class IRServiceProxy(object):
     ############################################################
     def histUser(self, userId, userIdtoSearch):
         cmdexec = " '" + self._serverdir + \
-                    "IRService.py --histuser " + " " + userIdtoSearch + "'"
+                    "IRService.py --histuser " + userId + " " + userIdtoSearch + "'"
 
         return self._rExec(userId, cmdexec)
 
@@ -329,7 +332,7 @@ class IRServiceProxy(object):
         #TODO: do we want to use the .format statement from python to make code more readable?
 
         cmdssh = "ssh " + userId + "@" + self._serveraddr
-        tmpFile = "/tmp/" + str(time()) + str(self.getImgId())
+        tmpFile = "/tmp/" + str(time()) + str(self.randomId())
         #print tmpFile
         cmdexec = cmdexec + " > " + tmpFile
         cmd = cmdssh + cmdexec
@@ -339,6 +342,7 @@ class IRServiceProxy(object):
             print stat
         f = open(tmpFile, "r")
         outputs = f.readlines()
+        #print outputs
         f.close()
         os.system("rm -rf " + tmpFile)
         #output = ""
@@ -376,6 +380,6 @@ class IRServiceProxy(object):
 
         return output
      
-    def getImgId(self):
-        imgId = str(randrange(999999999999999999999999))
-        return imgId
+    def randomId(self):
+        Id = str(randrange(999999999999999999999999))
+        return Id

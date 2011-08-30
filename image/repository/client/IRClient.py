@@ -171,8 +171,9 @@ def main():
                         for key in imgs.keys():
                             print imgs[key]
                     except:
+                        print "Server replied: "+str(imgsList)
                         print "list: Error:" + str(sys.exc_info()[0]) + "\n"
-                        self._log.error("list: Error interpreting the list of images from Image Repository" + str(sys.exc_info()[0]))
+                        service._log.error("list: Error interpreting the list of images from Image Repository" + str(sys.exc_info()[0]))
                 else:
                     print "No list of images returned"
 
@@ -250,8 +251,9 @@ def main():
                         if key != 'head':
                             print imgs[key]
                 except:
+                    print "Server replied: "+str(imgsList)
                     print "histimg: Error:" + str(sys.exc_info()[0]) + "\n"
-                    self._log.error("histimg: Error interpreting the list of images from Image Repository" + str(sys.exc_info()[0]))
+                    service._log.error("histimg: Error interpreting the list of images from Image Repository" + str(sys.exc_info()[0]))
 
 
             elif o in ("-u", "--histuser"):
@@ -267,8 +269,9 @@ def main():
                         if key != 'head':
                             print users[key]
                 except:
+                    print "Server replied: "+str(imgsList)
                     print "histuser: Error:" + str(sys.exc_info()[0]) + "\n"
-                    self._log.error("histuser: Error interpreting the list of users from Image Repository" + str(sys.exc_info()[0]))
+                    service._log.error("histuser: Error interpreting the list of users from Image Repository" + str(sys.exc_info()[0]))
 
 
             elif o in ("-m", "--modify"):
@@ -316,8 +319,9 @@ def main():
                         for key in imgs.keys():
                             print imgs[key]
                     except:
+                        print "Server replied: "+str(imgsList)
                         print "userlist: Error:" + str(sys.exc_info()[0]) + "\n"
-                        print "userlist: Error interpreting the list of users from Image Repository" + str(sys.exc_info()[0])
+                        service._log.error("userlist: Error interpreting the list of users from Image Repository" + str(sys.exc_info()[0]))
                 else:
                     print "No list of images returned. \n" + \
                           "Please verify that you are admin \n"
