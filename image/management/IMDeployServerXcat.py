@@ -16,6 +16,11 @@ import time
 from IMServerConf import IMServerConf
 from xml.dom.minidom import Document, parse
 
+#Import client repository
+sys.path.append(os.getcwd())
+sys.path.append(os.path.dirname(__file__) + "/../")
+from repository.client.IRServiceProxy import IRServiceProxy
+
 class IMDeployServerXcat(object):
 
     def __init__(self):
@@ -58,6 +63,8 @@ class IMDeployServerXcat(object):
         
         self.logger = self.setup_logger()
         
+        #Image repository Object
+        self._reposervice = IRServiceProxy(False)
         
     def setup_logger(self):
         #Setup logging
@@ -292,10 +299,18 @@ class IMDeployServerXcat(object):
         cmd = 'mkdir -p ' + localtempdir
         self.runCmd(cmd)
 
+        realnameimg = ""
         self.logger.info('untar file with image and manifest')
         cmd = "tar xvfz " + image + " -C " + localtempdir
-        #self.logger.debug(cmd)
-        stat = self.runCmd(cmd)
+        self.logger.debug(cmd)        
+        p = Popen(cmd.split(' '), stdout=PIPE, stderr=PIPE)
+        std = p.communicate()
+        stat = 0
+        if len(std[0]) > 0:
+            realnameimg= std[0].split("\n")[0].strip().split(".")[0]            
+        if p.returncode != 0:
+            self.logger.error('Command: ' + cmd + ' failed, status: ' + str(p.returncode) + ' --- ' + std[1])
+            stat = 1
 
         cmd = 'rm -f ' + image 
         status = self.runCmd(cmd)
@@ -305,7 +320,7 @@ class IMDeployServerXcat(object):
             self.errormsg(connstream, msg)
             return False
         
-        self.manifestname = nameimg + ".manifest.xml"
+        self.manifestname = realnameimg + ".manifest.xml"
 
         manifestfile = open(localtempdir + "/" + self.manifestname, 'r')
         manifest = parse(manifestfile)
@@ -343,7 +358,7 @@ class IMDeployServerXcat(object):
             self.errormsg(connstream, msg)
             return False
 
-        cmd = 'mv -f ' + localtempdir + "/" + nameimg + ".img " + self.path
+        cmd = 'mv -f ' + localtempdir + "/" + realnameimg + ".img " + self.path
         #print cmd
         status = self.runCmd(cmd) 
         if status != 0:
