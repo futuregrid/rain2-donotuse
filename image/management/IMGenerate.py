@@ -54,9 +54,10 @@ class IMGenerate(object):
         #params[5] is software
         #params[6] is givenname
         #params[7] is the description
+        #params[8] is to retrieve the image or to upload in the repo (true or false, respectively)
         
         options = str(self.auth) + "|" + str(self.user) + "|" + str(self.OS) + "|" + str(self.version) + "|" + str(self.arch) + "|" + \
-                str(self.software) + "|" + str(self.givenname) + "|" + str(self.desc) 
+                str(self.software) + "|" + str(self.givenname) + "|" + str(self.desc) + "|" + str(self.getimg)
         
         self.logger.debug("string to send: "+options)
         
@@ -75,27 +76,29 @@ class IMGenerate(object):
         ret = genServer.recv(1024)
         if (ret == "OK"):
             print "Your image request is being processed"
-        
+                
         ret = genServer.recv(2048)
         
         if (re.search('^ERROR', ret)):
-            self.logger.error('The image has not been generated properly. Exit error:' + ret)
-            
-        else:                    
+            self.logger.error('The image has not been generated properly. Exit error:' + ret)    
+        else:
             self.logger.debug("Returned string: " + str(ret))
             
-            if self.getimg:
-            
-                output = self._retrieveImg(ret)            
-        
+            if self.getimg:            
+                output = self._retrieveImg(ret)
                 if output != None:  
-                    print output          
-                    print '\n Generated image and the manifest are packed in the previous file.  Please be aware that this FutureGrid ' + \
-                        'image is packaged without a kernel and fstab. Thus, it is not built for any deployment type.  To deploy the new ' + \
-                        'image, use the IMDeploy command.'
-            
+                    print output
+            else:
                 
-            #server return addr of the img and metafeile compressed in a tgz or None
+                if (re.search('^ERROR', ret)):
+                    self.logger.error('The image has not been generated properly. Exit error:' + ret)
+                else:
+                    print "Your image has be uploaded in the repository with ID="+str(ret)
+                
+            print '\n The image and the manifest generated are packaged in a tgz file.'+\
+                  '\n Please be aware that this FutureGrid image does not have kernel and fstab. Thus, '+\
+                  'it is not built for any deployment type. To deploy the new image, use the IMDeploy command.'
+            #server return addr of the img and metafile compressed in a tgz or None
         
 
     ############################################################
@@ -199,7 +202,7 @@ def main():
     parser.add_option("-l", "--auth", dest="auth", help="Authentication mechanism")
     parser.add_option("-s", "--software", dest="software", help="Software stack to be automatically installed")
     parser.add_option("-d", "--debug", action="store_true", dest="debug", help="Enable debugging")
-    parser.add_option("-u", "--user", dest="user", help="FutureGrid username")
+    parser.add_option("-u", "--user", dest="user", help="FutureGrid username.")
     parser.add_option("-n", "--name", dest="givenname", help="Desired recognizable name of the image")
     parser.add_option("-e", "--description", dest="desc", help="Short description of the image and its purpose")
     parser.add_option("-g", "--getimg", dest="getimg", default=False, action="store_true", help="Short description of the image and its purpose")

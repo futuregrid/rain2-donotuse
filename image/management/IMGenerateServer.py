@@ -23,6 +23,11 @@ import xmlrpclib
 import time
 from IMServerConf import IMServerConf
 
+#Import client repository
+sys.path.append(os.getcwd())
+sys.path.append(os.path.dirname(__file__) + "/../")
+import repository.client.IRServiceProxy
+
 class IMGenerateServer(object):
 
     def __init__(self):
@@ -33,7 +38,7 @@ class IMGenerateServer(object):
         #*********************        
         #this is to login in the VM. This MUST be root because IMGenerateScript needs this access.
         self.rootId = 'root'
-        self.numparams = 8
+        self.numparams = 9
         
         
         #this is the user that requested the image
@@ -45,6 +50,7 @@ class IMGenerateServer(object):
         self.software = ""        
         self.givenname = ""
         self.desc = ""
+        self.getimg = False
         
         #load configuration
         self._genConf = IMServerConf()
@@ -76,7 +82,7 @@ class IMGenerateServer(object):
     
         self.logger = self.setup_logger()
                 
-            
+        self._reposervice = IRServiceProxy()
     
     def setup_logger(self):
         #Setup logging
@@ -154,6 +160,7 @@ class IMGenerateServer(object):
         #params[5] is software
         #params[6] is givenname
         #params[7] is the description
+        #params[8] is to retrieve the image or to upload in the repo (true or false, respectively)
 
         self.auth = params[0]
         self.user =  params[1]                 
@@ -163,6 +170,7 @@ class IMGenerateServer(object):
         self.software = params[5]        
         self.givenname = params[6]
         self.desc = params[7]
+        self.getimg = eval(params[8]) #boolean
         
         if len(params) != self.numparams:
             msg = "ERROR: incorrect message"
@@ -272,12 +280,70 @@ class IMGenerateServer(object):
                             errormsg(channel, msg)
                             #break
                             sys.exit(1) 
+    
+                status = 0
+                ok = False
+                if (len(args) == 2):
+                    status = service.put(os.popen('whoami', 'r').read().strip(), None, args[0], args[1])
+                    ok = True
+                elif (len(args) == 1):
+                    status = service.put(os.popen('whoami', 'r').read().strip(), None, args[0], "")
+                    ok = True
+                else:
+                    usage()
+                #id2 = service.put(os.popen('whoami', 'r').read().strip(), None, "/home/javi/tst3.iso", "vmtype=vmware")
+                #print "image has been uploaded and registered with id " + str(id1)
+                #id2 = service.put(os.popen('whoami', 'r').read().strip(), None, "/home/javi/tst2.iso", "vmtype=11|imgType=0|os=UBUNTU|arch=x86_64| owner=tstuser2| description=another test| tag=tsttaga, tsttagb")
+                if(ok):
+                    if(status == "0"):
+                        print "the image has NOT been uploaded. Please, verify that the file exists and the metadata string is valid"
+                    elif(status == "-1"):
+                        print "the image has NOT been uploaded"
+                        print "The User does not exist"
+                    elif(status == "-2"):
+                        print "The image has NOT been uploaded"
+                        print "The User is not active"
+                    elif(status == "-3"):
+                        print "The image has NOT been uploaded"
+                        print "The file exceed the quota"
+                    else:
+                        print "image has been uploaded and registered with id " + str(status)
+
                         
-                        
-                        
-                        #send back the url where the image is
-                        channel.send(self.tempdirserver + "" + status + ".tgz")
-                        channel.close()
+                        if self.getimg:                            
+                            #send back the url where the image is
+                            channel.send(self.tempdirserver + "" + status + ".tgz")
+                            channel.close()
+                        else:                                                        
+                            status=""
+                            error_repo = False
+                            #send back the ID of the image in the repository
+                            try:
+                                status=self._reposervice.put(self.user, None, self.tempdirserver + "" + status + ".tgz", "os="+\
+                                                             self.os+"_"+self.version+"|arch="+self.arch+"|description="+self.desc )
+                                if(status == "0"):                                
+                                    msg= "ERROR: uploading image to the repository. File does not exists or metadata string is invalid"
+                                    error_repo = True
+                                elif(status == "-1"):                                
+                                    msg= "ERROR: uploading image to the repository. The User does not exist"
+                                    error_repo = True
+                                elif(status == "-2"):                                
+                                    msg= "ERROR: uploading image to the repository. The User is not active"
+                                    error_repo = True
+                                elif(status == "-3"):
+                                    msg= "ERROR: uploading image to the repository. The file exceed the quota"
+                                    error_repo = True
+                                else:
+                                    channel.send(str(status))
+                                    channel.close()
+                            except:
+                                msg= "ERROR: uploading image to the repository. "+str(sys.exc_info())
+                                error_repo = True
+                                
+                            if error_repo:
+                                errormsg(channel, msg)
+                                os.system("rm -f "+self.tempdirserver + "" + status + ".tgz")                                
+                            
             
             #destroy VM
             self.logger.info("Destroy VM")
