@@ -48,9 +48,9 @@ class IRServiceProxy(object):
         self._fgirimgstore = self._conf.getFgirimgstore()
         self._serverdir = self._conf.getServerdir()
         self._serveraddr = self._conf.getServeraddr()
-
+        self._verbose=verbose
         #Setup log        
-        self._log = fgLog.fgLog(self._conf.getLogFile(), self._conf.getLogLevel(), "Img Repo Client", verbose)
+        self._log = fgLog.fgLog(self._conf.getLogFile(), self._conf.getLogLevel(), "Img Repo Client", self._verbose)
 
     ############################################################
     # auth
@@ -199,8 +199,11 @@ class IRServiceProxy(object):
 
                 #cmd = 'scp ' + imgFile + ' ' + userId + "@" + \
                 #        self._serveraddr + ":" + fileLocation
-                
-                cmd = 'scp -q ' + imgFile + " " + \
+                if self._verbose:
+                    cmd = 'scp ' + imgFile + " " + \
+                        self._serveraddr + ":" + fileLocation
+                else:
+                    cmd = 'scp -q ' + imgFile + " " + \
                         self._serveraddr + ":" + fileLocation
                 
                 print "uploading file through scp:"

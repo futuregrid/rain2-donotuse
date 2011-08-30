@@ -37,6 +37,9 @@ class IMDeployServerMoab(object):
         self.log_filename = self._deployConf.getLogMoab()
         self.timeToRestartMoab = self._deployConf.getTimeToRestartMoab()  #time that we wait to get the moab scheduler restarted (mschedctl -R)
         self.logLevel = self._deployConf.getLogLevelMoab()
+        self._ca_certs = self._deployConf.getCaCertsMoab()
+        self._certfile = self._deployConf.getCertFileMoab()
+        self._keyfile = self._deployConf.getKeyFileMoab()
         
         print "\nReading Configuration file from "+self._deployConf.getConfigFile()+"\n"
         
@@ -68,18 +71,18 @@ class IMDeployServerMoab(object):
             try:
                 connstream = ssl.wrap_socket(newsocket,
                               server_side=True,
-                              ca_certs="./imdserver/cacert.pem",
+                              ca_certs=self._ca_certs,
                               cert_reqs=ssl.CERT_REQUIRED,
-                              certfile="./imdserver/imdscert.pem",
-                              keyfile="./imdserver/privkey.pem",
+                              certfile=self._certfile,
+                              keyfile=self._keyfile,
                               ssl_version=ssl.PROTOCOL_TLSv1)
                 self.process_client(connstream)
             except ssl.SSLError:
-                print "Unsuccessful connection attempt from: " + repr(fromaddr)
+                self.logger.error("Unsuccessful connection attempt from: " + repr(fromaddr))
             finally:
                 if connstream is ssl.SSLSocket:
-                  connstream.shutdown(socket.SHUT_RDWR)
-                  connstream.close()
+                    connstream.shutdown(socket.SHUT_RDWR)
+                    connstream.close()
     
                 self.logger.info('Accepted new connection')
 

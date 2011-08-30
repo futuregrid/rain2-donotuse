@@ -48,12 +48,17 @@ class IMClientConf(object):
         #image generation
         self._serveraddr = ""
         self._gen_port = 0        
-
+        self._ca_certs_gen = ""
+        self._certfile_gen = ""
+        self._keyfile_gen = ""
+        
         #image deploy
         self._xcat_port = 0
         self._moab_port = 0
         self._http_server = ""
-        self._tempdir = ""
+        self._ca_certs_dep = ""
+        self._certfile_dep = ""
+        self._keyfile_dep = ""
 
         #deploy-machines        
         self._shareddir = ""
@@ -75,6 +80,12 @@ class IMClientConf(object):
         return self._serveraddr
     def getGenPort(self):
         return self._gen_port
+    def getCaCertsGen(self):
+        return self._ca_certs_gen
+    def getCertFileDep(self): 
+        return self._certfile_gen
+    def getKeyFileDep(self): 
+        return self._keyfile_gen
 
     #Image deployment
     def getXcatPort(self):
@@ -82,9 +93,13 @@ class IMClientConf(object):
     def getMoabPort(self):
         return self._moab_port
     def getHttpServer(self):
-        return self._http_server            
-    def getTempDir(self):
-        return self._tempdir
+        return self._http_server
+    def getCaCertsDep(self):
+        return self._ca_certs_dep
+    def getCertFileDep(self): 
+        return self._certfile_dep
+    def getKeyFileDep(self): 
+        return self._keyfile_dep     
 
     #Machines information
     def getSharedDir(self):
@@ -95,6 +110,7 @@ class IMClientConf(object):
         return self._moabmachine
     def getXcatMachine(self):
         return self._xcatmachine
+    
     
     ############################################################
     # load_generationConfig
@@ -116,7 +132,23 @@ class IMClientConf(object):
         except ConfigParser.NoOptionError:
             print "Error: No port option found in section " + section
             sys.exit(1)
-      
+        """
+        try:
+            self._ca_certs_gen = os.path.expanduser(self._config.get(section, 'ca_cert', 0))
+        except ConfigParser.NoOptionError:
+            print "Error: No ca_cert option found in section " + section
+            sys.exit(1)
+        try:
+            self._certfile_gen = os.path.expanduser(self._config.get(section, 'certfile', 0))
+        except ConfigParser.NoOptionError:
+            print "Error: No certfile option found in section " + section
+            sys.exit(1)
+        try:
+            self._keyfile_gen = os.path.expanduser(self._config.get(section, 'keyfile', 0))
+        except ConfigParser.NoOptionError:
+            print "Error: No keyfile option found in section " + section
+            sys.exit(1)
+        """
 
     ############################################################
     # load_deployConfig
@@ -142,10 +174,28 @@ class IMClientConf(object):
         except ConfigParser.NoOptionError:
             print "Error: No http_server option found in section "+section
             sys.exit(1)
+        
         try:
             self._tempdir = os.path.expanduser(self._config.get(section, 'tempdir', 0))
         except ConfigParser.NoOptionError:
             self._tempdir = "./" 
+        
+        try:
+            self._ca_certs_dep = os.path.expanduser(self._config.get(section, 'ca_cert', 0))
+        except ConfigParser.NoOptionError:
+            print "Error: No ca_cert option found in section " + section
+            sys.exit(1)
+        try:
+            self._certfile_dep = os.path.expanduser(self._config.get(section, 'certfile', 0))
+        except ConfigParser.NoOptionError:
+            print "Error: No certfile option found in section " + section
+            sys.exit(1)
+        try:
+            self._keyfile_dep = os.path.expanduser(self._config.get(section, 'keyfile', 0))
+        except ConfigParser.NoOptionError:
+            print "Error: No keyfile option found in section " + section
+            sys.exit(1)
+        
 
     ############################################################
     # load_machineConfig

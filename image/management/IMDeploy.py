@@ -33,24 +33,18 @@ class IMDeploy(object):
         self.machine = ""  #(india or minicluster or ...)
         self.loginmachine = ""
         self.shareddirserver = "" 
-               
-        """
-        #from manifest
-        self.name = ""
-        self.givenname = ""
-        self.operatingsystem = ""
-        self.version = ""
-        self.arch = ""
-        """
         
         #Load Configuration from file
         self._deployConf = IMClientConf()
         self._deployConf.load_deployConfig()        
         self._xcat_port = self._deployConf.getXcatPort()
         self._moab_port = self._deployConf.getMoabPort()
-        self._http_server = self._deployConf.getHttpServer()
-        self.tempdir = self._deployConf.getTempDir()  #root of the temporal directory to extract image
+        self._http_server = self._deployConf.getHttpServer()        
+        self._ca_certs = self._deployConf.getCaCertsDep()
+        self._certfile = self._deployConf.getCertFileDep()
+        self._keyfile = self._deployConf.getKeyFileDep()
 
+        self.tempdir = "" #DEPRECATED
 
 
     #This need to be redo
@@ -172,7 +166,7 @@ class IMDeploy(object):
 
         #msg = self.name + ',' + self.operatingsystem + ',' + self.version + ',' + self.arch + ',' + self.kernel + ',' + self.shareddirserver + ',' + self.machine
         
-        msg=self.shareddirserver + '/' + nameimg + '.tgz, '+str(self.kernel)
+        msg=self.shareddirserver + '/' + nameimg + '.tgz, '+str(self.kernel) + ', '+self.machine
         self.logger.debug('Sending message: ' + msg)
         moabstring = ""
 
@@ -180,13 +174,13 @@ class IMDeploy(object):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             xcatServer = ssl.wrap_socket(s,
-                                        ca_certs="./imdclient/cacert.pem",
-                                        certfile="./imdclient/imdccert.pem",
-                                        keyfile="./imdclient/privkey.pem",
+                                        ca_certs= self._ca_certs,
+                                        certfile=self._certfile,
+                                        keyfile=self._keyfile,
                                         cert_reqs=ssl.CERT_REQUIRED)
             xcatServer.connect((self.xcatmachine, self._xcat_port))
             xcatServer.write(msg)
-            print msg
+            #print msg
             ret = xcatServer.read(1024)
             #check if the server received all parameters
             if ret != 'OK':
@@ -195,21 +189,21 @@ class IMDeploy(object):
             #recieve the prefix parameter from xcat server
             moabstring = xcatServer.read(2048)
             self.logger.debug("String receved from xcat server " + moabstring)
-	    params = moabstring.split(',')
-	    imagename=params[0]+''+params[2]+''+params[1]
+    	    params = moabstring.split(',')
+    	    imagename=params[0]+''+params[2]+''+params[1]
             self.logger.info('Connecting to Moab server')	    
             moabstring += ',' + self.machine
     
             self.logger.debug('Sending message: ' + moabstring)    
         except ssl.SSLError:
-            print "CANNOT establish SSL connection. EXIT"
+            self.logger.error("CANNOT establish SSL connection. EXIT")
         
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             moabServer = ssl.wrap_socket(s,
-                                        ca_certs="./imdclient/cacert.pem",
-                                        certfile="./imdclient/imdccert.pem",
-                                        keyfile="./imdclient/privkey.pem",
+                                        ca_certs= self._ca_certs,
+                                        certfile=self._certfile,
+                                        keyfile=self._keyfile,
                                         cert_reqs=ssl.CERT_REQUIRED)
             moabServer.connect((self.moabmachine, self._moab_port))
             moabServer.write(moabstring)
@@ -220,7 +214,7 @@ class IMDeploy(object):
     
             self.logger.info('Your image has been deployed in xCAT as ' + imagename + '. Please allow a few minutes for xCAT to register the image before attempting to use it.')
         except ssl.SSLError:
-            print "CANNOT establish SSL connection. EXIT"
+            self.logger.error("CANNOT establish SSL connection. EXIT")
 
     def runCmd(self, cmd):
         cmdLog = logging.getLogger('DeployClient.exec')

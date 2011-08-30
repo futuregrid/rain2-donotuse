@@ -63,7 +63,9 @@ class IMServerConf(object):
         self._onepass = ""
         self._log_gen = ""
         self._logLevel_gen=""
-
+        self._ca_certs_gen = ""
+        self._certfile_gen = ""
+        self._keyfile_gen = ""
 
         #image server xcat
         self._xcat_port = 0
@@ -75,6 +77,9 @@ class IMServerConf(object):
         self._default_xcat_kernel_centos = ""
         self._default_xcat_kernel_ubuntu = ""
         self._tempdir_xcat = ""
+        self._ca_certs_xcat = ""
+        self._certfile_xcat = ""
+        self._keyfile_xcat = ""
 
         #image server moab
         self._moab_port = 0
@@ -82,6 +87,9 @@ class IMServerConf(object):
         self._log_moab = ""
         self._timeToRestartMoab = 0
         self._logLevel_moab = ""
+        self._ca_certs_moab = ""
+        self._certfile_moab = ""
+        self._keyfile_moab = ""
         
         self._logLevel_default = "DEBUG"
         self._logType = ["DEBUG", "INFO", "WARNING", "ERROR"]
@@ -136,6 +144,12 @@ class IMServerConf(object):
         return self._log_gen
     def getLogLevelGen(self):
         return self._logLevel_gen
+    def getCaCertsGen(self):
+        return self._ca_certs_gen
+    def getCertFileGen(self): 
+        return self._certfile_gen
+    def getKeyFileGen(self): 
+        return self._keyfile_gen
     
     #image server xcat    
     def getXcatPort(self):
@@ -156,6 +170,12 @@ class IMServerConf(object):
         return self._default_xcat_kernel_ubuntu
     def getTempDirXcat(self):
         return self._tempdir_xcat
+    def getCaCertsXcat(self):
+        return self._ca_certs_xcat
+    def getCertFileXcat(self): 
+        return self._certfile_xcat
+    def getKeyFileXcat(self): 
+        return self._keyfile_xcat 
     
     #image server moab    
     def getMoabPort(self):
@@ -168,6 +188,12 @@ class IMServerConf(object):
         return self._timeToRestartMoab
     def getLogLevelMoab(self):
         return self._logLevel_moab
+    def getCaCertsMoab(self):
+        return self._ca_certs_moab
+    def getCertFileMoab(self):
+        return self._certfile_moab
+    def getKeyFileMoab(self):
+        return self._keyfile_moab
             
     
     ############################################################
@@ -280,7 +306,23 @@ class IMServerConf(object):
             print "Log level " + tempLevel + " not supported. Using the default one " + self._logLevel_default
             tempLevel = self._logLevel_default
         self._logLevel_gen = eval("logging." + tempLevel)
-    
+        """
+        try:
+            self._ca_certs_gen = os.path.expanduser(self._config.get(section, 'ca_cert', 0))
+        except ConfigParser.NoOptionError:
+            print "Error: No ca_cert option found in section " + section
+            sys.exit(1)
+        try:
+            self._certfile_gen = os.path.expanduser(self._config.get(section, 'certfile', 0))
+        except ConfigParser.NoOptionError:
+            print "Error: No certfile option found in section " + section
+            sys.exit(1)
+        try:
+            self._keyfile_gen = os.path.expanduser(self._config.get(section, 'keyfile', 0))
+        except ConfigParser.NoOptionError:
+            print "Error: No keyfile option found in section " + section
+            sys.exit(1)
+        """
     ############################################################
     # load_deployServerXcatConfig
     ############################################################
@@ -340,7 +382,21 @@ class IMServerConf(object):
         except ConfigParser.NoOptionError:
             print "Error: No tempdir option found in section " + section
             sys.exit(1)
-
+        try:
+            self._ca_certs_xcat = os.path.expanduser(self._config.get(section, 'ca_cert', 0))
+        except ConfigParser.NoOptionError:
+            print "Error: No ca_cert option found in section " + section
+            sys.exit(1)
+        try:
+            self._certfile_xcat = os.path.expanduser(self._config.get(section, 'certfile', 0))
+        except ConfigParser.NoOptionError:
+            print "Error: No certfile option found in section " + section
+            sys.exit(1)
+        try:
+            self._keyfile_xcat = os.path.expanduser(self._config.get(section, 'keyfile', 0))
+        except ConfigParser.NoOptionError:
+            print "Error: No keyfile option found in section " + section
+            sys.exit(1)
 
     ############################################################
     # load_deployConfig
@@ -378,6 +434,21 @@ class IMServerConf(object):
             print "Log level " + tempLevel + " not supported. Using the default one " + self._logLevel_default
             tempLevel = self._logLevel_default
         self._logLevel_moab = eval("logging." + tempLevel)
+        try:
+            self._ca_certs_moab = os.path.expanduser(self._config.get(section, 'ca_cert', 0))
+        except ConfigParser.NoOptionError:
+            print "Error: No ca_cert option found in section " + section
+            sys.exit(1)
+        try:
+            self._certfile_moab = os.path.expanduser(self._config.get(section, 'certfile', 0))
+        except ConfigParser.NoOptionError:
+            print "Error: No certfile option found in section " + section
+            sys.exit(1)
+        try:
+            self._keyfile_moab = os.path.expanduser(self._config.get(section, 'keyfile', 0))
+        except ConfigParser.NoOptionError:
+            print "Error: No keyfile option found in section " + section
+            sys.exit(1)
 
 
 

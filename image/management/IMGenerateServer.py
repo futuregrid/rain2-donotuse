@@ -78,10 +78,14 @@ class IMGenerateServer(object):
         self.oneauth = self._genConf.getOneUser() + ":" + self._genConf.getOnePass()
         
         self.log_filename = self._genConf.getLogGen()
-        self.logLevel = self._genConf.getLogLevelGen()
-    
+        self.logLevel = self._genConf.getLogLevelGen()    
         self.logger = self.setup_logger()
-                
+        
+        self._ca_certs = self._deployConf.getCaCertsGen()
+        self._certfile = self._deployConf.getCertFileGen()
+        self._keyfile = self._deployConf.getKeyFileGen()
+        
+        #Image repository Object
         self._reposervice = IRServiceProxy(False)
     
     def setup_logger(self):
