@@ -76,7 +76,7 @@ class IMDeployServerIaaS(object):
         
         return logger
 
-    def start(self):
+    def start(self): ##DO IT parallel
 
         self.logger.info('Starting Server on port ' + str(self.port))
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

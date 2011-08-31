@@ -169,7 +169,7 @@ class IMDeployServerXcat(object):
             #############################
             #Insert client stuff for ubuntu. To be created. We may use the same function but Torque binaries and network config must be different
             ############################
-            #status = self.customize_ubuntu_img()
+            status = self.customize_ubuntu_img()
                     
             #getting initrd and kernel customized for xCAT
             cmd = 'wget ' + self.http_server + '/kernel/specialubuntu/initrd.gz -O ' + self.path + '/initrd-stateless.gz'
@@ -424,6 +424,8 @@ class IMDeployServerXcat(object):
 
         return True
 
+    #MERGE both customize because are almost the same
+
     def customize_ubuntu_img(self):
         status = 0
         fstab = ""
@@ -432,8 +434,8 @@ class IMDeployServerXcat(object):
         f = open(self.path + '/temp/_policy-rc.d', 'w')
         f.write("#!/bin/sh" + '\n' + "exit 101" + '\n')
         f.close()        
-        os.system('mv -f ' + self.path + '/temp/_policy-rc.d ' + self.path + '/rootimg/usr/sbin/policy-rc.d')        
-        os.system('chmod +x ' + self.path + '/rootimg/usr/sbin/policy-rc.d')
+        self.runCmd('mv -f ' + self.path + '/temp/_policy-rc.d ' + self.path + '/rootimg/usr/sbin/policy-rc.d')        
+        self.runCmd('chmod +x ' + self.path + '/rootimg/usr/sbin/policy-rc.d')
         
         self.logger.info('Installing torque')
         
@@ -451,6 +453,10 @@ class IMDeployServerXcat(object):
 
             self.runCmd('tar xfz ' + self.path + 'netsetup_minicluster.tgz -C ' + self.path + '/rootimg/etc/')
             self.runCmd('chmod +x ' + self.path + '/rootimg/etc/netsetup/netsetup.sh')
+            self.runCmd('ln -s '+ self.path + '/rootimg/etc/init.d/netsetup.sh ' + self.path + '/rootimg/etc/rc2.d/S18netsetup')
+            self.runCmd('ln -s '+ self.path + '/rootimg/etc/init.d/netsetup.sh ' + self.path + '/rootimg/etc/rc3.d/S18netsetup')
+            self.runCmd('ln -s '+ self.path + '/rootimg/etc/init.d/netsetup.sh ' + self.path + '/rootimg/etc/rc4.d/S18netsetup')
+            self.runCmd('ln -s '+ self.path + '/rootimg/etc/init.d/netsetup.sh ' + self.path + '/rootimg/etc/rc5.d/S18netsetup')
             self.runCmd('rm -f ' + self.path + 'netsetup_minicluster.tgz')
             
             os.system('cat ' + self.path + '/rootimg/etc/hosts' + ' > ' + self.path + '/temp/_hosts') #Create it in a unique directory
@@ -494,7 +500,11 @@ sysfs   /sys     sysfs    defaults       0 0
             self.logger.info('Configuring network')
             status = self.runCmd('wget ' + self.http_server + '/conf/ubuntu/netsetup.sh_india -O ' + self.path + '/rootimg/etc/init.d/netsetup.sh')
             self.runCmd('chmod +x ' + self.path + '/rootimg/etc/init.d/netsetup.sh')
-            self.runCmd('chroot ' + self.path + '/rootimg/ /sbin/chkconfig --add netsetup.sh')
+            self.runCmd('ln -s '+ self.path + '/rootimg/etc/init.d/netsetup.sh ' + self.path + '/rootimg/etc/rc2.d/S18netsetup')
+            self.runCmd('ln -s '+ self.path + '/rootimg/etc/init.d/netsetup.sh ' + self.path + '/rootimg/etc/rc3.d/S18netsetup')
+            self.runCmd('ln -s '+ self.path + '/rootimg/etc/init.d/netsetup.sh ' + self.path + '/rootimg/etc/rc4.d/S18netsetup')
+            self.runCmd('ln -s '+ self.path + '/rootimg/etc/init.d/netsetup.sh ' + self.path + '/rootimg/etc/rc5.d/S18netsetup')
+            #self.runCmd('chroot ' + self.path + '/rootimg/ /sbin/chkconfig --add netsetup.sh')
             
             status = self.runCmd('wget ' + self.http_server + '/conf/hosts_india -O ' + self.path + '/rootimg/etc/hosts')
             self.runCmd('mkdir -p ' + self.path + '/rootimg/root/.ssh')
@@ -521,25 +531,24 @@ sysfs   /sys     sysfs    defaults       0 0
 149.165.146.145:/users /N/u      nfs     rw,rsize=1048576,wsize=1048576,intr,nosuid
 '''
 
-            self.runCmd('chmod +x ' + self.path + '/rootimg/etc/init.d/pbs_mom')
+            #self.runCmd('chmod +x ' + self.path + '/rootimg/etc/init.d/pbs_mom')
 
-            #Modifying rc.local to restart network and start pbs_mom at the end
-            #os.system('touch ./_rc.local')
-            os.system('cat ' + self.path + '/rootimg/etc/rc.d/rc.local' + ' > ' + self.path + '/temp/_rc.local') #Create it in a unique directory
-            f = open(self.path + '/temp/_rc.local', 'a')
-            f.write("\n" + "sleep 10" + "\n" + "/etc/init.d/pbs_mom start" + '\n')
-            f.close()
-            self.runCmd('mv -f ' + self.path + '/temp/_rc.local ' + self.path + '/rootimg/etc/rc.d/rc.local')
-            self.runCmd('chown root:root ' + self.path + '/rootimg/etc/rc.d/rc.local')
-            self.runCmd('chmod 755 ' + self.path + '/rootimg/etc/rc.d/rc.local')
+            #Modifying rc.local to restart network and start pbs_mom at the end            
+            #os.system('cat ' + self.path + '/rootimg/etc/rc.d/rc.local' + ' > ' + self.path + '/temp/_rc.local') #Create it in a unique directory
+            #f = open(self.path + '/temp/_rc.local', 'a')
+            #f.write("\n" + "sleep 10" + "\n" + "/etc/init.d/pbs_mom start" + '\n')
+            #f.close()
+            #self.runCmd('mv -f ' + self.path + '/temp/_rc.local ' + self.path + '/rootimg/etc/rc.d/rc.local')
+            #self.runCmd('chown root:root ' + self.path + '/rootimg/etc/rc.d/rc.local')
+            #self.runCmd('chmod 755 ' + self.path + '/rootimg/etc/rc.d/rc.local')
 
 
-            f = open(self.path + '/temp/config', 'w')
-            f.write("opsys " + self.operatingsystem + "" + self.name + "\n" + "arch " + self.arch)
-            f.close()
+        f = open(self.path + '/temp/config', 'w')
+        f.write("opsys " + self.prefix + self.operatingsystem + "" + self.name + "\n" + "arch " + self.arch)
+        f.close()
 
-            self.runCmd('mv ' + self.path + '/temp/config ' + self.path + '/rootimg/var/spool/torque/mom_priv/')
-            self.runCmd('chown root:root ' + self.path + '/rootimg/var/spool/torque/mom_priv/config')
+        self.runCmd('mv ' + self.path + '/temp/config ' + self.path + '/rootimg/var/spool/torque/mom_priv/')
+        self.runCmd('chown root:root ' + self.path + '/rootimg/var/spool/torque/mom_priv/config')
 
         #Setup fstab
         f = open(self.path + '/temp/fstab', 'w')
@@ -554,6 +563,8 @@ sysfs   /sys     sysfs    defaults       0 0
         self.runCmd('tar xfz ' + self.path + '' + self.kernel + '.modules.tar.gz --directory ' + self.path + '/rootimg/lib/modules/')
         self.runCmd('rm -f ' + self.path + '' + self.kernel + '.modules.tar.gz')
         self.logger.info('Injected kernel ' + self.kernel)
+
+        self.runCmd('rm -f ' + self.path + '/rootimg/usr/sbin/policy-rc.d')
 
         return status
 
@@ -647,25 +658,25 @@ sysfs   /sys     sysfs    defaults       0 0
 149.165.146.145:/users /N/u      nfs     rw,rsize=1048576,wsize=1048576,intr,nosuid
 '''
 
-            self.runCmd('chmod +x ' + self.path + '/rootimg/etc/init.d/pbs_mom')
+        self.runCmd('chmod +x ' + self.path + '/rootimg/etc/init.d/pbs_mom')
 
-            #Modifying rc.local to restart network and start pbs_mom at the end
-            #os.system('touch ./_rc.local')
-            os.system('cat ' + self.path + '/rootimg/etc/rc.d/rc.local' + ' > ' + self.path + '/temp/_rc.local') #Create it in a unique directory
-            f = open(self.path + '/temp/_rc.local', 'a')
-            f.write("\n" + "sleep 10" + "\n" + "/etc/init.d/pbs_mom start" + '\n')
-            f.close()
-            self.runCmd('mv -f ' + self.path + '/temp/_rc.local ' + self.path + '/rootimg/etc/rc.d/rc.local')
-            self.runCmd('chown root:root ' + self.path + '/rootimg/etc/rc.d/rc.local')
-            self.runCmd('chmod 755 ' + self.path + '/rootimg/etc/rc.d/rc.local')
+        #Modifying rc.local to restart network and start pbs_mom at the end
+        #os.system('touch ./_rc.local')
+        os.system('cat ' + self.path + '/rootimg/etc/rc.d/rc.local' + ' > ' + self.path + '/temp/_rc.local') #Create it in a unique directory
+        f = open(self.path + '/temp/_rc.local', 'a')
+        f.write("\n" + "sleep 10" + "\n" + "/etc/init.d/pbs_mom start" + '\n')
+        f.close()
+        self.runCmd('mv -f ' + self.path + '/temp/_rc.local ' + self.path + '/rootimg/etc/rc.d/rc.local')
+        self.runCmd('chown root:root ' + self.path + '/rootimg/etc/rc.d/rc.local')
+        self.runCmd('chmod 755 ' + self.path + '/rootimg/etc/rc.d/rc.local')
 
 
-            f = open(self.path + '/temp/config', 'w')
-            f.write("opsys " + self.operatingsystem + "" + self.name + "\n" + "arch " + self.arch)
-            f.close()
+        f = open(self.path + '/temp/config', 'w')
+        f.write("opsys " + self.operatingsystem + "" + self.name + "\n" + "arch " + self.arch)
+        f.close()
 
-            self.runCmd('mv ' + self.path + '/temp/config ' + self.path + '/rootimg/var/spool/torque/mom_priv/')
-            self.runCmd('chown root:root ' + self.path + '/rootimg/var/spool/torque/mom_priv/config')
+        self.runCmd('mv ' + self.path + '/temp/config ' + self.path + '/rootimg/var/spool/torque/mom_priv/')
+        self.runCmd('chown root:root ' + self.path + '/rootimg/var/spool/torque/mom_priv/config')
 
         #Setup fstab
         f = open(self.path + '/temp/fstab', 'w')

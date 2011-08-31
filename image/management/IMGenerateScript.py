@@ -331,30 +331,10 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
     #Setup networking
     os.system('echo localhost > ' + tempdir + '' + name + '/etc/hostname')
     runCmd('hostname localhost')
-
-    #this if will be removed, since this is going to be done in deployserverxcat
-    if(TEST_MODE):
-        #this eth1 is just for miniclusetr. comment this and uncomment the next one for india
-        runCmd('wget ' + http_server + '/conf/ubuntu/interfaces_minicluster_tc2 -O ' + tempdir + '' + name + '/etc/network/interfaces')
-        #runCmd('wget ' + http_server + '/conf/ubuntu/interfaces_minicluster_tc1 -O '+tempdir+''+name + '/etc/network/interfaces')
-        os.system('echo "172.29.200.1 t1 tm1" >> ' + tempdir + '' + name + '/etc/hosts')
-        os.system('echo "172.29.200.3 tc1" >> ' + tempdir + '' + name + '/etc/hosts')
-        os.system('echo "149.165.145.35 tc1r.tidp.iu.futuregrid.org tc1r" >> ' + tempdir + '' + name + '/etc/hosts')
-        os.system('echo "172.29.200.4 tc2" >> ' + tempdir + '' + name + '/etc/hosts')
-        os.system('echo "149.165.145.36 tc2r.tidp.iu.futuregrid.org tc2r" >> ' + tempdir + '' + name + '/etc/hosts')
-        runCmd('mkdir -p ' + tempdir + '' + name + '/root/.ssh')
-        os.system('echo "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA5uo1oo4+/wzKl+4hfaD/cf4MF6WDrWnG8wtufSk4ThOvCfc4a1BiEUZ+O71u1qzgbv' + \
-                   'i0TnA+tc3fS9mU2zrBZeIL1eB2VkK4cjzltIS6pthm8tFUCtS1hHYupnftC/1Hbzo2zJB+nGAfIznmkYATiVvulwl6SudVRKM2SUah' + \
-                   'WsGXh4JkZqt4vAAuBVifFwE3axh3g9nji8wq4ITYjzTWDsogbcwsJNXpF9dkyuDg5xQmEszUsGSug3hA4aVrgs36cnLNG5i+zWlwmA' + \
-                   '31IV+6Yyx1+s6YYp6YG8GNiuL1vZUYrnvfmRbm24eUc7cU4Dz6hBfI2wqjDkCU15HRM0ZV3Q== root@tm1" >> ' + tempdir + '' + name + '/root/.ssh/authorized_keys')
-
-        os.system('chmod 600 ' + tempdir + '' + name + '/root/.ssh/authorized_keys')
-
-    else:
-        runCmd('wget ' + http_server + '/conf/ubuntu/interfaces -O ' + tempdir + '' + name + '/etc/network/interfaces')
+    
+    runCmd('wget ' + http_server + '/conf/ubuntu/interfaces -O ' + tempdir + '' + name + '/etc/network/interfaces')
 
     ubuntuLog.info('Injected networking configuration')
-
 
 
     #Set apt-get into noninteractive mode

@@ -52,6 +52,20 @@ class IMDeploy(object):
                 
         if isinstance(self.kernel, NoneType):
             self.kernel = default_euca_kernel
+            
+        """
+        #Copy the image to the Shared directory.
+        if (self.loginmachine == "localhost" or self.loginmachine == "127.0.0.1"):
+            self.logger.info('Copying the image to the right directory')
+            cmd = 'cp ' + image + ' ' + self.shareddirserver + '/' + nameimg + '.tgz'
+            self.logger.info(cmd)
+            self.runCmd(cmd)
+        else:                    
+            self.logger.info('Uploading image. You may be asked for ssh/paraphrase password')
+            cmd = 'scp ' + image + ' ' + self.user + '@' + self.loginmachine + ':' + self.shareddirserver + '/' + nameimg + '.tgz'
+            self.logger.info(cmd)
+            self.runCmd(cmd)
+        """
 
         #CONTACT IMDeployServerIaaS to customize image ...
 
