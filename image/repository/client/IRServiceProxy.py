@@ -175,8 +175,8 @@ class IRServiceProxy(object):
             extension = os.path.splitext(imgFile)[1]
             if extension == "":
                 extension = "\" \""
-                        
-            self._log.debug("Checking quota")
+            if self._verbose:            
+                self._log.info("Checking quota")
             cmdexec = " '" + self._serverdir + \
                     "IRService.py --uploadValidator " + userId + " " + str(size) + "'"
 
@@ -205,13 +205,14 @@ class IRServiceProxy(object):
                 else:
                     cmd = 'scp -q ' + imgFile + " " + \
                         self._serveraddr + ":" + fileLocation
-                
-                print "uploading file through scp:"
+                if self._verbose:
+                    print "uploading file through scp:"
                 #print cmd
                 stat = os.system(cmd)
                 if (str(stat) != "0"):
-                    print stat
-                print "Registering the Image"
+                    self._log.error(str(stat))
+                if self._verbose:
+                    self._log.info("Registering the Image")
                 cmdexec = " '" + self._serverdir + "IRService.py --put " + userId + " " + \
                              imgId + " " + fileLocation + " \"" + attributeString + "\" " + str(size) + " "+ extension +"'"
                 #print cmdexec
