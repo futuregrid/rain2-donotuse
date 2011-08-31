@@ -312,15 +312,24 @@ class IMServerConf(object):
         except ConfigParser.NoOptionError:
             print "Error: No ca_cert option found in section " + section
             sys.exit(1)
+        if not os.path.isfile(self._ca_certs_gen):
+            print "Error: ca_cert file not found in "  + self._ca_certs_gen 
+            sys.exit(1)
         try:
             self._certfile_gen = os.path.expanduser(self._config.get(section, 'certfile', 0))
         except ConfigParser.NoOptionError:
             print "Error: No certfile option found in section " + section
             sys.exit(1)
+        if not os.path.isfile(self._certfile_gen):
+            print "Error: certfile file not found in "  + self._certfile_gen 
+            sys.exit(1)
         try:
             self._keyfile_gen = os.path.expanduser(self._config.get(section, 'keyfile', 0))
         except ConfigParser.NoOptionError:
             print "Error: No keyfile option found in section " + section
+            sys.exit(1)
+        if not os.path.isfile(self._keyfile_gen):
+            print "Error: keyfile file not found in "  + self._keyfile_gen 
             sys.exit(1)
         
     ############################################################
@@ -387,15 +396,24 @@ class IMServerConf(object):
         except ConfigParser.NoOptionError:
             print "Error: No ca_cert option found in section " + section
             sys.exit(1)
+        if not os.path.isfile(self._ca_certs_xcat):
+            print "Error: ca_cert file not found in "  + self._ca_certs_xcat 
+            sys.exit(1)
         try:
             self._certfile_xcat = os.path.expanduser(self._config.get(section, 'certfile', 0))
         except ConfigParser.NoOptionError:
             print "Error: No certfile option found in section " + section
             sys.exit(1)
+        if not os.path.isfile(self._certfile_xcat):
+            print "Error: keyfile file not found in "  + self._certfile_xcat 
+            sys.exit(1)
         try:
             self._keyfile_xcat = os.path.expanduser(self._config.get(section, 'keyfile', 0))
         except ConfigParser.NoOptionError:
             print "Error: No keyfile option found in section " + section
+            sys.exit(1)
+        if not os.path.isfile(self._keyfile_xcat):
+            print "Error: keyfile file not found in "  + self._keyfile_xcat 
             sys.exit(1)
 
     ############################################################
@@ -441,15 +459,24 @@ class IMServerConf(object):
         except ConfigParser.NoOptionError:
             print "Error: No ca_cert option found in section " + section
             sys.exit(1)
+        if not os.path.isfile(self._ca_certs_moab):
+            print "Error: ca_cert file not found in "  + self._ca_certs_moab 
+            sys.exit(1)
         try:
             self._certfile_moab = os.path.expanduser(self._config.get(section, 'certfile', 0))
         except ConfigParser.NoOptionError:
             print "Error: No certfile option found in section " + section
             sys.exit(1)
+        if not os.path.isfile(self._certfile_moab):
+            print "Error: certfile file not found in "  + self._certfile_moab 
+            sys.exit(1)
         try:
             self._keyfile_moab = os.path.expanduser(self._config.get(section, 'keyfile', 0))
         except ConfigParser.NoOptionError:
             print "Error: No keyfile option found in section " + section
+            sys.exit(1)
+        if not os.path.isfile(self._keyfile_moab):
+            print "Error: keyfile file not found in "  + self._keyfile_moab 
             sys.exit(1)
 
 
