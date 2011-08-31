@@ -723,6 +723,8 @@ def main():
     #    print "Sorry, you need to run with root privileges"
     #    sys.exit(1)
 
+    print "\n The user that executes this must have sudo with NOPASSWD"
+
     server = IMDeployServerXcat()
     server.start()
 

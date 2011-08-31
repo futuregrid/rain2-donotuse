@@ -187,7 +187,7 @@ class IRClientConf(object):
         userId = os.popen('whoami', 'r').read().strip()
         if not os.path.isfile(self._irconfig):
             cmdexec = " '" + self._serverdir + \
-                    "IRService.py --getBackend " "'"
+                    "IRService.py --getBackend " + userId + "'"
 
             print "Requesting Respository Server Config"
             #aux=self._rExec(userId, cmdexec)
