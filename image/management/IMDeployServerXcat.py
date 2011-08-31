@@ -40,7 +40,7 @@ class IMDeployServerXcat(object):
         self.kernel = ""
         
         self.machine = "" #india, minicluster,...
-        self.user=""
+        self.user = ""
 
         #load from config file
         self._deployConf = IMServerConf()
@@ -237,7 +237,7 @@ class IMDeployServerXcat(object):
                 self.errormsg(connstream, msg)
                 return
         
-        cmd = "rm -rf "+ self.path + "temp "
+        cmd = "rm -rf " + self.path + "temp "
         self.runCmd(cmd)
                                           
         #XCAT tables                
@@ -246,7 +246,7 @@ class IMDeployServerXcat(object):
                 ' osimage.osarch=' + self.arch + ''
         self.logger.debug(cmd)
         if not self.test_mode:
-            status = os.system("sudo "+cmd)
+            status = os.system("sudo " + cmd)
 
         if (self.machine == "india"):
             cmd = 'chtab boottarget.bprofile=' + self.prefix + self.operatingsystem + '' + self.name + ' boottarget.kernel=\'xcat/netboot/' + self.prefix + \
@@ -255,7 +255,7 @@ class IMDeployServerXcat(object):
                   self.operatingsystem + '' + self.name + '/' + self.arch + '/compute/rootimg.gz console=ttyS0,115200n8r\''                          
             self.logger.debug(cmd)
             if not self.test_mode:
-                status = os.system("sudo "+cmd)
+                status = os.system("sudo " + cmd)
 
         #Pack image
         cmd = 'packimage -o ' + self.prefix + self.operatingsystem + '' + self.name + ' -p compute -a ' + self.arch
@@ -323,7 +323,7 @@ class IMDeployServerXcat(object):
         std = p.communicate()
         stat = 0
         if len(std[0]) > 0:
-            realnameimg= std[0].split("\n")[0].strip().split(".")[0]            
+            realnameimg = std[0].split("\n")[0].strip().split(".")[0]            
         if p.returncode != 0:
             self.logger.error('Command: ' + cmd + ' failed, status: ' + str(p.returncode) + ' --- ' + std[1])
             stat = 1
@@ -380,7 +380,7 @@ class IMDeployServerXcat(object):
             self.errormsg(connstream, msg)
             return False
 
-        cmd = "chmod 777 "+ self.path + "temp"
+        cmd = "chmod 777 " + self.path + "temp"
         status = self.runCmd(cmd)    
         if status != 0:
             msg = "ERROR: modifying temp dir permissons"
@@ -407,7 +407,7 @@ class IMDeployServerXcat(object):
             return False
         #copy files keeping the permission (-p parameter)
         cmd = 'cp -rp ' + self.path + 'temp/* ' + self.path + 'rootimg/'                
-        status = os.system("sudo "+cmd)    
+        status = os.system("sudo " + cmd)    
         if status != 0:
             msg = "ERROR: copying image"
             self.errormsg(connstream, msg)
@@ -423,6 +423,139 @@ class IMDeployServerXcat(object):
             return False
 
         return True
+
+    def customize_ubuntu_img(self):
+        status = 0
+        fstab = ""
+        
+        #services will install, but not start
+        f = open(self.path + '/temp/_policy-rc.d', 'w')
+        f.write("#!/bin/sh" + '\n' + "exit 101" + '\n')
+        f.close()        
+        os.system('mv -f ' + self.path + '/temp/_policy-rc.d ' + self.path + '/rootimg/usr/sbin/policy-rc.d')        
+        os.system('chmod +x ' + self.path + '/rootimg/usr/sbin/policy-rc.d')
+        
+        self.logger.info('Installing torque')
+        
+        status = self.runCmd('chroot ' + self.path + '/rootimg/ apt-get -y install torque-mom')
+        
+        if(self.machine == "minicluster"):
+            self.logger.info('Torque for minicluster')                        
+            status = self.runCmd('wget ' + self.http_server + '/torque/torque-2.5.1_minicluster/var.tgz -O ' + self.path + '/var.tgz')
+            self.runCmd('tar xfz ' + self.path + '/var.tgz -C ' + self.path + '/rootimg/')            
+            #status = self.runCmd('wget ' + self.http_server + '/torque/torque-2.5.1_minicluster/pbs_mom -O ' + self.path + '/rootimg/etc/init.d/pbs_mom')            
+            self.runCmd('rm -f ' + self.path + '/var.tgz')
+
+            self.logger.info('Configuring network')
+            status = self.runCmd('wget ' + self.http_server + '/conf/ubuntu/netsetup_minicluster.tgz -O ' + self.path + 'netsetup_minicluster.tgz')
+
+            self.runCmd('tar xfz ' + self.path + 'netsetup_minicluster.tgz -C ' + self.path + '/rootimg/etc/')
+            self.runCmd('chmod +x ' + self.path + '/rootimg/etc/netsetup/netsetup.sh')
+            self.runCmd('rm -f ' + self.path + 'netsetup_minicluster.tgz')
+            
+            os.system('cat ' + self.path + '/rootimg/etc/hosts' + ' > ' + self.path + '/temp/_hosts') #Create it in a unique directory
+            f = open(self.path + '/temp/_hosts', 'a')
+            f.write("\n" + "172.29.200.1 t1 tm1" + '\n' + "172.29.200.3 tc1" + '\n' + "149.165.145.35 tc1r.tidp.iu.futuregrid.org tc1r" + '\n' + \
+                    "172.29.200.4 tc2" + '\n' + "149.165.145.36 tc2r.tidp.iu.futuregrid.org tc2r" + '\n')
+            f.close()
+            self.runCmd('mv -f ' + self.path + '/temp/_hosts ' + self.path + '/rootimg/etc/hosts')
+            self.runCmd('chown root:root ' + self.path + '/rootimg/etc/hosts')
+            self.runCmd('chmod 644 ' + self.path + '/rootimg/etc/hosts')
+
+            self.runCmd('mkdir -p ' + self.path + '/rootimg/root/.ssh')
+            f = open(self.path + '/temp/_authorized_keys', 'a') #Create it in a unique directory
+            f.write("\n" + "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA8KYKqxO3IXcJQ6xoAyrzewWPbZUrt+iPlpo/JiXoGkkfshT445QgNksQcJke8AHbIFZ"
+                    "ctt8A7an5uC6y8sLmfKjAO2kP1acUoXtQ/0NQXVphdk1Cxxd0TW1Z0Kf+jX82vOCeJQHS0GBsLZmB2N/7Ch3cZMW/lt+RPbMMDob9zq"
+                    "hWnDdikh67txjwNpM8qNjGcVqXoIL/V7Ue4pOvoj2egFmOdkA/w+5xUm45zqUZSE473fLyoYvpXPHM8GBlhGegYIQpKPUbgZjNwTQr1"
+                    "uNUWs1l5ezvgZlmA8A4ciWrBC5qAN/qudvbS40rxagfNIuzNh4A2QuOxlv7CmwDCP3rrw== jdiaz@tm1" + '\n')
+            f.close()
+            self.runCmd('mv ' + self.path + '/temp/_authorized_keys ' + self.path + '/rootimg/root/.ssh/authorized_keys')
+
+            self.runCmd('chown root:root ' + self.path + '/rootimg/root/.ssh/authorized_keys')
+            self.runCmd('chmod 600 ' + self.path + '/rootimg/root/.ssh/authorized_keys')
+
+
+            fstab = '''
+# xCAT fstab 
+devpts  /dev/pts devpts   gid=5,mode=620 0 0
+tmpfs   /dev/shm tmpfs    defaults       0 0
+proc    /proc    proc     defaults       0 0
+sysfs   /sys     sysfs    defaults       0 0
+172.29.200.1:/export/users /N/u      nfs     rw,rsize=1048576,wsize=1048576,intr,nosuid
+'''
+
+        elif(self.machine == "india"):#Later we should be able to chose the cluster where is deployed
+            self.logger.info('Torque for India')
+            status = self.runCmd('wget ' + self.http_server + '/torque/torque-2.4.8_india/var.tgz -O ' + self.path + '/var.tgz')            
+            self.runCmd('tar xfz ' + self.path + '/var.tgz -C ' + self.path + '/rootimg/')
+            #status = self.runCmd('wget ' + self.http_server + '/torque/torque-2.4.8_india/pbs_mom -O ' + self.path + '/rootimg/etc/init.d/pbs_mom')
+            self.runCmd('rm -f ' + self.path + '/var.tgz')
+            
+            self.logger.info('Configuring network')
+            status = self.runCmd('wget ' + self.http_server + '/conf/ubuntu/netsetup.sh_india -O ' + self.path + '/rootimg/etc/init.d/netsetup.sh')
+            self.runCmd('chmod +x ' + self.path + '/rootimg/etc/init.d/netsetup.sh')
+            self.runCmd('chroot ' + self.path + '/rootimg/ /sbin/chkconfig --add netsetup.sh')
+            
+            status = self.runCmd('wget ' + self.http_server + '/conf/hosts_india -O ' + self.path + '/rootimg/etc/hosts')
+            self.runCmd('mkdir -p ' + self.path + '/rootimg/root/.ssh')
+ 
+            f = open(self.path + '/temp/_authorized_keys', 'a') #Create it in a unique directory
+            f.write("\n" + "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAsAaCJFcGUXSmA2opcQk/HeuiJu417a69KbuWNjf1UqarP7t0hUpMXQnlc8+yfi"
+                      "fI8FpoXtNCai8YEPmpyynqgF9VFSDwTp8use61hBPJn2isZha1JvkuYJX4n3FCHOeDlb2Y7M90DvdYHwhfPDa/jIy8PvFGiFkRLSt1kghY"
+                      "xZSleiikl0OxFcjaI8N8EiEZK66HAwOiDHAn2k3oJDBTD69jydJsjExOwlqZoJ4G9ScfY0rpzNnjE9sdxpJMCWcj20y/2T/oeppLmkq7aQtu"
+                      "p8JMPptL+kTz5psnjozTNQgLYtYHAcfy66AKELnLuGbOFQdYxnINhX3e0iQCDDI5YQ== jdiaz@india.futuregrid.org" + "\n")
+            f.close()
+            self.runCmd('mv ' + self.path + '/temp/_authorized_keys ' + self.path + '/rootimg/root/.ssh/authorized_keys')
+            self.runCmd('chown root:root ' + self.path + '/rootimg/root/.ssh/authorized_keys')
+            self.runCmd('chmod 600 ' + self.path + '/rootimg/root/.ssh/authorized_keys')
+
+            #self.runCmd('chroot '+self.path+'/rootimg/ /sbin/chkconfig --add pbs_mom')
+            #self.runCmd('chroot '+self.path+'/rootimg/ /sbin/chkconfig pbs_mom on')       
+
+            fstab = '''
+# xCAT fstab 
+devpts  /dev/pts devpts   gid=5,mode=620 0 0
+tmpfs   /dev/shm tmpfs    defaults       0 0
+proc    /proc    proc     defaults       0 0
+sysfs   /sys     sysfs    defaults       0 0
+149.165.146.145:/users /N/u      nfs     rw,rsize=1048576,wsize=1048576,intr,nosuid
+'''
+
+            self.runCmd('chmod +x ' + self.path + '/rootimg/etc/init.d/pbs_mom')
+
+            #Modifying rc.local to restart network and start pbs_mom at the end
+            #os.system('touch ./_rc.local')
+            os.system('cat ' + self.path + '/rootimg/etc/rc.d/rc.local' + ' > ' + self.path + '/temp/_rc.local') #Create it in a unique directory
+            f = open(self.path + '/temp/_rc.local', 'a')
+            f.write("\n" + "sleep 10" + "\n" + "/etc/init.d/pbs_mom start" + '\n')
+            f.close()
+            self.runCmd('mv -f ' + self.path + '/temp/_rc.local ' + self.path + '/rootimg/etc/rc.d/rc.local')
+            self.runCmd('chown root:root ' + self.path + '/rootimg/etc/rc.d/rc.local')
+            self.runCmd('chmod 755 ' + self.path + '/rootimg/etc/rc.d/rc.local')
+
+
+            f = open(self.path + '/temp/config', 'w')
+            f.write("opsys " + self.operatingsystem + "" + self.name + "\n" + "arch " + self.arch)
+            f.close()
+
+            self.runCmd('mv ' + self.path + '/temp/config ' + self.path + '/rootimg/var/spool/torque/mom_priv/')
+            self.runCmd('chown root:root ' + self.path + '/rootimg/var/spool/torque/mom_priv/config')
+
+        #Setup fstab
+        f = open(self.path + '/temp/fstab', 'w')
+        f.write(fstab)
+        f.close()
+        self.runCmd('mv -f ' + self.path + '/temp/fstab ' + self.path + 'rootimg/etc/fstab')
+        self.logger.info('Injected fstab')
+        
+        #Inject the kernel
+        self.logger.info('Retrieving kernel ' + self.kernel)
+        status = self.runCmd('wget ' + self.http_server + '/kernel/' + self.kernel + '.modules.tar.gz -O ' + self.path + '' + self.kernel + '.modules.tar.gz')
+        self.runCmd('tar xfz ' + self.path + '' + self.kernel + '.modules.tar.gz --directory ' + self.path + '/rootimg/lib/modules/')
+        self.runCmd('rm -f ' + self.path + '' + self.kernel + '.modules.tar.gz')
+        self.logger.info('Injected kernel ' + self.kernel)
+
+        return status
 
     def customize_centos_img(self):
         status = 0
@@ -455,10 +588,10 @@ class IMDeployServerXcat(object):
 
             self.runCmd('mkdir -p ' + self.path + '/rootimg/root/.ssh')
             f = open(self.path + '/temp/_authorized_keys', 'a') #Create it in a unique directory
-            f.write("ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA5uo1oo4+/wzKl+4hfaD/cf4MF6WDrWnG8wtufSk4ThOvCfc4a1BiEUZ+O71"
-                      "u1qzgbvi0TnA+tc3fS9mU2zrBZeIL1eB2VkK4cjzltIS6pthm8tFUCtS1hHYupnftC/1Hbzo2zJB+nGAfIznmkYATiVvulwl6SudV"
-                      "RKM2SUahWsGXh4JkZqt4vAAuBVifFwE3axh3g9nji8wq4ITYjzTWDsogbcwsJNXpF9dkyuDg5xQmEszUsGSug3hA4aVrgs36cnLNG"
-                      "5i+zWlwmA31IV+6Yyx1+s6YYp6YG8GNiuL1vZUYrnvfmRbm24eUc7cU4Dz6hBfI2wqjDkCU15HRM0ZV3Q== root@tm1" + '\n')
+            f.write("\n" + "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA8KYKqxO3IXcJQ6xoAyrzewWPbZUrt+iPlpo/JiXoGkkfshT445QgNksQcJke8AHbIFZ"
+                    "ctt8A7an5uC6y8sLmfKjAO2kP1acUoXtQ/0NQXVphdk1Cxxd0TW1Z0Kf+jX82vOCeJQHS0GBsLZmB2N/7Ch3cZMW/lt+RPbMMDob9zq"
+                    "hWnDdikh67txjwNpM8qNjGcVqXoIL/V7Ue4pOvoj2egFmOdkA/w+5xUm45zqUZSE473fLyoYvpXPHM8GBlhGegYIQpKPUbgZjNwTQr1"
+                    "uNUWs1l5ezvgZlmA8A4ciWrBC5qAN/qudvbS40rxagfNIuzNh4A2QuOxlv7CmwDCP3rrw== jdiaz@tm1" + '\n')
             f.close()
             self.runCmd('mv ' + self.path + '/temp/_authorized_keys ' + self.path + '/rootimg/root/.ssh/authorized_keys')
 
@@ -492,13 +625,13 @@ sysfs   /sys     sysfs    defaults       0 0
             status = self.runCmd('wget ' + self.http_server + '/conf/hosts_india -O ' + self.path + '/rootimg/etc/hosts')
             self.runCmd('mkdir -p ' + self.path + '/rootimg/root/.ssh')
  
-            f = open(self.path +'/temp/_authorized_keys', 'a') #Create it in a unique directory
+            f = open(self.path + '/temp/_authorized_keys', 'a') #Create it in a unique directory
             f.write("\n" + "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAsAaCJFcGUXSmA2opcQk/HeuiJu417a69KbuWNjf1UqarP7t0hUpMXQnlc8+yfi"
                       "fI8FpoXtNCai8YEPmpyynqgF9VFSDwTp8use61hBPJn2isZha1JvkuYJX4n3FCHOeDlb2Y7M90DvdYHwhfPDa/jIy8PvFGiFkRLSt1kghY"
                       "xZSleiikl0OxFcjaI8N8EiEZK66HAwOiDHAn2k3oJDBTD69jydJsjExOwlqZoJ4G9ScfY0rpzNnjE9sdxpJMCWcj20y/2T/oeppLmkq7aQtu"
                       "p8JMPptL+kTz5psnjozTNQgLYtYHAcfy66AKELnLuGbOFQdYxnINhX3e0iQCDDI5YQ== jdiaz@india.futuregrid.org" + "\n")
             f.close()
-            self.runCmd('mv '+ self.path +'/temp/_authorized_keys ' + self.path + '/rootimg/root/.ssh/authorized_keys')
+            self.runCmd('mv ' + self.path + '/temp/_authorized_keys ' + self.path + '/rootimg/root/.ssh/authorized_keys')
             self.runCmd('chown root:root ' + self.path + '/rootimg/root/.ssh/authorized_keys')
             self.runCmd('chmod 600 ' + self.path + '/rootimg/root/.ssh/authorized_keys')
 
@@ -518,11 +651,11 @@ sysfs   /sys     sysfs    defaults       0 0
 
             #Modifying rc.local to restart network and start pbs_mom at the end
             #os.system('touch ./_rc.local')
-            os.system('cat ' + self.path + '/rootimg/etc/rc.d/rc.local' + ' > '+ self.path +'/temp/_rc.local') #Create it in a unique directory
-            f = open(self.path +'/temp/_rc.local', 'a')
+            os.system('cat ' + self.path + '/rootimg/etc/rc.d/rc.local' + ' > ' + self.path + '/temp/_rc.local') #Create it in a unique directory
+            f = open(self.path + '/temp/_rc.local', 'a')
             f.write("\n" + "sleep 10" + "\n" + "/etc/init.d/pbs_mom start" + '\n')
             f.close()
-            self.runCmd('mv -f '+ self.path +'/temp/_rc.local ' + self.path + '/rootimg/etc/rc.d/rc.local')
+            self.runCmd('mv -f ' + self.path + '/temp/_rc.local ' + self.path + '/rootimg/etc/rc.d/rc.local')
             self.runCmd('chown root:root ' + self.path + '/rootimg/etc/rc.d/rc.local')
             self.runCmd('chmod 755 ' + self.path + '/rootimg/etc/rc.d/rc.local')
 
