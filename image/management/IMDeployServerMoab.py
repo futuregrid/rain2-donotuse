@@ -35,7 +35,7 @@ class IMDeployServerMoab(object):
         self.port = self._deployConf.getMoabPort()
         self.moabInstallPath = self._deployConf.getMoabInstallPath()
         self.log_filename = self._deployConf.getLogMoab()
-        self.timeToRestartMoab = self._deployConf.getTimeToRestartMoab()  #time that we wait to get the moab scheduler restarted (mschedctl -R)
+        #self.timeToRestartMoab = self._deployConf.getTimeToRestartMoab()  #time that we wait to get the moab scheduler restarted (mschedctl -R)
         self.logLevel = self._deployConf.getLogLevelMoab()
         self._ca_certs = self._deployConf.getCaCertsMoab()
         self._certfile = self._deployConf.getCertFileMoab()
@@ -129,7 +129,9 @@ class IMDeployServerMoab(object):
                     connstream.shutdown(socket.SHUT_RDWR)
                     connstream.close()
     
-                
+                cmd = 'mschedctl -R'
+                status = self.runCmd(cmd)
+                """
 	            if not os.path.isfile('/tmp/image-deploy-fork.lock'):
 	            	os.system('touch /tmp/image-deploy-fork.lock')
 	                child_pid = os.fork()
@@ -141,7 +143,7 @@ class IMDeployServerMoab(object):
 	                    os.system('rm -f /tmp/image-deploy-fork.lock')
 	                else:
 	                    self.logger.debug("Parent Process: PID# %s" % os.getpid())
-
+                """
 
     def runCmd(self, cmd):
         cmdLog = logging.getLogger('DeployMoab.exec')

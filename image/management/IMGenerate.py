@@ -98,13 +98,15 @@ class IMGenerate(object):
                 output = self._retrieveImg(ret)
                 if output != None:  
                     print output
+                genServer.write('end')
             else:
                 
                 if (re.search('^ERROR', ret)):
                     self.logger.error('The image has not been generated properly. Exit error:' + ret)
                 else:
                     print "Your image has be uploaded in the repository with ID="+str(ret)
-                
+                    
+            
             print '\n The image and the manifest generated are packaged in a tgz file.'+\
                   '\n Please be aware that this FutureGrid image does not have kernel and fstab. Thus, '+\
                   'it is not built for any deployment type. To deploy the new image, use the IMDeploy command.'
@@ -151,7 +153,7 @@ class IMGenerate(object):
         imgIds = imgURI.split("/")
         imgId = imgIds[len(imgIds) - 1]
     
-        cmdscp = "scp " + imgURI + " ."
+        cmdscp = "scp " + self.user + "@" + imgURI + " ."
         output = ""
         try:
             print "Retrieving the image"

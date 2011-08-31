@@ -53,48 +53,9 @@ class IMDeploy(object):
         if isinstance(self.kernel, NoneType):
             self.kernel = default_euca_kernel
 
-        #Mount the root image for final edits and compressing
-        self.logger.info('Mounting image...')
-        cmd = 'mkdir -p ' + self.tempdir + '' + self.name
-        self.runCmd(cmd)
-        cmd = 'sudo mount -o loop ' + self.imagefile + ' ' + self.tempdir + '' + self.name
-        self.runCmd(cmd)
-
-        #TODO: Pick kernel and ramdisk from available eki and eri
-
-        #hardcoded for now
-        eki = 'eki-78EF12D2'
-        eri = 'eri-5BB61255'
-
-
-        #Inject the kernel
-        self.logger.info('Retrieving kernel ' + kernel)
-        self.runCmd('sudo wget ' + self._http_server + 'kernel/' + self.kernel + '.modules.tar.gz -O ' + self.tempdir + '' + self.kernel + '.modules.tar.gz')
-        self.runCmd('sudo tar xfz ' + self.tempdir + '' + self.kernel + '.modules.tar.gz --directory ' + self.tempdir + '' + self.name + '/lib/modules/')
-        self.logger.info('Injected kernel ' + kernel)
-
-
-        # Setup fstab
-        fstab = '''
-# Default Ubuntu fstab
- /dev/sda1       /             ext3     defaults,errors=remount-ro 0 0
- /dev/sda3    swap          swap     defaults              0 0
- proc            /proc         proc     defaults                   0 0
- devpts          /dev/pts      devpts   gid=5,mode=620             0 0
- '''
-
-        f = open(self.tempdir + '/fstab', 'w')
-        f.write(fstab)
-        f.close()
-        os.system('sudo mv -f ' + self.tempdir + '/fstab ' + self.tempdir + 'rootimg/etc/fstab')
-        self.logger.info('Injected fstab')
-
-        #Done making changes to root fs
-        self.runCmd('sudo umount ' + self.tempdir + '' + self.name)
+        #CONTACT IMDeployServerIaaS to customize image ...
 
         print 'Name-User: ' + self.name + '-' + self.user
-
-##TODO. I think that this should be in deploy-server
 
         #Bucket folder
         self.runCmd('mkdir -p ' + self.tempdir + '' + self.user)

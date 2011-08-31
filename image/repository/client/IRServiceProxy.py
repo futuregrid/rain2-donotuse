@@ -361,10 +361,25 @@ class IRServiceProxy(object):
         
         extension=os.path.splitext(imgURI)[1]
         extension=string.split(extension, "_")[0]
+        
+        fulldestpath = dest + "/" + imgId + "" + extension
+                
+        if os.path.isfile(fulldestpath):
+            exists = True
+            i=0       
+            while (exists):            
+                aux = fulldestpath + "_" + i.__str__()
+                if os.path.isfile(aux):
+                    i+=1
+                else:
+                    exists = False
+                    fulldestpath = aux
+                
+    
         if self._verbose:
-            cmdscp = "scp " + userId + "@" + imgURI + " " + dest + "/" + imgId + "" + extension
+            cmdscp = "scp " + userId + "@" + imgURI + " " + fulldestpath
         else:
-            cmdscp = "scp -q " + userId + "@" + imgURI + " " + dest + "/" + imgId + "" + extension
+            cmdscp = "scp -q " + userId + "@" + imgURI + " " + fulldestpath
         #print cmdscp
         output = ""
         try:
@@ -372,7 +387,7 @@ class IRServiceProxy(object):
                 print "Retrieving the image"
             stat = os.system(cmdscp)
             if (stat == 0):
-                output = dest + "/" + imgId + "" + extension
+                output = fulldestpath
                 if (self._backend.strip() == "mongodb" or self._backend.strip() == "swiftmysql" or self._backend.strip() == "swiftmongo"
                     or self._backend.strip() == "cumulusmysql" or self._backend.strip() == "cumulusmongo"):
                     cmdrm = " rm -f " + (imgURI).split(":")[1]

@@ -196,10 +196,8 @@ class IMGenerateServer(object):
             self.errormsg(channel, msg)
             #break
             sys.exit(1)
-
         
         channel.write("OK")
-        
 
         vmfile = ""
         if self.os == "ubuntu":
@@ -302,7 +300,9 @@ class IMGenerateServer(object):
                                            
                         if self.getimg:                            
                             #send back the url where the image is                            
-                            channel.write(self.tempdirserver + "" + status + ".tgz")                
+                            channel.write(self.tempdirserver + "" + status + ".tgz")
+                            self.logger.info("Waiting until the client retrieve the image")
+                            channel.read()           
                             channel.shutdown(socket.SHUT_RDWR)
                             channel.close()
                         else:                                                        
@@ -316,28 +316,25 @@ class IMGenerateServer(object):
                                                              self.desc + "|tag=" + status)
                                 if(status_repo == "0"):                                
                                     msg = "ERROR: uploading image to the repository. File does not exists or metadata string is invalid"
-                                    error_repo = True
+                                    self.errormsg(channel, msg)
                                 elif(status_repo == "-1"):                                
                                     msg = "ERROR: uploading image to the repository. The User does not exist"
-                                    error_repo = True
+                                    self.errormsg(channel, msg)
                                 elif(status_repo == "-2"):                                
                                     msg = "ERROR: uploading image to the repository. The User is not active"
-                                    error_repo = True
+                                    self.errormsg(channel, msg)
                                 elif(status_repo == "-3"):
                                     msg = "ERROR: uploading image to the repository. The file exceed the quota"
-                                    error_repo = True
+                                    self.errormsg(channel, msg)
                                 else:                                    
                                     channel.write(str(status_repo))                
                                     channel.shutdown(socket.SHUT_RDWR)
                                     channel.close()
                             except:
                                 msg = "ERROR: uploading image to the repository. " + str(sys.exc_info())
-                                error_repo = True
-                                
-                            if error_repo:
-                                self.errormsg(channel, msg)
-                                os.system("rm -f " + self.tempdirserver + "/" + status + ".tgz")                                
-                            
+                                self.errormsg(channel, msg)    
+                                                                                                
+                        os.system("rm -f "+self.tempdirserver + "" + status + ".tgz")   
             
             #destroy VM
             self.logger.info("Destroy VM")

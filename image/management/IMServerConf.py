@@ -85,7 +85,7 @@ class IMServerConf(object):
         self._moab_port = 0
         self._moabInstallPath = ""
         self._log_moab = ""
-        self._timeToRestartMoab = 0
+        #self._timeToRestartMoab = 0
         self._logLevel_moab = ""
         self._ca_certs_moab = ""
         self._certfile_moab = ""
@@ -184,8 +184,8 @@ class IMServerConf(object):
         return self._moabInstallPath
     def getLogMoab(self):
         return self._log_moab
-    def getTimeToRestartMoab(self):
-        return self._timeToRestartMoab
+    #def getTimeToRestartMoab(self):
+        #return self._timeToRestartMoab
     def getLogLevelMoab(self):
         return self._logLevel_moab
     def getCaCertsMoab(self):
@@ -416,11 +416,13 @@ class IMServerConf(object):
         except ConfigParser.NoOptionError:
             print "Error: No moabInstallPath option found in section " + section
             sys.exit(1)
+        """
         try:
             self._timeToRestartMoab = int(self._config.get(section, 'timeToRestartMoab', 0))
         except ConfigParser.NoOptionError:
             print "Error: No timeToRestartMoab option found in section " + section
             sys.exit(1) 
+        """
         try:
             self._log_moab = os.path.expanduser(self._config.get(section, 'log', 0))
         except ConfigParser.NoOptionError:
