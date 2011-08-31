@@ -13,27 +13,23 @@ import cherrypy
 from cherrypy.lib import cptools
 import os, sys
 import os.path
+import re
+import string
 from getopt import gnu_getopt, GetoptError
 from datetime import datetime
+
 from IRTypes import ImgMeta
 from IRTypes import ImgEntry
 from IRTypes import IRUser
-from IRTypes import IRCredential
+from IRServerConf import IRServerConf
 import IRUtil
-import re
-import string
-
-
-sys.path.append(os.getcwd())
 
 try:
-    from futuregrid.utils import fgLog #This should the the final one
-#To execute IRClient for tests
+    from ....utils.FGTypes import FGTypes,fgLog
 except:
-    sys.path.append(os.path.dirname(__file__) + "/../../../") #Directory where fg.py is
-    from utils import fgLog
+    sys.path = [os.path.dirname(os.path.abspath(__file__)) + "/../../../utils"] + sys.path
+    import FGTypes, fgLog
 
-from IRServerConf import IRServerConf
 
 class IRService(object):
 
@@ -186,7 +182,7 @@ class IRService(object):
 
     def auth(self, userId, userCred):
         # to be implemented when integrating with the security framework
-        cred = IRCredential(self._repoConf.getIdp(), userCred)
+        cred = FGTypes.FGCredential(self._repoConf.getIdp(), userCred)
         return IRUtil.auth(userId, cred)
 
     def query(self, userId, queryString):
@@ -486,6 +482,7 @@ def main():
 
     if(len(opts) == 0):
         usage()
+        sys.exit(0)
 
     #Security mechanism. We create a list of users that can use this interface. For example, image generation user must be able to run this.
     AuthorizedUsers = service.getAuthorizedUsers()
@@ -501,7 +498,7 @@ def main():
         elif o in ("-l", "--auth"):
             #username = os.system("whoami")
             #service.auth(username)
-            print service.auth("fuwang", "PASS")
+            print service.auth("fuwang", "REMOVED")
         elif o in ("-q", "--list"):
             imgs = service.query(args[0], args[1])
             #for key in imgs.keys():

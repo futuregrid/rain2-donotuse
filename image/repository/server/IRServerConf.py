@@ -3,7 +3,6 @@
 utility class for static methods
 """
 
-from random import randrange
 import logging
 import sys, os
 import ConfigParser

@@ -18,7 +18,6 @@ from time import time
 from IRTypes import ImgMeta
 from IRTypes import ImgEntry
 from IRTypes import IRUser
-from IRTypes import IRCredential
 from IRClientConf import IRClientConf
 import string
 import sys

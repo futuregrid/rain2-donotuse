@@ -11,9 +11,19 @@ from cherrypy import _cpwsgi_server
 import os, sys
 import cherrypy.lib.sessions
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../server/')
-from IRService import IRService
-import IRUtil
-from IRTypes import ImgMeta, IRUser, IRCredential
+
+try:
+    from ..server import IRUtil # 3 dir levels up
+    from ..server.IRService import IRService
+    from ..server.IRTypes import ImgMeta, IRUser
+    from ....utils.FGTypes import FGCredential
+except:
+    sys.path = [os.path.dirname(os.path.abspath(__file__)) + "/../server"] + [os.path.dirname(os.path.abspath(__file__)) + "/../../../utils"] + sys.path
+    from IRService import IRService
+    import IRUtil
+    from IRTypes import ImgMeta, IRUser
+    from FGTypes import FGCredential
+
 from cherrypy.lib.static import serve_file
 import textwrap
 from random import randrange

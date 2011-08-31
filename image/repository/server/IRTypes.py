@@ -10,12 +10,6 @@ __version__ = '0.1'
 
 from datetime import datetime
 
-class IRCredential(object):
-    def __init__(self, provider, cred):
-        super(IRCredential, self).__init__()
-        self._provider = provider
-        self._cred = cred
-
 class IRUser(object):
 
     Status = ["pending", "active", "inactive"]

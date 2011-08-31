@@ -19,7 +19,6 @@ from getopt import gnu_getopt, GetoptError
 from IRTypes import ImgMeta
 from IRTypes import ImgEntry
 from IRTypes import IRUser
-from IRTypes import IRCredential
 from IRServiceProxy import IRServiceProxy
 import textwrap
 
