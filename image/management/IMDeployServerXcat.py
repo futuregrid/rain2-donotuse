@@ -358,7 +358,7 @@ class IMDeployServerXcat(object):
 
         #Hook for Debian based systems to work in xCAT                
         if self.operatingsystem == 'ubuntu' or self.operatingsystem == 'debian':
-            self.prefix = 'rhels5.4'
+            self.prefix = 'centos'
         else:
             self.prefix = ''
 
