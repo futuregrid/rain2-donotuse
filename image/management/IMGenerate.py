@@ -42,6 +42,9 @@ class IMGenerate(object):
         self.serveraddr = self._genConf.getServeraddr()
         self.gen_port = self._genConf.getGenPort()
         
+        self._ca_certs = self._deployConf.getCaCertsGen()
+        self._certfile = self._deployConf.getCertFileGen()
+        self._keyfile = self._deployConf.getKeyFileGen()
 
     def generate(self):
         #generate string with options separated by | character
@@ -64,20 +67,27 @@ class IMGenerate(object):
         print "Generating the image"
         
         #Notify xCAT deployment to finish the job
-        genServer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        
-        self.logger.debug("Connecting server: "+ self.serveraddr +":"+str(self.gen_port))
-        genServer.connect((self.serveraddr, self.gen_port))
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            genServer = ssl.wrap_socket(s,
+                                        ca_certs=self._ca_certs,
+                                        certfile=self._certfile,
+                                        keyfile=self._keyfile,
+                                        cert_reqs=ssl.CERT_REQUIRED)
+            self.logger.debug("Connecting server: "+ self.serveraddr +":"+str(self.gen_port))
+            genServer.connect((self.serveraddr, self.gen_port))            
+        except ssl.SSLError:
+            self.logger.error("CANNOT establish SSL connection. EXIT")
 
-        genServer.send(options)
+        genServer.write(options)
         #check if the server received all parameters
         print "Your image request is in the queue to be processed"
         
-        ret = genServer.recv(1024)
+        ret = genServer.read(1024)
         if (ret == "OK"):
             print "Your image request is being processed"
                 
-        ret = genServer.recv(2048)
+        ret = genServer.read(2048)
         
         if (re.search('^ERROR', ret)):
             self.logger.error('The image has not been generated properly. Exit error:' + ret)    

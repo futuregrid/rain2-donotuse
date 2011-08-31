@@ -137,8 +137,7 @@ class IMDeploy(object):
         self.logger.debug("shared dir between login machine and xcat machine" + self.shareddirserver)
         #################
         
-
-        
+        """
         urlparts = image.split("/")
         self.logger.debug(str(urlparts))
         if len(urlparts) == 1:
@@ -148,6 +147,9 @@ class IMDeploy(object):
         else:
             nameimg = urlparts[len(urlparts) - 1].split(".")[0]
 
+        
+        #REMOVE THIS. WE ONLY ALLOW DEPLOY IMAGES FROM REPOSITORY
+        #NOW IT IS NOT NEEDED THE SHAREDDIRSERVER.
         
         #Copy the image to the Shared directory.
         if (self.loginmachine == "localhost" or self.loginmachine == "127.0.0.1"):
@@ -160,21 +162,25 @@ class IMDeploy(object):
             cmd = 'scp ' + image + ' ' + self.user + '@' + self.loginmachine + ':' + self.shareddirserver + '/' + nameimg + '.tgz'
             self.logger.info(cmd)
             self.runCmd(cmd)
+        """
         
         #xCAT server                
         self.logger.info('Connecting to xCAT server')
 
         #msg = self.name + ',' + self.operatingsystem + ',' + self.version + ',' + self.arch + ',' + self.kernel + ',' + self.shareddirserver + ',' + self.machine
         
-        msg=self.shareddirserver + '/' + nameimg + '.tgz, '+str(self.kernel) + ', '+self.machine
+        #self.shareddirserver + '/' + nameimg + '.tgz, '
+        
+        msg =  str(image) + ', ' + str(self.kernel) + ', ' + self.machine + ', ' + self.user
         self.logger.debug('Sending message: ' + msg)
+        
         moabstring = ""
 
         #Notify xCAT deployment to finish the job
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             xcatServer = ssl.wrap_socket(s,
-                                        ca_certs= self._ca_certs,
+                                        ca_certs=self._ca_certs,
                                         certfile=self._certfile,
                                         keyfile=self._keyfile,
                                         cert_reqs=ssl.CERT_REQUIRED)
@@ -190,7 +196,7 @@ class IMDeploy(object):
             moabstring = xcatServer.read(2048)
             self.logger.debug("String receved from xcat server " + moabstring)
     	    params = moabstring.split(',')
-    	    imagename=params[0]+''+params[2]+''+params[1]
+    	    imagename = params[0] + '' + params[2] + '' + params[1]
             self.logger.info('Connecting to Moab server')	    
             moabstring += ',' + self.machine
     
@@ -201,7 +207,7 @@ class IMDeploy(object):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             moabServer = ssl.wrap_socket(s,
-                                        ca_certs= self._ca_certs,
+                                        ca_certs=self._ca_certs,
                                         certfile=self._certfile,
                                         keyfile=self._keyfile,
                                         cert_reqs=ssl.CERT_REQUIRED)
@@ -245,7 +251,7 @@ def main():
     ch.setLevel(logging.DEBUG)
     ch.setFormatter(formatter)
     logger.addHandler(ch)
-    logger.propagate=False #Do not propagate to others
+    logger.propagate = False #Do not propagate to others
 
     debugLevel = logging.INFO
  
@@ -256,6 +262,7 @@ def main():
     logger.info('Starting image deployer...')
 
     parser.add_option('-i', '--image', dest='image', help='Name of tgz file that contains manifest and img')
+    parser.add_option('-r', '--imgid', dest='imgid', help='Id of the image stored in the repository')
 
     #parser.add_option('-s', '--nasaddr', dest = 'nasaddr', help = 'Address to upload the image file. Login machine')
     #parser.add_option("-t", "--tempdir", dest = "shareddirserver", help = "shared dir to upload the image")
@@ -293,18 +300,26 @@ def main():
     imgdeploy = IMDeploy(ops.kernel, user, logger)
     #Define the type
 
-    #Get image destination
-    if isinstance(ops.image, NoneType) or not  os.path.isfile(ops.image):
-        parser.error('You need to specify a tgz that contains the image and the manifest (-i option)')
-        logger.error('Image file not found')
+    if not isinstance(ops.image, NoneType) and not isinstance(ops.imgid, NoneType):
+        parser.error('You only can not use -i/--image and -r/--imgid at the same time')
         sys.exit(1)
+    elif not isinstance(ops.image, NoneType):
+        if not  os.path.isfile(ops.image):
+            parser.error('You need to specify a tgz that contains the image and the manifest (-i option)')
+            logger.error('Image file not found')
+            sys.exit(1)
 
     #EUCALYPTUS
     if not isinstance(ops.euca, NoneType):
         imgdeploy.euca_method()
     #XCAT
-    elif not isinstance(ops.xcat, NoneType):        
-        imgdeploy.xcat_method(ops.xcat, ops.image)
+    elif not isinstance(ops.xcat, NoneType):
+        if isinstance(ops.imgid, NoneType):
+            parser.error('You need to specify the id of the image that you want to deploy (-r/--imgid option) \n'+ 
+                          'The parameter -i/--image cannot be used with this type of deployment')
+            sys.exit(1)
+        else:
+            imgdeploy.xcat_method(ops.xcat, ops.imgid)
 
     #NIMBUS
     elif not isinstance(ops.nimbus, NoneType):

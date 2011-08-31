@@ -306,7 +306,7 @@ class IMServerConf(object):
             print "Log level " + tempLevel + " not supported. Using the default one " + self._logLevel_default
             tempLevel = self._logLevel_default
         self._logLevel_gen = eval("logging." + tempLevel)
-        """
+        
         try:
             self._ca_certs_gen = os.path.expanduser(self._config.get(section, 'ca_cert', 0))
         except ConfigParser.NoOptionError:
@@ -322,7 +322,7 @@ class IMServerConf(object):
         except ConfigParser.NoOptionError:
             print "Error: No keyfile option found in section " + section
             sys.exit(1)
-        """
+        
     ############################################################
     # load_deployServerXcatConfig
     ############################################################

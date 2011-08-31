@@ -13,7 +13,7 @@ import logging.handlers
 import random
 import os
 import sys
-import socket
+import socket, ssl
 from multiprocessing import Process
 
 from subprocess import *
@@ -134,11 +134,26 @@ class IMGenerateServer(object):
                         time.sleep(self.refresh_status)
             
             total_count+=1
-            channel, details = sock.accept()            
-            proc_list.append(Process(target=self.generate, args=(channel,details, total_count)))            
-            proc_list[len(proc_list)-1].start()    
+            #channel, details = sock.accept()
+            newsocket, fromaddr = sock.accept()
+            connstream = 0
+            try:
+                connstream = ssl.wrap_socket(newsocket,
+                              server_side=True,
+                              ca_certs=self._ca_certs,
+                              cert_reqs=ssl.CERT_REQUIRED,
+                              certfile=self._certfile,
+                              keyfile=self._keyfile,
+                              ssl_version=ssl.PROTOCOL_TLSv1)
+                #print connstream                                
+                proc_list.append(Process(target=self.generate, args=(connstream, total_count)))            
+                proc_list[len(proc_list)-1].start()
+            except ssl.SSLError:
+                self.logger.error("Unsuccessful connection attempt from: " + repr(fromaddr))
+                  
+                
       
-    def generate(self, channel, details, pid):
+    def generate(self, channel, pid):
         #this runs in a different proccess
         
         self.logger=logging.getLogger("GenerateServer."+str(pid))
@@ -150,7 +165,7 @@ class IMGenerateServer(object):
         vmID = 0
         
         #receive the message
-        data = channel.recv(2048)
+        data = channel.read(2048)
         
         self.logger.debug("received data: "+data)
         
@@ -183,7 +198,7 @@ class IMGenerateServer(object):
             sys.exit(1)
 
         
-        channel.send("OK")
+        channel.write("OK")
         
 
         vmfile = ""
@@ -286,8 +301,9 @@ class IMGenerateServer(object):
                             sys.exit(1) 
                                            
                         if self.getimg:                            
-                            #send back the url where the image is
-                            channel.send(self.tempdirserver + "" + status + ".tgz")
+                            #send back the url where the image is                            
+                            channel.write(self.tempdirserver + "" + status + ".tgz")                
+                            channel.shutdown(socket.SHUT_RDWR)
                             channel.close()
                         else:                                                        
                             status_repo=""
@@ -309,8 +325,9 @@ class IMGenerateServer(object):
                                 elif(status_repo == "-3"):
                                     msg= "ERROR: uploading image to the repository. The file exceed the quota"
                                     error_repo = True
-                                else:
-                                    channel.send(str(status_repo))
+                                else:                                    
+                                    channel.write(str(status_repo))                
+                                    channel.shutdown(socket.SHUT_RDWR)
                                     channel.close()
                             except:
                                 msg= "ERROR: uploading image to the repository. "+str(sys.exc_info())
@@ -328,7 +345,8 @@ class IMGenerateServer(object):
     
     def errormsg(self, channel, msg):
         self.logger.error(msg)
-        channel.send(msg)
+        channel.write(msg)                
+        channel.shutdown(socket.SHUT_RDWR)
         channel.close()
     
     def boot_VM(self, server, vmfile):

@@ -189,7 +189,7 @@ class IRClientConf(object):
             cmdexec = " '" + self._serverdir + \
                     "IRService.py --getBackend " "'"
 
-            print "Requesting Server Config"
+            print "Requesting Respository Server Config"
             #aux=self._rExec(userId, cmdexec)
             cmdssh = "ssh " + userId + "@" + self._serveraddr
             aux = os.popen(cmdssh + cmdexec).read().strip()
@@ -205,7 +205,7 @@ class IRClientConf(object):
             except(IOError), e:
                 print "Unable to open the file", self._irconfig, "Ending program.\n", e
         else:
-            print "Reading Server Config from " + self._irconfig
+            print "Reading Repository Server Config from " + self._irconfig
             try:
                 f = open(self._irconfig, "r")
                 self._backend = f.readline()
@@ -216,5 +216,5 @@ class IRClientConf(object):
                 f.close()
             except(IOError), e:
                 print "Unable to open the file", self._irconfig, "Ending program.\n", e
-
+        print "Repository Information Read"
 

@@ -30,16 +30,17 @@ class IMDeployServerXcat(object):
         self.prefix = ""
         self.path = ""
         
-        self.numparams = 3   #image path
+        self.numparams = 4   #image path
         
         self.name = ""
+        self.givenname = ""
         self.operatingsystem = ""
         self.version = ""
         self.arch = ""
         self.kernel = ""
         
         self.machine = "" #india, minicluster,...
-
+        self.user=""
 
         #load from config file
         self._deployConf = IMServerConf()
@@ -112,19 +113,29 @@ class IMDeployServerXcat(object):
         data = connstream.read(2048)
         params = data.split(',')
         #print data
-        #params[0] is image path
+        #params[0] is image ID
         #params[1] is the kernel
         #params[2] is the machine
+        #params[3] is the user
         
-        image = params[0]
+        imgID = params[0]
         self.kernel = params[1].strip()
-        self.machine=params[2].strip()
+        self.machine = params[2].strip()
+        self.user = params[3].strip()
                        
-
         if len(params) != self.numparams:
             msg = "ERROR: incorrect message"
             self.errormsg(connstream, msg)
             return
+
+        #GET IMAGE from repo
+        self.logger.info("Retrieving image from repository")
+        image = self._reposervice.get(self.user, "img", imgID, self.tempdir)      
+        if image == None:
+            msg = "ERROR: Cannot get access to the image with imgId " + image
+            self.errormsg(connstream, msg)
+            return            
+        ################
 
         if not os.path.isfile(image):
             msg = "ERROR: file " + image + " not found"
@@ -149,6 +160,8 @@ class IMDeployServerXcat(object):
         cmd = 'mkdir -p ' + tftpimgdir
         status = self.runCmd(cmd)    
         if status != 0:
+            msg = "ERROR: creating tftpboot directories"
+            self.errormsg(connstream, msg)
             return
         
         if (self.operatingsystem == "ubuntu"):
@@ -223,14 +236,17 @@ class IMDeployServerXcat(object):
                 msg = "ERROR: retrieving/copying vmlinuz"
                 self.errormsg(connstream, msg)
                 return
-                                  
+        
+        cmd = "rm -rf "+ self.path + "temp "
+        self.runCmd(cmd)
+                                          
         #XCAT tables                
         cmd = 'chtab osimage.imagename=' + self.prefix + self.operatingsystem + '' + self.name + '-' + self.arch + '-netboot-compute osimage.profile=compute '\
                 'osimage.imagetype=linux osimage.provmethod=netboot osimage.osname=linux osimage.osvers=' + self.prefix + self.operatingsystem + '' + self.name + \
                 ' osimage.osarch=' + self.arch + ''
         self.logger.debug(cmd)
         if not self.test_mode:
-            status = os.system(cmd)
+            status = os.system("sudo "+cmd)
 
         if (self.machine == "india"):
             cmd = 'chtab boottarget.bprofile=' + self.prefix + self.operatingsystem + '' + self.name + ' boottarget.kernel=\'xcat/netboot/' + self.prefix + \
@@ -239,7 +255,7 @@ class IMDeployServerXcat(object):
                   self.operatingsystem + '' + self.name + '/' + self.arch + '/compute/rootimg.gz console=ttyS0,115200n8r\''                          
             self.logger.debug(cmd)
             if not self.test_mode:
-                status = os.system(cmd)
+                status = os.system("sudo "+cmd)
 
         #Pack image
         cmd = 'packimage -o ' + self.prefix + self.operatingsystem + '' + self.name + ' -p compute -a ' + self.arch
@@ -301,7 +317,7 @@ class IMDeployServerXcat(object):
 
         realnameimg = ""
         self.logger.info('untar file with image and manifest')
-        cmd = "tar xvfz " + image + " -C " + localtempdir
+        cmd = "sudo tar xvfz " + image + " -C " + localtempdir
         self.logger.debug(cmd)        
         p = Popen(cmd.split(' '), stdout=PIPE, stderr=PIPE)
         std = p.communicate()
@@ -324,6 +340,12 @@ class IMDeployServerXcat(object):
 
         manifestfile = open(localtempdir + "/" + self.manifestname, 'r')
         manifest = parse(manifestfile)
+
+        self.name = ""
+        self.givenname = ""
+        self.operatingsystem = ""
+        self.version = ""
+        self.arch = ""        
 
         self.name = manifest.getElementsByTagName('name')[0].firstChild.nodeValue.strip()
         self.givenname = manifest.getElementsByTagName('givenname')
@@ -358,6 +380,13 @@ class IMDeployServerXcat(object):
             self.errormsg(connstream, msg)
             return False
 
+        cmd = "chmod 777 "+ self.path + "temp"
+        status = self.runCmd(cmd)    
+        if status != 0:
+            msg = "ERROR: modifying temp dir permissons"
+            self.errormsg(connstream, msg)
+            return False
+
         cmd = 'mv -f ' + localtempdir + "/" + realnameimg + ".img " + self.path
         #print cmd
         status = self.runCmd(cmd) 
@@ -378,7 +407,7 @@ class IMDeployServerXcat(object):
             return False
         #copy files keeping the permission (-p parameter)
         cmd = 'cp -rp ' + self.path + 'temp/* ' + self.path + 'rootimg/'                
-        status = os.system(cmd)    
+        status = os.system("sudo "+cmd)    
         if status != 0:
             msg = "ERROR: copying image"
             self.errormsg(connstream, msg)
@@ -386,7 +415,7 @@ class IMDeployServerXcat(object):
         cmd = 'umount ' + self.path + 'temp'
         status = self.runCmd(cmd)
         #we need to read the manifest if we send here the image from the repository directly
-        cmd = 'rm -rf ' + self.path + "temp " + self.path + '' + self.name + '.img ' + self.path + '' + self.name + '.manifest.xml'
+        cmd = 'rm -f ' + self.path + '' + self.name + '.img ' + self.path + '' + self.name + '.manifest.xml'
         status = self.runCmd(cmd)    
         if status != 0:
             msg = "ERROR: unmounting image"
@@ -415,26 +444,26 @@ class IMDeployServerXcat(object):
             self.runCmd('chmod +x ' + self.path + '/rootimg/etc/netsetup/netsetup.sh')
             self.runCmd('rm -f ' + self.path + 'netsetup_minicluster.tgz')
             
-            os.system('cat ' + self.path + '/rootimg/etc/hosts' + ' > ' + self.path + '/_hosts') #Create it in a unique directory
-            f = open(self.path + '/_hosts', 'a')
+            os.system('cat ' + self.path + '/rootimg/etc/hosts' + ' > ' + self.path + '/temp/_hosts') #Create it in a unique directory
+            f = open(self.path + '/temp/_hosts', 'a')
             f.write("\n" + "172.29.200.1 t1 tm1" + '\n' + "172.29.200.3 tc1" + '\n' + "149.165.145.35 tc1r.tidp.iu.futuregrid.org tc1r" + '\n' + \
                     "172.29.200.4 tc2" + '\n' + "149.165.145.36 tc2r.tidp.iu.futuregrid.org tc2r" + '\n')
             f.close()
-            os.system('mv -f ' + self.path + '/_hosts ' + self.path + '/rootimg/etc/hosts')
-            os.system('chown root:root ' + self.path + '/rootimg/etc/hosts')
-            os.system('chmod 644 ' + self.path + '/rootimg/etc/hosts')
+            self.runCmd('mv -f ' + self.path + '/temp/_hosts ' + self.path + '/rootimg/etc/hosts')
+            self.runCmd('chown root:root ' + self.path + '/rootimg/etc/hosts')
+            self.runCmd('chmod 644 ' + self.path + '/rootimg/etc/hosts')
 
             self.runCmd('mkdir -p ' + self.path + '/rootimg/root/.ssh')
-            f = open(self.path + '/_authorized_keys', 'a') #Create it in a unique directory
+            f = open(self.path + '/temp/_authorized_keys', 'a') #Create it in a unique directory
             f.write("ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA5uo1oo4+/wzKl+4hfaD/cf4MF6WDrWnG8wtufSk4ThOvCfc4a1BiEUZ+O71"
                       "u1qzgbvi0TnA+tc3fS9mU2zrBZeIL1eB2VkK4cjzltIS6pthm8tFUCtS1hHYupnftC/1Hbzo2zJB+nGAfIznmkYATiVvulwl6SudV"
                       "RKM2SUahWsGXh4JkZqt4vAAuBVifFwE3axh3g9nji8wq4ITYjzTWDsogbcwsJNXpF9dkyuDg5xQmEszUsGSug3hA4aVrgs36cnLNG"
                       "5i+zWlwmA31IV+6Yyx1+s6YYp6YG8GNiuL1vZUYrnvfmRbm24eUc7cU4Dz6hBfI2wqjDkCU15HRM0ZV3Q== root@tm1" + '\n')
             f.close()
-            os.system('mv ' + self.path + '/_authorized_keys ' + self.path + '/rootimg/root/.ssh/authorized_keys')
+            self.runCmd('mv ' + self.path + '/temp/_authorized_keys ' + self.path + '/rootimg/root/.ssh/authorized_keys')
 
-            os.system('chown root:root ' + self.path + '/rootimg/root/.ssh/authorized_keys')
-            os.system('chmod 600 ' + self.path + '/rootimg/root/.ssh/authorized_keys')
+            self.runCmd('chown root:root ' + self.path + '/rootimg/root/.ssh/authorized_keys')
+            self.runCmd('chmod 600 ' + self.path + '/rootimg/root/.ssh/authorized_keys')
 
 
             fstab = '''
@@ -463,15 +492,15 @@ sysfs   /sys     sysfs    defaults       0 0
             status = self.runCmd('wget ' + self.http_server + '/conf/hosts_india -O ' + self.path + '/rootimg/etc/hosts')
             self.runCmd('mkdir -p ' + self.path + '/rootimg/root/.ssh')
  
-            f = open(self.path +'/_authorized_keys', 'a') #Create it in a unique directory
+            f = open(self.path +'/temp/_authorized_keys', 'a') #Create it in a unique directory
             f.write("\n" + "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAsAaCJFcGUXSmA2opcQk/HeuiJu417a69KbuWNjf1UqarP7t0hUpMXQnlc8+yfi"
                       "fI8FpoXtNCai8YEPmpyynqgF9VFSDwTp8use61hBPJn2isZha1JvkuYJX4n3FCHOeDlb2Y7M90DvdYHwhfPDa/jIy8PvFGiFkRLSt1kghY"
                       "xZSleiikl0OxFcjaI8N8EiEZK66HAwOiDHAn2k3oJDBTD69jydJsjExOwlqZoJ4G9ScfY0rpzNnjE9sdxpJMCWcj20y/2T/oeppLmkq7aQtu"
                       "p8JMPptL+kTz5psnjozTNQgLYtYHAcfy66AKELnLuGbOFQdYxnINhX3e0iQCDDI5YQ== jdiaz@india.futuregrid.org" + "\n")
             f.close()
-            os.system('mv '+ self.path +'/_authorized_keys ' + self.path + '/rootimg/root/.ssh/authorized_keys')
-            os.system('chown root:root ' + self.path + '/rootimg/root/.ssh/authorized_keys')
-            os.system('chmod 600 ' + self.path + '/rootimg/root/.ssh/authorized_keys')
+            self.runCmd('mv '+ self.path +'/temp/_authorized_keys ' + self.path + '/rootimg/root/.ssh/authorized_keys')
+            self.runCmd('chown root:root ' + self.path + '/rootimg/root/.ssh/authorized_keys')
+            self.runCmd('chmod 600 ' + self.path + '/rootimg/root/.ssh/authorized_keys')
 
             #self.runCmd('chroot '+self.path+'/rootimg/ /sbin/chkconfig --add pbs_mom')
             #self.runCmd('chroot '+self.path+'/rootimg/ /sbin/chkconfig pbs_mom on')       
@@ -489,27 +518,27 @@ sysfs   /sys     sysfs    defaults       0 0
 
             #Modifying rc.local to restart network and start pbs_mom at the end
             #os.system('touch ./_rc.local')
-            os.system('cat ' + self.path + '/rootimg/etc/rc.d/rc.local' + ' > '+ self.path +'/_rc.local') #Create it in a unique directory
-            f = open(self.path +'/_rc.local', 'a')
+            os.system('cat ' + self.path + '/rootimg/etc/rc.d/rc.local' + ' > '+ self.path +'/temp/_rc.local') #Create it in a unique directory
+            f = open(self.path +'/temp/_rc.local', 'a')
             f.write("\n" + "sleep 10" + "\n" + "/etc/init.d/pbs_mom start" + '\n')
             f.close()
-            os.system('mv -f '+ self.path +'/_rc.local ' + self.path + '/rootimg/etc/rc.d/rc.local')
-            os.system('chown root:root ' + self.path + '/rootimg/etc/rc.d/rc.local')
-            os.system('chmod 755 ' + self.path + '/rootimg/etc/rc.d/rc.local')
+            self.runCmd('mv -f '+ self.path +'/temp/_rc.local ' + self.path + '/rootimg/etc/rc.d/rc.local')
+            self.runCmd('chown root:root ' + self.path + '/rootimg/etc/rc.d/rc.local')
+            self.runCmd('chmod 755 ' + self.path + '/rootimg/etc/rc.d/rc.local')
 
 
-            f = open(self.path + '/config', 'w')
+            f = open(self.path + '/temp/config', 'w')
             f.write("opsys " + self.operatingsystem + "" + self.name + "\n" + "arch " + self.arch)
             f.close()
 
-            os.system('mv ' + self.path + '/config ' + self.path + '/rootimg/var/spool/torque/mom_priv/')
-            os.system('chown root:root ' + self.path + '/rootimg/var/spool/torque/mom_priv/config')
+            self.runCmd('mv ' + self.path + '/temp/config ' + self.path + '/rootimg/var/spool/torque/mom_priv/')
+            self.runCmd('chown root:root ' + self.path + '/rootimg/var/spool/torque/mom_priv/config')
 
         #Setup fstab
-        f = open(self.path + '/fstab', 'w')
+        f = open(self.path + '/temp/fstab', 'w')
         f.write(fstab)
         f.close()
-        os.system('mv -f ' + self.path + '/fstab ' + self.path + 'rootimg/etc/fstab')
+        self.runCmd('mv -f ' + self.path + '/temp/fstab ' + self.path + 'rootimg/etc/fstab')
         self.logger.info('Injected fstab')
         
         #Inject the kernel
@@ -528,6 +557,7 @@ sysfs   /sys     sysfs    defaults       0 0
         connstream.close()
     
     def runCmd(self, cmd):
+        cmd = 'sudo ' + cmd
         cmdLog = logging.getLogger('DeployXcat.exec')
         cmdLog.debug(cmd)
         p = Popen(cmd.split(' '), stdout=PIPE, stderr=PIPE)
@@ -545,9 +575,9 @@ sysfs   /sys     sysfs    defaults       0 0
 def main():
 
     #Check if we have root privs 
-    if os.getuid() != 0:
-        print "Sorry, you need to run with root privileges"
-        sys.exit(1)
+    #if os.getuid() != 0:
+    #    print "Sorry, you need to run with root privileges"
+    #    sys.exit(1)
 
     server = IMDeployServerXcat()
     server.start()

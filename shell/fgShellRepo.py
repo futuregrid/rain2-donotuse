@@ -356,10 +356,10 @@ class fgShellRepo(Cmd):
         args = self.getArgs(args)
 
         if (len(args) == 2):
-            imgstatus = self._service.get(os.popen('whoami', 'r').read().strip(), args[0], args[1])
+            imgstatus = self._service.get(os.popen('whoami', 'r').read().strip(), args[0], args[1], "./")
 
             if imgstatus:
-                print imgstatus
+                print "The image " + imgId + " is located in " +imgstatus
             else:
                 print "Cannot get access to the image with imgId = " + args[1]
         else:

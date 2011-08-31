@@ -82,9 +82,9 @@ class IMClientConf(object):
         return self._gen_port
     def getCaCertsGen(self):
         return self._ca_certs_gen
-    def getCertFileDep(self): 
+    def getCertFileGen(self): 
         return self._certfile_gen
-    def getKeyFileDep(self): 
+    def getKeyFileGen(self): 
         return self._keyfile_gen
 
     #Image deployment
@@ -132,7 +132,7 @@ class IMClientConf(object):
         except ConfigParser.NoOptionError:
             print "Error: No port option found in section " + section
             sys.exit(1)
-        """
+
         try:
             self._ca_certs_gen = os.path.expanduser(self._config.get(section, 'ca_cert', 0))
         except ConfigParser.NoOptionError:
@@ -148,7 +148,7 @@ class IMClientConf(object):
         except ConfigParser.NoOptionError:
             print "Error: No keyfile option found in section " + section
             sys.exit(1)
-        """
+
 
     ############################################################
     # load_deployConfig

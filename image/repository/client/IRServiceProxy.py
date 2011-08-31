@@ -141,7 +141,7 @@ class IRServiceProxy(object):
     ############################################################
     # get
     ############################################################
-    def get(self, userId, option, imgId):
+    def get(self, userId, option, imgId, dest):
         cmdexec = " '" + self._serverdir + \
                     "IRService.py --get " + userId + " " + option + " " + imgId + "'"
         #print cmdexec
@@ -151,7 +151,7 @@ class IRServiceProxy(object):
         if not imgURI == 'None':
             imgURI = self._serveraddr + ":" + imgURI
             if (option == "img"):
-                imgURI = self._retrieveImg(userId, imgId, imgURI)
+                imgURI = self._retrieveImg(userId, imgId, imgURI, dest)
         else:
             imgURI = None
 
@@ -357,22 +357,27 @@ class IRServiceProxy(object):
     ############################################################
     # _retrieveImg
     ############################################################
-    def _retrieveImg(self, userId, imgId, imgURI):
+    def _retrieveImg(self, userId, imgId, imgURI, dest):
         
         extension=os.path.splitext(imgURI)[1]
         extension=string.split(extension, "_")[0]
-        cmdscp = "scp " + userId + "@" + imgURI + " ./" + imgId + "" + extension
-        print cmdscp
+        if self._verbose:
+            cmdscp = "scp " + userId + "@" + imgURI + " " + dest + "/" + imgId + "" + extension
+        else:
+            cmdscp = "scp -q " + userId + "@" + imgURI + " " + dest + "/" + imgId + "" + extension
+        #print cmdscp
         output = ""
         try:
-            print "Retrieving the image"
+            if self._verbose:
+                print "Retrieving the image"
             stat = os.system(cmdscp)
             if (stat == 0):
-                output = "The image " + imgId + " is located in " + os.popen('pwd', 'r').read().strip() + "/" + imgId + "" + extension
+                output = dest + "/" + imgId + "" + extension
                 if (self._backend.strip() == "mongodb" or self._backend.strip() == "swiftmysql" or self._backend.strip() == "swiftmongo"
                     or self._backend.strip() == "cumulusmysql" or self._backend.strip() == "cumulusmongo"):
                     cmdrm = " rm -f " + (imgURI).split(":")[1]
-                    print "Post processing"
+                    if self._verbose:
+                        print "Post processing"
                     self._rExec(userId, cmdrm)
             else:
                 self._log.error("Error retrieving the image. Exit status " + str(stat))

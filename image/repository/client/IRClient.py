@@ -189,10 +189,9 @@ def main():
                     usage()
             elif o in ("-g", "--get"):
                 if (len(args) == 2):
-                    img1 = service.get(os.popen('whoami', 'r').read().strip(), args[0], args[1])
-                    #img2 = service.get(os.popen('whoami', 'r').read().strip(), option, id2)
+                    img1 = service.get(os.popen('whoami', 'r').read().strip(), args[0], args[1], "./")                    
                     if img1:
-                        print img1
+                        print "The image " + imgId + " is located in " + img1
                     else:
                         print "Cannot get access to the image with imgId = " + args[1]
                 else:
