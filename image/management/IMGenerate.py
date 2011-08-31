@@ -42,9 +42,9 @@ class IMGenerate(object):
         self.serveraddr = self._genConf.getServeraddr()
         self.gen_port = self._genConf.getGenPort()
         
-        self._ca_certs = self._deployConf.getCaCertsGen()
-        self._certfile = self._deployConf.getCertFileGen()
-        self._keyfile = self._deployConf.getKeyFileGen()
+        self._ca_certs = self._genConf.getCaCertsGen()
+        self._certfile = self._genConf.getCertFileGen()
+        self._keyfile = self._genConf.getKeyFileGen()
 
     def generate(self):
         #generate string with options separated by | character

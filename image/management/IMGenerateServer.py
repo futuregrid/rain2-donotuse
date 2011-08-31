@@ -81,9 +81,9 @@ class IMGenerateServer(object):
         self.logLevel = self._genConf.getLogLevelGen()    
         self.logger = self.setup_logger()
         
-        self._ca_certs = self._deployConf.getCaCertsGen()
-        self._certfile = self._deployConf.getCertFileGen()
-        self._keyfile = self._deployConf.getKeyFileGen()
+        self._ca_certs = self._genConf.getCaCertsGen()
+        self._certfile = self._genConf.getCertFileGen()
+        self._keyfile = self._genConf.getKeyFileGen()
         
         #Image repository Object
         self._reposervice = IRServiceProxy(False)
