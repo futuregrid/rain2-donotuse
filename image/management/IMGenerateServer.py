@@ -118,22 +118,22 @@ class IMGenerateServer(object):
         sock.bind(('', self.port))
         sock.listen(1) #Maximum of system unaccepted connections. Maximum value depend of the system (usually 5) 
                 
-        proc_list=[]
-        total_count=0
+        proc_list = []
+        total_count = 0
         while True:        
-            if len(proc_list)==self.proc_max:
-                full=True
+            if len(proc_list) == self.proc_max:
+                full = True
                 while full:
-                    for i in range(len(proc_list)-1,-1,-1):
+                    for i in range(len(proc_list) - 1, -1, -1):
                         #self.logger.debug(str(proc_list[i]))
                         if not proc_list[i].is_alive():
                             #print "dead"                        
                             proc_list.pop(i)
-                            full=False
+                            full = False
                     if full:
                         time.sleep(self.refresh_status)
             
-            total_count+=1
+            total_count += 1
             #channel, details = sock.accept()
             newsocket, fromaddr = sock.accept()
             connstream = 0
@@ -147,7 +147,7 @@ class IMGenerateServer(object):
                               ssl_version=ssl.PROTOCOL_TLSv1)
                 #print connstream                                
                 proc_list.append(Process(target=self.generate, args=(connstream, total_count)))            
-                proc_list[len(proc_list)-1].start()
+                proc_list[len(proc_list) - 1].start()
             except ssl.SSLError:
                 self.logger.error("Unsuccessful connection attempt from: " + repr(fromaddr))
                   
@@ -156,7 +156,7 @@ class IMGenerateServer(object):
     def generate(self, channel, pid):
         #this runs in a different proccess
         
-        self.logger=logging.getLogger("GenerateServer."+str(pid))
+        self.logger = logging.getLogger("GenerateServer." + str(pid))
         
         self.logger.info('Processing an image generation request')
         #it will have the IP of the VM
@@ -167,7 +167,7 @@ class IMGenerateServer(object):
         #receive the message
         data = channel.read(2048)
         
-        self.logger.debug("received data: "+data)
+        self.logger.debug("received data: " + data)
         
         params = data.split('|')
 
@@ -182,7 +182,7 @@ class IMGenerateServer(object):
         #params[8] is to retrieve the image or to upload in the repo (true or false, respectively)
 
         self.auth = params[0]
-        self.user =  params[1]                 
+        self.user = params[1]                 
         self.os = params[2]
         self.version = params[3] 
         self.arch = params[4]
@@ -241,7 +241,7 @@ class IMGenerateServer(object):
                 self.logger.info(cmdscp)
                 stat = os.system(cmdscp)
                 if (stat != 0):
-                    msg="ERROR: sending IMGenerateScript.py to the VM. Exit status " + str(stat)
+                    msg = "ERROR: sending IMGenerateScript.py to the VM. Exit status " + str(stat)
                     self.errormsg(channel, msg)
                 else:
                         
@@ -264,13 +264,13 @@ class IMGenerateServer(object):
             
                     uid = self._rExec(self.rootId, cmdexec, vmaddr)
                     
-                    self.logger.info("copying fg-image-generate.log to scrach partition "+self.tempdirserver)
-                    cmdscp = "scp -q " + self.rootId + "@" + vmaddr + ":/root/fg-image-generate.log "+self.tempdirserver+"/"+str(vmID)+"_gen.log"
+                    self.logger.info("copying fg-image-generate.log to scrach partition " + self.tempdirserver)
+                    cmdscp = "scp -q " + self.rootId + "@" + vmaddr + ":/root/fg-image-generate.log " + self.tempdirserver + "/" + str(vmID) + "_gen.log"
                     os.system(cmdscp)
                     
                     status = uid[0].strip() #it contains error or filename
                     if status == "error":
-                        msg = "ERROR: "+str(uid)
+                        msg = "ERROR: " + str(uid)
                         self.errormsg(channel, msg)
                     else:
                         #stat = 0
@@ -280,7 +280,7 @@ class IMGenerateServer(object):
                         cmdmount = " umount " + self.tempdir
                         self.logger.debug(cmd + cmdmount)
                         stat = os.system(cmd + cmdmount)
-                        self.logger.debug("exit status "+str(stat))
+                        self.logger.debug("exit status " + str(stat))
                             #if stat != 0:
                             #    time.sleep(2)
                         
@@ -306,36 +306,37 @@ class IMGenerateServer(object):
                             channel.shutdown(socket.SHUT_RDWR)
                             channel.close()
                         else:                                                        
-                            status_repo=""
+                            status_repo = ""
                             error_repo = False
                             #send back the ID of the image in the repository
                             try:
-                                self.logger.info("Storing image "+self.tempdirserver + "/" + status + ".tgz"+" in the repository")
-                                status_repo=self._reposervice.put(self.user, None, self.tempdirserver + "" + status + ".tgz", "os="+\
-                                                             self.os+"_"+self.version+"|arch="+self.arch+"|description="+self.desc )
+                                self.logger.info("Storing image " + self.tempdirserver + "/" + status + ".tgz" + " in the repository")
+                                status_repo = self._reposervice.put(self.user, None, self.tempdirserver + "" + status + ".tgz", "os=" + \
+                                                             self.os + "_" + self.version + "|arch=" + self.arch + "|description=" + \
+                                                             self.desc + "|tag=" + status)
                                 if(status_repo == "0"):                                
-                                    msg= "ERROR: uploading image to the repository. File does not exists or metadata string is invalid"
+                                    msg = "ERROR: uploading image to the repository. File does not exists or metadata string is invalid"
                                     error_repo = True
                                 elif(status_repo == "-1"):                                
-                                    msg= "ERROR: uploading image to the repository. The User does not exist"
+                                    msg = "ERROR: uploading image to the repository. The User does not exist"
                                     error_repo = True
                                 elif(status_repo == "-2"):                                
-                                    msg= "ERROR: uploading image to the repository. The User is not active"
+                                    msg = "ERROR: uploading image to the repository. The User is not active"
                                     error_repo = True
                                 elif(status_repo == "-3"):
-                                    msg= "ERROR: uploading image to the repository. The file exceed the quota"
+                                    msg = "ERROR: uploading image to the repository. The file exceed the quota"
                                     error_repo = True
                                 else:                                    
                                     channel.write(str(status_repo))                
                                     channel.shutdown(socket.SHUT_RDWR)
                                     channel.close()
                             except:
-                                msg= "ERROR: uploading image to the repository. "+str(sys.exc_info())
+                                msg = "ERROR: uploading image to the repository. " + str(sys.exc_info())
                                 error_repo = True
                                 
                             if error_repo:
                                 self.errormsg(channel, msg)
-                                os.system("rm -f "+self.tempdirserver + "/" + status + ".tgz")                                
+                                os.system("rm -f " + self.tempdirserver + "/" + status + ".tgz")                                
                             
             
             #destroy VM
