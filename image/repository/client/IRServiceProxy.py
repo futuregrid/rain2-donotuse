@@ -334,7 +334,8 @@ class IRServiceProxy(object):
 
         #TODO: do we want to use the .format statement from python to make code more readable?
 
-        cmdssh = "ssh " + userId + "@" + self._serveraddr
+        #cmdssh = "ssh " + userId + "@" + self._serveraddr
+        cmdssh = "ssh " + self._serveraddr
         tmpFile = "/tmp/" + str(time()) + str(self.randomId())
         #print tmpFile
         cmdexec = cmdexec + " > " + tmpFile
@@ -377,9 +378,11 @@ class IRServiceProxy(object):
                 
     
         if self._verbose:
-            cmdscp = "scp " + userId + "@" + imgURI + " " + fulldestpath
+            #cmdscp = "scp " + userId + "@" + imgURI + " " + fulldestpath
+            cmdscp = "scp " + imgURI + " " + fulldestpath
         else:
-            cmdscp = "scp -q " + userId + "@" + imgURI + " " + fulldestpath
+            #cmdscp = "scp -q " + userId + "@" + imgURI + " " + fulldestpath
+            cmdscp = "scp -q " + imgURI + " " + fulldestpath
         #print cmdscp
         output = ""
         try:
