@@ -453,10 +453,10 @@ class IMDeployServerXcat(object):
 
             self.runCmd('tar xfz ' + self.path + 'netsetup_minicluster.tgz -C ' + self.path + '/rootimg/etc/')
             self.runCmd('chmod +x ' + self.path + '/rootimg/etc/netsetup/netsetup.sh')
-            self.runCmd('ln -s /etc/init.d/netsetup.sh ' + self.path + '/rootimg/etc/rc2.d/S18netsetup')
-            self.runCmd('ln -s /etc/init.d/netsetup.sh ' + self.path + '/rootimg/etc/rc3.d/S18netsetup')
-            self.runCmd('ln -s /etc/init.d/netsetup.sh ' + self.path + '/rootimg/etc/rc4.d/S18netsetup')
-            self.runCmd('ln -s /etc/init.d/netsetup.sh ' + self.path + '/rootimg/etc/rc5.d/S18netsetup')
+            self.runCmd('cp '+ self.path + '/rootimg/etc/netsetup/netsetup.sh ' + self.path + '/rootimg/etc/rc2.d/S18netsetup')
+            self.runCmd('cp  '+ self.path + '/rootimg/etc/netsetup/netsetup.sh ' + self.path + '/rootimg/etc/rc3.d/S18netsetup')
+            self.runCmd('cp '+ self.path + '/rootimg/etc/netsetup/netsetup.sh ' + self.path + '/rootimg/etc/rc4.d/S18netsetup')
+            self.runCmd('cp '+ self.path + '/rootimg/etc/netsetup/netsetup.sh ' + self.path + '/rootimg/etc/rc5.d/S18netsetup')
             self.runCmd('rm -f ' + self.path + 'netsetup_minicluster.tgz')
             
             os.system('cat ' + self.path + '/rootimg/etc/hosts' + ' > ' + self.path + '/temp/_hosts') #Create it in a unique directory
@@ -500,10 +500,10 @@ sysfs   /sys     sysfs    defaults       0 0
             self.logger.info('Configuring network')
             status = self.runCmd('wget ' + self.http_server + '/conf/ubuntu/netsetup.sh_india -O ' + self.path + '/rootimg/etc/init.d/netsetup.sh')
             self.runCmd('chmod +x ' + self.path + '/rootimg/etc/init.d/netsetup.sh')
-            self.runCmd('ln -s /etc/init.d/netsetup.sh ' + self.path + '/rootimg/etc/rc2.d/S18netsetup')
-            self.runCmd('ln -s /etc/init.d/netsetup.sh ' + self.path + '/rootimg/etc/rc3.d/S18netsetup')
-            self.runCmd('ln -s /etc/init.d/netsetup.sh ' + self.path + '/rootimg/etc/rc4.d/S18netsetup')
-            self.runCmd('ln -s /etc/init.d/netsetup.sh ' + self.path + '/rootimg/etc/rc5.d/S18netsetup')
+            self.runCmd('cp -s '+ self.path + '/rootimg/etc/init.d/netsetup.sh ' + self.path + '/rootimg/etc/rc2.d/S18netsetup')
+            self.runCmd('cp -s '+ self.path + '/rootimg/etc/init.d/netsetup.sh ' + self.path + '/rootimg/etc/rc3.d/S18netsetup')
+            self.runCmd('cp -s '+ self.path + '/rootimg/etc/init.d/netsetup.sh ' + self.path + '/rootimg/etc/rc4.d/S18netsetup')
+            self.runCmd('cp -s '+ self.path + '/rootimg/etc/init.d/netsetup.sh ' + self.path + '/rootimg/etc/rc5.d/S18netsetup')
             #self.runCmd('chroot ' + self.path + '/rootimg/ /sbin/chkconfig --add netsetup.sh')
             
             status = self.runCmd('wget ' + self.http_server + '/conf/hosts_india -O ' + self.path + '/rootimg/etc/hosts')
