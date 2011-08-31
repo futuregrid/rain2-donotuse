@@ -48,9 +48,9 @@ def auth(userId, cred):
     authProvider = cred._provider
     authCred = cred._cred
     # print "'" + userId + "':'" + authProvider + "':'" + authCred + "'"
-    if(authProvider == "ldappass"):
+    if(authProvider == "ldappass" or authProvider == "ldappassmd5"):
         if(authCred != ""):
-	    host = config.get('LDAP', 'LDAPHOST')
+            host = config.get('LDAP', 'LDAPHOST')
             adminuser = config.get('LDAP', 'LDAPUSER')
             adminpass = config.get('LDAP', 'LDAPPASS')
             #print adminuser, adminpass
@@ -62,9 +62,12 @@ def auth(userId, cred):
                 ldapconn.start_tls_s()
                 log.info("tls started...")
                 ldapconn.bind_s(adminuser, adminpass)
-                m = hashlib.md5()
-                m.update(authCred)
-                passwd_input = m.hexdigest()
+                passwd_input = authCred
+                if(authProvider == "ldappass"):
+                    m = hashlib.md5()
+                    m.update(authCred)
+                    passwd_input = m.hexdigest()
+
                 #print passwd_input
                 passwd_processed = "{MD5}" + base64.b64encode(binascii.unhexlify(passwd_input))
                 #print passwd_processed
@@ -73,8 +76,8 @@ def auth(userId, cred):
                     ret = True
                     log.info("User '" + userId + "' successfully authenticated")
                 else:
-		    ret = False
-		    log.info("User '" + userId + "' failed to authenticate due to incorrect credential")
+                    ret = False
+                    log.info("User '" + userId + "' failed to authenticate due to incorrect credential")
                 #print ldapconn.compare_s(userdn, 'mail', "kevinwangfg@gmail.com")
                 #basedn = "ou=People,dc=futuregrid,dc=org"
                 #filter = "(uid=" + userId + ")"
@@ -84,8 +87,11 @@ def auth(userId, cred):
                 log.info("Your username or password is incorrect. Cannot bind as admin.")
                 ret = False
             except ldap.LDAPError:
-		log.info("User '" + userId + "' failed to authenticate due to LDAP error. The user may not exist.")
+                log.info("User '" + userId + "' failed to authenticate due to LDAP error. The user may not exist.")
                 ret = False
+            except:
+                ret = False
+                log.info("User '" + userId + "' failed to authenticate due to possible password encryption error")
             finally:
                 log.info("Unbinding from the LDAP.")
                 ldapconn.unbind()
@@ -112,11 +118,15 @@ def auth(userId, cred):
                 ret = True
                 log.info("User " + userId + " successfully authenticated")
             else:
-		log.info("User " + userId + " failed to authenticate")
+                ret = False
+                log.info("User " + userId + " failed to authenticate")
     return ret
 
 if __name__ == "__main__":
-    cred = IRCredential("ldappass", "REMOVED")
+    m = hashlib.md5()
+    m.update("REMOVED")
+    passwd_input = m.hexdigest()
+    cred = IRCredential("ldappassmd5", passwd_input)
     if(auth("testuser", cred)):
         print "logged in"
     else:
