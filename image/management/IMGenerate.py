@@ -14,7 +14,7 @@ import glob
 import random
 import os
 import sys
-import socket
+import socket, ssl
 from subprocess import *
 #from xml.dom.ext import *
 #from xml.dom.minidom import Document, parse
