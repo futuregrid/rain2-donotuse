@@ -96,6 +96,7 @@ class IMGenerate(object):
             if (ret == "OK"):
                 print "Your image request is being processed"
                 endloop = True
+                ret = genServer.read(2048)
             elif (ret == "TryAuthAgain"):
                 print "Permission denied, please try again. User is "+self.user
                 m = hashlib.md5()
@@ -105,8 +106,6 @@ class IMGenerate(object):
             else:
                 print ret
                 endloop = True
-                
-        ret = genServer.read(2048)
         
         if (re.search('^ERROR', ret)):
             self.logger.error('The image has not been generated properly. Exit error:' + ret)    

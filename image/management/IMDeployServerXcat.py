@@ -18,8 +18,10 @@ from xml.dom.minidom import Document, parse
 
 #Import client repository
 sys.path.append(os.getcwd())
-sys.path.append(os.path.dirname(__file__) + "/../")
-from repository.client.IRServiceProxy import IRServiceProxy
+sys.path.append(os.path.dirname(__file__) + "/../../")
+from image.repository.client.IRServiceProxy import IRServiceProxy
+from utils.FGTypes import FGCredential
+from utils import FGAuth
 
 class IMDeployServerXcat(object):
 
@@ -30,7 +32,7 @@ class IMDeployServerXcat(object):
         self.prefix = ""
         self.path = ""
         
-        self.numparams = 4   #image path
+        self.numparams = 6   #image path
         
         self.name = ""
         self.givenname = ""
@@ -41,6 +43,7 @@ class IMDeployServerXcat(object):
         
         self.machine = "" #india, minicluster,...
         self.user = ""
+        self.userCred = None
 
         #load from config file
         self._deployConf = IMServerConf()
@@ -106,7 +109,8 @@ class IMDeployServerXcat(object):
                 connstream.shutdown(socket.SHUT_RDWR)
                 connstream.close()       
  
-                
+    def auth(self):
+        return FGAuth.auth(self.user, self.userCred)                 
                 
     def process_client(self, connstream):
         self.logger.info('Accepted new connection')        
@@ -118,6 +122,8 @@ class IMDeployServerXcat(object):
         #params[1] is the kernel
         #params[2] is the machine
         #params[3] is the user
+        #params[4] is the user password
+        #params[5] is the type of password
         
         imgID = params[0]
         self.kernel = params[1].strip()
@@ -128,6 +134,25 @@ class IMDeployServerXcat(object):
             msg = "ERROR: incorrect message"
             self.errormsg(connstream, msg)
             return
+
+        retry=0
+        maxretry=3
+        endloop = False
+        while ( not endloop ):
+            self.userCred = FGCredential(passwd,passwdtype)
+            if self.auth():
+                channel.write("OK")
+                endloop = True
+            else:
+                channel.write("TryAuthAgain")
+                retry+=1
+                if retry < maxretry:
+                    passwd = channel.read(2048)
+                else:
+                    msg="ERROR: authentication failed"
+                    endloop = True
+                    self.errormsg(channel, msg)
+                    sys.exit(1)
 
         #GET IMAGE from repo
         self.logger.info("Retrieving image from repository")

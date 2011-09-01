@@ -22,13 +22,14 @@ class IMDeploy(object):
     ############################################################
     # __init__
     ############################################################
-    def __init__(self, kernel, user, logger):
+    def __init__(self, kernel, user, logger, passwd):
         super(IMDeploy, self).__init__()
 
         
         self.kernel = kernel
         self.user = user        
         self.logger = logger
+        self.passwd = passwd
 
         self.machine = ""  #(india or minicluster or ...)
         self.loginmachine = ""
@@ -46,6 +47,10 @@ class IMDeploy(object):
 
         self.tempdir = "" #DEPRECATED
 
+    def auth(self):
+        
+
+        
 
     #This need to be redo
     def euca_method(self):
@@ -161,6 +166,23 @@ class IMDeploy(object):
                                         cert_reqs=ssl.CERT_REQUIRED)
             xcatServer.connect((self.xcatmachine, self._xcat_port))
             xcatServer.write(msg)
+                        
+            endloop = False
+            while not endloop:
+                ret = genServer.read(1024)
+                if (ret == "OK"):
+                    print "Your image request is being processed"
+                    endloop = True
+                elif (ret == "TryAuthAgain"):
+                    print "Permission denied, please try again. User is "+self.user
+                    m = hashlib.md5()
+                    m.update(getpass())
+                    passwd = m.hexdigest()
+                    genServer.write(passwd)
+                else:
+                    print ret
+                    endloop = True
+            
             #print msg
             ret = xcatServer.read(1024)
             #check if the server received all parameters
@@ -169,7 +191,7 @@ class IMDeploy(object):
                 sys.exit(1)
             #recieve the prefix parameter from xcat server
             moabstring = xcatServer.read(2048)
-            self.logger.debug("String receved from xcat server " + moabstring)
+            self.logger.debug("String received from xcat server " + moabstring)
     	    params = moabstring.split(',')
     	    imagename = params[0] + '' + params[2] + '' + params[1]
             self.logger.info('Connecting to Moab server')	    
@@ -261,18 +283,21 @@ def main():
     if not ops.debug:        
         ch.setLevel(logging.INFO)
 
-    #defining FG user
     try:
         user = os.environ['FG_USER']
     except KeyError:
-        if not isinstance(ops.user, NoneType):
+        if type(ops.user) is not NoneType:
             user = ops.user
         else:
-            parser.error("Please, define FG_USER to indicate your user name or specify it by using the -u option")
-            logger.error("User not specified")
+            logger.debug("you need to specify you user name. It can be donw using the FG_USER variable or the option -u/--user")
             sys.exit(1)
 
-    imgdeploy = IMDeploy(ops.kernel, user, logger)
+    print "Please insert the password for the user "+ops.user+""
+    m = hashlib.md5()
+    m.update(getpass())
+    passwd = m.hexdigest()
+
+    imgdeploy = IMDeploy(ops.kernel, user, logger, passwd)
     #Define the type
 
     if not isinstance(ops.image, NoneType) and not isinstance(ops.imgid, NoneType):
@@ -283,6 +308,8 @@ def main():
             parser.error('You need to specify a tgz that contains the image and the manifest (-i option)')
             logger.error('Image file not found')
             sys.exit(1)
+
+    imgdeploy.auth()
 
     #EUCALYPTUS
     if not isinstance(ops.euca, NoneType):
