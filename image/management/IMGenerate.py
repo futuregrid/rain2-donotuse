@@ -67,7 +67,7 @@ class IMGenerate(object):
         
         options = str(self.user) + "|" + str(self.OS) + "|" + str(self.version) + "|" + str(self.arch) + "|" + \
                 str(self.software) + "|" + str(self.givenname) + "|" + str(self.desc) + "|" + str(self.getimg) + \
-                "ldappassmd5" + str(self.passwd) 
+                "|ldappassmd5|" + str(self.passwd) 
         
         self.logger.debug("string to send: "+options)
         

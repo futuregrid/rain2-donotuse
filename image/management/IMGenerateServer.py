@@ -41,7 +41,7 @@ class IMGenerateServer(object):
         #*********************        
         #this is to login in the VM. This MUST be root because IMGenerateScript needs this access.
         self.rootId = 'root'
-        self.numparams = 9
+        self.numparams = 10
         
         
         #this is the user that requested the image
@@ -49,7 +49,6 @@ class IMGenerateServer(object):
         self.os = ""
         self.version = ""
         self.arch = ""
-        self.auth = ""
         self.software = ""        
         self.givenname = ""
         self.desc = ""
@@ -156,7 +155,7 @@ class IMGenerateServer(object):
                 self.logger.error("Unsuccessful connection attempt from: " + repr(fromaddr))
                   
     def auth(self):
-        return FGAuth.auth(self.user, self.userCred)        
+        return utils.FGAuth.auth(self.user, self.userCred)        
       
     def generate(self, channel, pid):
         #this runs in a different proccess
@@ -195,7 +194,7 @@ class IMGenerateServer(object):
         self.givenname = params[5]
         self.desc = params[6]
         self.getimg = eval(params[7]) #boolean
-        self.userCred = IRCredential(params[8], params[9])
+        self.userCred = FRCredential(params[8], params[9])
                 
         if len(params) != self.numparams:
             msg = "ERROR: incorrect message"
