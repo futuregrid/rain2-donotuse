@@ -101,204 +101,202 @@ class IMDeployServerXcat(object):
                 self.process_client(connstream)
             except ssl.SSLError:
                 self.logger.error("Unsuccessful connection attempt from: " + repr(fromaddr))
+            except:
+                self.logger.error("Uncontrolled Error: " + str(sys.exc_info()))
             finally:
                 if connstream is ssl.SSLSocket:
                     connstream.shutdown(socket.SHUT_RDWR)
-                    connstream.close()                  
+                    connstream.close()
+                else:
+                    print "here"            
                 
                 
     def process_client(self, connstream):
-        try:
-            self.logger.info('Accepted new connection')        
-            #receive the message
-            data = connstream.read(2048)
-            params = data.split(',')
-            #print data
-            #params[0] is image ID
-            #params[1] is the kernel
-            #params[2] is the machine
-            #params[3] is the user
+        self.logger.info('Accepted new connection')        
+        #receive the message
+        data = connstream.read(2048)
+        params = data.split(',')
+        #print data
+        #params[0] is image ID
+        #params[1] is the kernel
+        #params[2] is the machine
+        #params[3] is the user
+        
+        imgID = params[0]
+        self.kernel = params[1].strip()
+        self.machine = params[2].strip()
+        self.user = params[3].strip()
+                       
+        if len(params) != self.numparams:
+            msg = "ERROR: incorrect message"
+            self.errormsg(connstream, msg)
+            return
+
+        #GET IMAGE from repo
+        self.logger.info("Retrieving image from repository")
+        image = self._reposervice.get(self.user, "img", imgID, self.tempdir)      
+        if image == None:
+            msg = "ERROR: Cannot get access to the image with imgId " + str(imgID)
+            self.errormsg(connstream, msg)
+            return            
+        ################
+
+        if not os.path.isfile(image):
+            msg = "ERROR: file " + image + " not found"
+            self.errormsg(connstream, msg)
+            return
+
+        #extracts image/manifest, read manifest and copy image right directory
+        if not self.handle_image(image, connstream):
+            return            
+
+        #Select kernel version
+        #This is not yet supported as we get always the same kernel
+        self.logger.debug("kernel: " + self.kernel)
+        if self.kernel == "None":
+            if (self.operatingsystem == "ubuntu"):
+                self.kernel = self.default_xcat_kernel_ubuntu                        
+            elif (self.operatingsystem == "centos"):
+                self.kernel = self.default_xcat_kernel_centos
+        
+        #create directory that contains initrd.img and vmlinuz
+        tftpimgdir = '/tftpboot/xcat/' + self.prefix + self.operatingsystem + '' + self.name + '/' + self.arch
+        cmd = 'mkdir -p ' + tftpimgdir
+        status = self.runCmd(cmd)    
+        if status != 0:
+            msg = "ERROR: creating tftpboot directories"
+            self.errormsg(connstream, msg)
+            return
+        
+        if (self.operatingsystem == "ubuntu"):
             
-            imgID = params[0]
-            self.kernel = params[1].strip()
-            self.machine = params[2].strip()
-            self.user = params[3].strip()
-                           
-            if len(params) != self.numparams:
-                msg = "ERROR: incorrect message"
-                self.errormsg(connstream, msg)
-                return
-    
-            #GET IMAGE from repo
-            self.logger.info("Retrieving image from repository")
-            image = self._reposervice.get(self.user, "img", imgID, self.tempdir)      
-            if image == None:
-                msg = "ERROR: Cannot get access to the image with imgId " + str(imgID)
-                self.errormsg(connstream, msg)
-                return            
-            ################
-    
-            if not os.path.isfile(image):
-                msg = "ERROR: file " + image + " not found"
-                self.errormsg(connstream, msg)
-                return
-    
-            #extracts image/manifest, read manifest and copy image right directory
-            if not self.handle_image(image, connstream):
-                return            
-    
-            #Select kernel version
-            #This is not yet supported as we get always the same kernel
-            self.logger.debug("kernel: " + self.kernel)
-            if self.kernel == "None":
-                if (self.operatingsystem == "ubuntu"):
-                    self.kernel = self.default_xcat_kernel_ubuntu                        
-                elif (self.operatingsystem == "centos"):
-                    self.kernel = self.default_xcat_kernel_centos
-            
-            #create directory that contains initrd.img and vmlinuz
-            tftpimgdir = '/tftpboot/xcat/' + self.prefix + self.operatingsystem + '' + self.name + '/' + self.arch
-            cmd = 'mkdir -p ' + tftpimgdir
+            #############################
+            #Insert client stuff for ubuntu. To be created. We may use the same function but Torque binaries and network config must be different
+            ############################
+            status = self.customize_ubuntu_img()
+                    
+            #getting initrd and kernel customized for xCAT
+            cmd = 'wget ' + self.http_server + '/kernel/specialubuntu/initrd.gz -O ' + self.path + '/initrd-stateless.gz'
             status = self.runCmd(cmd)    
             if status != 0:
-                msg = "ERROR: creating tftpboot directories"
+                msg = "ERROR: retrieving/copying initrd.gz"
+                self.errormsg(connstream, msg)
+                return    
+            cmd = 'wget ' + self.http_server + '/kernel/specialubuntu/kernel -O ' + self.path + '/kernel'
+            status = self.runCmd(cmd)    
+            if status != 0:
+                msg = "ERROR: retrieving/copying kernel"
                 self.errormsg(connstream, msg)
                 return
             
-            if (self.operatingsystem == "ubuntu"):
-                
-                #############################
-                #Insert client stuff for ubuntu. To be created. We may use the same function but Torque binaries and network config must be different
-                ############################
-                status = self.customize_ubuntu_img()
-                        
-                #getting initrd and kernel customized for xCAT
-                cmd = 'wget ' + self.http_server + '/kernel/specialubuntu/initrd.gz -O ' + self.path + '/initrd-stateless.gz'
-                status = self.runCmd(cmd)    
-                if status != 0:
-                    msg = "ERROR: retrieving/copying initrd.gz"
-                    self.errormsg(connstream, msg)
-                    return    
-                cmd = 'wget ' + self.http_server + '/kernel/specialubuntu/kernel -O ' + self.path + '/kernel'
-                status = self.runCmd(cmd)    
-                if status != 0:
-                    msg = "ERROR: retrieving/copying kernel"
-                    self.errormsg(connstream, msg)
-                    return
-                
-                #getting generic initrd and kernel 
-                cmd = 'wget ' + self.http_server + '/kernel/tftp/xcat/ubuntu10/' + self.arch + '/initrd.img -O ' + tftpimgdir + '/initrd.img'
-                status = self.runCmd(cmd)
-    
-                if status != 0:
-                    msg = "ERROR: retrieving/copying initrd.img"
-                    self.errormsg(connstream, msg)
-                    return
-    
-                cmd = 'wget ' + self.http_server + '/kernel/tftp/xcat/ubuntu10/' + self.arch + '/vmlinuz -O ' + tftpimgdir + '/vmlinuz'
-                status = self.runCmd(cmd)
-    
-                if status != 0:
-                    msg = "ERROR: retrieving/copying vmlinuz"
-                    self.errormsg(connstream, msg)
-                    return
-                
-            else: #Centos                    
-                status = self.customize_centos_img()
-                if status != 0:
-                    msg = "ERROR: customizing the image. Look into server logs for details"
-                    self.errormsg(connstream, msg)
-                    return    
-                
-                #getting initrd and kernel customized for xCAT
-                cmd = 'wget ' + self.http_server + '/kernel/initrd.gz -O ' + self.path + '/initrd-stateless.gz'
-                status = self.runCmd(cmd)    
-                if status != 0:
-                    msg = "ERROR: retrieving/copying initrd.gz"
-                    self.errormsg(connstream, msg)
-                    return    
-                cmd = 'wget ' + self.http_server + '/kernel/kernel -O ' + self.path + '/kernel'
-                status = self.runCmd(cmd)    
-                if status != 0:
-                    msg = "ERROR: retrieving/copying kernel"
-                    self.errormsg(connstream, msg)
-                    return
-                
-                #getting generic initrd and kernel
-                cmd = 'wget ' + self.http_server + '/kernel/tftp/xcat/centos5/' + self.arch + '/initrd.img -O ' + tftpimgdir + '/initrd.img'
-                status = self.runCmd(cmd)    
-                if status != 0:
-                    msg = "ERROR: retrieving/copying initrd.img"
-                    self.errormsg(connstream, msg)
-                    return    
-                cmd = 'wget ' + self.http_server + '/kernel/tftp/xcat/centos5/' + self.arch + '/vmlinuz -O ' + tftpimgdir + '/vmlinuz'
-                status = self.runCmd(cmd)    
-                if status != 0:
-                    msg = "ERROR: retrieving/copying vmlinuz"
-                    self.errormsg(connstream, msg)
-                    return
+            #getting generic initrd and kernel 
+            cmd = 'wget ' + self.http_server + '/kernel/tftp/xcat/ubuntu10/' + self.arch + '/initrd.img -O ' + tftpimgdir + '/initrd.img'
+            status = self.runCmd(cmd)
+
+            if status != 0:
+                msg = "ERROR: retrieving/copying initrd.img"
+                self.errormsg(connstream, msg)
+                return
+
+            cmd = 'wget ' + self.http_server + '/kernel/tftp/xcat/ubuntu10/' + self.arch + '/vmlinuz -O ' + tftpimgdir + '/vmlinuz'
+            status = self.runCmd(cmd)
+
+            if status != 0:
+                msg = "ERROR: retrieving/copying vmlinuz"
+                self.errormsg(connstream, msg)
+                return
             
-            cmd = "rm -rf " + self.path + "temp "
-            self.runCmd(cmd)
-                                              
-            #XCAT tables                
-            cmd = 'chtab osimage.imagename=' + self.prefix + self.operatingsystem + '' + self.name + '-' + self.arch + '-netboot-compute osimage.profile=compute '\
-                    'osimage.imagetype=linux osimage.provmethod=netboot osimage.osname=linux osimage.osvers=' + self.prefix + self.operatingsystem + '' + self.name + \
-                    ' osimage.osarch=' + self.arch + ''
+        else: #Centos                    
+            status = self.customize_centos_img()
+            if status != 0:
+                msg = "ERROR: customizing the image. Look into server logs for details"
+                self.errormsg(connstream, msg)
+                return    
+            
+            #getting initrd and kernel customized for xCAT
+            cmd = 'wget ' + self.http_server + '/kernel/initrd.gz -O ' + self.path + '/initrd-stateless.gz'
+            status = self.runCmd(cmd)    
+            if status != 0:
+                msg = "ERROR: retrieving/copying initrd.gz"
+                self.errormsg(connstream, msg)
+                return    
+            cmd = 'wget ' + self.http_server + '/kernel/kernel -O ' + self.path + '/kernel'
+            status = self.runCmd(cmd)    
+            if status != 0:
+                msg = "ERROR: retrieving/copying kernel"
+                self.errormsg(connstream, msg)
+                return
+            
+            #getting generic initrd and kernel
+            cmd = 'wget ' + self.http_server + '/kernel/tftp/xcat/centos5/' + self.arch + '/initrd.img -O ' + tftpimgdir + '/initrd.img'
+            status = self.runCmd(cmd)    
+            if status != 0:
+                msg = "ERROR: retrieving/copying initrd.img"
+                self.errormsg(connstream, msg)
+                return    
+            cmd = 'wget ' + self.http_server + '/kernel/tftp/xcat/centos5/' + self.arch + '/vmlinuz -O ' + tftpimgdir + '/vmlinuz'
+            status = self.runCmd(cmd)    
+            if status != 0:
+                msg = "ERROR: retrieving/copying vmlinuz"
+                self.errormsg(connstream, msg)
+                return
+        
+        cmd = "rm -rf " + self.path + "temp "
+        self.runCmd(cmd)
+                                          
+        #XCAT tables                
+        cmd = 'chtab osimage.imagename=' + self.prefix + self.operatingsystem + '' + self.name + '-' + self.arch + '-netboot-compute osimage.profile=compute '\
+                'osimage.imagetype=linux osimage.provmethod=netboot osimage.osname=linux osimage.osvers=' + self.prefix + self.operatingsystem + '' + self.name + \
+                ' osimage.osarch=' + self.arch + ''
+        self.logger.debug(cmd)
+        if not self.test_mode:
+            status = os.system("sudo " + cmd)
+
+        if (self.machine == "india"):
+            cmd = 'chtab boottarget.bprofile=' + self.prefix + self.operatingsystem + '' + self.name + ' boottarget.kernel=\'xcat/netboot/' + self.prefix + \
+                  self.operatingsystem + '' + self.name + '/' + self.arch + '/compute/kernel\' boottarget.initrd=\'xcat/netboot/' + self.prefix + self.operatingsystem + \
+                  '' + self.name + '/' + self.arch + '/compute/initrd-stateless.gz\' boottarget.kcmdline=\'imgurl=http://172.29.202.149/install/netboot/' + self.prefix + \
+                  self.operatingsystem + '' + self.name + '/' + self.arch + '/compute/rootimg.gz console=ttyS0,115200n8r\''                          
             self.logger.debug(cmd)
             if not self.test_mode:
                 status = os.system("sudo " + cmd)
-    
-            if (self.machine == "india"):
-                cmd = 'chtab boottarget.bprofile=' + self.prefix + self.operatingsystem + '' + self.name + ' boottarget.kernel=\'xcat/netboot/' + self.prefix + \
-                      self.operatingsystem + '' + self.name + '/' + self.arch + '/compute/kernel\' boottarget.initrd=\'xcat/netboot/' + self.prefix + self.operatingsystem + \
-                      '' + self.name + '/' + self.arch + '/compute/initrd-stateless.gz\' boottarget.kcmdline=\'imgurl=http://172.29.202.149/install/netboot/' + self.prefix + \
-                      self.operatingsystem + '' + self.name + '/' + self.arch + '/compute/rootimg.gz console=ttyS0,115200n8r\''                          
-                self.logger.debug(cmd)
-                if not self.test_mode:
-                    status = os.system("sudo " + cmd)
-    
-            #Pack image
-            cmd = 'packimage -o ' + self.prefix + self.operatingsystem + '' + self.name + ' -p compute -a ' + self.arch
-            self.logger.debug(cmd)
-            if not self.test_mode:
-                status = self.runCmd(cmd)
-            else:
-                status = 0
-            #    
-            if status != 0:
-                msg = "ERROR: packimage command"
-                self.errormsg(connstream, msg)
-                return
-            
-            #This should be done by qsub/msub by calling nodeset.
-            anotherdir = '/tftpboot/xcat/netboot/' + self.prefix + self.operatingsystem + '' + self.name + '/' + self.arch + '/compute/'
-            cmd = 'mkdir -p ' + anotherdir
+
+        #Pack image
+        cmd = 'packimage -o ' + self.prefix + self.operatingsystem + '' + self.name + ' -p compute -a ' + self.arch
+        self.logger.debug(cmd)
+        if not self.test_mode:
             status = self.runCmd(cmd)
-            cmd = 'cp ' + self.path + '/initrd-stateless.gz ' + self.path + '/kernel ' + anotherdir
-            status = self.runCmd(cmd)
-            #############
-            
-            """
-            #Do a nodeset
-            cmd = 'nodeset tc1 netboot=' + prefix + operatingsystem + '' + name + '-' + arch + '-compute'
-            self.runCmd(cmd)
-            self.runCmd('rpower tc1 boot')
-            """
-    
-            connstream.write("OK")    
-            self.logger.debug("sending to the client the info needed to register the image in Moab")
-    
-            moabstring = self.prefix + ',' + self.name + ',' + self.operatingsystem + ',' + self.arch    
-            self.logger.debug(moabstring)    
-            connstream.write(moabstring)
-            connstream.shutdown(socket.SHUT_RDWR)
-            connstream.close()
-        except:
-            self.logger.error("Uncontrolled Exception: " + str(sys.exc_info()) )
-        finally:
-            connstream.shutdown(socket.SHUT_RDWR)
-            connstream.close()
+        else:
+            status = 0
+        #    
+        if status != 0:
+            msg = "ERROR: packimage command"
+            self.errormsg(connstream, msg)
+            return
+        
+        #This should be done by qsub/msub by calling nodeset.
+        anotherdir = '/tftpboot/xcat/netboot/' + self.prefix + self.operatingsystem + '' + self.name + '/' + self.arch + '/compute/'
+        cmd = 'mkdir -p ' + anotherdir
+        status = self.runCmd(cmd)
+        cmd = 'cp ' + self.path + '/initrd-stateless.gz ' + self.path + '/kernel ' + anotherdir
+        status = self.runCmd(cmd)
+        #############
+        
+        """
+        #Do a nodeset
+        cmd = 'nodeset tc1 netboot=' + prefix + operatingsystem + '' + name + '-' + arch + '-compute'
+        self.runCmd(cmd)
+        self.runCmd('rpower tc1 boot')
+        """
+
+        connstream.write("OK")    
+        self.logger.debug("sending to the client the info needed to register the image in Moab")
+
+        moabstring = self.prefix + ',' + self.name + ',' + self.operatingsystem + ',' + self.arch    
+        self.logger.debug(moabstring)    
+        connstream.write(moabstring)
+        connstream.shutdown(socket.SHUT_RDWR)
+        connstream.close()
             
 
     def handle_image(self, image, connstream):
