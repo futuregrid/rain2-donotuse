@@ -154,7 +154,7 @@ class IMDeployServerXcat(object):
                     msg="ERROR: authentication failed"
                     endloop = True
                     self.errormsg(connstream, msg)
-                    sys.exit(1)
+                    return
 
         #GET IMAGE from repo
         self.logger.info("Retrieving image from repository")

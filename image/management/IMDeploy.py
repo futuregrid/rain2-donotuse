@@ -149,7 +149,7 @@ class IMDeploy(object):
         #msg = self.name + ',' + self.operatingsystem + ',' + self.version + ',' + self.arch + ',' + self.kernel + ',' + self.shareddirserver + ',' + self.machine
         
         #self.shareddirserver + '/' + nameimg + '.tgz, '
-        
+        moabstring = ""
         #Notify xCAT deployment to finish the job
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
@@ -160,7 +160,7 @@ class IMDeploy(object):
                                         cert_reqs=ssl.CERT_REQUIRED)
             xcatServer.connect((self.xcatmachine, self._xcat_port))
             
-            moabstring = ""
+            
             
             msg =  str(image) + ', ' + str(self.kernel) + ', ' + self.machine + ', ' + str(self.user) + ', ' + str(self.passwd) + ", ldappassmd5" 
             #self.logger.debug('Sending message: ' + msg)
@@ -199,8 +199,10 @@ class IMDeploy(object):
                 imagename = params[0] + '' + params[2] + '' + params[1]
                 self.logger.info('Connecting to Moab server')	    
                 moabstring += ',' + self.machine
+            else:
+                return
         
-                self.logger.debug('Sending message: ' + moabstring)    
+                    
         except ssl.SSLError:
             self.logger.error("CANNOT establish SSL connection. EXIT")
         
@@ -212,6 +214,8 @@ class IMDeploy(object):
                                         keyfile=self._keyfile,
                                         cert_reqs=ssl.CERT_REQUIRED)
             moabServer.connect((self.moabmachine, self._moab_port))
+            
+            self.logger.debug('Sending message: ' + moabstring)
             moabServer.write(moabstring)
             ret = moabServer.read(100)
             if ret != 'OK':
