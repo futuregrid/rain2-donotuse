@@ -15,6 +15,10 @@ from subprocess import *
 import logging
 import logging.handlers
 from xml.dom.minidom import Document, parse
+
+from getpass import getpass
+import hashlib
+
 from IMClientConf import IMClientConf
 
 default_euca_kernel = '2.6.27.21-0.1-xen'
