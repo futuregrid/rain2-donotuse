@@ -25,8 +25,11 @@ from IMServerConf import IMServerConf
 
 #Import client repository
 sys.path.append(os.getcwd())
-sys.path.append(os.path.dirname(__file__) + "/../")
-from repository.client.IRServiceProxy import IRServiceProxy
+sys.path.append(os.path.dirname(__file__) + "/../../")
+from image.repository.client.IRServiceProxy import IRServiceProxy
+from utils.FGTypes import FGCredential
+import utils.FGAuth
+
 
 class IMGenerateServer(object):
 
@@ -51,6 +54,7 @@ class IMGenerateServer(object):
         self.givenname = ""
         self.desc = ""
         self.getimg = False
+        self.userCred = None
         
         #load configuration
         self._genConf = IMServerConf()
@@ -151,7 +155,8 @@ class IMGenerateServer(object):
             except ssl.SSLError:
                 self.logger.error("Unsuccessful connection attempt from: " + repr(fromaddr))
                   
-                
+    def auth(self):
+        return FGAuth.auth(self.user, self.userCred)        
       
     def generate(self, channel, pid):
         #this runs in a different proccess
@@ -171,31 +176,34 @@ class IMGenerateServer(object):
         
         params = data.split('|')
 
-        #params[0] is auth
-        #params[1] is user
-        #params[2] is operating system
-        #params[3] is version
-        #params[4] is arch
-        #params[5] is software
-        #params[6] is givenname
-        #params[7] is the description
-        #params[8] is to retrieve the image or to upload in the repo (true or false, respectively)
-
-        self.auth = params[0]
-        self.user = params[1]                 
-        self.os = params[2]
-        self.version = params[3] 
-        self.arch = params[4]
-        self.software = params[5]        
-        self.givenname = params[6]
-        self.desc = params[7]
-        self.getimg = eval(params[8]) #boolean
+        #params[0] is user
+        #params[1] is operating system
+        #params[2] is version
+        #params[3] is arch
+        #params[4] is software
+        #params[5] is givenname
+        #params[6] is the description
+        #params[7] is to retrieve the image or to upload in the repo (true or false, respectively)
+        #params[8] is the user password
+        #params[9] is the type of password
         
+        self.user = params[0]                 
+        self.os = params[1]
+        self.version = params[2] 
+        self.arch = params[3]
+        self.software = params[4]        
+        self.givenname = params[5]
+        self.desc = params[6]
+        self.getimg = eval(params[7]) #boolean
+        self.userCred = IRCredential(params[8], params[9])
+                
         if len(params) != self.numparams:
             msg = "ERROR: incorrect message"
             self.errormsg(channel, msg)
             #break
             sys.exit(1)
+        
+        self.auth()
         
         channel.write("OK")
 

@@ -41,7 +41,7 @@ def auth(userId, cred):
     configFile = _configfile
     config = ConfigParser.ConfigParser()
     config.read(configFile)
-    logfile = config.get("RepoServer", "log")
+    logfile = config.get("LDAP", "log")
     
     log = fgLog(logfile, logging.INFO, "IRUtil Auth", False)
 

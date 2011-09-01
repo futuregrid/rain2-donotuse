@@ -19,17 +19,20 @@ from subprocess import *
 #from xml.dom.ext import *
 #from xml.dom.minidom import Document, parse
 from time import time
+from getpass import getpass
+import hashlib
+
 from IMClientConf import IMClientConf
 
 class IMGenerate(object):
-    def __init__(self, arch, OS, version, user, auth, software, givenname, desc, logger, getimg):
+    def __init__(self, arch, OS, version, user, software, givenname, desc, logger, getimg, passwd):
         super(IMGenerate, self).__init__()
         
         self.arch = arch
         self.OS = OS
         self.version = version
         self.user = user
-        self.auth = auth
+        self.passwd = passwd
         self.software = software
         self.givenname = givenname
         self.desc = desc
@@ -49,18 +52,22 @@ class IMGenerate(object):
     def generate(self):
         #generate string with options separated by | character
         
-        #params[0] is auth
-        #params[1] is user
-        #params[2] is operating system
-        #params[3] is version
-        #params[4] is arch
-        #params[5] is software
-        #params[6] is givenname
-        #params[7] is the description
-        #params[8] is to retrieve the image or to upload in the repo (true or false, respectively)
+        #params[0] is user
+        #params[1] is operating system
+        #params[2] is version
+        #params[3] is arch
+        #params[4] is software
+        #params[5] is givenname
+        #params[6] is the description
+        #params[7] is to retrieve the image or to upload in the repo (true or false, respectively)
+        #params[8] is the user password
+        #params[9] is the type of password
         
-        options = str(self.auth) + "|" + str(self.user) + "|" + str(self.OS) + "|" + str(self.version) + "|" + str(self.arch) + "|" + \
-                str(self.software) + "|" + str(self.givenname) + "|" + str(self.desc) + "|" + str(self.getimg)
+        
+        
+        options = str(self.user) + "|" + str(self.OS) + "|" + str(self.version) + "|" + str(self.arch) + "|" + \
+                str(self.software) + "|" + str(self.givenname) + "|" + str(self.desc) + "|" + str(self.getimg) + \
+                "ldappassmd5" + str(self.passwd) 
         
         self.logger.debug("string to send: "+options)
         
@@ -86,6 +93,8 @@ class IMGenerate(object):
         ret = genServer.read(1024)
         if (ret == "OK"):
             print "Your image request is being processed"
+        else:
+            print ret
                 
         ret = genServer.read(2048)
         
@@ -211,7 +220,7 @@ def main():
     parser.add_option("-o", "--os", dest="OS", help="specify destination Operating System")
     parser.add_option("-v", "--version", dest="version", help="Operating System version")
     parser.add_option("-a", "--arch", dest="arch", help="Destination hardware architecture")
-    parser.add_option("-l", "--auth", dest="auth", help="Authentication mechanism")
+#    parser.add_option("-l", "--auth", dest="auth", help="Authentication mechanism")
     parser.add_option("-s", "--software", dest="software", help="Software stack to be automatically installed")
     parser.add_option("-d", "--debug", action="store_true", dest="debug", help="Enable debugging")
     parser.add_option("-u", "--user", dest="user", help="FutureGrid username.")
@@ -231,14 +240,17 @@ def main():
         if type(ops.user) is not NoneType:
             user = ops.user
         else:
-            logger.debug("FG_USER is not defined, we are using default user name")
-            user = "default"
+            logger.debug("you need to specify you user name. It can be donw using the FG_USER variable or the option -u/--user")
+            sys.exit(1)
+
+    print "Please insert the password for the user "+ops.user+""
+    m = hashlib.md5()
+    m.update(getpass())
+    passwd = m.hexdigest()
 
     #Turn debugging off
     if not ops.debug:
         ch.setLevel(logging.INFO)
-
-    #TODO: authenticate user via promting for CERT or password to auth against LDAP db
 
     arch = "x86_64" #Default to 64-bit
 
@@ -253,11 +265,6 @@ def main():
             sys.exit(1)
 
     logger.debug('Selected Architecture: ' + arch)
-
-
-    #TODO: Authorization mechanism TBD
-    if type(ops.auth) is not NoneType:
-        auth = ""
 
     # Build the image
     version = ""
@@ -294,10 +301,8 @@ def main():
     else:
         parser.error("Incorrect OS type specified")
         sys.exit(1)
-
-
-
-    imgen = IMGenerate(arch, OS, version, user, ops.auth, ops.software, ops.givenname, ops.desc, logger, ops.getimg)
+    
+    imgen = IMGenerate(arch, OS, version, user, ops.software, ops.givenname, ops.desc, logger, ops.getimg, passwd)
     imgen.generate()
     
 
