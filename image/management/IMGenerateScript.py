@@ -147,7 +147,7 @@ def main():
     logger.debug('Selected Architecture: ' + arch)
 
     #Parse Software stack list
-    if type(ops.software) is not NoneType:
+    if ops.software == "None":
 
         #Assume its comma seperated, so parse
         packages = re.split('[, ]', ops.software)

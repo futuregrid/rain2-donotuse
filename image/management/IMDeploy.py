@@ -47,11 +47,6 @@ class IMDeploy(object):
 
         self.tempdir = "" #DEPRECATED
 
-    def auth(self):
-        
-
-        
-
     #This need to be redo
     def euca_method(self):
                 
@@ -168,6 +163,7 @@ class IMDeploy(object):
             xcatServer.write(msg)
                         
             endloop = False
+            fail = False
             while not endloop:
                 ret = genServer.read(1024)
                 if (ret == "OK"):
@@ -182,26 +178,24 @@ class IMDeploy(object):
                 else:
                     print ret
                     endloop = True
+                    fail = True
             
-            if (re.search('^ERROR', ret)):
-                self.logger.error('The image has not been generated properly. Exit error:' + ret)    
-            else:
-            
-            #print msg
-            ret = xcatServer.read(1024)
-            #check if the server received all parameters
-            if ret != 'OK':
-                self.logger.error('Incorrect reply from the xCat server:' + ret)
-                sys.exit(1)
-            #recieve the prefix parameter from xcat server
-            moabstring = xcatServer.read(2048)
-            self.logger.debug("String received from xcat server " + moabstring)
-    	    params = moabstring.split(',')
-    	    imagename = params[0] + '' + params[2] + '' + params[1]
-            self.logger.info('Connecting to Moab server')	    
-            moabstring += ',' + self.machine
-    
-            self.logger.debug('Sending message: ' + moabstring)    
+            if not fail:            
+                #print msg
+                ret = xcatServer.read(1024)
+                #check if the server received all parameters
+                if ret != 'OK':
+                    self.logger.error('Incorrect reply from the xCat server:' + ret)
+                    sys.exit(1)
+                #recieve the prefix parameter from xcat server
+                moabstring = xcatServer.read(2048)
+                self.logger.debug("String received from xcat server " + moabstring)
+                params = moabstring.split(',')
+                imagename = params[0] + '' + params[2] + '' + params[1]
+                self.logger.info('Connecting to Moab server')	    
+                moabstring += ',' + self.machine
+        
+                self.logger.debug('Sending message: ' + moabstring)    
         except ssl.SSLError:
             self.logger.error("CANNOT establish SSL connection. EXIT")
         
