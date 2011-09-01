@@ -295,7 +295,7 @@ class IMDeployServerXcat(object):
             connstream.shutdown(socket.SHUT_RDWR)
             connstream.close()
         except:
-            self.logger.error("Uncontrolled Error: " + str(sys.exc_info()) )
+            self.logger.error("Uncontrolled Exception: " + str(sys.exc_info()) )
         finally:
             connstream.shutdown(socket.SHUT_RDWR)
             connstream.close()
