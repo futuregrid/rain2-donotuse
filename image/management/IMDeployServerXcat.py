@@ -106,8 +106,9 @@ class IMDeployServerXcat(object):
                 self.logger.error("Unsuccessful connection attempt from: " + repr(fromaddr))
             except:
                 self.logger.error("Uncontrolled Error: " + str(sys.exc_info()))
-                connstream.shutdown(socket.SHUT_RDWR)
-                connstream.close()       
+                if type(connstream) is ssl.SSLSocket: 
+                    connstream.shutdown(socket.SHUT_RDWR)
+                    connstream.close()       
  
     def auth(self):
         return FGAuth.auth(self.user, self.userCred)                 
