@@ -207,7 +207,7 @@ class IMGenerateServer(object):
         maxretry=3
         endloop = False        
         while ( not endloop ):
-            self.userCred = FRCredential(passwd,passwdtype)
+            self.userCred = FGCredential(passwd,passwdtype)
             if self.auth():        
                 channel.write("OK")
                 success = True
