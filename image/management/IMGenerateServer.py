@@ -25,7 +25,7 @@ from IMServerConf import IMServerConf
 
 #Import client repository
 sys.path.append(os.getcwd())
-sys.path.append(os.path.dirname(__file__) + "/../../")
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../../")
 from image.repository.client.IRServiceProxy import IRServiceProxy
 from utils.FGTypes import FGCredential
 from utils import FGAuth
@@ -283,7 +283,7 @@ class IMGenerateServer(object):
             
                     uid = self._rExec(self.rootId, cmdexec, vmaddr)
                     
-                    self.logger.info("copying fg-image-generate.log to scrach partition " + self.tempdirserver)
+                    self.logger.info("copying fg-image-generate.log to scrach partition " + self.tempdirserver+ "/" + str(vmID) + "_gen.log")
                     cmdscp = "scp -q " + self.rootId + "@" + vmaddr + ":/root/fg-image-generate.log " + self.tempdirserver + "/" + str(vmID) + "_gen.log"
                     os.system(cmdscp)
                     

@@ -18,7 +18,7 @@ from xml.dom.minidom import Document, parse
 
 #Import client repository
 sys.path.append(os.getcwd())
-sys.path.append(os.path.dirname(__file__) + "/../../")
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../../")
 from image.repository.client.IRServiceProxy import IRServiceProxy
 from utils.FGTypes import FGCredential
 from utils import FGAuth
