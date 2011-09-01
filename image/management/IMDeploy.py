@@ -183,6 +183,10 @@ class IMDeploy(object):
                     print ret
                     endloop = True
             
+            if (re.search('^ERROR', ret)):
+                self.logger.error('The image has not been generated properly. Exit error:' + ret)    
+            else:
+            
             #print msg
             ret = xcatServer.read(1024)
             #check if the server received all parameters

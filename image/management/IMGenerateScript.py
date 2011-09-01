@@ -78,7 +78,6 @@ def main():
     parser.add_option("-o", "--os", dest = "os", help = "specify destination Operating System")
     parser.add_option("-v", "--version", dest = "version", help = "Operating System version")
     parser.add_option("-a", "--arch", dest = "arch", help = "Destination hardware architecture")
-    parser.add_option("-l", "--auth", dest = "auth", help = "Authentication mechanism")
     parser.add_option("-s", "--software", dest = "software", help = "Software stack to be automatically installed")
     parser.add_option("-d", "--debug", action = "store_true", dest = "debug", help = "Enable debugging")
     parser.add_option("-u", "--user", dest = "user", help = "FutureGrid username")
@@ -157,12 +156,6 @@ def main():
         logger.debug('Selected software packages: ' + packs)
     else:
         packs = 'wget'
-
-    """at this level we are already authenticated...delete..
-    #TODO: Authorization mechanism TBD
-    if type(ops.auth) is not NoneType:
-        auth = ""
-    """
 
     # Build the image
     #OS and Version already parsed in client side, just assign it

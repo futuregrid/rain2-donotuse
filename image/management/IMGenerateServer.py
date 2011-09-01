@@ -272,8 +272,6 @@ class IMGenerateServer(object):
                         options += " -n " + self.givenname
                     if type(self.desc) is not NoneType:
                         options += " -e " + self.desc
-                    if type(self.auth) is not NoneType:
-                        options += " -l " + self.auth
                     if type(self.software) is not NoneType:
                         options += " -s " + self.software
             
