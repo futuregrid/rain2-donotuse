@@ -163,7 +163,7 @@ class IMDeploy(object):
             moabstring = ""
             
             msg =  str(image) + ', ' + str(self.kernel) + ', ' + self.machine + ', ' + str(self.user) + ', ' + str(self.passwd) + ", ldappassmd5" 
-            self.logger.debug('Sending message: ' + msg)
+            #self.logger.debug('Sending message: ' + msg)
             
             xcatServer.write(msg)
                         

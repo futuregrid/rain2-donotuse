@@ -69,7 +69,7 @@ class IMGenerate(object):
                 str(self.software) + "|" + str(self.givenname) + "|" + str(self.desc) + "|" + str(self.getimg) + \
                 "|" + str(self.passwd) + "|ldappassmd5" 
         
-        self.logger.debug("string to send: "+options)
+        #self.logger.debug("string to send: "+options)
         
         #Notify xCAT deployment to finish the job
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
