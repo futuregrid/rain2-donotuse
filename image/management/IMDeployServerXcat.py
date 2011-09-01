@@ -556,8 +556,8 @@ sysfs   /sys     sysfs    defaults       0 0
         f.write(fstab)
         f.close()
         self.runCmd('mv -f ' + self.path + '/temp/fstab ' + self.path + 'rootimg/etc/fstab')
-        self.runCmd('chown root:root ' + self.path + '/rootimg/root/etc/fstab')
-        self.runCmd('chmod 644 ' + self.path + '/rootimg/root/etc/fstab')
+        self.runCmd('chown root:root ' + self.path + '/rootimg/etc/fstab')
+        self.runCmd('chmod 644 ' + self.path + '/rootimg/etc/fstab')
         self.logger.info('Injected fstab')
         
         #Inject the kernel
@@ -688,8 +688,8 @@ sysfs   /sys     sysfs    defaults       0 0
         f.write(fstab)
         f.close()
         self.runCmd('mv -f ' + self.path + '/temp/fstab ' + self.path + 'rootimg/etc/fstab')
-        self.runCmd('chown root:root ' + self.path + '/rootimg/root/etc/fstab')
-        self.runCmd('chmod 644 ' + self.path + '/rootimg/root/etc/fstab')
+        self.runCmd('chown root:root ' + self.path + '/rootimg/etc/fstab')
+        self.runCmd('chmod 644 ' + self.path + '/rootimg/etc/fstab')
         self.logger.info('Injected fstab')
         
         #Inject the kernel
