@@ -104,9 +104,9 @@ class ImgStoreMongo(AbstractImgStore):
         imgLinks = []
         extension= []
         result = self.queryStore([imgId], imgLinks, userId, admin, extension)
-        self._log.debug("extension: "+extension[0])
         
         if (result):
+            self._log.debug("extension: "+extension[0])
             filename = self._imgStore + "/" + imgId + "" + extension[0].strip()
             self._log.debug(filename)
             if not os.path.isfile(filename):

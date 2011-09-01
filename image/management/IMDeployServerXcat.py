@@ -132,7 +132,7 @@ class IMDeployServerXcat(object):
         self.logger.info("Retrieving image from repository")
         image = self._reposervice.get(self.user, "img", imgID, self.tempdir)      
         if image == None:
-            msg = "ERROR: Cannot get access to the image with imgId " + image
+            msg = "ERROR: Cannot get access to the image with imgId " + str(imgID)
             self.errormsg(connstream, msg)
             return            
         ################
