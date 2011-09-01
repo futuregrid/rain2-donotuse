@@ -205,16 +205,17 @@ class IMGenerateServer(object):
         
         retry=0
         maxretry=3
-        endloop = False        
+        endloop = False
         while ( not endloop ):
             self.userCred = FGCredential(passwd,passwdtype)
-            if self.auth():        
+            if self.auth():
                 channel.write("OK")
                 endloop = True
             else:
-                channel.write("TryAuthAgain")                
+                channel.write("TryAuthAgain")
                 retry+=1
                 if retry < maxretry:
+                    print "tryagain"
                     passwd = channel.read(2048)
                 else:
                     msg="ERROR: authentication failed"
