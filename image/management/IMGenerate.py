@@ -94,10 +94,11 @@ class IMGenerate(object):
         if (ret == "OK"):
             print "Your image request is being processed"
         elif (ret == "TryAuthAgain"):
-            print "Permission denied, please try again. User is "+ops.user
+            print "Permission denied, please try again. User is "+self.user
             m = hashlib.md5()
             m.update(getpass())
             passwd = m.hexdigest()
+            genServer.write(passwd)
         else:
             print ret
                 

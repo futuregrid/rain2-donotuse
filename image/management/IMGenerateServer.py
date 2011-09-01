@@ -210,7 +210,7 @@ class IMGenerateServer(object):
             self.userCred = FGCredential(passwd,passwdtype)
             if self.auth():        
                 channel.write("OK")
-                success = True
+                endloop = True
             else:
                 channel.write("TryAuthAgain")                
                 retry+=1
@@ -219,6 +219,7 @@ class IMGenerateServer(object):
                 else:
                     msg="ERROR: authentication failed"
                     self.errormsg(channel, msg)
+                    endloop = True
            
         vmfile = ""
         if self.os == "ubuntu":
