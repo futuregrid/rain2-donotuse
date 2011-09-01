@@ -455,7 +455,7 @@ class IMDeployServerXcat(object):
             self.runCmd('tar xfz ' + self.path + 'netsetup_minicluster.tgz -C ' + self.path + '/rootimg/etc/')
             self.runCmd('chmod +x ' + self.path + '/rootimg/etc/netsetup/netsetup.sh')
             self.runCmd('cp '+ self.path + '/rootimg/etc/netsetup/netsetup.sh ' + self.path + '/rootimg/etc/rc2.d/S18netsetup')
-            self.runCmd('cp  '+ self.path + '/rootimg/etc/netsetup/netsetup.sh ' + self.path + '/rootimg/etc/rc3.d/S18netsetup')
+            self.runCmd('cp '+ self.path + '/rootimg/etc/netsetup/netsetup.sh ' + self.path + '/rootimg/etc/rc3.d/S18netsetup')
             self.runCmd('cp '+ self.path + '/rootimg/etc/netsetup/netsetup.sh ' + self.path + '/rootimg/etc/rc4.d/S18netsetup')
             self.runCmd('cp '+ self.path + '/rootimg/etc/netsetup/netsetup.sh ' + self.path + '/rootimg/etc/rc5.d/S18netsetup')
             self.runCmd('rm -f ' + self.path + 'netsetup_minicluster.tgz')
@@ -548,8 +548,11 @@ sysfs   /sys     sysfs    defaults       0 0
         f.write("opsys " + self.prefix + self.operatingsystem + "" + self.name + "\n" + "arch " + self.arch)
         f.close()
 
-        self.runCmd('mv ' + self.path + '/temp/config ' + self.path + '/rootimg/var/spool/torque/mom_priv/')
-        self.runCmd('chown root:root ' + self.path + '/rootimg/var/spool/torque/mom_priv/config')
+        self.runCmd('mv ' + self.path + '/temp/config ' + self.path + '/rootimg/var/lib/torque/mom_priv/')
+        self.runCmd('chown root:root ' + self.path + '/rootimg/var/lib/torque/mom_priv/config')
+        self.runCmd('chmod ga+rwxt ' + self.path + '/rootimg/var/lib/torque/undelivered/')
+        self.runCmd('mkdir -p ' + self.path + '/rootimg/var/lib/torque/spool/')
+        self.runCmd('chmod ga+rwxt ' + self.path + '/rootimg/var/lib/torque/spool/')
 
         #Setup fstab
         f = open(self.path + '/temp/fstab', 'w')
