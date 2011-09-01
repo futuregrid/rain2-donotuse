@@ -28,7 +28,7 @@ sys.path.append(os.getcwd())
 sys.path.append(os.path.dirname(__file__) + "/../../")
 from image.repository.client.IRServiceProxy import IRServiceProxy
 from utils.FGTypes import FGCredential
-import utils.FGAuth
+from utils import FGAuth
 
 
 class IMGenerateServer(object):
@@ -203,8 +203,6 @@ class IMGenerateServer(object):
             #break
             sys.exit(1)
         
-        
-        
         retry=0
         maxretry=3
         endloop = False        
@@ -221,10 +219,7 @@ class IMGenerateServer(object):
                 else:
                     msg="ERROR: authentication failed"
                     self.errormsg(channel, msg)
-                    
-                
-                
-        
+           
         vmfile = ""
         if self.os == "ubuntu":
             vmfile = self.vmfile_ubuntu
