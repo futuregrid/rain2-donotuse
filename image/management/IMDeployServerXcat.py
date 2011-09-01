@@ -103,10 +103,9 @@ class IMDeployServerXcat(object):
                 self.logger.error("Unsuccessful connection attempt from: " + repr(fromaddr))
             except:
                 self.logger.error("Uncontrolled Error: " + str(sys.exc_info()))
-            finally:
-                if type(connstream) is ssl.SSLSocket:
-                    connstream.shutdown(socket.SHUT_RDWR)
-                    connstream.close()        
+                connstream.shutdown(socket.SHUT_RDWR)
+                connstream.close()       
+ 
                 
                 
     def process_client(self, connstream):
