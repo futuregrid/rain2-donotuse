@@ -155,7 +155,7 @@ class IMGenerateServer(object):
                 self.logger.error("Unsuccessful connection attempt from: " + repr(fromaddr))
                   
     def auth(self):
-        return utils.FGAuth.auth(self.user, self.userCred)        
+        return FGAuth.auth(self.user, self.userCred)        
       
     def generate(self, channel, pid):
         #this runs in a different proccess
