@@ -555,6 +555,8 @@ sysfs   /sys     sysfs    defaults       0 0
         f.write(fstab)
         f.close()
         self.runCmd('mv -f ' + self.path + '/temp/fstab ' + self.path + 'rootimg/etc/fstab')
+        self.runCmd('chown root:root ' + self.path + '/rootimg/root/etc/fstab')
+        self.runCmd('chmod 644 ' + self.path + '/rootimg/root/etc/fstab')
         self.logger.info('Injected fstab')
         
         #Inject the kernel
@@ -585,14 +587,16 @@ sysfs   /sys     sysfs    defaults       0 0
             status = self.runCmd('wget ' + self.http_server + '/conf/centos/netsetup_minicluster.tgz -O ' + self.path + 'netsetup_minicluster.tgz')
 
             self.runCmd('tar xfz ' + self.path + 'netsetup_minicluster.tgz -C ' + self.path + '/rootimg/etc/')
-            self.runCmd('chmod +x ' + self.path + '/rootimg/etc/netsetup/netsetup.sh')
+            self.runCmd('mv -f '+ self.path + '/rootimg/etc/netsetup/netsetup.sh ' + self.path + '/rootimg/etc/init.d/netsetup.sh')
+            self.runCmd('chmod +x ' + self.path + '/rootimg/etc/init.d/netsetup.sh')
+            self.runCmd('chroot ' + self.path + '/rootimg/ /sbin/chkconfig --add netsetup.sh')
             self.runCmd('rm -f ' + self.path + 'netsetup_minicluster.tgz')
             
             os.system('cat ' + self.path + '/rootimg/etc/hosts' + ' > ' + self.path + '/temp/_hosts') #Create it in a unique directory
             f = open(self.path + '/temp/_hosts', 'a')
             f.write("\n" + "172.29.200.1 t1 tm1" + '\n' + "172.29.200.3 tc1" + '\n' + "149.165.145.35 tc1r.tidp.iu.futuregrid.org tc1r" + '\n' + \
                     "172.29.200.4 tc2" + '\n' + "149.165.145.36 tc2r.tidp.iu.futuregrid.org tc2r" + '\n')
-            f.close()
+            f.close()            
             self.runCmd('mv -f ' + self.path + '/temp/_hosts ' + self.path + '/rootimg/etc/hosts')
             self.runCmd('chown root:root ' + self.path + '/rootimg/etc/hosts')
             self.runCmd('chmod 644 ' + self.path + '/rootimg/etc/hosts')
@@ -683,6 +687,8 @@ sysfs   /sys     sysfs    defaults       0 0
         f.write(fstab)
         f.close()
         self.runCmd('mv -f ' + self.path + '/temp/fstab ' + self.path + 'rootimg/etc/fstab')
+        self.runCmd('chown root:root ' + self.path + '/rootimg/root/etc/fstab')
+        self.runCmd('chmod 644 ' + self.path + '/rootimg/root/etc/fstab')
         self.logger.info('Injected fstab')
         
         #Inject the kernel
