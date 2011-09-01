@@ -11,7 +11,6 @@ import hashlib
 import base64
 import binascii
 import ldap
-import MySQLdb
 from fgLog import fgLog
 from FGTypes import FGCredential
 
@@ -97,6 +96,7 @@ def auth(userId, cred):
                 log.info("Unbinding from the LDAP.")
                 ldapconn.unbind()
     elif(authProvider == "drupalplain"):
+        import MySQLdb
         if(authCred != ""):
             m = hashlib.md5()
             m.update(authCred)

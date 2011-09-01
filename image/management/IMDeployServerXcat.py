@@ -444,20 +444,20 @@ class IMDeployServerXcat(object):
         
         if(self.machine == "minicluster"):
             self.logger.info('Torque for minicluster')                        
-            status = self.runCmd('wget ' + self.http_server + '/torque/torque-2.5.1_minicluster/var.tgz -O ' + self.path + '/var.tgz')
-            self.runCmd('tar xfz ' + self.path + '/var.tgz -C ' + self.path + '/rootimg/')            
-            #status = self.runCmd('wget ' + self.http_server + '/torque/torque-2.5.1_minicluster/pbs_mom -O ' + self.path + '/rootimg/etc/init.d/pbs_mom')            
-            self.runCmd('rm -f ' + self.path + '/var.tgz')
-
+            status = self.runCmd('wget ' + self.http_server + '/torque/torque-2.5.1_minicluster/pbs_environment -O ' +\
+                                  self.path + '/rootimage/var/lib/torque/pbs_environment')
+            status = self.runCmd('wget ' + self.http_server + '/torque/torque-2.5.1_minicluster/server_name -O ' +\
+                                  self.path + '/rootimage/var/lib/torque/server_name')
+            
             self.logger.info('Configuring network')
             status = self.runCmd('wget ' + self.http_server + '/conf/ubuntu/netsetup_minicluster.tgz -O ' + self.path + 'netsetup_minicluster.tgz')
 
             self.runCmd('tar xfz ' + self.path + 'netsetup_minicluster.tgz -C ' + self.path + '/rootimg/etc/')
             self.runCmd('chmod +x ' + self.path + '/rootimg/etc/netsetup/netsetup.sh')
-            self.runCmd('cp '+ self.path + '/rootimg/etc/netsetup/netsetup.sh ' + self.path + '/rootimg/etc/rc2.d/S18netsetup')
-            self.runCmd('cp '+ self.path + '/rootimg/etc/netsetup/netsetup.sh ' + self.path + '/rootimg/etc/rc3.d/S18netsetup')
-            self.runCmd('cp '+ self.path + '/rootimg/etc/netsetup/netsetup.sh ' + self.path + '/rootimg/etc/rc4.d/S18netsetup')
-            self.runCmd('cp '+ self.path + '/rootimg/etc/netsetup/netsetup.sh ' + self.path + '/rootimg/etc/rc5.d/S18netsetup')
+            self.runCmd('cp '+ self.path + '/rootimg/etc/netsetup/netsetup.sh ' + self.path + '/rootimg/etc/rc2.d/S20netsetup')
+            self.runCmd('cp '+ self.path + '/rootimg/etc/netsetup/netsetup.sh ' + self.path + '/rootimg/etc/rc3.d/S20netsetup')
+            self.runCmd('cp '+ self.path + '/rootimg/etc/netsetup/netsetup.sh ' + self.path + '/rootimg/etc/rc4.d/S20netsetup')
+            self.runCmd('cp '+ self.path + '/rootimg/etc/netsetup/netsetup.sh ' + self.path + '/rootimg/etc/rc5.d/S20netsetup')
             self.runCmd('rm -f ' + self.path + 'netsetup_minicluster.tgz')
             
             os.system('cat ' + self.path + '/rootimg/etc/hosts' + ' > ' + self.path + '/temp/_hosts') #Create it in a unique directory
@@ -493,18 +493,19 @@ sysfs   /sys     sysfs    defaults       0 0
 
         elif(self.machine == "india"):#Later we should be able to chose the cluster where is deployed
             self.logger.info('Torque for India')
-            status = self.runCmd('wget ' + self.http_server + '/torque/torque-2.4.8_india/var.tgz -O ' + self.path + '/var.tgz')            
-            self.runCmd('tar xfz ' + self.path + '/var.tgz -C ' + self.path + '/rootimg/')
-            #status = self.runCmd('wget ' + self.http_server + '/torque/torque-2.4.8_india/pbs_mom -O ' + self.path + '/rootimg/etc/init.d/pbs_mom')
-            self.runCmd('rm -f ' + self.path + '/var.tgz')
+            
+            status = self.runCmd('wget ' + self.http_server + '/torque/torque-2.4.8_india/pbs_environment -O ' +\
+                                  self.path + '/rootimage/var/lib/torque/pbs_environment')
+            status = self.runCmd('wget ' + self.http_server + '/torque/torque-2.4.8_india/server_name -O ' +\
+                                  self.path + '/rootimage/var/lib/torque/server_name')
             
             self.logger.info('Configuring network')
             status = self.runCmd('wget ' + self.http_server + '/conf/ubuntu/netsetup.sh_india -O ' + self.path + '/rootimg/etc/init.d/netsetup.sh')
             self.runCmd('chmod +x ' + self.path + '/rootimg/etc/init.d/netsetup.sh')
-            self.runCmd('cp '+ self.path + '/rootimg/etc/init.d/netsetup.sh ' + self.path + '/rootimg/etc/rc2.d/S18netsetup')
-            self.runCmd('cp '+ self.path + '/rootimg/etc/init.d/netsetup.sh ' + self.path + '/rootimg/etc/rc3.d/S18netsetup')
-            self.runCmd('cp '+ self.path + '/rootimg/etc/init.d/netsetup.sh ' + self.path + '/rootimg/etc/rc4.d/S18netsetup')
-            self.runCmd('cp '+ self.path + '/rootimg/etc/init.d/netsetup.sh ' + self.path + '/rootimg/etc/rc5.d/S18netsetup')
+            self.runCmd('cp '+ self.path + '/rootimg/etc/init.d/netsetup.sh ' + self.path + '/rootimg/etc/rc2.d/S20netsetup')
+            self.runCmd('cp '+ self.path + '/rootimg/etc/init.d/netsetup.sh ' + self.path + '/rootimg/etc/rc3.d/S20netsetup')
+            self.runCmd('cp '+ self.path + '/rootimg/etc/init.d/netsetup.sh ' + self.path + '/rootimg/etc/rc4.d/S20netsetup')
+            self.runCmd('cp '+ self.path + '/rootimg/etc/init.d/netsetup.sh ' + self.path + '/rootimg/etc/rc5.d/S20netsetup')
             #self.runCmd('chroot ' + self.path + '/rootimg/ /sbin/chkconfig --add netsetup.sh')
             
             status = self.runCmd('wget ' + self.http_server + '/conf/hosts_india -O ' + self.path + '/rootimg/etc/hosts')
