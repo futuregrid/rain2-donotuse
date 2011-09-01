@@ -71,8 +71,6 @@ class IMGenerate(object):
         
         self.logger.debug("string to send: "+options)
         
-        print "Generating the image"
-        
         #Notify xCAT deployment to finish the job
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
@@ -91,12 +89,12 @@ class IMGenerate(object):
         print "Your image request is in the queue to be processed"
         
         endloop = False
+        fail = False
         while not endloop:
             ret = genServer.read(1024)
             if (ret == "OK"):
                 print "Your image request is being processed"
                 endloop = True
-                ret = genServer.read(2048)
             elif (ret == "TryAuthAgain"):
                 print "Permission denied, please try again. User is "+self.user
                 m = hashlib.md5()
@@ -104,31 +102,35 @@ class IMGenerate(object):
                 passwd = m.hexdigest()
                 genServer.write(passwd)
             else:
-                print ret
+                self.logger.error(str(ret))
                 endloop = True
-        
-        if (re.search('^ERROR', ret)):
-            self.logger.error('The image has not been generated properly. Exit error:' + ret)    
-        else:
-            self.logger.debug("Returned string: " + str(ret))
+                fail = True
+        if not fail:
+            print "Generating the image"
+            ret = genServer.read(2048)
             
-            if self.getimg:            
-                output = self._retrieveImg(ret)
-                if output != None:  
-                    print output
-                genServer.write('end')
+            if (re.search('^ERROR', ret)):
+                self.logger.error('The image has not been generated properly. Exit error:' + ret)    
             else:
+                self.logger.debug("Returned string: " + str(ret))
                 
-                if (re.search('^ERROR', ret)):
-                    self.logger.error('The image has not been generated properly. Exit error:' + ret)
+                if self.getimg:            
+                    output = self._retrieveImg(ret)
+                    if output != None:  
+                        print output
+                    genServer.write('end')
                 else:
-                    print "Your image has be uploaded in the repository with ID="+str(ret)
                     
-            
-            print '\n The image and the manifest generated are packaged in a tgz file.'+\
-                  '\n Please be aware that this FutureGrid image does not have kernel and fstab. Thus, '+\
-                  'it is not built for any deployment type. To deploy the new image, use the IMDeploy command.'
-            #server return addr of the img and metafile compressed in a tgz or None
+                    if (re.search('^ERROR', ret)):
+                        self.logger.error('The image has not been generated properly. Exit error:' + ret)
+                    else:
+                        print "Your image has be uploaded in the repository with ID="+str(ret)
+                        
+                
+                print '\n The image and the manifest generated are packaged in a tgz file.'+\
+                      '\n Please be aware that this FutureGrid image does not have kernel and fstab. Thus, '+\
+                      'it is not built for any deployment type. To deploy the new image, use the IMDeploy command.'
+                #server return addr of the img and metafile compressed in a tgz or None
         
 
     ############################################################
