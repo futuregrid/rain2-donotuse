@@ -153,6 +153,8 @@ class IMGenerateServer(object):
                 proc_list[len(proc_list) - 1].start()
             except ssl.SSLError:
                 self.logger.error("Unsuccessful connection attempt from: " + repr(fromaddr))
+            except socket.error:
+                self.logger.error("Error with the socket connection")
                   
     def auth(self):
         return FGAuth.auth(self.user, self.userCred)        
