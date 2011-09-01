@@ -169,7 +169,7 @@ class IMDeploy(object):
             endloop = False
             fail = False
             while not endloop:
-                ret = genServer.read(1024)
+                ret = xcatServer.read(1024)
                 if (ret == "OK"):
                     print "Your image request is being processed"
                     endloop = True
