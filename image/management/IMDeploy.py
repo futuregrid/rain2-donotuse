@@ -178,7 +178,7 @@ class IMDeploy(object):
                     m = hashlib.md5()
                     m.update(getpass())
                     passwd = m.hexdigest()
-                    genServer.write(passwd)
+                    xcatServer.write(passwd)
                 else:
                     print ret
                     endloop = True
