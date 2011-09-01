@@ -143,17 +143,17 @@ class IMDeployServerXcat(object):
         while ( not endloop ):
             self.userCred = FGCredential(passwd,passwdtype)
             if self.auth():
-                channel.write("OK")
+                connstream.write("OK")
                 endloop = True
             else:
-                channel.write("TryAuthAgain")
+                connstream.write("TryAuthAgain")
                 retry+=1
                 if retry < maxretry:
-                    passwd = channel.read(2048)
+                    passwd = connstream.read(2048)
                 else:
                     msg="ERROR: authentication failed"
                     endloop = True
-                    self.errormsg(channel, msg)
+                    self.errormsg(connstream, msg)
                     sys.exit(1)
 
         #GET IMAGE from repo
