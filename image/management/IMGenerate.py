@@ -89,18 +89,22 @@ class IMGenerate(object):
         genServer.write(options)
         #check if the server received all parameters
         print "Your image request is in the queue to be processed"
-                
-        ret = genServer.read(1024)
-        if (ret == "OK"):
-            print "Your image request is being processed"
-        elif (ret == "TryAuthAgain"):
-            print "Permission denied, please try again. User is "+self.user
-            m = hashlib.md5()
-            m.update(getpass())
-            passwd = m.hexdigest()
-            genServer.write(passwd)
-        else:
-            print ret
+        
+        endloop = False
+        while not endloop:
+            ret = genServer.read(1024)
+            if (ret == "OK"):
+                print "Your image request is being processed"
+                endloop = True
+            elif (ret == "TryAuthAgain"):
+                print "Permission denied, please try again. User is "+self.user
+                m = hashlib.md5()
+                m.update(getpass())
+                passwd = m.hexdigest()
+                genServer.write(passwd)
+            else:
+                print ret
+                endloop = True
                 
         ret = genServer.read(2048)
         

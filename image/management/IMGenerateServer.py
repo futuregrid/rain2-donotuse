@@ -214,13 +214,15 @@ class IMGenerateServer(object):
             else:
                 channel.write("TryAuthAgain")
                 retry+=1
-                if retry <= maxretry:
+                if retry < maxretry:
                     print "tryagain"
                     passwd = channel.read(2048)
                 else:
                     msg="ERROR: authentication failed"
-                    self.errormsg(channel, msg)
                     endloop = True
+                    self.errormsg(channel, msg)
+                    sys.exit(1)
+                    
            
         vmfile = ""
         if self.os == "ubuntu":
