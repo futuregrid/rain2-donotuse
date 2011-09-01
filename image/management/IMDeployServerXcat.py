@@ -88,7 +88,7 @@ class IMDeployServerXcat(object):
         sock.listen(1)
         while True:
             newsocket, fromaddr = sock.accept()
-            connstream = 0
+            connstream = None
             try:
                 connstream = ssl.wrap_socket(newsocket,
                               server_side=True,
@@ -104,11 +104,9 @@ class IMDeployServerXcat(object):
             except:
                 self.logger.error("Uncontrolled Error: " + str(sys.exc_info()))
             finally:
-                if connstream is ssl.SSLSocket:
+                if type(connstream) is ssl.SSLSocket:
                     connstream.shutdown(socket.SHUT_RDWR)
-                    connstream.close()
-                else:
-                    print "here"            
+                    connstream.close()        
                 
                 
     def process_client(self, connstream):
