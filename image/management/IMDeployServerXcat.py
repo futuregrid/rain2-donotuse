@@ -129,7 +129,9 @@ class IMDeployServerXcat(object):
         self.kernel = params[1].strip()
         self.machine = params[2].strip()
         self.user = params[3].strip()
-                       
+        passwd = params[4]
+        passwdtype = params[5]
+              
         if len(params) != self.numparams:
             msg = "ERROR: incorrect message"
             self.errormsg(connstream, msg)

@@ -150,11 +150,6 @@ class IMDeploy(object):
         
         #self.shareddirserver + '/' + nameimg + '.tgz, '
         
-        msg =  str(image) + ', ' + str(self.kernel) + ', ' + self.machine + ', ' + self.user
-        self.logger.debug('Sending message: ' + msg)
-        
-        moabstring = ""
-
         #Notify xCAT deployment to finish the job
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
@@ -164,6 +159,12 @@ class IMDeploy(object):
                                         keyfile=self._keyfile,
                                         cert_reqs=ssl.CERT_REQUIRED)
             xcatServer.connect((self.xcatmachine, self._xcat_port))
+            
+            moabstring = ""
+            
+            msg =  str(image) + ', ' + str(self.kernel) + ', ' + self.machine + ', ' + str(self.user) + ', ' + str(self.passwd) + "|ldappassmd5" 
+            self.logger.debug('Sending message: ' + msg)
+            
             xcatServer.write(msg)
                         
             endloop = False
