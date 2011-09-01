@@ -203,10 +203,12 @@ class IMGenerateServer(object):
             #break
             sys.exit(1)
         
-        self.auth()
+        if self.auth():        
+            channel.write("OK")
+        else:
+            msg="ERROR: authentication failed"
+            self.errormsg(channel, msg)
         
-        channel.write("OK")
-
         vmfile = ""
         if self.os == "ubuntu":
             vmfile = self.vmfile_ubuntu
