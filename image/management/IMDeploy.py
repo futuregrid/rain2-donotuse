@@ -311,8 +311,6 @@ def main():
             logger.error('Image file not found')
             sys.exit(1)
 
-    imgdeploy.auth()
-
     #EUCALYPTUS
     if not isinstance(ops.euca, NoneType):
         imgdeploy.euca_method()
