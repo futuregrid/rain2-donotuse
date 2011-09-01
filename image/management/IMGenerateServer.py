@@ -194,7 +194,8 @@ class IMGenerateServer(object):
         self.givenname = params[5]
         self.desc = params[6]
         self.getimg = eval(params[7]) #boolean
-        self.userCred = FRCredential(params[8], params[9])
+        passwd = params[8]
+        passwdtype = params[9]
                 
         if len(params) != self.numparams:
             msg = "ERROR: incorrect message"
@@ -202,11 +203,27 @@ class IMGenerateServer(object):
             #break
             sys.exit(1)
         
-        if self.auth():        
-            channel.write("OK")
-        else:
-            msg="ERROR: authentication failed"
-            self.errormsg(channel, msg)
+        
+        
+        retry=0
+        maxretry=3
+        endloop = False        
+        while ( not endloop ):
+            self.userCred = FRCredential(passwd,passwdtype)
+            if self.auth():        
+                channel.write("OK")
+                success = True
+            else:
+                channel.write("TryAuthAgain")                
+                retry+=1
+                if retry < maxretry:
+                    passwd = channel.read(2048)
+                else:
+                    msg="ERROR: authentication failed"
+                    self.errormsg(channel, msg)
+                    
+                
+                
         
         vmfile = ""
         if self.os == "ubuntu":
