@@ -46,7 +46,11 @@ class IRServerConf(object):
                 if not os.path.isfile(self._configfile):   
                     self._log.error("ERROR: configuration file "+configFileName+" not found")
                     sys.exit(1)
-        
+                    
+        #image repo server
+        self._port = 0
+        self._proc_max = 0
+        self._refresh_status = 0
         #image repo server
         self._authorizedUsers=[]
         self._backend=""
@@ -88,6 +92,14 @@ class IRServerConf(object):
     def getLogLevelRepo(self):
         return self._logLevel_repo
     
+    #image generation server
+    def getPort(self):
+        return self._port
+    def getProcMax(self):
+        return self._proc_max
+    def getRefreshStatus(self):
+        self._refresh_status
+    
     def getAuthorizedUsers(self):
         return self._authorizedUsers    
     def getBackend(self):
@@ -116,6 +128,24 @@ class IRServerConf(object):
     def loadRepoServerConfig(self):
         section="RepoServer"
         try:
+            self._port = int(self._config.get(section, 'port', 0))
+        except ConfigParser.NoOptionError:
+            print "Error: No port option found in section " + section
+            sys.exit(1)
+        except ConfigParser.NoSectionError:
+            print "Error: no section "+section+" found in the "+self._configfile+" config file"
+            sys.exit(1)
+        try:
+            self._proc_max = int(self._config.get(section, 'proc_max', 0))
+        except ConfigParser.NoOptionError:
+            print "Error: No proc_max option found in section " + section
+            sys.exit(1)
+        try:
+            self._refresh_status = int(self._config.get(section, 'refresh', 0))
+        except ConfigParser.NoOptionError:
+            print "Error: No refresh option found in section " + section
+            sys.exit(1)
+        try:
             aux = self._config.get(section, 'authorizedusers', 0)
             aux1=aux.split(",")
             for i in aux1:
@@ -124,9 +154,6 @@ class IRServerConf(object):
         except ConfigParser.NoOptionError:
             self._log.error("No authorizedusers option found in section " + section)
             sys.exit(1)  
-        except ConfigParser.NoSectionError:
-            self._log.error("no section "+section+" found in the "+self._configfile+" config file")
-            sys.exit(1)
         try:
             self._backend = self._config.get(section, 'backend', 0)
         except ConfigParser.NoOptionError:

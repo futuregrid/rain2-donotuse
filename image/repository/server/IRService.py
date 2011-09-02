@@ -43,7 +43,7 @@ class IRService(object):
         self._repoConf = IRServerConf()
         self._repoConf.loadRepoServerConfig()
         
-        self._authorizedUsers=self._repoConf.getAuthorizedUsers()    
+        self._authorizedUsers=self._repoConf.getAuthorizedUsers()  #to be removed    
         self._backend = self._repoConf.getBackend()
         
         self._address = self._repoConf.getAddress()
@@ -104,6 +104,9 @@ class IRService(object):
             self.metaStore = ImgMetaStoreFS()
             self.imgStore = ImgStoreFS()
             self.userStore = IRUserStoreFS()
+
+    def getRepoConf(self):
+        return self._repoConf
 
     def genImgId(self):
         """
