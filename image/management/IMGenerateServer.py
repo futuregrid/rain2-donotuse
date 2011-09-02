@@ -188,16 +188,16 @@ class IMGenerateServer(object):
         #params[8] is the user password
         #params[9] is the type of password
         
-        self.user = params[0]                 
-        self.os = params[1]
-        self.version = params[2] 
-        self.arch = params[3]
-        self.software = params[4]        
-        self.givenname = params[5]
-        self.desc = params[6]
-        self.getimg = eval(params[7]) #boolean
-        passwd = params[8]
-        passwdtype = params[9]
+        self.user = params[0].strip()                
+        self.os = params[1].strip()
+        self.version = params[2].strip()
+        self.arch = params[3].strip()
+        self.software = params[4].strip()        
+        self.givenname = params[5].strip()
+        self.desc = params[6].strip()
+        self.getimg = eval(params[7]).strip() #boolean
+        passwd = params[8].strip()
+        passwdtype = params[9].strip()
                 
         if len(params) != self.numparams:
             msg = "ERROR: incorrect message"
@@ -209,7 +209,7 @@ class IMGenerateServer(object):
         maxretry=3
         endloop = False
         while ( not endloop ):
-            self.userCred = FGCredential(passwd,passwdtype)
+            self.userCred = FGCredential(passwdtype,passwd)
             if self.auth():
                 channel.write("OK")
                 endloop = True
@@ -223,7 +223,7 @@ class IMGenerateServer(object):
                     endloop = True
                     self.errormsg(channel, msg)
                     sys.exit(1)
-                    
+        #print "---Auth works---"            
         vmfile = ""
         if self.os == "ubuntu":
             vmfile = self.vmfile_ubuntu

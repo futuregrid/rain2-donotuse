@@ -132,8 +132,8 @@ class IMDeployServerXcat(object):
         self.kernel = params[1].strip()
         self.machine = params[2].strip()
         self.user = params[3].strip()
-        passwd = params[4]
-        passwdtype = params[5]
+        passwd = params[4].strip()
+        passwdtype = params[5].strip()
               
         if len(params) != self.numparams:
             msg = "ERROR: incorrect message"
@@ -144,8 +144,8 @@ class IMDeployServerXcat(object):
         maxretry=3
         endloop = False
         while ( not endloop ):
-            self.userCred = FGCredential(passwd,passwdtype)
-            if self.auth():
+            self.userCred = FGCredential(passwdtype,passwd)
+            if (self.auth()):
                 connstream.write("OK")
                 endloop = True
             else:
@@ -158,7 +158,7 @@ class IMDeployServerXcat(object):
                     endloop = True
                     self.errormsg(connstream, msg)
                     return
-
+        #print "---Auth works---"
         #GET IMAGE from repo
         self.logger.info("Retrieving image from repository")
         image = self._reposervice.get(self.user, "img", imgID, self.tempdir)      
