@@ -53,7 +53,6 @@ class IMGenerateServer(object):
         self.givenname = ""
         self.desc = ""
         self.getimg = False
-        self.userCred = None
         
         #load configuration
         self._genConf = IMServerConf()
@@ -149,20 +148,25 @@ class IMGenerateServer(object):
                               keyfile=self._keyfile,
                               ssl_version=ssl.PROTOCOL_TLSv1)
                 #print connstream                                
-                proc_list.append(Process(target=self.generate, args=(connstream, total_count)))            
+                proc_list.append(Process(target=self.generate, args=(connstream)))            
                 proc_list[len(proc_list) - 1].start()
             except ssl.SSLError:
                 self.logger.error("Unsuccessful connection attempt from: " + repr(fromaddr))
             except socket.error:
                 self.logger.error("Error with the socket connection")
+            except:
+                self.logger.error("Uncontrolled Error: " + str(sys.exc_info()))
+                if type(connstream) is ssl.SSLSocket: 
+                    connstream.shutdown(socket.SHUT_RDWR)
+                    connstream.close() 
                   
-    def auth(self):
-        return FGAuth.auth(self.user, self.userCred)        
+    def auth(self, userCred):
+        return FGAuth.auth(self.user, userCred)        
       
-    def generate(self, channel, pid):
+    def generate(self, channel):
         #this runs in a different proccess
         
-        self.logger = logging.getLogger("GenerateServer." + str(pid))
+        self.logger = logging.getLogger("GenerateServer." + str(os.getpid()))
         
         self.logger.info('Processing an image generation request')
         #it will have the IP of the VM
@@ -195,7 +199,7 @@ class IMGenerateServer(object):
         self.software = params[4].strip()        
         self.givenname = params[5].strip()
         self.desc = params[6].strip()
-        self.getimg = eval(params[7]).strip() #boolean
+        self.getimg = eval(params[7].strip()) #boolean
         passwd = params[8].strip()
         passwdtype = params[9].strip()
                 
@@ -205,21 +209,21 @@ class IMGenerateServer(object):
             #break
             sys.exit(1)
         
-        retry=0
-        maxretry=3
+        retry = 0
+        maxretry = 3
         endloop = False
-        while ( not endloop ):
-            self.userCred = FGCredential(passwdtype,passwd)
-            if self.auth():
+        while (not endloop):
+            userCred = FGCredential(passwdtype, passwd)
+            if self.auth(userCred):
                 channel.write("OK")
                 endloop = True
             else:
                 channel.write("TryAuthAgain")
-                retry+=1
+                retry += 1
                 if retry < maxretry:
                     passwd = channel.read(2048)
                 else:
-                    msg="ERROR: authentication failed"
+                    msg = "ERROR: authentication failed"
                     endloop = True
                     self.errormsg(channel, msg)
                     sys.exit(1)
@@ -285,7 +289,7 @@ class IMGenerateServer(object):
             
                     uid = self._rExec(self.rootId, cmdexec, vmaddr)
                     
-                    self.logger.info("copying fg-image-generate.log to scrach partition " + self.tempdirserver+ "/" + str(vmID) + "_gen.log"
+                    self.logger.info("copying fg-image-generate.log to scrach partition " + self.tempdirserver + "/" + str(vmID) + "_gen.log"
                                      )
                     cmdscp = "scp -q " + self.rootId + "@" + vmaddr + ":/root/fg-image-generate.log " + self.tempdirserver + "/" + str(vmID) + "_gen.log"
                     os.system(cmdscp)
@@ -358,18 +362,20 @@ class IMGenerateServer(object):
                                 msg = "ERROR: uploading image to the repository. " + str(sys.exc_info())
                                 self.errormsg(channel, msg)    
                                                                                                 
-                        os.system("rm -f "+self.tempdirserver + "" + status + ".tgz")   
+                        os.system("rm -f " + self.tempdirserver + "" + status + ".tgz")   
             
             #destroy VM
             self.logger.info("Destroy VM")
             server.one.vm.action(self.oneauth, "finalize", vmID)
-
+            
+            self.logger.info("Image Generation DONE")
     
     def errormsg(self, channel, msg):
-        self.logger.error(msg)
+        self.logger.error(msg)        
         channel.write(msg)                
         channel.shutdown(socket.SHUT_RDWR)
         channel.close()
+        self.logger.info("Image Generation DONE")
     
     def boot_VM(self, server, vmfile):
         """

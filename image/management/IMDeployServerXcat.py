@@ -43,7 +43,6 @@ class IMDeployServerXcat(object):
         
         self.machine = "" #india, minicluster,...
         self.user = ""
-        self.userCred = None
 
         #load from config file
         self._deployConf = IMServerConf()
@@ -112,8 +111,8 @@ class IMDeployServerXcat(object):
                     connstream.shutdown(socket.SHUT_RDWR)
                     connstream.close()       
  
-    def auth(self):
-        return FGAuth.auth(self.user, self.userCred)                 
+    def auth(self, userCred):
+        return FGAuth.auth(self.user, userCred)                 
                 
     def process_client(self, connstream):
         self.logger.info('Accepted new connection')        
@@ -128,7 +127,7 @@ class IMDeployServerXcat(object):
         #params[4] is the user password
         #params[5] is the type of password
         
-        imgID = params[0]
+        imgID = params[0].strip()
         self.kernel = params[1].strip()
         self.machine = params[2].strip()
         self.user = params[3].strip()
@@ -144,8 +143,8 @@ class IMDeployServerXcat(object):
         maxretry=3
         endloop = False
         while ( not endloop ):
-            self.userCred = FGCredential(passwdtype,passwd)
-            if (self.auth()):
+            userCred = FGCredential(passwdtype,passwd)
+            if (self.auth(userCred)):
                 connstream.write("OK")
                 endloop = True
             else:
@@ -324,6 +323,8 @@ class IMDeployServerXcat(object):
         connstream.write(moabstring)
         connstream.shutdown(socket.SHUT_RDWR)
         connstream.close()
+        
+        self.logger.info("Image Deploy DONE")
             
 
     def handle_image(self, image, connstream):
@@ -740,6 +741,7 @@ sysfs   /sys     sysfs    defaults       0 0
         connstream.write(msg)
         connstream.shutdown(socket.SHUT_RDWR)
         connstream.close()
+        self.logger.info("Image Deploy DONE")
     
     def runCmd(self, cmd):
         cmd = 'sudo ' + cmd
