@@ -13,6 +13,8 @@ import binascii
 import ldap
 from fgLog import fgLog
 from FGTypes import FGCredential
+from getpass import getpass
+
 
 configFileName = "fg-server.conf"
 ############################################################
@@ -87,11 +89,11 @@ def auth(userId, cred):
                 log.info("Your username or password is incorrect. Cannot bind as admin.")
                 ret = False
             except ldap.LDAPError:
-                log.info("User '" + userId + "' failed to authenticate due to LDAP error. The user may not exist.")
+                log.info("User '" + userId + "' failed to authenticate due to LDAP error. The user may not exist."+ str(sys.exc_info()))
                 ret = False
             except:
                 ret = False
-                log.info("User '" + userId + "' failed to authenticate due to possible password encryption error")
+                log.info("User '" + userId + "' failed to authenticate due to possible password encryption error."+str(sys.exc_info()))
             finally:
                 log.info("Unbinding from the LDAP.")
                 ldapconn.unbind()
@@ -125,7 +127,7 @@ def auth(userId, cred):
 
 if __name__ == "__main__":
     m = hashlib.md5()
-    m.update("REMOVED")
+    m.update(getpass())
     passwd_input = m.hexdigest()
     cred = FGCredential("ldappassmd5", passwd_input)
     if(auth("testuser", cred)):
