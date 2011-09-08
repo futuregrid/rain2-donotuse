@@ -88,7 +88,7 @@ class IMGenerateServer(object):
         self._keyfile = self._genConf.getKeyFileGen()
         
         #Image repository Object
-        self._reposervice = IRServiceProxy(False)
+        self._reposervice = IRServiceProxy(False,False)
     
     def setup_logger(self):
         #Setup logging
@@ -148,7 +148,7 @@ class IMGenerateServer(object):
                               keyfile=self._keyfile,
                               ssl_version=ssl.PROTOCOL_TLSv1)
                 #print connstream                                
-                proc_list.append(Process(target=self.generate, args=(connstream)))            
+                proc_list.append(Process(target=self.generate, args=(connstream,)))            
                 proc_list[len(proc_list) - 1].start()
             except ssl.SSLError:
                 self.logger.error("Unsuccessful connection attempt from: " + repr(fromaddr))
@@ -159,6 +159,8 @@ class IMGenerateServer(object):
                 if type(connstream) is ssl.SSLSocket: 
                     connstream.shutdown(socket.SHUT_RDWR)
                     connstream.close() 
+            finally:
+                self.logger.info("Image Generation Request DONE")
                   
     def auth(self, userCred):
         return FGAuth.auth(self.user, userCred)        
@@ -208,7 +210,6 @@ class IMGenerateServer(object):
             self.errormsg(channel, msg)
             #break
             sys.exit(1)
-        
         retry = 0
         maxretry = 3
         endloop = False
@@ -217,16 +218,17 @@ class IMGenerateServer(object):
             if self.auth(userCred):
                 channel.write("OK")
                 endloop = True
-            else:
-                channel.write("TryAuthAgain")
+            else:                
                 retry += 1
                 if retry < maxretry:
+                    channel.write("TryAuthAgain")
                     passwd = channel.read(2048)
                 else:
                     msg = "ERROR: authentication failed"
                     endloop = True
                     self.errormsg(channel, msg)
                     sys.exit(1)
+        #channel.write("OK")
         #print "---Auth works---"            
         vmfile = ""
         if self.os == "ubuntu":
@@ -338,26 +340,22 @@ class IMGenerateServer(object):
                             error_repo = False
                             #send back the ID of the image in the repository
                             try:
-                                self.logger.info("Storing image " + self.tempdirserver + "/" + status + ".tgz" + " in the repository")
-                                status_repo = self._reposervice.put(self.user, None, self.tempdirserver + "" + status + ".tgz", "os=" + \
-                                                             self.os + "_" + self.version + "|arch=" + self.arch + "|description=" + \
-                                                             self.desc + "|tag=" + status)
-                                if(status_repo == "0"):                                
-                                    msg = "ERROR: uploading image to the repository. File does not exists or metadata string is invalid"
+                                #connect with the server
+                                if not self._reposervice.connection():
+                                    msg = "ERROR: Connection with the Image Repository failed"
                                     self.errormsg(channel, msg)
-                                elif(status_repo == "-1"):                                
-                                    msg = "ERROR: uploading image to the repository. The User does not exist"
-                                    self.errormsg(channel, msg)
-                                elif(status_repo == "-2"):                                
-                                    msg = "ERROR: uploading image to the repository. The User is not active"
-                                    self.errormsg(channel, msg)
-                                elif(status_repo == "-3"):
-                                    msg = "ERROR: uploading image to the repository. The file exceed the quota"
-                                    self.errormsg(channel, msg)
-                                else:                                    
-                                    channel.write(str(status_repo))                
-                                    channel.shutdown(socket.SHUT_RDWR)
-                                    channel.close()
+                                else:
+                                    self.logger.info("Storing image " + self.tempdirserver + "/" + status + ".tgz" + " in the repository")                                
+                                    status_repo = self._reposervice.put(self.user, passwd, self.user, self.tempdirserver + "" + status + ".tgz", "os=" + \
+                                                                 self.os + "_" + self.version + "&arch=" + self.arch + "&description=" + \
+                                                                 self.desc + "&tag=" + status)
+                                    if (re.search('^ERROR', status_repo)):
+                                        self.errormsg(channel, status_repo) 
+                                    else: 
+                                        channel.write(str(status_repo))                
+                                        channel.shutdown(socket.SHUT_RDWR)
+                                        channel.close()
+                                    self._reposervice.disconnect()
                             except:
                                 msg = "ERROR: uploading image to the repository. " + str(sys.exc_info())
                                 self.errormsg(channel, msg)    
@@ -371,10 +369,13 @@ class IMGenerateServer(object):
             self.logger.info("Image Generation DONE")
     
     def errormsg(self, channel, msg):
-        self.logger.error(msg)        
-        channel.write(msg)                
-        channel.shutdown(socket.SHUT_RDWR)
-        channel.close()
+        self.logger.error(msg)
+        try:    
+            channel.write(msg)                
+            channel.shutdown(socket.SHUT_RDWR)
+            channel.close()
+        except:
+            self._log.debug("In errormsg: " + str(sys.exc_info()))
         self.logger.info("Image Generation DONE")
     
     def boot_VM(self, server, vmfile):

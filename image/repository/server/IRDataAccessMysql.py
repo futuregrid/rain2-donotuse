@@ -177,7 +177,7 @@ class ImgStoreMysql(AbstractImgStore):
                 #self._log.debug(str(results))
 
                 for dic in results:
-                    tmpEntry = ImgEntry(dic[0], "", "", 0, str(dic[1]).split(".")[0], str(dic[2]).split(".")[0], dic[3])
+                    tmpEntry = ImgEntry(dic[0], "", "", 0, "", str(dic[1]).split(".")[0], str(dic[2]).split(".")[0], dic[3])
                     self._items[tmpEntry._imgId] = tmpEntry
 
                 success = True
@@ -1053,6 +1053,38 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
             try:
                 cursor = self._dbConnection.cursor()
 
+                if self.isAdmin(userId):
+                    if userIdtoSearch == None:
+                        sql = "SELECT * FROM %s" % (self._tabledata)
+                        cursor.execute(sql)
+                        results = cursor.fetchall()
+    
+                        for result in results:
+                            tmpUser[result[0]] = IRUser(result[0], result[1], int(result[2]), int(result[3]),
+                                                  result[4], result[5], result[6], result[7])
+                            #self._log.debug("queryStore  "+str(tmpUser))                                                                      
+                            found = True
+                    else:
+                        sql = "SELECT * FROM %s WHERE userId = '%s' " % (self._tabledata, userIdtoSearch)
+                        cursor.execute(sql)
+                        results = cursor.fetchone()
+
+                        if (results != None):
+                            tmpUser[results[0]] = IRUser(results[0], results[1], int(results[2]), int(results[3]),
+                                                  results[4], results[5], results[6], results[7])
+                            self._log.debug("queryStore  " + str(tmpUser))
+                            found = True
+                else:
+                    sql = "SELECT * FROM %s WHERE userId = '%s' " % (self._tabledata, userId)
+                    cursor.execute(sql)
+                    results = cursor.fetchone()
+
+                    if (results != None):
+                        tmpUser[results[0]] = IRUser(results[0], results[1], int(results[2]), int(results[3]),
+                                              results[4], results[5], results[6], results[7])
+                        self._log.debug("queryStore  " + str(tmpUser))
+                        found = True
+                """
                 if(userIdtoSearch != None):
                     if(userIdtoSearch == userId or self.isAdmin(userId)):
                         sql = "SELECT * FROM %s WHERE userId = '%s' " % (self._tabledata, userIdtoSearch)
@@ -1074,7 +1106,7 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
                                               result[4], result[5], result[6], result[7])
                         #self._log.debug("queryStore  "+str(tmpUser))                                                                      
                         found = True
-
+                """
             except MySQLdb.Error, e:
                 self._log.error("Error %d: %s" % (e.args[0], e.args[1]))
                 self._dbConnection.rollback()

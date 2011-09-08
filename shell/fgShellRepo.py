@@ -25,7 +25,9 @@ class fgShellRepo(Cmd):
     #
     ############################################################
     def __init__(self):
-        self._service = IRServiceProxy()
+        verbose = True        
+        printLogStdout = False
+        self._service = IRServiceProxy(verbose, printLogStdout)
 
     ############################################################
     # test
@@ -278,7 +280,7 @@ class fgShellRepo(Cmd):
         if(len(args) > 1):
             for i in range(1, len(args)):
                 second += args[i] + " "
-        second = second.replace("&", "|")
+        #second = second.replace("&", "|")
 
         if (len(args) >= 2):
             status = self._service.updateItem(os.popen('whoami', 'r').read().strip(), args[0], second)
@@ -382,15 +384,15 @@ class fgShellRepo(Cmd):
             for i in range(1, len(args)):
                 second += args[i] + " "
 
-        second = second.replace("&", "|")
+        #second = second.replace("&", "|")
 
         status = 0
         ok = False
         if (len(args) > 1):
-            status = self._service.put(os.popen('whoami', 'r').read().strip(), None, args[0], second)
+            status = self._service.put(os.popen('whoami', 'r').read().strip(), args[0], second)
             ok = True
         elif (len(args) == 1):
-            status = self._service.put(os.popen('whoami', 'r').read().strip(), None, args[0], "")
+            status = self._service.put(os.popen('whoami', 'r').read().strip(), args[0], "")
             ok = True
         else:
             self.help_repoput()

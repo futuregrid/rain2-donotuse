@@ -56,7 +56,10 @@ class IRServerConf(object):
         self._backend=""
         self._log_repo=""
         self._logLevel_repo=""
-        self._idp = ""
+        #self._idp = ""
+        self._ca_certs = ""
+        self._certfile = ""
+        self._keyfile = ""
         #image repo server backends
         self._address=""
         self._userAdmin=""
@@ -98,14 +101,21 @@ class IRServerConf(object):
     def getProcMax(self):
         return self._proc_max
     def getRefreshStatus(self):
-        self._refresh_status
+        return self._refresh_status
     
     def getAuthorizedUsers(self):
         return self._authorizedUsers    
     def getBackend(self):
         return self._backend
-    def getIdp(self):
-        return self._idp
+    #def getIdp(self):
+    #    return self._idp
+    def getCaCerts(self):
+        return self._ca_certs
+    def getCertFile(self): 
+        return self._certfile
+    def getKeyFile(self): 
+        return self._keyfile   
+    
     
     def getAddress(self):
         return self._address
@@ -141,7 +151,7 @@ class IRServerConf(object):
             print "Error: No proc_max option found in section " + section
             sys.exit(1)
         try:
-            self._refresh_status = int(self._config.get(section, 'refresh', 0))
+            self._refresh_status = int(self._config.get(section, 'refresh', 0))            
         except ConfigParser.NoOptionError:
             print "Error: No refresh option found in section " + section
             sys.exit(1)
@@ -159,14 +169,14 @@ class IRServerConf(object):
         except ConfigParser.NoOptionError:
             self._log.error("No backend option found in section " + section)
             sys.exit(1)          
-        try:
-            self._idp = self._config.get(section, 'idp', 0)
-        except ConfigParser.NoOptionError:
-            self._log.error("No idp option found in section " + section)
-            sys.exit(1)  
-        except ConfigParser.NoSectionError:
-            self._log.error("no section "+section+" found in the "+self._configfile+" config file")
-            sys.exit(1)
+        #try:
+        #    self._idp = self._config.get(section, 'idp', 0)
+        #except ConfigParser.NoOptionError:
+        #    self._log.error("No idp option found in section " + section)
+        #    sys.exit(1)  
+        #except ConfigParser.NoSectionError:
+        #    self._log.error("no section "+section+" found in the "+self._configfile+" config file")
+        #    sys.exit(1)
         try:
             self._log_repo = os.path.expanduser(self._config.get(section, 'log', 0))
         except ConfigParser.NoOptionError:
@@ -180,7 +190,30 @@ class IRServerConf(object):
             self._log.warning("Log level " + tempLevel + " not supported. Using the default one " + self._logLevel_default)
             tempLevel = self._logLevel_default
         self._logLevel_repo = eval("logging." + tempLevel)
-                
+        try:
+            self._ca_certs = os.path.expanduser(self._config.get(section, 'ca_cert', 0))
+        except ConfigParser.NoOptionError:
+            print "Error: No ca_cert option found in section " + section
+            sys.exit(1)
+        if not os.path.isfile(self._ca_certs):
+            print "Error: ca_cert file not found in "  + self._ca_certs 
+            sys.exit(1)
+        try:
+            self._certfile = os.path.expanduser(self._config.get(section, 'certfile', 0))
+        except ConfigParser.NoOptionError:
+            print "Error: No certfile option found in section " + section
+            sys.exit(1)
+        if not os.path.isfile(self._certfile):
+            print "Error: certfile file not found in "  + self._certfile 
+            sys.exit(1)
+        try:
+            self._keyfile = os.path.expanduser(self._config.get(section, 'keyfile', 0))
+        except ConfigParser.NoOptionError:
+            print "Error: No keyfile option found in section " + section
+            sys.exit(1)
+        if not os.path.isfile(self._keyfile):
+            print "Error: keyfile file not found in "  + self._keyfile 
+            sys.exit(1)
         #load backend storage configuration
         try:
             self._address = self._config.get(self._backend, 'address', 0)

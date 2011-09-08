@@ -67,7 +67,7 @@ class IMDeployServerXcat(object):
         self.logger = self.setup_logger()
         
         #Image repository Object
-        self._reposervice = IRServiceProxy(False)
+        self._reposervice = IRServiceProxy(False,False)
         
     def setup_logger(self):
         #Setup logging
@@ -109,7 +109,9 @@ class IMDeployServerXcat(object):
                 self.logger.error("Uncontrolled Error: " + str(sys.exc_info()))
                 if type(connstream) is ssl.SSLSocket: 
                     connstream.shutdown(socket.SHUT_RDWR)
-                    connstream.close()       
+                    connstream.close()      
+            finally:
+                self.logger.info("Image Deploy Request DONE") 
  
     def auth(self, userCred):
         return FGAuth.auth(self.user, userCred)                 
@@ -138,7 +140,6 @@ class IMDeployServerXcat(object):
             msg = "ERROR: incorrect message"
             self.errormsg(connstream, msg)
             return
-
         retry=0
         maxretry=3
         endloop = False
@@ -148,23 +149,30 @@ class IMDeployServerXcat(object):
                 connstream.write("OK")
                 endloop = True
             else:
-                connstream.write("TryAuthAgain")
                 retry+=1
                 if retry < maxretry:
+                    connstream.write("TryAuthAgain")
                     passwd = connstream.read(2048)
                 else:
                     msg="ERROR: authentication failed"
                     endloop = True
                     self.errormsg(connstream, msg)
                     return
+        #connstream.write("OK")
         #print "---Auth works---"
         #GET IMAGE from repo
-        self.logger.info("Retrieving image from repository")
-        image = self._reposervice.get(self.user, "img", imgID, self.tempdir)      
-        if image == None:
-            msg = "ERROR: Cannot get access to the image with imgId " + str(imgID)
-            self.errormsg(connstream, msg)
-            return            
+        if not self._reposervice.connection():
+            msg = "ERROR: Connection with the Image Repository failed"
+            self.errormsg(channel, msg)
+            return
+        else:
+            self.logger.info("Retrieving image from repository")
+            image = self._reposervice.get(self.user, passwd, self.user, "img", imgID, self.tempdir)      
+            if image == None:
+                msg = "ERROR: Cannot get access to the image with imgId " + str(imgID)
+                self.errormsg(connstream, msg)
+                return
+            self._reposervice.disconnect()   
         ################
 
         if not os.path.isfile(image):
@@ -324,7 +332,7 @@ class IMDeployServerXcat(object):
         connstream.shutdown(socket.SHUT_RDWR)
         connstream.close()
         
-        self.logger.info("Image Deploy DONE")
+        self.logger.info("Image Deploy Request DONE")
             
 
     def handle_image(self, image, connstream):
@@ -738,10 +746,13 @@ sysfs   /sys     sysfs    defaults       0 0
 
     def errormsg(self, connstream, msg):
         self.logger.error(msg)
-        connstream.write(msg)
-        connstream.shutdown(socket.SHUT_RDWR)
-        connstream.close()
-        self.logger.info("Image Deploy DONE")
+        try:
+            connstream.write(msg)
+            connstream.shutdown(socket.SHUT_RDWR)
+            connstream.close()
+        except:
+            self._log.debug("In errormsg: " + str(sys.exc_info()))
+        self.logger.info("Image Deploy Request DONE")
     
     def runCmd(self, cmd):
         cmd = 'sudo ' + cmd

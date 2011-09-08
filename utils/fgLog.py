@@ -49,7 +49,9 @@ class fgLog():
             self._logger.addHandler(handler)
 
 
-
+    def getLogger(self, name):
+        return logging.getLogger(name)
+    
     def getLogFile(self):
         '''returns the log file'''
         return self._logfile

@@ -256,7 +256,7 @@ class ImgStoreMongo(AbstractImgStore):
                     results = collection.find({'_id':imgId}, ['_id', 'createdDate', 'lastAccess', 'accessCount'])
 
                 for dic in results:
-                    tmpEntry = ImgEntry(dic['_id'], "", "", 0, str(dic['createdDate']).split(".")[0], str(dic['lastAccess']).split(".")[0], dic['accessCount'])
+                    tmpEntry = ImgEntry(dic['_id'], "", "", 0, "", str(dic['createdDate']).split(".")[0], str(dic['lastAccess']).split(".")[0], dic['accessCount'])                    
                     self._items[tmpEntry._imgId] = tmpEntry
 
                 success = True
@@ -1124,8 +1124,24 @@ class IRUserStoreMongo(AbstractIRUserStore):
                 dbLink = self._dbConnection[self._dbName]
                 collection = dbLink[self._usercollection]
 
-                if(userIdtoSearch != None):
+                if self.isAdmin(userId):
+                    if userIdtoSearch == None:
+                        dicList = collection.find()
 
+                        for dic in dicList:
+    
+                            tmpUser[dic['userId']] = IRUser(dic['userId'], dic['cred'], dic['fsCap'], dic['fsUsed'], dic['lastLogin'],
+                                                  dic["status"], dic["role"], dic["ownedImgs"])
+                            found = True
+                    else:
+                        dic = collection.find_one({"userId": userIdtoSearch})
+
+                        if not dic == None:
+    
+                            tmpUser[dic['userId']] = IRUser(dic['userId'], dic['cred'], dic['fsCap'], dic['fsUsed'], dic['lastLogin'],
+                                                  dic["status"], dic["role"], dic["ownedImgs"])
+                            found = True
+                else:
                     dic = collection.find_one({"userId": userId})
 
                     if not dic == None:
@@ -1133,15 +1149,7 @@ class IRUserStoreMongo(AbstractIRUserStore):
                         tmpUser[dic['userId']] = IRUser(dic['userId'], dic['cred'], dic['fsCap'], dic['fsUsed'], dic['lastLogin'],
                                               dic["status"], dic["role"], dic["ownedImgs"])
                         found = True
-                elif (self.isAdmin(userId)):
-                    dicList = collection.find()
-
-                    for dic in dicList:
-
-                        tmpUser[dic['userId']] = IRUser(dic['userId'], dic['cred'], dic['fsCap'], dic['fsUsed'], dic['lastLogin'],
-                                              dic["status"], dic["role"], dic["ownedImgs"])
-                        found = True
-
+                
             except pymongo.errors.AutoReconnect:
                 self._log.warning("Autoreconnected in IRUserStoreMongo - queryStore")
             except pymongo.errors.ConnectionFailure:

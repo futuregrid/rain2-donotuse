@@ -6,12 +6,15 @@ For the current implementation this is just a dummy one, and only serves to
 maintain the proposed deployed code structure. In the later phase this will
 be replaced by a WS implementation
 """
-__author__ = 'Fugang Wang, Javier Diaz'
-__version__ = '0.1'
+__author__ = 'Javier Diaz, Fugang Wang'
+__version__ = '0.9'
 
 import os, sys
 import string
 from multiprocessing import Process
+import socket, ssl
+import logging
+import time
 
 from IRTypes import ImgMeta
 from IRTypes import ImgEntry
@@ -19,15 +22,6 @@ from IRTypes import IRUser
 from IRServerConf import IRServerConf
 from IRService import IRService
 
-try:
-    from ....utils.FGTypes import FGTypes, fgLog
-    from ....utils import FGAuths
-except:
-    sys.path.append(os.getcwd())
-    sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../../")    
-    from utils.FGTypes import FGCredential
-    from utils import FGAuth
-    
 
 
 class IRServer(object):
@@ -38,18 +32,20 @@ class IRServer(object):
     def __init__(self):
         super(IRServer, self).__init__()
 
-        self.numparams = 5
+        self.numparams = 4
 
         self._service = IRService()
-        self._log = self.service.getLog()
-        self._repoconf = self.service.getRepoConf()
+        self._log = self._service.getLog()
+        self._repoconf = self._service.getRepoConf()
 
         self.port = self._repoconf.getPort()
         self.proc_max = self._repoconf.getProcMax()
-        self.refresh_status = self._repoconf.getRefreshStatus()       
+        self.refresh_status = self._repoconf.getRefreshStatus()
         self._authorizedUsers = self._repoconf.getAuthorizedUsers()    
         
-        
+        self._ca_certs = self._repoconf.getCaCerts()
+        self._certfile = self._repoconf.getCertFile()
+        self._keyfile = self._repoconf.getKeyFile()
         
     def start(self):
         self._log.info('Starting Server on port ' + str(self.port))
@@ -85,10 +81,10 @@ class IRServer(object):
                               keyfile=self._keyfile,
                               ssl_version=ssl.PROTOCOL_TLSv1)
                 #print connstream                                
-                proc_list.append(Process(target=self.repo, args=(connstream)))            
+                proc_list.append(Process(target=self.repo, args=(connstream,)))            
                 proc_list[len(proc_list) - 1].start()
             except ssl.SSLError:
-                self._log.error("Unsuccessful connection attempt from: " + repr(fromaddr))
+                self._log.error("Unsuccessful connection attempt from: " + repr(fromaddr) + " " + str(sys.exc_info()))
             except socket.error:
                 self._log.error("Error with the socket connection")
             except:
@@ -97,14 +93,17 @@ class IRServer(object):
                     connstream.shutdown(socket.SHUT_RDWR)
                     connstream.close()
                      
-    def auth(self, userCred):
-        return FGAuth.auth(self.user, userCred)        
+    #def auth(self, userCred):
+    #    return FGAuth.auth(self.user, userCred)        
       
     
-    def repo(self, connstream):
-        self._log = logging.getLogger("ImageRepoServer." + str(os.getpid()))
+    def repo(self, channel):
         
-        self._log.info('Processing an image generation request')
+        self._log = self._log.getLogger("Img Repo Server." + str(os.getpid()))
+        
+        self._service.setLog(self._log)
+        
+        self._log.info('Processing request')
         #it will have the IP of the VM
         vmaddr = ""        
         options = ''    
@@ -117,184 +116,255 @@ class IRServer(object):
         
         params = data.split('|')
 
-        #params[0] is user  
+        #params[0] is user that authenticates  
         #params[1] is the user password
         #params[2] is the type of password
         #params[3] is the command
-        #params[4] is the options separated by commas
+        #params[4] is the user that interact with the repo. Usually is the same that params[0]
+        #params[5...] are the options 
+
+        if (len(params) <= self.numparams):
+            msg = "ERROR: Invalid Number of Parameters"    
+            self.errormsg(channel, msg)
+            sys.exit(1)
         
-        self.user = params[0].strip()
+        self.user = params[0].strip() #ONLY for authentication. To call methods you need to use params[4]
         passwd = params[1].strip()
         passwdtype = params[2].strip()
         command = params[3].strip()
-        options = params[4].strip()
-        
-        #optionlist[0] is the user
-        #optionlist[1-5] depend of command 
-        optionlist = options.split(",")            
-        for i in range(len(optionlist)):
-            optionlist[i]=optionlist[i].strip()
+                
+        for i in range(len(params)):
+            params[i] = params[i].strip()
 
-        if len(params) != self.numparams:
-            msg = "ERROR: incorrect message"
-            self.errormsg(channel, msg)
-            #break
-            sys.exit(1)
         
         if not self.user in self._authorizedUsers:
-            if not (self.user == optionlist[0]):
-                msg = "Error. your are not authorized to use another user name"    
+            if not (self.user == params[4]):
+                msg = "ERROR: You are not authorized to act in behalf of other user"    
                 self.errormsg(channel, msg)
                 sys.exit(1)
+        
         
         retry = 0
         maxretry = 3
         endloop = False
         while (not endloop):
-            userCred = FGCredential(passwd, passwdtype)
-            if self.auth(userCred):
+            #userCred = FGCredential(passwd, passwdtype)
+            if self._service.auth(self.user, passwd, passwdtype):
                 channel.write("OK")
                 endloop = True
             else:
-                if self.user in self._authorizedUsers: #because this is users are services that cannot retry.
+                if self.user in self._authorizedUsers: #because these users are services that cannot retry.
+                    msg = "ERROR: authentication failed"
                     endloop = True
-                else:
-                    channel.write("TryAuthAgain")
+                    self.errormsg(channel, msg)
+                    sys.exit(1)
+                else:                    
+                    msg = "ERROR: authentication failed. Try again"
+                    self._log.error(msg)
                     retry += 1
                     if retry < maxretry:
+                        channel.write("TryAuthAgain")
                         passwd = channel.read(2048)
                     else:
                         msg = "ERROR: authentication failed"
                         endloop = True
                         self.errormsg(channel, msg)
                         sys.exit(1)
-
-        if (command == "list"):            
-            if (len(optionlist) != 2):
+        
+        #channel.write("OK")
+        
+        ## For test, remove previous line
+        
+        
+        needtoclose = False      
+        if (command == "list"):
+            if (len(params) == self.numparams + 2):
                 #user, query string
-                self._service.query(optionlist[0], optionlist[1])
+                #print params[5]
+                output = self._service.query(params[4], params[5])                
+                channel.write(str(output))
+                needtoclose = True
             else:
                 msg = "Invalid Number of Parameters"
-                self.errormsg(channel, msg)
-        elif (command == "setPermission"):
-            #user, imgid, query
-            if (len(optionlist) != 3):                
-                self._service.updateItem(optionlist[0], optionlist[1], optionlist[2])
-            else:
-                msg = "Invalid Number of Parameters"
-                self.errormsg(channel, msg)
+                self.errormsg(channel, msg)        
         elif (command == "get"):
             #user, img/uri, imgid
-            if (len(optionlist) != 3):
-                self._service.get(optionlist[0], optionlist[1], optionlist[2])
+            if (len(params) == self.numparams + 3):
+                output = self._service.get(params[4], params[5], params[6])
+                channel.write(str(output))
+                if channel.read(1024) == 'OK':
+                    if (self._service.getBackend() != "mysql"):
+                        cmdrm = " rm -f " + output             
+                        self._log.debug("Deleting Temporal file: " + cmdrm)           
+                        os.system(cmdrm)
+                needtoclose = True                   
             else:
                 msg = "Invalid Number of Parameters"
                 self.errormsg(channel, msg)
         elif (command == "put"):
-            #user, imgId, imgFile(uri), attributeString, size, extension
-            if (len(optionlist) != 6):
-                self._service.put(optionlist[0], optionlist[1], optionlist[2], optionlist[3], long(optionlist[4]), optionlist[5])
+            #user, img_size, extension, attributeString   
+            if (len(params) == self.numparams + 4):
+                output = self._service.uploadValidator(params[4], long(params[5]))                
+                if str(output) == 'True':                                        
+                    imgId = self._service.genImgId()
+                    if imgId != None:
+                        channel.write(self._service.getImgStore() + "," + str(imgId))
+                        #waiting for client to upload image
+                        output = channel.read(2048)
+                        if output != 'Fail':
+                            #user, imgId, imgFile(uri), attributeString, size, extension
+                            output = self._service.put(params[4], imgId, output, params[7], long(params[5]), params[6])
+                            channel.write(str(output))
+                            needtoclose = True                          
+                    else:
+                        channel.write()
+                        msg = "ERROR: The imgId generation failed"
+                        self.errormsg(channel, msg)
+                else:
+                    output = str(output)
+                    if output == "NoUser":                    
+                        status = "ERROR: The User does not exist"
+                    elif (output == "NoActive"):                    
+                        status = "ERROR: The User is not active"
+                    elif (output == 'False'):
+                        status = "ERROR: The file exceed the quota"
+                    else:
+                        status = "ERROR: " + output
+                    msg = status
+                    self.errormsg(channel, msg)
+            else:
+                msg = "ERROR: Invalid Number of Parameters"
+                self.errormsg(channel, msg)    
+            #send storage directory, temporal or not
+            #receive the OK, meaning that the image is already there
+        elif (command == "modify"):
+            #userid, imgid, attributestring
+            if (len(params) == self.numparams + 3):
+                output = self._service.updateItem(params[4], params[5], params[6])
+                channel.write(str(output))
             else:
                 msg = "Invalid Number of Parameters"
                 self.errormsg(channel, msg)
         elif (command == "remove"):
             #user, imgid
-            if (len(optionlist) != 2):
-                self._service.remove(optionlist[0], optionlist[1])
+            if (len(params) == self.numparams + 2):
+                output = self._service.remove(params[4], params[5])
+                channel.write(str(output))
+            else:
+                msg = "Invalid Number of Parameters"
+                self.errormsg(channel, msg)
+        elif (command == "setPermission"):
+            #user, imgid, query
+            if (len(params) == self.numparams + 3):                
+                output = self._service.updateItem(params[4], params[5], "permission=" + params[6])
+                channel.write(str(output))
             else:
                 msg = "Invalid Number of Parameters"
                 self.errormsg(channel, msg)
         elif (command == "histimg"):
             #userId, imgId
-            if (len(optionlist) != 2):
-                self._service.histImg(optionlist[0], optionlist[1])                
+            if (len(params) == self.numparams + 2):
+                output = self._service.histImg(params[4], params[5])
+                channel.write(str(output))                
             else:
                 msg = "Invalid Number of Parameters"
                 self.errormsg(channel, msg)
         elif (command == "histuser"):
             #userId, userId
-            if (len(optionlist) != 2):
-                self._service.histUser(optionlist[0], optionlist[1])
+            if (len(params) == self.numparams + 2):
+                output = self._service.histUser(params[4], params[5])
+                channel.write(str(output))
             else:
                 msg = "Invalid Number of Parameters"
                 self.errormsg(channel, msg)
-        elif (command == "uploadValidator"):
-            #user, size of the img to upload
-            if (len(optionlist) != 2):
-                self._service.uploadValidator(optionlist[0], long(optionlist[1]))
-            else:
-                msg = "Invalid Number of Parameters"
-                self.errormsg(channel, msg)
-        elif (command == "genImgId"):
-            if (len(optionlist) != 1):
-                self._service.genImgId()
-            else:
-                msg = "Invalid Number of Parameters"
-                self.errormsg(channel, msg)
+        #elif (command == "uploadValidator"):
+        #    #user, size of the img to upload
+        #    if (len(optionlist) != 2):
+        #        output = self._service.uploadValidator(optionlist[0], long(optionlist[1]))
+        #        channel.write(str(output))
+        #    else:
+        #        msg = "Invalid Number of Parameters"
+        #        self.errormsg(channel, msg)
+        #elif (command == "genImgId"):
+        #    if (len(optionlist) != 1):
+        #        output = self._service.genImgId()
+        #        channel.write(str(output))
+        #    else:
+        #        msg = "Invalid Number of Parameters"
+        #        self.errormsg(channel, msg)
         elif (command == "getBackend"):
-            if (len(optionlist) != 1):
-                self._service.getBackend()
-                self._service.getImgStore()
-            else:
-                msg = "Invalid Number of Parameters"
-                self.errormsg(channel, msg)
-        elif (command == "modify"):
-            #userid, imgid, attributestring
-            if (len(optionlist) != 3):
-                self._service.updateItem(optionlist[0], optionlist[1], optionlist[2])
+            if (len(params) == self.numparams + 1):
+                output = self._service.getBackend()
+                output1 = self._service.getImgStore()
+                channel.write(str(output) + str(output1))
             else:
                 msg = "Invalid Number of Parameters"
                 self.errormsg(channel, msg)
         elif (command == "useradd"):
             #userid, useridtoadd
-            if (len(optionlist) != 2):
-                self._service.userAdd(optionlist[0], optionlist[1])
+            if (len(params) == self.numparams + 2):
+                output = self._service.userAdd(params[4], params[5])
+                channel.write(str(output))
             else:
                 msg = "Invalid Number of Parameters"
                 self.errormsg(channel, msg)
         elif (command == "userdel"):
             #userid, useridtodel
-            if (len(optionlist) != 2):
-                self._service.userDel(optionlist[0], optionlist[1])
+            if (len(params) == self.numparams + 2):
+                output = self._service.userDel(params[4], params[5])
+                channel.write(str(output))
             else:
                 msg = "Invalid Number of Parameters"
                 self.errormsg(channel, msg)
         elif (command == "userlist"):
             #userid
-            if (len(optionlist) != 1):
-                self._service.userList(optionlist[0])
+            if (len(params) == self.numparams + 1):
+                output = self._service.userList(params[4])
+                channel.write(str(output))
             else:
                 msg = "Invalid Number of Parameters"
                 self.errormsg(channel, msg)
         elif (command == "setUserQuota"):
             #userid, useridtomodify, quota in bytes
-            if (len(optionlist) != 3):
-                self._service.setUserQuota(optionlist[0], optionlist[1], long(optionlist[2]))
+            if (len(params) == self.numparams + 3):
+                output = self._service.setUserQuota(params[4], params[5], long(params[6]))
+                channel.write(str(output))
             else:
                 msg = "Invalid Number of Parameters"
                 self.errormsg(channel, msg)
         elif (command == "setUserRole"):
             #userid, useridtomodify, role
-            if (len(optionlist) != 3):
-                self._service.setUserRole(optionlist[0], optionlist[1], optionlist[2])
+            if (len(params) == self.numparams + 3):
+                output = self._service.setUserRole(params[4], params[5], params[6])
+                channel.write(str(output))
             else:
                 msg = "Invalid Number of Parameters"
                 self.errormsg(channel, msg)
         elif (command == "setUserStatus"):
-            if (len(optionlist) != 3):
-                self._service.setUserStatus(optionlist[0], optionlist[1], optionlist[2])
+            if (len(params) == self.numparams + 3):
+                output = self._service.setUserStatus(params[4], params[5], params[6])
+                channel.write(str(output))
             else:
                 msg = "Invalid Number of Parameters"
                 self.errormsg(channel, msg)
         else:
-            msg = "Invalid Command: "+ command
+            msg = "Invalid Command: " + command
             self.errormsg(channel, msg)
+            needtoclose = False
+        
+        if needtoclose:
+            channel.shutdown(socket.SHUT_RDWR)
+            channel.close()
+            self._log.info("Image Repository Request DONE")
         
     def errormsg(self, channel, msg):
-        self._log.error(msg)        
-        channel.write(msg)                
-        channel.shutdown(socket.SHUT_RDWR)
-        channel.close()
+        self._log.error(msg)
+        try:        
+            channel.write(msg)                    
+            channel.shutdown(socket.SHUT_RDWR)
+            channel.close()
+        except:
+            self._log.debug("In errormsg: " + str(sys.exc_info()))
         self._log.info("Image Repository Request DONE")
         
 def main():

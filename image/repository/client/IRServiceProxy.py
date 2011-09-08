@@ -7,21 +7,24 @@ that supposed to reside in the service side. When the web service is used,
 this will serve as a proxy that talks to the service in the server side.
 """
 
-__author__ = 'Fugang Wang'
-__version__ = '0.1'
+__author__ = 'Javier Diaz, Fugang Wang'
+__version__ = '0.9'
 
 import os
 from time import time
-
+import string
+import sys
+from random import randrange
+import socket,ssl
+import hashlib
+from getpass import getpass
+import re
 #futuregrid.image.repository.client.
 
 from IRTypes import ImgMeta
 from IRTypes import ImgEntry
 from IRTypes import IRUser
 from IRClientConf import IRClientConf
-import string
-import sys
-from random import randrange
 
 sys.path.append(os.getcwd())
 try:
@@ -38,259 +41,522 @@ class IRServiceProxy(object):
     ############################################################
     # __init__
     ############################################################
-    def __init__(self, verbose):
+    def __init__(self, verbose, printLogStdout):
         super(IRServiceProxy, self).__init__()
 
         #Load Config
         self._conf = IRClientConf()
-        self._backend = self._conf.getBackend()
-        self._fgirimgstore = self._conf.getFgirimgstore()
-        self._serverdir = self._conf.getServerdir()
+        #self._backend = self._conf.getBackend()
+        #self._fgirimgstore = self._conf.getFgirimgstore()
+        self._port = self._conf.getPort()
         self._serveraddr = self._conf.getServeraddr()
-        self._verbose=verbose
-        #Setup log        
-        self._log = fgLog.fgLog(self._conf.getLogFile(), self._conf.getLogLevel(), "Img Repo Client", self._verbose)
+        self._verbose = verbose
+        
+        self._ca_certs = self._conf.getCaCerts()
+        self._certfile = self._conf.getCertFile()
+        self._keyfile = self._conf.getKeyFile()
+        
+        self._connIrServer = None
+        
+        self.passwdtype = "ldappassmd5"
+        #Setup log
+        self._log = fgLog.fgLog(self._conf.getLogFile(), self._conf.getLogLevel(), "Img Repo Client", printLogStdout)
+        
 
+    def connection(self):
+        connected = False
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            self._connIrServer = ssl.wrap_socket(s,
+                                        ca_certs=self._ca_certs,
+                                        certfile=self._certfile,
+                                        keyfile=self._keyfile,
+                                        cert_reqs=ssl.CERT_REQUIRED)
+            self._log.debug("Connecting server: " + self._serveraddr + ":" + str(self._port))
+            self._connIrServer.connect((self._serveraddr, self._port))   
+            connected = True         
+        except ssl.SSLError:
+            self._log.error("CANNOT establish SSL connection. EXIT")
+        except socket.error:
+            self._log.error("Error with the socket connection")
+        except:
+            print "Error CANNOT establish connection with the server"
+            self._log.error("ERROR: exception not controlled" + str(sys.exc_info()))
+            
+        
+        return connected
+        #irServer.write(options) #to be done in each method
+    def disconnect(self):
+        try:
+            self._connIrServer.shutdown(socket.SHUT_RDWR)
+            self._connIrServer.close()
+        except:            
+            self._log.debug("In disconnect:" + str(sys.exc_info()))
+          
+    def check_auth(self, userId, checkauthstat):
+        endloop = False
+        passed = False
+        while not endloop:
+            ret = self._connIrServer.read(1024)
+            if (ret == "OK"):
+                if self._verbose:
+                    print "Authentication OK"
+                self._log.debug("Authentication OK")
+                endloop = True
+                passed = True
+            elif (ret == "TryAuthAgain"):
+                msg = "Permission denied, please try again. User is " + userId                    
+                self._log.error(msg)
+                if self._verbose:
+                    print msg                                        
+                m = hashlib.md5()
+                m.update(getpass())
+                passwd = m.hexdigest()
+                self._connIrServer.write(passwd)
+            else:                
+                self._log.error(str(ret))
+                checkauthstat.append(str(ret))
+                endloop = True
+                passed = False
+        return passed
+        
     ############################################################
-    # auth
+    # query
     ############################################################
-    def auth(self, userId):
-        # to be implemented when integrating with the security framework
-        cmdexec = " '" + self._serverdir + \
-                    "IRService.py --auth " + userId + "'"
-        #print cmd
-        return self._rExec(userId, cmdexec)
-
+    def query(self, userId, passwd, userIdB, queryString):   
+        """
+        userId: user that authenticate against the repository.
+        password: password of the previous user
+        userIdB: user that execute the command in the repository.         
+        
+        Typically, userId and userIdB are the same user. However, they are different when the repo 
+        is used by a service like IMGenerateServer or IMDeployServer, because these services interact 
+        with the repo in behalf of other users.
+        """
+        checkauthstat = []
+        output = None
+        msg = userId + "|" + str(passwd) + "|" + self.passwdtype + "|list|" + userIdB + "|" + queryString
+        self._connIrServer.write(msg)
+        if self.check_auth(userId, checkauthstat):
+            #wait for output
+            output = self._connIrServer.read(32768)            
+            if output == "None":
+                output = None
+        else:
+            if self._verbose:
+                print checkauthstat[0]   
+        return output
+            
+    ############################################################
+    # get
+    ############################################################
+    def get(self, userId, passwd, userIdB, option, imgId, dest):
+        """
+        userId: user that authenticate against the repository.
+        password: password of the previous user
+        userIdB: user that execute the command in the repository.         
+        
+        Typically, userId and userIdB are the same user. However, they are different when the repo 
+        is used by a service like IMGenerateServer or IMDeployServer, because these services interact 
+        with the repo in behalf of other users.
+        """  
+        checkauthstat = []      
+        msg = userId + "|" + str(passwd) + "|" + self.passwdtype + "|get|" + userIdB + "|" + option + "|" + imgId
+        self._connIrServer.write(msg)
+        if self.check_auth(userId, checkauthstat):
+            #wait for output
+            output = self._connIrServer.read()
+            if not output == 'None':
+                output = self._serveraddr + ":" + output
+                if (option == "img"):
+                    output = self._retrieveImg(userId, imgId, output, dest)
+                    self._connIrServer.write('OK')
+            else:
+                output = None
+        else:
+            if self._verbose:
+                print checkauthstat[0]
+                
+        return output
+    
+    ############################################################
+    # put
+    ############################################################
+    def put(self, userId, passwd, userIdB, imgFile, attributeString):
+        """
+        userId: user that authenticate against the repository.
+        password: password of the previous user
+        userIdB: user that execute the command in the repository.         
+        
+        Typically, userId and userIdB are the same user. However, they are different when the repo 
+        is used by a service like IMGenerateServer or IMDeployServer, because these services interact 
+        with the repo in behalf of other users.
+        
+        output:
+        0 is general error
+        """
+        
+        if (self.checkMeta(attributeString) and os.path.isfile(imgFile)):
+            
+            status = "0"
+            output = ""
+            checkauthstat = []
+            
+            size = os.path.getsize(imgFile)
+            extension = os.path.splitext(imgFile)[1].strip() 
+                        
+            if self._verbose:
+                print "Checking quota and Generating an ImgId"
+            msg = userId + "|" + str(passwd) + "|" + self.passwdtype + "|put|" + userIdB + "|" + str(size) + "|" + extension +\
+                 "|" + attributeString
+            self._connIrServer.write(msg)
+            
+            if self.check_auth(userId, checkauthstat):
+                #wait for "OK,tempdir,imgId" or error status                
+                output = self._connIrServer.read(2048)
+                #print output
+                if not (re.search('^ERROR', output)):
+                    output = output.split(',')                    
+                    imgStore = output[0] 
+                    imgId = output[1]
+                    fileLocation = imgStore + imgId
+                    if self._verbose:
+                        print "Uploading the image"
+                    if self._verbose:
+                        cmd = 'scp ' + imgFile + " " + \
+                            self._serveraddr + ":" + fileLocation
+                    else:
+                        cmd = 'scp -q ' + imgFile + " " + \
+                            self._serveraddr + ":" + fileLocation
+                    stat = os.system(cmd)
+                    if (str(stat) != "0"):
+                        self._log.error(str(stat))
+                        self._connIrServer.write("Fail")
+                    else:
+                        if self._verbose:
+                            print "Registering the image"                            
+                        msg = fileLocation
+                        self._connIrServer.write(msg)
+                        #wait for final output
+                        status = self._connIrServer.read(2048)
+                        if status == "0":    
+                            status = "ERROR: uploading image to the repository. File does not exists or metadata string is invalid"
+                else:
+                    status = output
+            else:
+                status = checkauthstat[0]
+        return status
+        
+    ############################################################
+    # updateItem
+    ############################################################
+    def updateItem(self, userId, passwd, userIdB, imgId, attributeString):
+        """
+        userId: user that authenticate against the repository.
+        password: password of the previous user
+        userIdB: user that execute the command in the repository.         
+        
+        Typically, userId and userIdB are the same user. However, they are different when the repo 
+        is used by a service like IMGenerateServer or IMDeployServer, because these services interact 
+        with the repo in behalf of other users.
+        """
+        checkauthstat = []
+        output = None
+        success = "False"
+        msg = userId + "|" + str(passwd) + "|" + self.passwdtype + "|modify|" + userIdB + "|" + imgId + "|" + attributeString
+        self._connIrServer.write(msg)
+        if self.check_auth(userId, checkauthstat):
+            #wait for output
+            output = self._connIrServer.read(2048)
+        else:
+            if self._verbose:
+                print checkauthstat[0]
+            
+        return output
+    
+    ############################################################
+    # remove
+    ############################################################
+    def remove(self, userId, passwd, userIdB, imgId):
+        """
+        userId: user that authenticate against the repository.
+        passwd: password of the previous user
+        userIdB: user that execute the command in the repository.         
+        
+        Typically, userId and userIdB are the same user. However, they are different when the repo 
+        is used by a service like IMGenerateServer or IMDeployServer, because these services interact 
+        with the repo in behalf of other users.
+        """
+        checkauthstat = []
+        output = None
+        msg = userId + "|" + str(passwd) + "|" + self.passwdtype + "|remove|" + userIdB + "|" + imgId
+        self._connIrServer.write(msg)
+        if self.check_auth(userId, checkauthstat):
+            #wait for output
+            output = self._connIrServer.read(2048)
+        else:
+            if self._verbose:
+                print checkauthstat[0]
+            
+        return output
+    
+            
+    ############################################################
+    # setPermission
+    ############################################################
+    def setPermission(self, userId, passwd, userIdB, imgId, permission):
+        """
+        userId: user that authenticate against the repository.
+        passwd: passwd of the previous user
+        userIdB: user that execute the command in the repository.         
+        
+        Typically, userId and userIdB are the same user. However, they are different when the repo 
+        is used by a service like IMGenerateServer or IMDeployServer, because these services interact 
+        with the repo in behalf of other users.
+        """
+        checkauthstat = []        
+        output = None
+        msg = userId + "|" + str(passwd) + "|" + self.passwdtype + "|setPermission|" + userIdB + "|" + imgId + "|" + permission
+        if(permission in ImgMeta.Permission):
+            self._connIrServer.write(msg)
+            if self.check_auth(userId, checkauthstat):
+                #wait for output
+                output = self._connIrServer.read(2048)
+            else:
+                if self._verbose:
+                    print checkauthstat[0]
+        else:
+            output = "Available options: " + str(ImgMeta.Permission)
+                
+        return output
+    
     ############################################################
     # userAdd
     ############################################################
-    def userAdd(self, userId, userIdtoAdd):
-        cmdexec = " '" + self._serverdir + \
-                    "IRService.py --useradd " + userId + " " + userIdtoAdd + "'"
-
-        return self._rExec(userId, cmdexec)[0].strip()
-
+    def userAdd(self, userId, passwd, userIdB, userIdtoAdd):
+        """
+        userId: user that authenticate against the repository.
+        passwd: passwd of the previous user
+        userIdB: user that execute the command in the repository.         
+        
+        Typically, userId and userIdB are the same user. However, they are different when the repo 
+        is used by a service like IMGenerateServer or IMDeployServer, because these services interact 
+        with the repo in behalf of other users.
+        """
+        checkauthstat = []
+        output = None
+        msg = userId + "|" + str(passwd) + "|" + self.passwdtype + "|useradd|" + userIdB + "|" + userIdtoAdd
+        self._connIrServer.write(msg)
+        if self.check_auth(userId, checkauthstat):
+            #wait for output
+            output = self._connIrServer.read(2048)
+        else:
+            if self._verbose:
+                print checkauthstat[0]
+            
+        return output
+        
     ############################################################
     # userDel
     ############################################################
-    def userDel(self, userId, userIdtoDel):
-        cmdexec = " '" + self._serverdir + \
-                    "IRService.py --userdel " + userId + " " + userIdtoDel + "'"
-
-        return self._rExec(userId, cmdexec)[0].strip()
+    def userDel(self, userId, passwd, userIdB, userIdtoDel):
+        """
+        userId: user that authenticate against the repository.
+        passwd: passwd of the previous user
+        userIdB: user that execute the command in the repository.         
+        
+        Typically, userId and userIdB are the same user. However, they are different when the repo 
+        is used by a service like IMGenerateServer or IMDeployServer, because these services interact 
+        with the repo in behalf of other users.
+        """
+        checkauthstat = []
+        output = None
+        msg = userId + "|" + str(passwd) + "|" + self.passwdtype + "|userdel|" + userIdB + "|" + userIdtoDel
+        self._connIrServer.write(msg)
+        if self.check_auth(userId, checkauthstat):
+            #wait for output
+            output = self._connIrServer.read(2048)
+        else:
+            if self._verbose:
+                print checkauthstat[0]
+            
+        return output
 
     ############################################################
     # userList
     ############################################################
-    def userList(self, userId):
-        cmdexec = " '" + self._serverdir + \
-                    "IRService.py --userlist " + userId + "'"
-
-        return self._rExec(userId, cmdexec)
+    def userList(self, userId, passwd, userIdB):
+        """
+        userId: user that authenticate against the repository.
+        passwd: passwd of the previous user
+        userIdB: user that execute the command in the repository.         
+        
+        Typically, userId and userIdB are the same user. However, they are different when the repo 
+        is used by a service like IMGenerateServer or IMDeployServer, because these services interact 
+        with the repo in behalf of other users.
+        """
+        checkauthstat = []
+        output = None
+        msg = userId + "|" + str(passwd) + "|" + self.passwdtype + "|userlist|" + userIdB 
+        self._connIrServer.write(msg)
+        if self.check_auth(userId, checkauthstat):
+            #wait for output
+            output = self._connIrServer.read(32768)
+        else:
+            if self._verbose:
+                print checkauthstat[0]
+            
+        return output
 
     ############################################################
     # setUserQuota    
     ############################################################
-    def setUserQuota(self, userId, userIdtoModify, quota):
-        cmdexec = " '" + self._serverdir + \
-                    "IRService.py --setUserQuota " + userId + " " + userIdtoModify + " " + str(eval(quota)) + "'"
+    def setUserQuota(self, userId, passwd, userIdB, userIdtoModify, quota):
+        """
+        userId: user that authenticate against the repository.
+        passwd: passwd of the previous user
+        userIdB: user that execute the command in the repository.         
+        
+        Typically, userId and userIdB are the same user. However, they are different when the repo 
+        is used by a service like IMGenerateServer or IMDeployServer, because these services interact 
+        with the repo in behalf of other users.
+        """
+        checkauthstat = []
+        output = None
+        try:
+            quotanum = str(eval(quota))
+            msg = userId + "|" + str(passwd) + "|" + self.passwdtype + "|setUserQuota|" + userIdB + "|" + userIdtoModify + "|" + quotanum
+            self._connIrServer.write(msg)
+            if self.check_auth(userId, checkauthstat):
+                #wait for output
+                output = self._connIrServer.read(2048)
+            else:
+                if self._verbose:
+                    print checkauthstat[0]
+        except:
+            if self._verbose:
+                print "ERROR: evaluating the quota. It must be a number or a mathematical operation enclosed in \"\" characters"        
+            
+        return output
 
-        return self._rExec(userId, cmdexec)[0].strip()
 
     ############################################################
     # setUserRole
     ############################################################
-    def setUserRole(self, userId, userIdtoModify, role):
-        success = ["False"]
+    def setUserRole(self, userId, passwd, userIdB, userIdtoModify, role):
+        """
+        userId: user that authenticate against the repository.
+        passwd: passwd of the previous user
+        userIdB: user that execute the command in the repository.         
+        
+        Typically, userId and userIdB are the same user. However, they are different when the repo 
+        is used by a service like IMGenerateServer or IMDeployServer, because these services interact 
+        with the repo in behalf of other users.
+        """
+        checkauthstat = []        
+        output = None
+        msg = userId + "|" + str(passwd) + "|" + self.passwdtype + "|setUserRole|" + userIdB + "|" + userIdtoModify + "|" + role
         if(role in IRUser.Role):
-            cmdexec = " '" + self._serverdir + \
-                        "IRService.py --setUserRole " + userId + " " + userIdtoModify + " " + role + "'"
-
-            success = self._rExec(userId, cmdexec)
+            self._connIrServer.write(msg)
+            if self.check_auth(userId, checkauthstat):
+                #wait for output
+                output = self._connIrServer.read(2048)
+            else:
+                if self._verbose:
+                    print checkauthstat[0]
         else:
-            success = ["Available options: " + str(IRUser.Role)]
-
-        return success[0].strip()
-
-
+            output = "Available options: " + str(IRUser.Role)
+                
+        return output
+        
+        
     ############################################################
     # setUserStatus
     ############################################################
-    def setUserStatus(self, userId, userIdtoModify, status):
-        success = ["False"]
+    def setUserStatus(self, userId, passwd, userIdB, userIdtoModify, status):
+        """
+        userId: user that authenticate against the repository.
+        passwd: passwd of the previous user
+        userIdB: user that execute the command in the repository.         
+        
+        Typically, userId and userIdB are the same user. However, they are different when the repo 
+        is used by a service like IMGenerateServer or IMDeployServer, because these services interact 
+        with the repo in behalf of other users.
+        """
+        checkauthstat = []        
+        output = None
+        msg = userId + "|" + str(passwd) + "|" + self.passwdtype + "|setUserStatus|" + userIdB + "|" + userIdtoModify + "|" + status
         if(status in IRUser.Status):
-            cmdexec = " '" + self._serverdir + \
-                        "IRService.py --setUserStatus " + userId + " " + userIdtoModify + " " + status + "'"
-
-            success = self._rExec(userId, cmdexec)
-        else:
-            success = ["Available options: " + str(IRUser.Status)]
-
-        return success[0].strip()
-
-    ############################################################
-    # query
-    ############################################################
-    def query(self, userId, queryString):
-        cmdexec = " '" + self._serverdir + \
-                    "IRService.py --list " + userId + " \"" + queryString + "\"'"
-
-        return self._rExec(userId, cmdexec)
-
-    ############################################################
-    # get
-    ############################################################
-    def get(self, userId, option, imgId, dest):
-        cmdexec = " '" + self._serverdir + \
-                    "IRService.py --get " + userId + " " + option + " " + imgId + "'"
-        #print cmdexec
-
-        imgURI = self._rExec(userId, cmdexec)[0].strip()
-        #print imgURI        
-        if not imgURI == 'None':
-            imgURI = self._serveraddr + ":" + imgURI
-            if (option == "img"):
-                imgURI = self._retrieveImg(userId, imgId, imgURI, dest)
-        else:
-            imgURI = None
-
-        return imgURI
-
-    ############################################################
-    # put
-    ############################################################
-    def put(self, userId, uid, imgFile, attributeString):
-        """
-        0 is general error
-        -1 user doesn't exist
-        -2 user is not active
-        -3 file exceed the quota 
-        """
-        status = "0"
-        if (self.checkMeta(attributeString) and os.path.isfile(imgFile)):
-
-            size = os.path.getsize(imgFile)
-
-            extension = os.path.splitext(imgFile)[1]
-            if extension == "":
-                extension = "\" \""
-            if self._verbose:            
-                self._log.info("Checking quota")
-            cmdexec = " '" + self._serverdir + \
-                    "IRService.py --uploadValidator " + userId + " " + str(size) + "'"
-
-            isPermitted = self._rExec(userId, cmdexec)
-            #print isPermitted[0].strip()      
-            if (isPermitted[0].strip() == "NoUser"):
-                status = "-1"
-            elif (isPermitted[0].strip() == "NoActive"):
-                status = "-2"
-            elif (isPermitted[0].strip() == "True"):
-
-                self._log.debug("Getting ImgId")
-                cmdexec = " '" + self._serverdir + "IRService.py --genImgId'"
-                uidRet = self._rExec(userId, cmdexec)
-                imgId = uidRet[0].strip()
-                self._log.debug(imgId)
-                #uid = IRUtil.getImgId()
-
-                fileLocation = self._fgirimgstore + imgId
-
-                #cmd = 'scp ' + imgFile + ' ' + userId + "@" + \
-                #        self._serveraddr + ":" + fileLocation
-                if self._verbose:
-                    cmd = 'scp ' + imgFile + " " + \
-                        self._serveraddr + ":" + fileLocation
-                else:
-                    cmd = 'scp -q ' + imgFile + " " + \
-                        self._serveraddr + ":" + fileLocation
-                if self._verbose:
-                    print "uploading file through scp:"
-                #print cmd
-                stat = os.system(cmd)
-                if (str(stat) != "0"):
-                    self._log.error(str(stat))
-                if self._verbose:
-                    self._log.info("Registering the Image")
-                cmdexec = " '" + self._serverdir + "IRService.py --put " + userId + " " + \
-                             imgId + " " + fileLocation + " \"" + attributeString + "\" " + str(size) + " "+ extension +"'"
-                #print cmdexec
-                uid = self._rExec(userId, cmdexec)
-
-
-                status = uid[0].strip()
-                self._log.debug(status)
-                #print status
+            self._connIrServer.write(msg)
+            if self.check_auth(userId, checkauthstat):
+                #wait for output
+                output = self._connIrServer.read(2048)
             else:
-                status = "-3"
-
-        return status
-
-    ############################################################
-    # updateItem
-    ############################################################
-    def updateItem(self, userId, imgId, attributeString):
-        success = "False"  #A string because _rExec return a string ;)
-        if (self.checkMeta(attributeString)):
-            cmdexec = " '" + self._serverdir + "IRService.py --modify " + userId + " " + \
-                         imgId + " \"" + attributeString + "\"'"
-            #print cmdexec
-            success = self._rExec(userId, cmdexec)
-
-        #print success
-        return success[0].strip()
-
-    ############################################################
-    # setPermission
-    ############################################################
-    def setPermission(self, userId, imgId, permission):
-        success = ["False"]
-        if(permission in ImgMeta.Permission):
-            cmdexec = " '" + self._serverdir + "IRService.py --modify " + userId + " " + \
-                         imgId + " \"permission=" + permission + "\"'"
-            #print cmdexec
-            success = self._rExec(userId, cmdexec)
+                if self._verbose:
+                    print checkauthstat[0]
         else:
-            success = ["Available options: " + str(ImgMeta.Permission)]
-
-        #print success
-        return success[0].strip()
-
-    ############################################################
-    # remove
-    ############################################################
-    def remove(self, userId, imgId):
-        cmdexec = " '" + self._serverdir + \
-                    "IRService.py --remove " + userId + " " + imgId + "'"
-        #print cmd
-
-        deleted = self._rExec(userId, cmdexec)[0].strip()
-        #print deleted
-        return deleted
+            output = "Available options: " + str(IRUser.Status)
+                
+        return output
+        
 
     ############################################################
     # histImg
     ############################################################
-    def histImg(self, userId, imgId):
-        cmdexec = " '" + self._serverdir + \
-                    "IRService.py --histimg " + userId + " " + imgId + "'"
-
-        return self._rExec(userId, cmdexec)
+    def histImg(self, userId, passwd, userIdB, imgId):
+        """
+        userId: user that authenticate against the repository.
+        passwd: passwd of the previous user
+        userIdB: user that execute the command in the repository.         
+        
+        Typically, userId and userIdB are the same user. However, they are different when the repo 
+        is used by a service like IMGenerateServer or IMDeployServer, because these services interact 
+        with the repo in behalf of other users.
+        """
+        checkauthstat = []
+        output = None
+        msg = userId + "|" + str(passwd) + "|" + self.passwdtype + "|histimg|" + userIdB + "|" + imgId
+        self._connIrServer.write(msg)
+        if self.check_auth(userId, checkauthstat):
+            #wait for output
+            output = self._connIrServer.read(32768)
+        else:
+            if self._verbose:
+                print checkauthstat[0]
+            
+        return output
 
     ############################################################
     # histUser
     ############################################################
-    def histUser(self, userId, userIdtoSearch):
-        cmdexec = " '" + self._serverdir + \
-                    "IRService.py --histuser " + userId + " " + userIdtoSearch + "'"
-
-        return self._rExec(userId, cmdexec)
-
+    def histUser(self, userId, passwd, userIdB, userIdtoSearch):
+        """
+        userId: user that authenticate against the repository.
+        passwd: passwd of the previous user
+        userIdB: user that execute the command in the repository.         
+        
+        Typically, userId and userIdB are the same user. However, they are different when the repo 
+        is used by a service like IMGenerateServer or IMDeployServer, because these services interact 
+        with the repo in behalf of other users.
+        """
+        checkauthstat = []
+        output = None
+        msg = userId + "|" + str(passwd) + "|" + self.passwdtype + "|histuser|" + userIdB + "|" + userIdtoSearch
+        self._connIrServer.write(msg)
+        if self.check_auth(userId, checkauthstat):
+            #wait for output
+            output = self._connIrServer.read(32768)
+        else:
+            if self._verbose:
+                print checkauthstat[0]
+            
+        return output
+    
     ############################################################
     # checkMeta
     ############################################################
     def checkMeta(self, attributeString):
-        attributes = attributeString.split("|")
+        attributes = attributeString.split("&")
         correct = True
         for item in attributes:
             attribute = item.strip()
@@ -336,7 +602,7 @@ class IRServiceProxy(object):
 
         #cmdssh = "ssh " + userId + "@" + self._serveraddr
         cmdssh = "ssh " + self._serveraddr
-        tmpFile = "/tmp/" + str(time()) + str(self.randomId())
+        tmpFile = "/tmp/" + str(time()) #+ str(self.randomId())
         #print tmpFile
         cmdexec = cmdexec + " > " + tmpFile
         cmd = cmdssh + cmdexec
@@ -360,18 +626,18 @@ class IRServiceProxy(object):
     ############################################################
     def _retrieveImg(self, userId, imgId, imgURI, dest):
         
-        extension=os.path.splitext(imgURI)[1]
-        extension=string.split(extension, "_")[0]
+        extension = os.path.splitext(imgURI)[1]
+        extension = string.split(extension, "_")[0]
         
         fulldestpath = dest + "/" + imgId + "" + extension
                 
         if os.path.isfile(fulldestpath):
             exists = True
-            i=0       
+            i = 0       
             while (exists):            
                 aux = fulldestpath + "_" + i.__str__()
                 if os.path.isfile(aux):
-                    i+=1
+                    i += 1
                 else:
                     exists = False
                     fulldestpath = aux
@@ -390,13 +656,7 @@ class IRServiceProxy(object):
                 print "Retrieving the image"
             stat = os.system(cmdscp)
             if (stat == 0):
-                output = fulldestpath
-                if (self._backend.strip() == "mongodb" or self._backend.strip() == "swiftmysql" or self._backend.strip() == "swiftmongo"
-                    or self._backend.strip() == "cumulusmysql" or self._backend.strip() == "cumulusmongo"):
-                    cmdrm = " rm -f " + (imgURI).split(":")[1]
-                    if self._verbose:
-                        print "Post processing"
-                    self._rExec(userId, cmdrm)
+                output = fulldestpath                
             else:
                 self._log.error("Error retrieving the image. Exit status " + str(stat))
                 #remove the temporal file
@@ -406,6 +666,6 @@ class IRServiceProxy(object):
 
         return output
      
-    def randomId(self):
-        Id = str(randrange(999999999999999999999999))
-        return Id
+    #def randomId(self):
+    #    Id = str(randrange(999999999999999999999999))
+    #    return Id

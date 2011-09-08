@@ -184,10 +184,10 @@ class IMClientConf(object):
             print "Error: No http_server option found in section "+section
             sys.exit(1)
         
-        try:
-            self._tempdir = os.path.expanduser(self._config.get(section, 'tempdir', 0))
-        except ConfigParser.NoOptionError:
-            self._tempdir = "./" 
+        #try:
+        #    self._tempdir = os.path.expanduser(self._config.get(section, 'tempdir', 0))
+        #except ConfigParser.NoOptionError:
+        #    self._tempdir = "./" 
         
         try:
             self._ca_certs_dep = os.path.expanduser(self._config.get(section, 'ca_cert', 0))

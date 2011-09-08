@@ -45,10 +45,10 @@ def auth(userId, cred):
     config.read(configFile)
     logfile = config.get("LDAP", "log")
     
-    log = fgLog(logfile, logging.INFO, "IRUtil Auth", False)
+    log = fgLog(logfile, logging.INFO, "utils.FGAuth Auth", False)
 
-    authProvider = cred._provider
-    authCred = cred._cred
+    authProvider = cred.getProvider()
+    authCred = cred.getCred()
     # print "'" + userId + "':'" + authProvider + "':'" + authCred + "'"
     if(authProvider == "ldappass" or authProvider == "ldappassmd5"):
         if(authCred != ""):

@@ -25,11 +25,13 @@ from IRServerConf import IRServerConf
 import IRUtil
 
 try:
-    from ....utils.FGTypes import FGTypes,fgLog
+    from .....utils.FGTypes import FGTypes
+    from .....utils import FGAuths, fgLog
 except:
-    sys.path = [os.path.dirname(os.path.abspath(__file__)) + "/../../../utils"] + sys.path
-    import FGTypes, fgLog
-
+    sys.path.append(os.getcwd())
+    sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../../../")    
+    from utils.FGTypes import FGCredential
+    from utils import FGAuth, fgLog
 
 class IRService(object):
 
@@ -43,7 +45,7 @@ class IRService(object):
         self._repoConf = IRServerConf()
         self._repoConf.loadRepoServerConfig()
         
-        self._authorizedUsers=self._repoConf.getAuthorizedUsers()  #to be removed    
+        #self._authorizedUsers=self._repoConf.getAuthorizedUsers()  #to be removed    
         self._backend = self._repoConf.getBackend()
         
         self._address = self._repoConf.getAddress()
@@ -53,7 +55,8 @@ class IRService(object):
         self._addressS = self._repoConf.getAddressS()
         self._userAdminS = self._repoConf.getUserAdminS()
         self._configFileS = self._repoConf.getConfigFileS()
-
+        #self._idp = self._repoConf.getIdp()
+        
         #Setup log. 
         #When integrate ALL FG software, we may need to create this somewhere else and send the log object to all classes like this        
         self._log = fgLog.fgLog(self._repoConf.getLogRepo(), self._repoConf.getLogLevelRepo(), "Img Repo Server", False)
@@ -116,12 +119,20 @@ class IRService(object):
 
     def getLog(self):
         return self._log
+    def setLog(self, log):
+        self._log = log
     def getAuthorizedUsers(self):
         return self._authorizedUsers
     def getBackend(self):
         return self._backend
     def getImgStore(self):
         return self._imgStore
+
+    
+    def auth(self, userId, userCred, provider):
+        # to be implemented when integrating with the security framework
+        cred = FGCredential(provider, userCred)
+        return FGAuth.auth(userId, cred)
 
     ############################################################
     # uploadValidator
@@ -183,10 +194,7 @@ class IRService(object):
             print "Status not valid. Status available: " + str(IRUser.Status)
             return False
 
-    def auth(self, userId, userCred):
-        # to be implemented when integrating with the security framework
-        cred = FGTypes.FGCredential(self._repoConf.getIdp(), userCred)
-        return IRUtil.auth(userId, cred)
+
 
     def query(self, userId, queryString):
         self._log.info("user:" + userId + " command:list args={queryString:" + queryString + "}")
@@ -304,8 +312,11 @@ class IRService(object):
     ############################################################
     def histImg(self, userId, imgId):
         self._log.info("user:" + userId + " command:histImg args={imgId:" + imgId + "}")
-        return self.imgStore.histImg(imgId)
+        output = self.imgStore.histImg(imgId)
+        output = re.sub(r"imgURI=,|size=0,|extension=","",str(output))
+        return output
 
+    """
     ############################################################
     # printHistImg
     ############################################################
@@ -330,7 +341,7 @@ class IRService(object):
                         str(imgs[key]._lastAccess) + "    " + str(imgs[key]._accessCount) + "\n"
 
         return output
-
+    """
 
     ############################################################
     # histUser
@@ -338,18 +349,21 @@ class IRService(object):
     def histUser(self, userId, userIdtoSearch):
         self._log.info("user:" + userId + " command:histImg args={userIdtoSearch:" + userIdtoSearch + "}")
         output = {}
+        """
         output ['head'] = "User_Id  Used_Disk \t\t  Last_Login  \t\t #Owned_Images \n"
         output ['head'] = string.expandtabs(output ['head'], 8)
         stradd = ""
         for i in range(len(output['head'])):
             stradd += "-"
         output ['head'] += stradd
-
+        """
         if (userIdtoSearch == "None"):
             userIdtoSearch = None
 
         users = self.userStore.queryStore(userId, userIdtoSearch)
-
+        #.*? everything until
+        users = re.sub("cred=.*?, ","",str(users))
+        """
         if(users != None):
             for key in users.keys():
                 spaces = ""
@@ -361,8 +375,8 @@ class IRService(object):
 
                 output[key] = users[key]._userId + spaces + "   " + str(users[key]._fsUsed).split(".")[0] + " \t\t " + \
                         str(users[key]._lastLogin) + "   \t " + str(users[key]._ownedImgs).split(".")[0] + "\n"
-
-        return output
+        """
+        return users
 
 
 
@@ -377,11 +391,13 @@ class IRService(object):
         update: if True no default values are added
         """
         args = [''] * 10
-        attributes = attributeString.split("|")
+        attributes = attributeString.split("&")
         for item in attributes:
             attribute = item.strip()
             #print attribute
             tmp = attribute.split("=")
+            for i in range(len(tmp)):
+                tmp[i]=tmp[i].strip()            
             if (len(tmp) == 2):
                 key = string.lower(tmp[0])
                 value = tmp[1]
@@ -419,7 +435,7 @@ class IRService(object):
                         args[5], args[6], args[7], args[8], args[9])
         #print aMeta
         return aMeta
-
+"""
     ############################################################
     # usage
     ############################################################
@@ -444,7 +460,8 @@ def usage():
         --setrole  <userId> <role> : modify user role
         --setUserStatus <userId> <status> :modify user status
           '''
-
+"""
+"""
     ############################################################
     # main
     ############################################################
@@ -562,3 +579,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+"""

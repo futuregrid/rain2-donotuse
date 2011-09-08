@@ -237,7 +237,7 @@ def main():
     parser.add_option("-u", "--user", dest="user", help="FutureGrid username.")
     parser.add_option("-n", "--name", dest="givenname", help="Desired recognizable name of the image")
     parser.add_option("-e", "--description", dest="desc", help="Short description of the image and its purpose")
-    parser.add_option("-g", "--getimg", dest="getimg", default=False, action="store_true", help="Short description of the image and its purpose")
+    parser.add_option("-g", "--getimg", dest="getimg", default=False, action="store_true", help="Retrieve the image instead of uploading to the image repository")
 
     (ops, args) = parser.parse_args()
 

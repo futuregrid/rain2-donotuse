@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-## @author Michael Lewis
+## @author Michael Lewis, Fugang Wang, Javier Diaz
 # The functions in this class represent the REST interface
 # which then delegates the http input values to the Server (IRService) module. 
 
@@ -48,6 +48,7 @@ class AdminRestService(object):
         self.service = IRService()
         self.msg = ""
         self._log = self.service.getLog()
+        self.provider = "ldappass"
 
     ## Returning the html output from a Rest call
     def results(self) :
@@ -178,7 +179,7 @@ class AdminRestService(object):
     # @param userId user id to represent list
     # @param userCred user password in MD5 digested format
     # @param queryString (not required) string to help narrow down the query 
-    def actionList (self, userId, userCred, queryString) :
+    def actionList (self, userId, userCred, queryString):
         userId = userId.strip()
         #userCred = IRCredential("ldappass", userCred)
         if (len(userId) > 0 and self.service.auth(userId, userCred)):
@@ -221,7 +222,7 @@ class AdminRestService(object):
         imgId = imgId.strip()
         permstring = permissionString.strip()
         #userCred = IRCredential("ldappass", userCred)
-        if (len(userId) > 0 and self.service.auth(userId, userCred)):
+        if (len(userId) > 0 and self.service.auth(userId, userCred, self.provider)):
             if (len(permissionString) > 0 and len(imgId) > 0):
                 permstring = "permission=" + permissionString
                 status = self.service.updateItem(userId, imgId, permstring)
@@ -257,7 +258,7 @@ class AdminRestService(object):
         imgId = imgId.strip()
         userId = userId.strip()
         #userCred = IRCredential("ldappass", userCred)
-        if (len(userId) > 0 and self.service.auth(userId, userCred)):
+        if (len(userId) > 0 and self.service.auth(userId, userCred, self.provider)):
             if(len(imgId) > 0 and len(option) > 0):    
                 filepath = self.service.get(userId, option, imgId)
                 if (filepath != None):
@@ -302,7 +303,7 @@ class AdminRestService(object):
         userId = userId.strip()
         attributeString = attributeString.strip()
         #userCred = IRCredential("ldappass", userCred)
-        if (len(userId) > 0 and self.service.auth(userId, userCred)):
+        if (len(userId) > 0 and self.service.auth(userId, userCred, self.provider)):
             while 1:
                 data = imageFileName.file.read(1024 * 8) # Read blocks of 8KB at a time                                                               
                 size += len(data)
@@ -407,7 +408,7 @@ class AdminRestService(object):
         imgId = imgId.strip()
         attributeString = attributeString.strip()
         #userCred = IRCredential("ldappass", userCred)
-        if (len(userId) > 0 and self.service.auth(userId, userCred)):
+        if (len(userId) > 0 and self.service.auth(userId, userCred, self.provider)):
             if(len(imgId) > 0 and len(attributeString) > 0):
                 if self.checkMeta(attributeString):
                     success = self.service.updateItem(userId, imgId, attributeString)
@@ -439,7 +440,7 @@ class AdminRestService(object):
         userId = userId.strip()
         imgId = imgId.strip()
         #userCred = IRCredential("ldappass", userCred)
-        if (len(userId) > 0 and self.service.auth(userId, userCred)):
+        if (len(userId) > 0 and self.service.auth(userId, userCred, self.provider)):
             status = self.service.remove(userId, imgId)
             self.msg = ""
             if (status == True):
@@ -469,7 +470,7 @@ class AdminRestService(object):
         userId = userId.strip()
         imgId = imgId.strip()
         #userCred = IRCredential("ldappass", userCred)
-        if (len(userId) > 0 and self.service.auth(userId, userCred)):
+        if (len(userId) > 0 and self.service.auth(userId, userCred, self.provider)):
             if(len(imgId) > 0):
                 imgsList = self.service.histImg(userId, imgId)
             else:
@@ -511,7 +512,7 @@ class AdminRestService(object):
         adminId = adminId.strip()
         userIdtoSearch = userIdtoSearch.strip()
         #userCred = IRCredential("ldappass", userCred)
-        if (len(adminId) > 0 and self.service.auth(adminId, adminCred)):
+        if (len(adminId) > 0 and self.service.auth(adminId, adminCred, self.provider)):
             if (len(userIdtoSearch) > 0):
                 userList = self.service.histUser(adminId, userIdtoSearch)
             else:
@@ -554,7 +555,7 @@ class AdminRestService(object):
         adminId = adminId.strip()
         userIdtoAdd = userIdtoAdd.strip()
         #adminCred = IRCredential("ldappass", adminCred)
-        if (len(adminId) > 0 and self.service.auth(adminId, adminCred)):
+        if (len(adminId) > 0 and self.service.auth(adminId, adminCred, self.provider)):
             if (len(userIdtoAdd) > 0):
                 status = self.service.userAdd(adminId, userIdtoAdd)
                 if(status):
@@ -586,7 +587,7 @@ class AdminRestService(object):
         adminId = adminId.strip()
         userIdtoDel = userIdtoDel.strip()
         #adminCred = IRCredential("ldappass", adminCred)
-        if (len(adminId) > 0 and self.service.auth(adminId, adminCred)):
+        if (len(adminId) > 0 and self.service.auth(adminId, adminCred, self.provider)):
             if (len(userIdtoDel) > 0):
                 status = self.service.userDel(adminId, userIdtoDel)
                 self.msg = ""
@@ -617,7 +618,7 @@ class AdminRestService(object):
         self.msg = ""
         adminId = adminId.strip()
         #adminCred = IRCredential("ldappass", adminCred)
-        if (len(adminId) > 0 and self.service.auth(adminId, adminCred)):
+        if (len(adminId) > 0 and self.service.auth(adminId, adminCred, self.provider)):
             usersList = self.service.userList(adminId)
             if (usersList != None):
                 try:
@@ -657,7 +658,7 @@ class AdminRestService(object):
         adminId = adminId.strip()
         userIdtoModify = userIdtoModify.strip()
         #adminCred = IRCredential("ldappass", adminCred)
-        if (len(adminId) > 0 and self.service.auth(adminId, adminCred)):
+        if (len(adminId) > 0 and self.service.auth(adminId, adminCred, self.provider)):
             try:
                 quota = eval(quota)
                 if (len(userIdtoModify) > 0):
@@ -697,7 +698,7 @@ class AdminRestService(object):
         userIdtoModify = userIdtoModify.strip()
         role = role.strip()
         #adminCred = IRCredential("ldappass", adminCred)
-        if (len(adminId) > 0 and self.service.auth(adminId, adminCred)):
+        if (len(adminId) > 0 and self.service.auth(adminId, adminCred, self.provider)):
             if (len(userIdtoModify) > 0 and len(role) > 0):
                 # User name based on admin file
                 status = self.service.setUserRole(adminId, userIdtoModify, role)
@@ -734,7 +735,7 @@ class AdminRestService(object):
         userIdtoModify = userIdtoModify.strip()
         status = status.strip()
         #adminCred = IRCredential("ldappass", adminCred)
-        if (len(adminId) > 0 and self.service.auth(adminId, adminCred)):
+        if (len(adminId) > 0 and self.service.auth(adminId, adminCred, self.provider)):
             if (len(userIdtoModify) > 0 and len(status) > 0):
                 status = self.service.setUserStatus(adminId, userIdtoModify, status)
                 self.msg = ""

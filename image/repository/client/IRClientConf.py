@@ -4,7 +4,7 @@ Class to read Image Repository Client configuration
 """
 
 __author__ = 'Javier Diaz'
-__version__ = '0.1'
+__version__ = '0.9'
 
 import os
 import ConfigParser
@@ -50,12 +50,15 @@ class IRClientConf(object):
         ####################################
 
         #IR Server Config file
-        self._irconfig = ".IRconfig"
-        self._serverdir = ""
+        #self._irconfig = ".IRconfig"
+        self._port = 0
         self._serveraddr = ""
+        self._ca_certs = ""
+        self._certfile = ""
+        self._keyfile = ""
         #IR Client Config
-        self._backend = ""
-        self._fgirimgstore = ""
+        #self._backend = ""
+        #self._fgirimgstore = ""
 
         self._logfile = "" #self._localpath__+"/fg.log"
         self._logLevel = "DEBUG"
@@ -63,8 +66,8 @@ class IRClientConf(object):
 
         self.loadConfig()
 
-        self._backends = ["mongodb", "mysql", "swiftmysql", "swiftmongo", "cumulusmysql", "cumulusmongo"] #available backends
-        self._setupBackend()
+        #self._backends = ["mongodb", "mysql", "swiftmysql", "swiftmongo", "cumulusmysql", "cumulusmongo"] #available backends
+        #self._setupBackend()
 
         ###TODO ADD SSH KEY TO SSH-ADD
 
@@ -93,29 +96,35 @@ class IRClientConf(object):
     def getLogLevel(self):
         return self._logLevel
 
+    def getCaCerts(self):
+        return self._ca_certs
+    def getCertFile(self): 
+        return self._certfile
+    def getKeyFile(self): 
+        return self._keyfile   
     ############################################################
     # getIrconfig
     ############################################################
-    def getIrconfig(self):
-        return self._irconfig
+    #def getIrconfig(self):
+    #    return self._irconfig
 
     ############################################################
     # getBackend
     ############################################################
-    def getBackend(self):
-        return self._backend
+    #def getBackend(self):
+    #    return self._backend
 
     ############################################################
     # getFgirimgstore
     ############################################################
-    def getFgirimgstore(self):
-        return self._fgirimgstore
+    #def getFgirimgstore(self):
+    #    return self._fgirimgstore
 
     ############################################################
     # getServerdir
     ############################################################
-    def getServerdir(self):
-        return self._serverdir
+    def getPort(self):
+        return self._port
 
     ############################################################
     # getServeraddr
@@ -127,7 +136,7 @@ class IRClientConf(object):
     # loadConfig
     ############################################################
     def loadConfig(self):
-
+        section = 'Repo'
         config = ConfigParser.ConfigParser()
         if(os.path.isfile(self._configfile)):
             config.read(self._configfile)
@@ -136,19 +145,19 @@ class IRClientConf(object):
             sys.exit(1)
                 
         try:
-            self._logfile = os.path.expanduser(config.get('Repo', 'log', 0))
+            self._logfile = os.path.expanduser(config.get(section, 'log', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No log option found in section Repo"
+            print "Error: No log option found in section "+section
             sys.exit(1)
         except ConfigParser.NoSectionError:
-            print "Error: no section Repo found in the "+self._configfile+" config file"
+            print "Error: no section "+section+" found in the "+self._configfile+" config file"
             sys.exit(1)
-        dir=os.path.dirname(self._logfile)
-        if not (os.path.isdir(dir)):
-            os.system("mkdir -p " + dir)
+        #dir=os.path.dirname(self._logfile)
+        #if not (os.path.isdir(dir)):
+        #    os.system("mkdir -p " + dir)
         ##Log
         try:
-            tempLevel = string.upper(config.get('Repo', 'log_level', 0))
+            tempLevel = string.upper(config.get(section, 'log_level', 0))
         except ConfigParser.NoOptionError:
             tempLevel = self._LogLevel
 
@@ -159,30 +168,56 @@ class IRClientConf(object):
 
         #Server dir
         try:
-            self._serverdir = os.path.expanduser(config.get('Repo', 'serverdir', 0))
+            self._port = int(config.get(section, 'port', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No serverdir option found in section Repo"
+            print "Error: No port option found in section "+section
             sys.exit(1)
         #Server address
         try:
-            self._serveraddr = os.path.expanduser(config.get('Repo', 'serveraddr', 0))
+            self._serveraddr = os.path.expanduser(config.get(section, 'serveraddr', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No serveraddr option found in section Repo"
+            print "Error: No serveraddr option found in section "+section
             sys.exit(1)
-         #Server address
+        
         try:
-            self._irconfig = os.path.expanduser(config.get('Repo', 'IRConfig', 0))
+            self._ca_certs = os.path.expanduser(config.get(section, 'ca_cert', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No IRconfig option found in section Repo"
+            print "Error: No ca_cert option found in section " + section
             sys.exit(1)
+        if not os.path.isfile(self._ca_certs):
+            print "Error: ca_cert file not found in "  + self._ca_certs 
+            sys.exit(1)
+        try:
+            self._certfile = os.path.expanduser(config.get(section, 'certfile', 0))
+        except ConfigParser.NoOptionError:
+            print "Error: No certfile option found in section " + section
+            sys.exit(1)
+        if not os.path.isfile(self._certfile):
+            print "Error: certfile file not found in "  + self._certfile 
+            sys.exit(1)
+        try:
+            self._keyfile = os.path.expanduser(config.get(section, 'keyfile', 0))
+        except ConfigParser.NoOptionError:
+            print "Error: No keyfile option found in section " + section
+            sys.exit(1)
+        if not os.path.isfile(self._keyfile):
+            print "Error: keyfile file not found in "  + self._keyfile 
+            sys.exit(1)
+        
+        #try:
+        #    self._irconfig = os.path.expanduser(config.get('Repo', 'IRConfig', 0))
+        #except ConfigParser.NoOptionError:
+        #    print "Error: No IRconfig option found in section Repo"
+        #    sys.exit(1)
             
-        dir=os.path.dirname(self._irconfig)
-        if not (os.path.isdir(dir)):
-            os.system("mkdir -p " + dir)
+        #dir=os.path.dirname(self._irconfig)
+        #if not (os.path.isdir(dir)):
+        #    os.system("mkdir -p " + dir)
 
     ############################################################
     # _setupBackend 
     ############################################################
+    """
     def _setupBackend (self):
         userId = os.popen('whoami', 'r').read().strip()
         if not os.path.isfile(self._irconfig):
@@ -217,4 +252,4 @@ class IRClientConf(object):
             except(IOError), e:
                 print "Unable to open the file", self._irconfig, "Ending program.\n", e
         print "Repository Information Read"
-
+    """
