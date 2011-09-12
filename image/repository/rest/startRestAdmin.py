@@ -182,7 +182,7 @@ class AdminRestService(object):
     def actionList (self, userId, userCred, queryString):
         userId = userId.strip()
         #userCred = IRCredential("ldappass", userCred)
-        if (len(userId) > 0 and self.service.auth(userId, userCred)):
+        if (len(userId) > 0 and self.service.auth(userId, userCred, self.provider)):
             if (len(queryString) == 0):
                 imgsList = self.service.query(userId.strip(), "*")
             else:
