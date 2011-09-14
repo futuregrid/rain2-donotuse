@@ -20,6 +20,7 @@ try:
 except:
     sys.path = [os.path.dirname(os.path.abspath(__file__)) + "/../server"] + [os.path.dirname(os.path.abspath(__file__)) + "/../../../utils"] + sys.path
     from IRService import IRService
+    from IRServerConf import IRServerConf
     import IRUtil
     from IRTypes import ImgMeta, IRUser
     from FGTypes import FGCredential
@@ -32,7 +33,7 @@ import string
 localDir = os.path.abspath(os.path.dirname(__file__))
 
 #httpconfig = os.path.join(localDir, 'httpconfig.conf')
-httpsconfig = os.path.join(localDir, 'httpsconfig.conf')
+#httpsconfig = os.path.join(localDir, 'httpsconfig.conf')
 #certificate = os.path.join(localDir, 'server.crt')
 #privateKey = os.path.join(localDir, 'server.key')
 #adminName = None
@@ -803,7 +804,14 @@ if __name__ == '__main__':
 
     #adapter = _cpserver.ServerAdapter(cherrypy.engine, secure_server, secure_server.bind_addr)
     #adapter.subscribe()
-    cherrypy.quickstart(AdminRestService(), "/", config = httpsconfig)
+    
+    repoConf = IRServerConf()
+    repoConf.loadRepoServerConfig()    
+    configFileName =repoConf.getRestConfFile() 
+    if not os.path.isfile(configFileName):
+        print "Configuration File "+configFileName+" not found"
+        sys.exit(1)
+    cherrypy.quickstart(AdminRestService(), "/", config = configFileName)
 
 
 #else:

@@ -15,7 +15,6 @@ import os, sys
 import os.path
 import re
 import string
-from getopt import gnu_getopt, GetoptError
 from datetime import datetime
 
 from IRTypes import ImgMeta

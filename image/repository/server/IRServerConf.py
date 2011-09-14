@@ -68,7 +68,10 @@ class IRServerConf(object):
         self._userAdminS=""
         self._configFileS=""
         self._imgStore=""
-                        
+        
+        #image rest interface
+        self._confRestFile = ""
+               
         self._logLevel_default = "DEBUG"
         self._logType = ["DEBUG", "INFO", "WARNING", "ERROR"]
         
@@ -132,6 +135,9 @@ class IRServerConf(object):
     def getImgStore(self):
         return self._imgStore
     
+    def getRestConfFile(self):
+        return self._restConfFile
+    
     ############################################################
     # loadConfig
     ############################################################
@@ -162,25 +168,25 @@ class IRServerConf(object):
                 if (i.strip()!=""):
                     self._authorizedUsers.append(i.strip())
         except ConfigParser.NoOptionError:
-            self._log.error("No authorizedusers option found in section " + section)
+            print "No authorizedusers option found in section " + section 
             sys.exit(1)  
         try:
             self._backend = self._config.get(section, 'backend', 0)
         except ConfigParser.NoOptionError:
-            self._log.error("No backend option found in section " + section)
+            print "No backend option found in section " + section
             sys.exit(1)          
         #try:
         #    self._idp = self._config.get(section, 'idp', 0)
         #except ConfigParser.NoOptionError:
-        #    self._log.error("No idp option found in section " + section)
+        #    print "No idp option found in section " + section
         #    sys.exit(1)  
         #except ConfigParser.NoSectionError:
-        #    self._log.error("no section "+section+" found in the "+self._configfile+" config file")
+        #    print "no section "+section+" found in the "+self._configfile+" config file"
         #    sys.exit(1)
         try:
             self._log_repo = os.path.expanduser(self._config.get(section, 'log', 0))
         except ConfigParser.NoOptionError:
-            self._log.error("No log option found in section " + section)
+            print "No log option found in section " + section
             sys.exit(1)
         try:
             tempLevel = string.upper(self._config.get(section, 'log_level', 0))
@@ -214,47 +220,52 @@ class IRServerConf(object):
         if not os.path.isfile(self._keyfile):
             print "Error: keyfile file not found in "  + self._keyfile 
             sys.exit(1)
+        try:
+            self._restConfFile = os.path.expanduser(self._config.get(section, 'restConfFile', 0))
+        except ConfigParser.NoOptionError:
+            print "Warning: No option restConfFile in section "+section+". You will not be able to use the rest interface"      
         #load backend storage configuration
         try:
             self._address = self._config.get(self._backend, 'address', 0)
         except ConfigParser.NoOptionError:
-            self._log.error("No option address in section "+self._backend)
+            print "No option address in section "+self._backend
             sys.exit(1)
         except ConfigParser.NoSectionError:
-            self._log.error("No section "+self._backend+" found in the "+self._configfile+" config file")
+            print "No section "+self._backend+" found in the "+self._configfile+" config file"
             sys.exit(1)   
         try:
             self._userAdmin = self._config.get(self._backend, 'userAdmin', 0)
         except ConfigParser.NoOptionError:
-            self._log.error("No option userAdmin in section "+self._backend)
+            print "No option userAdmin in section "+self._backend
             sys.exit(1)
         try:
             self._configFile = os.path.expanduser(self._config.get(self._backend, 'configFile', 0))
         except ConfigParser.NoOptionError:
-            self._log.error("No option configFile in section "+self._backend)
+            print "No option configFile in section "+self._backend
             sys.exit(1)
         #only for those config with secondary service
         if (self._backend != "mongodb" and self._backend != "mysql"):
             try:
                 self._addressS = self._config.get(self._backend, 'addressS', 0)
             except ConfigParser.NoOptionError:
-                self._log.error("No option addressS in section "+self._backend)
+                print "No option addressS in section "+self._backend
                 sys.exit(1)
             try:
                 self._userAdminS = self._config.get(self._backend, 'userAdminS', 0)
             except ConfigParser.NoOptionError:
-                self._log.error("No option userAdminS in section "+self._backend)
+                print "No option userAdminS in section "+self._backend
                 sys.exit(1)
             try:
                 self._configFileS = os.path.expanduser(self._config.get(self._backend, 'configFileS', 0))
             except ConfigParser.NoOptionError:
-                self._log.error("No option configFileS in section "+self._backend)
+                print "No option configFileS in section "+self._backend
                 sys.exit(1)        
         try:
             self._imgStore = os.path.expanduser(self._config.get(self._backend, 'imgStore', 0))
         except ConfigParser.NoOptionError:
-            self._log.error("No option imgStore in section "+self._backend)
-            sys.exit(1)       
+            print "No option imgStore in section "+self._backend
+            sys.exit(1)  
+    
         
                 
 
