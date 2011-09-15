@@ -376,7 +376,7 @@ class IMGenerateServer(object):
             channel.shutdown(socket.SHUT_RDWR)
             channel.close()
         except:
-            self._log.debug("In errormsg: " + str(sys.exc_info()))
+            self.logger.debug("In errormsg: " + str(sys.exc_info()))
         self.logger.info("Image Generation DONE")
     
     def boot_VM(self, server, vmfile):

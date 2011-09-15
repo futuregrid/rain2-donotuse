@@ -58,7 +58,7 @@ class IMGenerate(object):
         self._certfile = self._genConf.getCertFileGen()
         self._keyfile = self._genConf.getKeyFileGen()
         
-        self._log = fgLog.fgLog(self._genConf.getLogFileDeploy(), self._genConf.getLogLevelDeploy(), "GenerateClient", printLogStdout)
+        self._log = fgLog.fgLog(self._genConf.getLogFileGen(), self._genConf.getLogLevelGen(), "GenerateClient", printLogStdout)
 
     def generate(self):
         #generate string with options separated by | character
@@ -90,7 +90,8 @@ class IMGenerate(object):
                                         ca_certs=self._ca_certs,
                                         certfile=self._certfile,
                                         keyfile=self._keyfile,
-                                        cert_reqs=ssl.CERT_REQUIRED)
+                                        cert_reqs=ssl.CERT_REQUIRED,
+                                        ssl_version=ssl.PROTOCOL_TLSv1)
             self._log.debug("Connecting server: " + self.serveraddr + ":" + str(self.gen_port))
             if self.verbose:
                 print "Connecting server: " + self.serveraddr + ":" + str(self.gen_port)
@@ -223,8 +224,6 @@ class IMGenerate(object):
 
     
 def main():
-
-    parser = OptionParser()
 
     #Default params
     base_os = ""

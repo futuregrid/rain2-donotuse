@@ -169,7 +169,8 @@ class IMDeploy(object):
                                         ca_certs=self._ca_certs,
                                         certfile=self._certfile,
                                         keyfile=self._keyfile,
-                                        cert_reqs=ssl.CERT_REQUIRED)
+                                        cert_reqs=ssl.CERT_REQUIRED,
+                                        ssl_version=ssl.PROTOCOL_TLSv1)
             xcatServer.connect((self.xcatmachine, self._xcat_port))
             
             msg =  str(image) + ',' + str(self.kernel) + ',' + self.machine + ',' + str(self.user) + ',' + str(self.passwd) + ",ldappassmd5" 
@@ -231,7 +232,8 @@ class IMDeploy(object):
                                         ca_certs=self._ca_certs,
                                         certfile=self._certfile,
                                         keyfile=self._keyfile,
-                                        cert_reqs=ssl.CERT_REQUIRED)
+                                        cert_reqs=ssl.CERT_REQUIRED,
+                                        ssl_version=ssl.PROTOCOL_TLSv1)
             moabServer.connect((self.moabmachine, self._moab_port))
             
             self._log.debug('Sending message: ' + moabstring)

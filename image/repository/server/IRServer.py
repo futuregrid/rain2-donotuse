@@ -71,7 +71,7 @@ class IRServer(object):
             total_count += 1
             #channel, details = sock.accept()
             newsocket, fromaddr = sock.accept()
-            connstream = 0
+            connstream = None
             try:
                 connstream = ssl.wrap_socket(newsocket,
                               server_side=True,

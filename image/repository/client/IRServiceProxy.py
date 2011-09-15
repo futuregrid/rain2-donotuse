@@ -71,7 +71,8 @@ class IRServiceProxy(object):
                                         ca_certs=self._ca_certs,
                                         certfile=self._certfile,
                                         keyfile=self._keyfile,
-                                        cert_reqs=ssl.CERT_REQUIRED)
+                                        cert_reqs=ssl.CERT_REQUIRED,
+                                        ssl_version=ssl.PROTOCOL_TLSv1)
             self._log.debug("Connecting server: " + self._serveraddr + ":" + str(self._port))
             self._connIrServer.connect((self._serveraddr, self._port))   
             connected = True         
