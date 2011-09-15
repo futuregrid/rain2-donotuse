@@ -5,7 +5,7 @@ Command line front end for image generator
 __author__ = 'Javier Diaz, Andrew Younge'
 __version__ = '0.1'
 
-from optparse import OptionParser
+import argparse
 from types import *
 import re
 import logging
@@ -24,8 +24,16 @@ import hashlib
 
 from IMClientConf import IMClientConf
 
+sys.path.append(os.getcwd())
+try:
+    from futuregrid.utils import fgLog #This should the the final one
+#To execute IRClient for tests
+except:
+    sys.path.append(os.path.dirname(__file__) + "/../../") #Directory where fg.py is
+    from utils import fgLog
+
 class IMGenerate(object):
-    def __init__(self, arch, OS, version, user, software, givenname, desc, logger, getimg, passwd):
+    def __init__(self, arch, OS, version, user, software, givenname, desc, getimg, passwd, verbose, printLogStdout):
         super(IMGenerate, self).__init__()
         
         self.arch = arch
@@ -36,8 +44,9 @@ class IMGenerate(object):
         self.software = software
         self.givenname = givenname
         self.desc = desc
-        self.logger = logger
         self.getimg = getimg
+        self.verbose = verbose
+        self.printLogStdout = printLogStdout
         
         #Load Configuration from file
         self._genConf = IMClientConf()
@@ -48,9 +57,12 @@ class IMGenerate(object):
         self._ca_certs = self._genConf.getCaCertsGen()
         self._certfile = self._genConf.getCertFileGen()
         self._keyfile = self._genConf.getKeyFileGen()
+        
+        self._log = fgLog.fgLog(self._genConf.getLogFileDeploy(), self._genConf.getLogLevelDeploy(), "GenerateClient", printLogStdout)
 
     def generate(self):
         #generate string with options separated by | character
+        output = None
         
         #params[0] is user
         #params[1] is operating system
@@ -69,7 +81,7 @@ class IMGenerate(object):
                 str(self.software) + "|" + str(self.givenname) + "|" + str(self.desc) + "|" + str(self.getimg) + \
                 "|" + str(self.passwd) + "|ldappassmd5" 
         
-        #self.logger.debug("string to send: "+options)
+        #self._log.debug("string to send: "+options)
         
         #Notify xCAT deployment to finish the job
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -79,60 +91,68 @@ class IMGenerate(object):
                                         certfile=self._certfile,
                                         keyfile=self._keyfile,
                                         cert_reqs=ssl.CERT_REQUIRED)
-            self.logger.debug("Connecting server: "+ self.serveraddr +":"+str(self.gen_port))
+            self._log.debug("Connecting server: " + self.serveraddr + ":" + str(self.gen_port))
+            if self.verbose:
+                print "Connecting server: " + self.serveraddr + ":" + str(self.gen_port)
             genServer.connect((self.serveraddr, self.gen_port))            
         except ssl.SSLError:
-            self.logger.error("CANNOT establish SSL connection. EXIT")
+            self._log.error("CANNOT establish SSL connection. EXIT")
+            if self.verbose:
+                print "ERROR: CANNOT establish SSL connection. EXIT"
 
         genServer.write(options)
         #check if the server received all parameters
-        print "Your image request is in the queue to be processed"
+        if self.verbose:
+            print "Your image request is in the queue to be processed"
         
         endloop = False
         fail = False
         while not endloop:
             ret = genServer.read(1024)
             if (ret == "OK"):
-                print "Your image request is being processed"
+                if self.verbose:                    
+                    print "Your image request is being processed"
                 endloop = True
             elif (ret == "TryAuthAgain"):
-                print "Permission denied, please try again. User is "+self.user
+                if self.verbose:
+                    print "Permission denied, please try again. User is " + self.user
                 m = hashlib.md5()
                 m.update(getpass())
                 passwd = m.hexdigest()
                 genServer.write(passwd)
             else:
-                self.logger.error(str(ret))
+                self._log.error(str(ret))
+                if self.verbose:
+                    print ret
                 endloop = True
                 fail = True
         if not fail:
-            print "Generating the image"
+            if self.verbose:
+                print "Generating the image"
             ret = genServer.read(2048)
             
             if (re.search('^ERROR', ret)):
-                self.logger.error('The image has not been generated properly. Exit error:' + ret)    
+                self._log.error('The image has not been generated properly. Exit error:' + ret)
+                if self.verbose:
+                    print "ERROR: The image has not been generated properly. Exit error:" + ret    
             else:
-                self.logger.debug("Returned string: " + str(ret))
+                self._log.debug("Returned string: " + str(ret))
                 
                 if self.getimg:            
-                    output = self._retrieveImg(ret)
-                    if output != None:  
-                        print output
+                    output = self._retrieveImg(ret, "./")                    
                     genServer.write('end')
                 else:
                     
                     if (re.search('^ERROR', ret)):
-                        self.logger.error('The image has not been generated properly. Exit error:' + ret)
+                        self._log.error('The image has not been generated properly. Exit error:' + ret)
+                        if self.verbose:
+                            print "ERROR: The image has not been generated properly. Exit error:" + ret
                     else:
-                        print "Your image has be uploaded in the repository with ID="+str(ret)
-                        
+                        output = str(ret)
                 
-                print '\n The image and the manifest generated are packaged in a tgz file.'+\
-                      '\n Please be aware that this FutureGrid image does not have kernel and fstab. Thus, '+\
-                      'it is not built for any deployment type. To deploy the new image, use the IMDeploy command.'
-                #server return addr of the img and metafile compressed in a tgz or None
-        
-
+        #server return addr of the img and metafile compressed in a tgz, imgId or None if error
+        return output
+    """
     ############################################################
     # _rExec
     ############################################################
@@ -149,12 +169,12 @@ class IMGenerate(object):
         cmdexec = cmdexec + " > " + tmpFile
         cmd = cmdssh + cmdexec
     
-        self.logger.debug(str(cmd))
+        self._log.debug(str(cmd))
     
         stat = os.system(cmd)
         if (str(stat) != "0"):
             #print stat
-            self.logger.debug(str(stat))
+            self._log.debug(str(stat))
         f = open(tmpFile, "r")
         outputs = f.readlines()
         f.close()
@@ -164,49 +184,45 @@ class IMGenerate(object):
         #    output += line.strip()
         #print outputs
         return outputs
-    
+    """
     ############################################################
     # _retrieveImg
     ############################################################
-    def _retrieveImg(self, dir):
+    def _retrieveImg(self, dir, dest):
         imgURI = self.serveraddr + ":" + dir
         imgIds = imgURI.split("/")
         imgId = imgIds[len(imgIds) - 1]
     
-        cmdscp = "scp " + self.user + "@" + imgURI + " ."
+        cmdscp = ""
+        if self.verbose:
+            cmdscp = "scp " + self.user + "@" + imgURI + " " + dest
+        else:
+            cmdscp = "scp -q " + self.user + "@" + imgURI + " " + dest
         output = ""
         try:
-            print "Retrieving the image"
-            self.logger.debug(cmdscp)
+            if self.verbose:
+                print "Retrieving the image"
+            self._log.debug(cmdscp)
             stat = os.system(cmdscp)
             stat = 0
             if (stat == 0):
-                output = "The image " + imgId + " is located in " + os.popen('pwd', 'r').read().strip() + "/" + imgId
-                cmdrm = " rm -f " + dir
-                print "Post processing"
-                self.logger.debug(cmdrm)
-                self._rExec(cmdrm)
+                output = dest + "/" + imgId
             else:
-                print "Error retrieving the image. Exit status " + str(stat)
+                self._log.error("Error retrieving the image. Exit status " + str(stat))
+                if self.verbose:
+                    print "Error retrieving the image. Exit status " + str(stat)
+                output = None
                 #remove the temporal file
         except os.error:
-            print "Error, The image cannot be retieved" + str(sys.exc_info())
+            self._log.error("Error, The image cannot be retieved" + str(sys.exc_info()))
+            if self.verbose:
+                print "Error, The image cannot be retieved" + str(sys.exc_info())
             output = None
     
         return output
 
+    
 def main():
-    
-    
-
-    #Set up logging
-    logger = logging.getLogger('GenerateClient')
-    logger.setLevel(logging.DEBUG)
-    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")    
-    ch = logging.StreamHandler()
-    ch.setLevel(logging.DEBUG)
-    ch.setFormatter(formatter)
-    logger.addHandler(ch)
 
     parser = OptionParser()
 
@@ -225,98 +241,92 @@ def main():
     #rhel-distro = ['5.5', '5.4', '4.8']
     #fedora-distro = ['14','12']
 
+    parser = argparse.ArgumentParser(prog="IMDeploy", formatter_class=argparse.RawDescriptionHelpFormatter,
+                                     description="FutureGrid Image Deployment Help")    
+    parser.add_argument('-u', '--user', dest='user', required=True, help='FutureGrid User name')
+    parser.add_argument('-d', '--debug', dest='debug', action="store_true", help='Print logs in the screen for debug')
+    parser.add_argument("-o", "--os", dest="OS", metavar='OSName', help="specify destination Operating System")
+    parser.add_argument("-v", "--version", dest="version", metavar='OSversion', help="Operating System version")
+    parser.add_argument("-a", "--arch", dest="arch", metavar='arch', help="Destination hardware architecture")
+    parser.add_argument("-s", "--software", dest="software", metavar='software', help="Software list to be automatically installed")
+    parser.add_argument("-n", "--name", dest="givenname", metavar='givenname', help="Desired recognizable name of the image")
+    parser.add_argument("-e", "--description", dest="desc", metavar='description', help="Short description of the image and its purpose")
+    parser.add_argument("-g", "--getimg", dest="getimg", default=False, action="store_true", help="Retrieve the image instead of uploading to the image repository")
+    
+    args = parser.parse_args()
+
     print 'Image generator client...'
+    
+    verbose = True
 
-    #help is auto-generated
-    parser.add_option("-o", "--os", dest="OS", help="specify destination Operating System")
-    parser.add_option("-v", "--version", dest="version", help="Operating System version")
-    parser.add_option("-a", "--arch", dest="arch", help="Destination hardware architecture")
-#    parser.add_option("-l", "--auth", dest="auth", help="Authentication mechanism")
-    parser.add_option("-s", "--software", dest="software", help="Software stack to be automatically installed")
-    parser.add_option("-d", "--debug", action="store_true", dest="debug", help="Enable debugging")
-    parser.add_option("-u", "--user", dest="user", help="FutureGrid username.")
-    parser.add_option("-n", "--name", dest="givenname", help="Desired recognizable name of the image")
-    parser.add_option("-e", "--description", dest="desc", help="Short description of the image and its purpose")
-    parser.add_option("-g", "--getimg", dest="getimg", default=False, action="store_true", help="Retrieve the image instead of uploading to the image repository")
-
-    (ops, args) = parser.parse_args()
-
-    if (len(sys.argv) == 1):
-        parser.print_help()
-        sys.exit(1)
-
-    try:
-        user = os.environ['FG_USER']
-    except KeyError:
-        if type(ops.user) is not NoneType:
-            user = ops.user
-        else:
-            logger.debug("you need to specify you user name. It can be donw using the FG_USER variable or the option -u/--user")
-            sys.exit(1)
-
-    print "Please insert the password for the user "+ops.user+""
+    print "Please insert the password for the user " + args.user + ""
     m = hashlib.md5()
     m.update(getpass())
     passwd = m.hexdigest()
-
-    #Turn debugging off
-    if not ops.debug:
-        ch.setLevel(logging.INFO)
-
+    
     arch = "x86_64" #Default to 64-bit
 
     #Parse arch command line arg
-    if type(ops.arch) is not NoneType:
-        if ops.arch == "i386" or ops.arch == "i686":
+    if args.arch != None:
+        if args.arch == "i386" or args.arch == "i686":
             arch = "i386"
-        elif ops.arch == "amd64" or ops.arch == "x86_64":
+        elif args.arch == "amd64" or args.arch == "x86_64":
             arch = "x86_64"
         else:
-            parser.error("Incorrect architecture type specified (i386|x86_64)")
+            print "ERROR: Incorrect architecture type specified (i386|x86_64)"
             sys.exit(1)
 
-    logger.debug('Selected Architecture: ' + arch)
+    print 'Selected Architecture: ' + arch
 
     # Build the image
     version = ""
     #Parse OS and version command line args
     OS = ""
-    if ops.OS == "Ubuntu" or ops.OS == "ubuntu":
+    if args.OS == "Ubuntu" or args.OS == "ubuntu":
         OS = "ubuntu"
-        if type(ops.version) is NoneType:
+        if type(args.version) is NoneType:
             version = default_ubuntu
-        elif ops.version == "9.10" or ops.version == "karmic":
+        elif args.version == "9.10" or args.version == "karmic":
             version = "karmic"
-        elif ops.version == "10.04" or ops.version == "lucid":
+        elif args.version == "10.04" or args.version == "lucid":
             version = "lucid"
-        elif ops.version == "10.10" or ops.version == "maverick":
+        elif args.version == "10.10" or args.version == "maverick":
             version = "maverick"
-        elif ops.version == "11.04" or ops.version == "natty":
+        elif args.version == "11.04" or args.version == "natty":
             version = "natty"
-    elif ops.OS == "Debian" or ops.OS == "debian":
+    elif args.OS == "Debian" or args.OS == "debian":
         OS = "debian"
         version = default_debian
-    elif ops.OS == "Redhat" or ops.OS == "redhat" or ops.OS == "rhel":
+    elif args.OS == "Redhat" or args.OS == "redhat" or args.OS == "rhel":
         OS = "rhel"
         version = default_rhel
-    elif ops.OS == "CentOS" or ops.OS == "CentOS" or ops.OS == "centos":
+    elif args.OS == "CentOS" or args.OS == "CentOS" or args.OS == "centos":
         OS = "centos"
-        if type(ops.version) is NoneType:
+        if type(args.version) is NoneType:
             version = default_centos
         #later control supported versions
         else:
             version = default_centos
-    elif ops.OS == "Fedora" or ops.OS == "fedora":
+    elif args.OS == "Fedora" or args.OS == "fedora":
         OS = "fedora"
         version = default_fedora
     else:
-        parser.error("Incorrect OS type specified")
+        print "ERROR: Incorrect OS type specified"
         sys.exit(1)
+        
     
-    imgen = IMGenerate(arch, OS, version, user, ops.software, ops.givenname, ops.desc, logger, ops.getimg, passwd)
-    imgen.generate()
+    imgen = IMGenerate(arch, OS, version, args.user, args.software, args.givenname, args.desc, args.getimg, passwd, verbose, args.debug)
+    status = imgen.generate()
     
-
+    
+    if args.getimg:
+        print "The image " + imgId + " is located in " + str(status)
+    else:
+        print "Your image has be uploaded in the repository with ID=" + str(status)
+    
+    print '\n The image and the manifest generated are packaged in a tgz file.' + \
+          '\n Please be aware that this FutureGrid image does not have kernel and fstab. Thus, ' + \
+          'it is not built for any deployment type. To deploy the new image, use the IMDeploy command.'
 
 
 if __name__ == "__main__":

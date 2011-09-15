@@ -120,6 +120,7 @@ class IMDeployServerXcat(object):
         self.logger.info('Accepted new connection')        
         #receive the message
         data = connstream.read(2048)
+        self.logger.debug("received data: " + data)
         params = data.split(',')
         #print data
         #params[0] is image ID
@@ -163,16 +164,18 @@ class IMDeployServerXcat(object):
         #GET IMAGE from repo
         if not self._reposervice.connection():
             msg = "ERROR: Connection with the Image Repository failed"
-            self.errormsg(channel, msg)
+            self.errormsg(connstream, msg)
             return
         else:
             self.logger.info("Retrieving image from repository")
-            image = self._reposervice.get(self.user, passwd, self.user, "img", imgID, self.tempdir)      
+            image = self._reposervice.get(self.user, passwd, self.user, "img", imgID, self.tempdir)                  
             if image == None:
                 msg = "ERROR: Cannot get access to the image with imgId " + str(imgID)
                 self.errormsg(connstream, msg)
+                self._reposervice.disconnect()
                 return
-            self._reposervice.disconnect()   
+            else:
+                self._reposervice.disconnect()
         ################
 
         if not os.path.isfile(image):

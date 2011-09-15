@@ -80,7 +80,8 @@ class IRServiceProxy(object):
         except socket.error:
             self._log.error("Error with the socket connection")
         except:
-            print "Error CANNOT establish connection with the server"
+            if self.verbose:
+                print "Error CANNOT establish connection with the server"
             self._log.error("ERROR: exception not controlled" + str(sys.exc_info()))
             
         
@@ -108,13 +109,15 @@ class IRServiceProxy(object):
                 msg = "Permission denied, please try again. User is " + userId                    
                 self._log.error(msg)
                 if self._verbose:
-                    print msg                                        
+                    print msg                            
                 m = hashlib.md5()
                 m.update(getpass())
                 passwd = m.hexdigest()
                 self._connIrServer.write(passwd)
             else:                
                 self._log.error(str(ret))
+                if self._verbose:
+                    print ret
                 checkauthstat.append(str(ret))
                 endloop = True
                 passed = False
@@ -143,8 +146,10 @@ class IRServiceProxy(object):
             if output == "None":
                 output = None
         else:
+            self._log.error(str(checkauthstat[0]))
             if self._verbose:
-                print checkauthstat[0]   
+                print checkauthstat[0]
+            
         return output
             
     ############################################################
@@ -174,6 +179,7 @@ class IRServiceProxy(object):
             else:
                 output = None
         else:
+            self._log.error(str(checkauthstat[0]))
             if self._verbose:
                 print checkauthstat[0]
                 
@@ -244,6 +250,7 @@ class IRServiceProxy(object):
                 else:
                     status = output
             else:
+                self._log.error(str(checkauthstat[0]))
                 status = checkauthstat[0]
         return status
         
@@ -269,6 +276,7 @@ class IRServiceProxy(object):
             #wait for output
             output = self._connIrServer.read(2048)
         else:
+            self._log.error(str(checkauthstat[0]))
             if self._verbose:
                 print checkauthstat[0]
             
@@ -295,6 +303,7 @@ class IRServiceProxy(object):
             #wait for output
             output = self._connIrServer.read(2048)
         else:
+            self._log.error(str(checkauthstat[0]))
             if self._verbose:
                 print checkauthstat[0]
             
@@ -323,6 +332,7 @@ class IRServiceProxy(object):
                 #wait for output
                 output = self._connIrServer.read(2048)
             else:
+                self._log.error(str(checkauthstat[0]))
                 if self._verbose:
                     print checkauthstat[0]
         else:
@@ -351,6 +361,7 @@ class IRServiceProxy(object):
             #wait for output
             output = self._connIrServer.read(2048)
         else:
+            self._log.error(str(checkauthstat[0]))
             if self._verbose:
                 print checkauthstat[0]
             
@@ -377,6 +388,7 @@ class IRServiceProxy(object):
             #wait for output
             output = self._connIrServer.read(2048)
         else:
+            self._log.error(str(checkauthstat[0]))
             if self._verbose:
                 print checkauthstat[0]
             
@@ -403,6 +415,7 @@ class IRServiceProxy(object):
             #wait for output
             output = self._connIrServer.read(32768)
         else:
+            self._log.error(str(checkauthstat[0]))
             if self._verbose:
                 print checkauthstat[0]
             
@@ -431,6 +444,7 @@ class IRServiceProxy(object):
                 #wait for output
                 output = self._connIrServer.read(2048)
             else:
+                self._log.error(str(checkauthstat[0]))
                 if self._verbose:
                     print checkauthstat[0]
         except:
@@ -462,6 +476,7 @@ class IRServiceProxy(object):
                 #wait for output
                 output = self._connIrServer.read(2048)
             else:
+                self._log.error(str(checkauthstat[0]))
                 if self._verbose:
                     print checkauthstat[0]
         else:
@@ -492,6 +507,7 @@ class IRServiceProxy(object):
                 #wait for output
                 output = self._connIrServer.read(2048)
             else:
+                self._log.error(str(checkauthstat[0]))
                 if self._verbose:
                     print checkauthstat[0]
         else:
@@ -521,6 +537,7 @@ class IRServiceProxy(object):
             #wait for output
             output = self._connIrServer.read(32768)
         else:
+            self._log.error(str(checkauthstat[0]))
             if self._verbose:
                 print checkauthstat[0]
             
@@ -547,6 +564,7 @@ class IRServiceProxy(object):
             #wait for output
             output = self._connIrServer.read(32768)
         else:
+            self._log.error(str(checkauthstat[0]))
             if self._verbose:
                 print checkauthstat[0]
             
@@ -569,30 +587,38 @@ class IRServiceProxy(object):
                     if (key == "vmtype"):
                         value = string.lower(value)
                         if not (value in ImgMeta.VmType):
-                            print "Wrong value for VmType, please use: " + str(ImgMeta.VmType)
+                            self._log.error("Wrong value for VmType, please use: " + str(ImgMeta.VmType))
+                            if self.verbose:
+                                print "Wrong value for VmType, please use: " + str(ImgMeta.VmType)
                             correct = False
                             break
                     elif (key == "imgtype"):
                         value = string.lower(value)
                         if not (value in ImgMeta.ImgType):
-                            print "Wrong value for ImgType, please use: " + str(ImgMeta.ImgType)
+                            self._log.error("Wrong value for ImgType, please use: " + str(ImgMeta.ImgType))
+                            if self.verbose:
+                                print "Wrong value for ImgType, please use: " + str(ImgMeta.ImgType)
                             correct = False
                             break
                     elif(key == "permission"):
                         value = string.lower(value)
                         if not (value in ImgMeta.Permission):
-                            print "Wrong value for Permission, please use: " + str(ImgMeta.Permission)
+                            self._log.error("Wrong value for Permission, please use: " + str(ImgMeta.Permission))
+                            if self.verbose:
+                                print "Wrong value for Permission, please use: " + str(ImgMeta.Permission)
                             correct = False
                             break
                     elif (key == "imgstatus"):
                         value = string.lower(value)
                         if not (value in ImgMeta.ImgStatus):
-                            print "Wrong value for ImgStatus, please use: " + str(ImgMeta.ImgStatus)
+                            self._log.error("Wrong value for ImgStatus, please use: " + str(ImgMeta.ImgStatus))
+                            if self.verbose:
+                                print "Wrong value for ImgStatus, please use: " + str(ImgMeta.ImgStatus)
                             correct = False
                             break
 
         return correct
-
+    """
     ############################################################
     # _rExec
     ############################################################
@@ -609,7 +635,9 @@ class IRServiceProxy(object):
         #print cmd
         stat = os.system(cmd)
         if (str(stat) != "0"):
-            print stat
+            self._log.error(str(stat))
+            if self.verbose:
+                print stat
         f = open(tmpFile, "r")
         outputs = f.readlines()
         #print outputs
@@ -620,7 +648,7 @@ class IRServiceProxy(object):
         #    output += line.strip()
         #print outputs
         return outputs
-
+    """
     ############################################################
     # _retrieveImg
     ############################################################
@@ -659,9 +687,13 @@ class IRServiceProxy(object):
                 output = fulldestpath                
             else:
                 self._log.error("Error retrieving the image. Exit status " + str(stat))
+                if self.verbose:
+                    print "Error retrieving the image. Exit status " + str(stat)
                 #remove the temporal file
         except os.error:
             self._log("Error, The image cannot be retieved" + str(sys.exc_info()))
+            if self.verbose:
+                print "Error, The image cannot be retieved" + str(sys.exc_info())
             output = None
 
         return output

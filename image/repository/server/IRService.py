@@ -56,6 +56,8 @@ class IRService(object):
         self._configFileS = self._repoConf.getConfigFileS()
         #self._idp = self._repoConf.getIdp()
         
+        print "\nReading Configuration file from " + self._repoConf.getServerConfig() + "\n"
+        
         #Setup log. 
         #When integrate ALL FG software, we may need to create this somewhere else and send the log object to all classes like this        
         self._log = fgLog.fgLog(self._repoConf.getLogRepo(), self._repoConf.getLogLevelRepo(), "Img Repo Server", False)

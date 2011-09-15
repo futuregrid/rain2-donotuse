@@ -6,14 +6,13 @@ Command line front end for image deployment
 __author__ = 'Javier Diaz, Andrew Younge'
 __version__ = '0.1'
 
-from optparse import OptionParser
+import argparse
 import sys
 import os
 from types import *
 import socket, ssl
 from subprocess import *
 import logging
-import logging.handlers
 from xml.dom.minidom import Document, parse
 
 from getpass import getpass
@@ -21,20 +20,29 @@ import hashlib
 
 from IMClientConf import IMClientConf
 
+sys.path.append(os.getcwd())
+try:
+    from futuregrid.utils import fgLog #This should the the final one
+#To execute IRClient for tests
+except:
+    sys.path.append(os.path.dirname(__file__) + "/../../") #Directory where fg.py is
+    from utils import fgLog
+
 default_euca_kernel = '2.6.27.21-0.1-xen'
 class IMDeploy(object):
     ############################################################
     # __init__
     ############################################################
-    def __init__(self, kernel, user, logger, passwd):
+    def __init__(self, kernel, user, passwd, verbose, printLogStdout):
         super(IMDeploy, self).__init__()
 
         
         self.kernel = kernel
-        self.user = user        
-        self.logger = logger
+        self.user = user
         self.passwd = passwd
-
+        self.verbose = verbose
+        self.printLogStdout = printLogStdout
+        
         self.machine = ""  #(india or minicluster or ...)
         self.loginmachine = ""
         self.shareddirserver = "" 
@@ -49,6 +57,9 @@ class IMDeploy(object):
         self._certfile = self._deployConf.getCertFileDep()
         self._keyfile = self._deployConf.getKeyFileDep()
 
+        
+        self._log = fgLog.fgLog(self._deployConf.getLogFileDeploy(), self._deployConf.getLogLevelDeploy(), "DeployClient", printLogStdout)
+        
         self.tempdir = "" #DEPRECATED
 
     #This need to be redo
@@ -60,20 +71,20 @@ class IMDeploy(object):
         """
         #Copy the image to the Shared directory.
         if (self.loginmachine == "localhost" or self.loginmachine == "127.0.0.1"):
-            self.logger.info('Copying the image to the right directory')
+            self._log.info('Copying the image to the right directory')
             cmd = 'cp ' + image + ' ' + self.shareddirserver + '/' + nameimg + '.tgz'
-            self.logger.info(cmd)
+            self._log.info(cmd)
             self.runCmd(cmd)
         else:                    
-            self.logger.info('Uploading image. You may be asked for ssh/paraphrase password')
+            self._log.info('Uploading image. You may be asked for ssh/paraphrase password')
             cmd = 'scp ' + image + ' ' + self.user + '@' + self.loginmachine + ':' + self.shareddirserver + '/' + nameimg + '.tgz'
-            self.logger.info(cmd)
+            self._log.info(cmd)
             self.runCmd(cmd)
         """
 
         #CONTACT IMDeployServerIaaS to customize image ...
-
-        print 'Name-User: ' + self.name + '-' + self.user
+        if self.verbose:
+            print 'Name-User: ' + self.name + '-' + self.user
 
         #Bucket folder
         self.runCmd('mkdir -p ' + self.tempdir + '' + self.user)
@@ -101,24 +112,24 @@ class IMDeploy(object):
         elif (xcat == "minicluster" or xcat == "tm1r" or xcat == "tm1r.tidp.iu.futuregrid.org"):
             self.machine = "minicluster"
         else:
-            self.logger.error("Machine name not recognized")
+            self._log.error("Machine name not recognized")
+            if self.verbose:
+                print "ERROR: Machine name not recognized"
             sys.exit(1)
         
         self._deployConf.load_machineConfig(self.machine)
         self.loginmachine = self._deployConf.getLoginMachine()
         self.xcatmachine = self._deployConf.getXcatMachine()
         self.moabmachine = self._deployConf.getMoabMachine()        
-        self.shareddirserver = self._deployConf.getSharedDir()
-
-        self.logger.debug("login machine " + self.loginmachine)
-        self.logger.debug("xcat machine " + self.xcatmachine)
-        self.logger.debug("moab machine " + self.moabmachine)
-        self.logger.debug("shared dir between login machine and xcat machine" + self.shareddirserver)
+        
+        self._log.debug("login machine " + self.loginmachine)
+        self._log.debug("xcat machine " + self.xcatmachine)
+        self._log.debug("moab machine " + self.moabmachine)        
         #################
         
         """
         urlparts = image.split("/")
-        self.logger.debug(str(urlparts))
+        self._log.debug(str(urlparts))
         if len(urlparts) == 1:
             nameimg = urlparts[0].split(".")[0]
         elif len(urlparts) == 2:
@@ -132,19 +143,20 @@ class IMDeploy(object):
         
         #Copy the image to the Shared directory.
         if (self.loginmachine == "localhost" or self.loginmachine == "127.0.0.1"):
-            self.logger.info('Copying the image to the right directory')
+            self._log.info('Copying the image to the right directory')
             cmd = 'cp ' + image + ' ' + self.shareddirserver + '/' + nameimg + '.tgz'
-            self.logger.info(cmd)
+            self._log.info(cmd)
             self.runCmd(cmd)
         else:                    
-            self.logger.info('Uploading image. You may be asked for ssh/paraphrase password')
+            self._log.info('Uploading image. You may be asked for ssh/paraphrase password')
             cmd = 'scp ' + image + ' ' + self.user + '@' + self.loginmachine + ':' + self.shareddirserver + '/' + nameimg + '.tgz'
-            self.logger.info(cmd)
+            self._log.info(cmd)
             self.runCmd(cmd)
         """
         
         #xCAT server                
-        self.logger.info('Connecting to xCAT server')
+        if self.verbose:
+            print 'Connecting to xCAT server'
 
         #msg = self.name + ',' + self.operatingsystem + ',' + self.version + ',' + self.arch + ',' + self.kernel + ',' + self.shareddirserver + ',' + self.machine
         
@@ -160,10 +172,8 @@ class IMDeploy(object):
                                         cert_reqs=ssl.CERT_REQUIRED)
             xcatServer.connect((self.xcatmachine, self._xcat_port))
             
-            
-            
             msg =  str(image) + ',' + str(self.kernel) + ',' + self.machine + ',' + str(self.user) + ',' + str(self.passwd) + ",ldappassmd5" 
-            #self.logger.debug('Sending message: ' + msg)
+            #self._log.debug('Sending message: ' + msg)
             
             xcatServer.write(msg)
                         
@@ -172,16 +182,20 @@ class IMDeploy(object):
             while not endloop:
                 ret = xcatServer.read(1024)
                 if (ret == "OK"):
-                    print "Your image request is being processed"
+                    if self.verbose:                        
+                        print "Your image request is being processed"
                     endloop = True
                 elif (ret == "TryAuthAgain"):
-                    print "Permission denied, please try again. User is "+self.user
+                    if self.verbose:
+                        print "Permission denied, please try again. User is "+self.user
                     m = hashlib.md5()
                     m.update(getpass())
                     passwd = m.hexdigest()
                     xcatServer.write(passwd)
                 else:
-                    print ret
+                    self._log.error(str(ret))
+                    if self.verbose:
+                        print ret
                     endloop = True
                     fail = True
             
@@ -190,21 +204,26 @@ class IMDeploy(object):
                 ret = xcatServer.read(1024)
                 #check if the server received all parameters
                 if ret != 'OK':
-                    self.logger.error('Incorrect reply from the xCat server:' + ret)
+                    self._log.error('Incorrect reply from the xCat server:' + str(ret))
+                    if self.verbose:
+                        print 'Incorrect reply from the xCat server:' + str(ret)
                     sys.exit(1)
                 #recieve the prefix parameter from xcat server
                 moabstring = xcatServer.read(2048)
-                self.logger.debug("String received from xcat server " + moabstring)
+                self._log.debug("String received from xcat server " + moabstring)
                 params = moabstring.split(',')
                 imagename = params[0] + '' + params[2] + '' + params[1]
-                self.logger.info('Connecting to Moab server')	    
+                if self.verbose:
+                    print 'Connecting to Moab server'	    
                 moabstring += ',' + self.machine
             else:
                 return
         
                     
         except ssl.SSLError:
-            self.logger.error("CANNOT establish SSL connection. EXIT")
+            self._log.error("CANNOT establish SSL connection. EXIT")
+            if self.verbose:
+                print "ERROR: CANNOT establish SSL connection."
         
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
@@ -215,19 +234,23 @@ class IMDeploy(object):
                                         cert_reqs=ssl.CERT_REQUIRED)
             moabServer.connect((self.moabmachine, self._moab_port))
             
-            self.logger.debug('Sending message: ' + moabstring)
+            self._log.debug('Sending message: ' + moabstring)
             moabServer.write(moabstring)
             ret = moabServer.read(100)
             if ret != 'OK':
-                self.logger.error('Incorrect reply from the Moab server:' + ret)
+                self._log.error('Incorrect reply from the Moab server:' + str(ret))
+                if self.verbose:
+                    print 'Incorrect reply from the Moab server:' + str(ret)
                 sys.exit(1)
-    
-            self.logger.info('Your image has been deployed in xCAT as ' + imagename + '. Please allow a few minutes for xCAT to register the image before attempting to use it.')
+            if self.verbose:
+                print 'Your image has been deployed in xCAT as ' + imagename + '. Please allow a few minutes for xCAT to register the image before attempting to use it.'
         except ssl.SSLError:
-            self.logger.error("CANNOT establish SSL connection. EXIT")
+            self._log.error("CANNOT establish SSL connection. EXIT")
+            if self.verbose:
+                print "ERROR: CANNOT establish SSL connection. EXIT"
 
     def runCmd(self, cmd):
-        cmdLog = logging.getLogger('DeployClient.exec')
+        cmdLog = self._log.getLogger('DeployClient.exec')
         cmdLog.debug(cmd)
         p = Popen(cmd.split(' '), stdout=PIPE, stderr=PIPE)
         std = p.communicate()
@@ -243,101 +266,63 @@ class IMDeploy(object):
 
 
 def main():
-
-    logger = logging.getLogger("DeployClient")
-    logger.setLevel(logging.DEBUG)
-    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-    #handler = logging.FileHandler(log_filename)
-    #handler.setLevel(logging.DEBUG)
-    #handler.setFormatter(formatter)
-    #logger.addHandler(handler)
-    ch = logging.StreamHandler()
-    ch.setLevel(logging.DEBUG)
-    ch.setFormatter(formatter)
-    logger.addHandler(ch)
-    logger.propagate = False #Do not propagate to others
-
-    debugLevel = logging.INFO
  
     user = ""
 
-    parser = OptionParser()
+    parser = argparse.ArgumentParser(prog="IMDeploy", formatter_class=argparse.RawDescriptionHelpFormatter,
+                                     description="FutureGrid Image Deployment Help ")    
+    parser.add_argument('-u', '--user', dest='user', required=True, metavar='user', help='FutureGrid User name')
+    parser.add_argument('-d', '--debug', dest='debug', action="store_true", help='Print logs in the screen for debug')
+    parser.add_argument('-k', '--kernel', dest="kernel", metavar='Kernel version', help="Specify the desired kernel" 
+                        "(must be exact version and approved for use within FG). Not yet supported")
+    group = parser.add_mutually_exclusive_group(required=True)    
+    group.add_argument('-i', '--image', dest='image', metavar='ImgFile', help='tgz file that contains manifest and img')
+    group.add_argument('-r', '--imgid', dest='imgid', metavar='ImgId', help='Id of the image stored in the repository')
+    group1 = parser.add_mutually_exclusive_group(required=True)
+    group1.add_argument('-x', '--xcat', dest='xcat', metavar='MachineName', help='Deploy image to xCAT. The argument is the machine name (minicluster, india ...)')
+    group1.add_argument('-e', '--euca', dest='euca', metavar='Address', help='Deploy the image to Eucalyptus, which is in the specified addr')
+    group1.add_argument('-n', '--nimbus', dest='nimbus', metavar='Address', help='Deploy the image to Nimbus, which is in the specified addr')
+    
+    args = parser.parse_args()
 
-    logger.info('Starting image deployer...')
-
-    parser.add_option('-i', '--image', dest='image', help='Name of tgz file that contains manifest and img')
-    parser.add_option('-r', '--imgid', dest='imgid', help='Id of the image stored in the repository')
-
-    #parser.add_option('-s', '--nasaddr', dest = 'nasaddr', help = 'Address to upload the image file. Login machine')
-    #parser.add_option("-t", "--tempdir", dest = "shareddirserver", help = "shared dir to upload the image")
-    #parser.add_option('-m', '--moab', dest = 'moab', help = 'Address of the machine that has Moab. (localhost if not specified)')
-
-    parser.add_option('-x', '--xcat', dest='xcat', help='Deploy image to xCAT. The argument is the machine name (minicluster, india ...)')
-    parser.add_option('-e', '--euca', dest='euca', help='Deploy the image to Eucalyptus, which is in the specified addr')
-    parser.add_option('-n', '--nimbus', dest='nimbus', help='Deploy the image to Nimbus, which is in the specified addr')
-
-    parser.add_option("-u", "--user", dest="user", help="FutureGrid username")
-
-    parser.add_option("-d", "--debug", action="store_true", dest="debug", help="Enable debug logs")
-    parser.add_option("-k", "--kernel", dest="kernel", help="Specify the desired kernel (must be exact version and approved for use within FG). Not yet supported")
-
-    (ops, args) = parser.parse_args()
-
-    if (len(sys.argv) == 1):
-        parser.print_help()
-        sys.exit(1)
-
-    if not ops.debug:        
-        ch.setLevel(logging.INFO)
-
-    try:
-        user = os.environ['FG_USER']
-    except KeyError:
-        if type(ops.user) is not NoneType:
-            user = ops.user
-        else:
-            logger.debug("you need to specify you user name. It can be donw using the FG_USER variable or the option -u/--user")
-            sys.exit(1)
-
-    print "Please insert the password for the user "+ops.user+""
+    print 'Starting image deployer...'
+    
+    verbose = True #to activate the print
+    
+    print "Please insert the password for the user "+args.user+""
     m = hashlib.md5()
     m.update(getpass())
     passwd = m.hexdigest()
 
-    imgdeploy = IMDeploy(ops.kernel, user, logger, passwd)
-    #Define the type
+    #TODO: if Kernel is provided we need to verify that it is supported. 
+    
+    imgdeploy = IMDeploy(args.kernel, args.user, passwd, verbose, args.debug)
 
-    if not isinstance(ops.image, NoneType) and not isinstance(ops.imgid, NoneType):
-        parser.error('You only can not use -i/--image and -r/--imgid at the same time')
-        sys.exit(1)
-    elif not isinstance(ops.image, NoneType):
-        if not  os.path.isfile(ops.image):
-            parser.error('You need to specify a tgz that contains the image and the manifest (-i option)')
-            logger.error('Image file not found')
+    used_args = sys.argv[1:]
+    
+    print args
+        
+    if args.image != None:
+        if not  os.path.isfile(args.image):            
+            print 'ERROR: Image file not found'            
             sys.exit(1)
-
-    #EUCALYPTUS
-    if not isinstance(ops.euca, NoneType):
-        imgdeploy.euca_method()
     #XCAT
-    elif not isinstance(ops.xcat, NoneType):
-        if isinstance(ops.imgid, NoneType):
-            parser.error('You need to specify the id of the image that you want to deploy (-r/--imgid option) \n'+ 
-                          'The parameter -i/--image cannot be used with this type of deployment')
+    if args.xcat != None:
+        if args.imgid == None:
+            print "ERROR: You need to specify the id of the image that you want to deploy (-r/--imgid option)."
+            print "The parameter -i/--image cannot be used with this type of deployment"
             sys.exit(1)
         else:
-            imgdeploy.xcat_method(ops.xcat, ops.imgid)
-
+            imgdeploy.xcat_method(args.xcat, args.imgid)
+    #EUCALYPTUS
+    elif args.euca != None:
+        print "Nimbus is not implemented yet"
+        #imgdeploy.euca_method()
     #NIMBUS
-    elif not isinstance(ops.nimbus, NoneType):
-        #TODO
-        roar = 0
-        logger.info("This is not yet implemented")
-    else:
-        logger.error('Deployment type not specified')
-        parser.error('You need to specify at least one deployment destination type: xcat (-x option), euca (-e option) or nimbus(-n option)')
-        sys.exit(1)
-
+    elif args.nimbus != None:
+        #TODO        
+        print "Nimbus deployment is not implemented yet"
+    
 
 if __name__ == "__main__":
     main()

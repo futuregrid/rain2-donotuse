@@ -10,6 +10,7 @@ import os
 import ConfigParser
 import string
 import sys
+import logging
 
 configFileName = "fg-client.conf"
 
@@ -44,6 +45,9 @@ class IMClientConf(object):
                 if not os.path.isfile(self._configfile):   
                     print "ERROR: configuration file "+configFileName+" not found"
                     sys.exit(1)
+                    
+        self._logLevel_default = "DEBUG"
+        self._logType = ["DEBUG", "INFO", "WARNING", "ERROR"]
 
         #image generation
         self._serveraddr = ""
@@ -51,6 +55,8 @@ class IMClientConf(object):
         self._ca_certs_gen = ""
         self._certfile_gen = ""
         self._keyfile_gen = ""
+        self._logFileGen = ""
+        self._logLevelGen = ""
         
         #image deploy
         self._xcat_port = 0
@@ -59,9 +65,10 @@ class IMClientConf(object):
         self._ca_certs_dep = ""
         self._certfile_dep = ""
         self._keyfile_dep = ""
+        self._logFileDeploy = ""
+        self._logLevelGen = ""
 
         #deploy-machines        
-        self._shareddir = ""
         self._loginmachine = ""
         self._moabmachine = ""
         self._xcatmachine = ""
@@ -86,7 +93,11 @@ class IMClientConf(object):
         return self._certfile_gen
     def getKeyFileGen(self): 
         return self._keyfile_gen
-
+    def getLogFileGen(self):
+        return self._logFileGen
+    def getLogLevelGen(self):
+        return self._logLevelGen
+    
     #Image deployment
     def getXcatPort(self):
         return self._xcat_port
@@ -99,11 +110,15 @@ class IMClientConf(object):
     def getCertFileDep(self): 
         return self._certfile_dep
     def getKeyFileDep(self): 
-        return self._keyfile_dep     
+        return self._keyfile_dep    
+    def getLogFileDeploy(self):
+        return self._logFileDeploy
+    def getLogLevelDeploy(self):
+        return self._logLevelDeploy
 
     #Machines information
-    def getSharedDir(self):
-        return self._shareddir
+#    def getSharedDir(self):
+#        return self._shareddir
     def getLoginMachine(self):
         return self._loginmachine
     def getMoabMachine(self):
@@ -132,7 +147,6 @@ class IMClientConf(object):
         except ConfigParser.NoOptionError:
             print "Error: No port option found in section " + section
             sys.exit(1)
-
         try:
             self._ca_certs_gen = os.path.expanduser(self._config.get(section, 'ca_cert', 0))
         except ConfigParser.NoOptionError:
@@ -157,6 +171,19 @@ class IMClientConf(object):
         if not os.path.isfile(self._keyfile_gen):
             print "Error: keyfile file not found in "  + self._keyfile_gen 
             sys.exit(1)
+        try:
+            self._logFileGen = os.path.expanduser(self._config.get(section, 'log', 0))
+        except ConfigParser.NoOptionError:
+            print "Error: No log option found in section " + section
+            sys.exit(1)
+        try:
+            tempLevel = string.upper(self._config.get(section, 'log_level', 0))
+        except ConfigParser.NoOptionError:
+            tempLevel = self._logLevel_default
+        if not (tempLevel in self._logType):
+            print "Log level " + tempLevel + " not supported. Using the default one " + self._logLevel_default
+            tempLevel = self._logLevel_default
+        self._logLevelGen = eval("logging." + tempLevel)
 
 
     ############################################################
@@ -213,7 +240,19 @@ class IMClientConf(object):
         if not os.path.isfile(self._keyfile_dep):
             print "Error: keyfile file not found in "  + self._keyfile_dep 
             sys.exit(1)
-        
+        try:
+            self._logFileDeploy = os.path.expanduser(self._config.get(section, 'log', 0))
+        except ConfigParser.NoOptionError:
+            print "Error: No log option found in section " + section
+            sys.exit(1)
+        try:
+            tempLevel = string.upper(self._config.get(section, 'log_level', 0))
+        except ConfigParser.NoOptionError:
+            tempLevel = self._logLevel_default
+        if not (tempLevel in self._logType):
+            print "Log level " + tempLevel + " not supported. Using the default one " + self._logLevel_default
+            tempLevel = self._logLevel_default
+        self._logLevelDeploy = eval("logging." + tempLevel)
 
     ############################################################
     # load_machineConfig
@@ -221,18 +260,13 @@ class IMClientConf(object):
     def load_machineConfig(self, machine):
         
         try:
-            self._shareddir = os.path.expanduser(self._config.get(machine, 'shareddir', 0))
-        except ConfigParser.NoOptionError:
-            print "Error: No shareddir option found in section " + machine
-            sys.exit(1)
-        except ConfigParser.NoSectionError:
-            print "Error: no section "+section+" found in the "+self._configfile+" config file"
-            sys.exit(1)      
-        try:
             self._loginmachine = self._config.get(machine, 'loginmachine', 0)
         except ConfigParser.NoOptionError:
             print "Error: No loginmachine option found in section " + machine
-            sys.exit(1)         
+            sys.exit(1)
+        except ConfigParser.NoSectionError:
+            print "Error: no section "+section+" found in the "+self._configfile+" config file"
+            sys.exit(1)              
         try:
             self._moabmachine = self._config.get(machine, 'moabmachine', 0)
         except ConfigParser.NoOptionError:

@@ -139,7 +139,7 @@ def main():
                                      epilog=textwrap.dedent(extra_help()))
     parser.add_argument('-u', '--user', dest='user', required=True, metavar='user', help='FutureGrid User name')
     parser.add_argument('-d', '--debug', dest='debug', action="store_true", help='Print logs in the screen for debug')
-    group = parser.add_mutually_exclusive_group()    
+    group = parser.add_mutually_exclusive_group(required=True)    
     group.add_argument('-q', '--list', dest='list', nargs='?', default='*', metavar='AttributeString',
                         help='Get list of images that meet the criteria.')
     group.add_argument('-g', '--get', dest='get', nargs=2, metavar=('img/uri', 'imgId'),

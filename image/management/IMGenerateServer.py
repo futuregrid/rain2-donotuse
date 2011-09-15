@@ -332,7 +332,8 @@ class IMGenerateServer(object):
                             #send back the url where the image is                            
                             channel.write(self.tempdirserver + "" + status + ".tgz")
                             self.logger.info("Waiting until the client retrieve the image")
-                            channel.read()           
+                            channel.read()
+                            #we can include a loop to retry if the client has problems getting the image
                             channel.shutdown(socket.SHUT_RDWR)
                             channel.close()
                         else:                                                        
@@ -352,14 +353,14 @@ class IMGenerateServer(object):
                                     if (re.search('^ERROR', status_repo)):
                                         self.errormsg(channel, status_repo) 
                                     else: 
-                                        channel.write(str(status_repo))                
+                                        channel.write(str(status_repo))             
                                         channel.shutdown(socket.SHUT_RDWR)
                                         channel.close()
                                     self._reposervice.disconnect()
                             except:
                                 msg = "ERROR: uploading image to the repository. " + str(sys.exc_info())
                                 self.errormsg(channel, msg)    
-                                                                                                
+                        #Remove file from server because the client  or the repository already finished                                                                       
                         os.system("rm -f " + self.tempdirserver + "" + status + ".tgz")   
             
             #destroy VM
