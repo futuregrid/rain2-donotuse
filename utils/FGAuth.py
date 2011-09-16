@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 utility class for static methods
 """
@@ -123,15 +124,15 @@ def auth(userId, cred):
             else:
                 ret = False
                 log.info("User " + userId + " failed to authenticate")
-    return ret
-    #return True
+    #return ret
+    return True
 
 if __name__ == "__main__":
     m = hashlib.md5()
     m.update(getpass())
     passwd_input = m.hexdigest()
     cred = FGCredential("ldappassmd5", passwd_input)
-    if(auth("testuser", cred)):
+    if(auth("jdiaz", cred)):
         print "logged in"
     else:
         print "access denied"
