@@ -43,7 +43,7 @@ from IRServiceProxy import IRServiceProxy
     -l/--auth: login/authentication
     -q/--list [queryString]: get list of images that meet the criteria
     -a/--setpermission <imgId> <permissionString>: set access permission
-    -g/--get <img/uri> <imgId>: get an image or only the URI
+    -g/--get <imgId>: get an image
     -p/--put <imgFile> [attributeString]: upload/register an image
     -m/--modify <imgId> <attributeString>: update Metadata   
     -r/--remove <imgId>: remove an image        
@@ -140,10 +140,10 @@ def main():
     parser.add_argument('-u', '--user', dest='user', required=True, metavar='user', help='FutureGrid User name')
     parser.add_argument('-d', '--debug', dest='debug', action="store_true", help='Print logs in the screen for debug')
     group = parser.add_mutually_exclusive_group(required=True)    
-    group.add_argument('-q', '--list', dest='list', nargs='?', default='*', metavar='AttributeString',
+    group.add_argument('-q', '--list', dest='list', nargs='?', default='', metavar='AttributeString',
                         help='Get list of images that meet the criteria.')
-    group.add_argument('-g', '--get', dest='get', nargs=2, metavar=('img/uri', 'imgId'),
-                        help='Get an image or only the URI by specifying img or uri, respectively')
+    group.add_argument('-g', '--get', dest='get', metavar='imgId',
+                        help='Get an image')
     group.add_argument('-p', '--put', dest='put', nargs='+', metavar=('imgFile', 'AttributeString'), help='Upload/Register an image')
     group.add_argument('-m', '--modify', dest='modify', nargs=2, metavar=('imgId', 'AttributeString'), help='Update image metadata')
     group.add_argument('-r', '--remove', dest='remove', metavar='imgId', help='Delete an image')
@@ -206,14 +206,14 @@ def main():
             print "No list of images returned"
                 
     elif ('-g' in used_args or '--get' in used_args):        
-        if (args.get[0] == 'img' or args.get[0] == 'uri'):
-            img1 = service.get(args.user, passwd, args.user, args.get[0], args.get[1], "./")                    
-            if img1:
-                print "The image " + args.get[1] + " is located in " + img1
-            else:
-                print "Cannot get access to the image with imgId = " + args.get[1]
+        #if (args.get[0] == 'img' or args.get[0] == 'uri'):
+        img1 = service.get(args.user, passwd, args.user, "img", args.get, "./")                    
+        if img1:
+            print "The image " + args.get + " is located in " + img1
         else:
-            print "Error: First argument of -g/--get must be 'img' or 'uri'"
+            print "Cannot get access to the image with imgId = " + args.get
+        #else:
+        #    print "Error: First argument of -g/--get must be 'img' or 'uri'"
         
 
     elif ('-p' in used_args or '--put' in used_args):

@@ -74,7 +74,7 @@ class AdminRestService(object):
         message += "<a href=\"help\"> Get help information </a> <br>"
         message += "<a href=\"list\"> Get list of images that meet the criteria </a> <br>"
         message += "<a href=\"setPermission\">  Set access permission </a> <br>"
-        message += "<a href=\"get\"> Retrieve image or URI </a> <br>"
+        message += "<a href=\"get\"> Retrieve image </a> <br>"
         message += "<a href=\"put\"> Upload/register an image </a> <br>"
         message += "<a href=\"modify\"> Modify an image </a> <br>"
         message += "<a href=\"remove\">  Remove an image from the repository </a> <br>"
@@ -103,7 +103,7 @@ class AdminRestService(object):
         <b>auth:</b> login/authentication<br>
         <b>list</b> [queryString]: get list of images that meet the criteria<br>
         <b>setPermission</b> &lt;imgId> <permissionString>: set access permission<br>
-        <b>get</b> &lt;img/uri&gt &lt;imgId&gt: get an image or only the URI<br>
+        <b>get</b> &lt;imgId&gt: get an image<br>
         <b>put</b> &lt;imgFile&gt [attributeString]: upload/register an image<br>
         <b>modify</b> &lt;imgId&gt &lt;attributeString&gt: update Metadata   <br>
         <b>remove</b> &lt;imgId&gt: remove an image        <br>
@@ -250,12 +250,11 @@ class AdminRestService(object):
     ## Callback function to the get service. 
     # @param userId login/account name of the Rest user to invoke this service
     # @param userCred user password in MD5 digested format
-    # @param option specify exactly 'img' or 'uri' 
     # @param imgId id of the uploaded Rest image for a specified user.
-    def actionGet(self, userId, userCred, option, imgId):
+    def actionGet(self, userId, userCred, imgId):
         self.msg = ""
 
-        option = option.strip()
+        option = "img"
         imgId = imgId.strip()
         userId = userId.strip()
         #userCred = IRCredential("ldappass", userCred)
@@ -284,10 +283,10 @@ class AdminRestService(object):
         return """<html><body><form method=get action=actionGet>
          Username: <input type=string name=userId><br>
          Password: <input type=password name=userCred><br>
-         Image Id: <input type=string name=imgId> <br>
-         Option ('img' or 'uri'): <input type=string name=option> <br> 
+         Image Id: <input type=string name=imgId> <br>          
          <input type=submit> </form> </body></html>
        """
+       #Option ('img' or 'uri'): <input type=string name=option> <br>
     get.exposed = True;
 
     ## Callback function to the put service
