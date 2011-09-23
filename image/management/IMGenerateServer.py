@@ -87,6 +87,8 @@ class IMGenerateServer(object):
         self._certfile = self._genConf.getCertFileGen()
         self._keyfile = self._genConf.getKeyFileGen()
         
+        print "\nReading Configuration file from " + self._genConf.getConfigFile() + "\n"
+        
         #Image repository Object
         self._reposervice = IRServiceProxy(False,False)
     
