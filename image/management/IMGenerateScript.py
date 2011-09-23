@@ -631,7 +631,7 @@ def runCmd(cmd):
         cmdLog.error('Command: ' + cmd + ' failed, status: ' + str(p.returncode) + ' --- ' + std[1])
         cleanup(namedir)
         print "error"
-        print "p.returncode"
+        print str(p.returncode) + '---' + std[1]
         sys.exit(p.returncode)
 
 
