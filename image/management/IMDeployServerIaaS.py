@@ -9,6 +9,7 @@ __version__ = '0.1'
 import socket, ssl
 import sys
 import os
+import re
 from subprocess import *
 import logging
 import logging.handlers
@@ -21,6 +22,7 @@ sys.path.append(os.getcwd())
 sys.path.append(os.path.dirname(__file__) + "/../")
 from repository.client.IRServiceProxy import IRServiceProxy
 
+
 class IMDeployServerIaaS(object):
 
     def __init__(self):
@@ -29,7 +31,7 @@ class IMDeployServerIaaS(object):
         
         self.path = ""
         
-        self.numparams = 4   #image path
+        self.numparams = 7   #image path
         
         self.name = ""
         self.givenname = ""
@@ -42,10 +44,11 @@ class IMDeployServerIaaS(object):
 
         #load from config file
         self._deployConf = IMServerConf()
-        self._deployConf.load_deployServerXcatConfig() 
+        self._deployConf.load_deployServerIaasConfig() 
         
-        self.port = self._deployConf.getXcatPort()
-        self.http_server = self._deployConf.getHttpServer()
+        self.port = self._deployConf.getIaasPort()
+        self.http_server = self._deployConf.getHttpServerIaas()
+        self.proc_max = self._deployConf.getProcMaxIaaS()
                         
         self.tempdir = self._deployConf.getTempDirIaaS()
         self.log_filename = self._deployConf.getLogIaaS()
@@ -54,7 +57,9 @@ class IMDeployServerIaaS(object):
         self._ca_certs = self._deployConf.getCaCertsIaaS()
         self._certfile = self._deployConf.getCertFileIaaS()
         self._keyfile = self._deployConf.getKeyFileIaaS()
-                
+        
+        
+        self.default_euca_kernel = '2.6.27.21-0.1-xen'
         
         print "\nReading Configuration file from " + self._deployConf.getConfigFile() + "\n"
         
@@ -82,7 +87,24 @@ class IMDeployServerIaaS(object):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.bind(('', self.port))
         sock.listen(1)
-        while True:
+        
+        proc_list = []
+        total_count = 0
+        while True:        
+            if len(proc_list) == self.proc_max:
+                full = True
+                while full:
+                    for i in range(len(proc_list) - 1, -1, -1):
+                        #self.logger.debug(str(proc_list[i]))
+                        if not proc_list[i].is_alive():
+                            #print "dead"                        
+                            proc_list.pop(i)
+                            full = False
+                    if full:
+                        time.sleep(self.refresh_status)
+            
+            total_count += 1
+            #channel, details = sock.accept()
             newsocket, fromaddr = sock.accept()
             connstream = 0
             try:
@@ -93,14 +115,20 @@ class IMDeployServerIaaS(object):
                               certfile=self._certfile,
                               keyfile=self._keyfile,
                               ssl_version=ssl.PROTOCOL_TLSv1)
-                #print connstream
-                self.process_client(connstream)
+                #print connstream                                
+                proc_list.append(Process(target=self.process_client, args=(connstream,)))            
+                proc_list[len(proc_list) - 1].start()
             except ssl.SSLError:
                 self.logger.error("Unsuccessful connection attempt from: " + repr(fromaddr))
-            finally:
-                if connstream is ssl.SSLSocket:
+            except socket.error:
+                self.logger.error("Error with the socket connection")
+            except:
+                self.logger.error("Uncontrolled Error: " + str(sys.exc_info()))
+                if type(connstream) is ssl.SSLSocket: 
                     connstream.shutdown(socket.SHUT_RDWR)
-                    connstream.close()                  
+                    connstream.close() 
+            finally:
+                self.logger.info("IaaS deploy server Request DONE")        
                 
                 
     def process_client(self, connstream):
@@ -111,28 +139,61 @@ class IMDeployServerIaaS(object):
         #print data
         #params[0] is image ID or image path
         #param [1] is the source of the image (repo,disk).
-        #params[2] is the kernel
-        #params[3] is the user
-        #params[4] is the iaas cloud
+        #params[2] is the iaas cloud
+        #params[3] is the kernel
+        #params[4] is the user
+        #params[5] is the user password
+        #params[6] is the type of password
         
-        imgID = params[0]
+        imgID = params[0].strip()
         imgSource = params[1].strip()
-        self.kernel = params[2].strip()
-        self.user = params[3].strip()
-        self.iaas = params[4].strip()
+        self.iaas = params[2].strip()
+        self.kernel = params[3].strip()
+        self.user = params[4].strip()
+        passwd = params[5].strip()
+        passwdtype = params[6].strip()
+        
                        
         if len(params) != self.numparams:
             msg = "ERROR: incorrect message"
             self.errormsg(connstream, msg)
             return
 
+        retry = 0
+        maxretry = 3
+        endloop = False
+        while (not endloop):
+            userCred = FGCredential(passwdtype, passwd)
+            if (self.auth(userCred)):
+                connstream.write("OK")
+                endloop = True
+            else:
+                retry += 1
+                if retry < maxretry:
+                    connstream.write("TryAuthAgain")
+                    passwd = connstream.read(2048)
+                else:
+                    msg = "ERROR: authentication failed"
+                    endloop = True
+                    self.errormsg(connstream, msg)
+                    return
+
+
         #GET IMAGE from repo
-        self.logger.info("Retrieving image from repository")
-        image = self._reposervice.get(self.user, "img", imgID, self.tempdir)      
-        if image == None:
-            msg = "ERROR: Cannot get access to the image with imgId " + image
+        if not self._reposervice.connection():
+            msg = "ERROR: Connection with the Image Repository failed"
             self.errormsg(connstream, msg)
-            return            
+            return
+        else:
+            self.logger.info("Retrieving image from repository")
+            image = self._reposervice.get(self.user, passwd, self.user, "img", imgID, self.tempdir)                  
+            if image == None:
+                msg = "ERROR: Cannot get access to the image with imgId " + str(imgID)
+                self.errormsg(connstream, msg)
+                self._reposervice.disconnect()
+                return
+            else:
+                self._reposervice.disconnect()
         ################
 
         if not os.path.isfile(image):
@@ -141,60 +202,61 @@ class IMDeployServerIaaS(object):
             return
         
         #extracts image/manifest, read manifest 
-        localtempdir = ""
+        localtempdir = "error_getting_localtempdir"
         if not self.handle_image(image, localtempdir, connstream):
             return            
 
+        #self.preprocess()
         
-
-        #Select kernel version
-        #This is not yet supported as we get always the same kernel
-        self.logger.debug("kernel: " + self.kernel)
-
-        
-        if (self.cloud == "euca"):
-            self.euca_method()
-        elif (self.cloud == "nimbus"):
+        if (self.iaas == "euca"):
+            self.euca_method(localtempdir)
+        elif (self.iaas == "nimbus"):
             pass
-        elif (self.cloud == "opennebula"):
-            pass
-        elif (self.cloud == "openstack"):
-            pass    
+        elif (self.iaas == "opennebula"):
+            self.opennebula_method(localtempdir)
+        elif (self.iaas == "openstack"):
+            self.openstack_method(localtempdir)  
         
-        #connstream.write("OK")
+        #umount the image
+        max_retry = 5
+        retry_done = 0
+        umounted = False
+        #Done making changes to root fs
+        while umounted: 
+            status = self.runCmd('sudo umount ' + localtempdir + '/temp')
+            if status == 0:
+                umounted = True
+            elif retry_done == max_retry:
+                umounted = True
+                self.logger.error("Problems to umount the image")
+            else:
+                time.sleep(2)
+                
+        connstream.write(localtempdir + '/' + self.name + '.img,'+self.kernel+","+self.operatingsystem)
 
         #wait until client retrieve img
         connstream.read()
-        #remove files
-        cmd = 'rm -rf ' + image + " " + localtempdir        
+        #remove image
+        cmd = 'rm -rf ' + localtempdir
         status = self.runCmd(cmd)
-            
+          
         connstream.shutdown(socket.SHUT_RDWR)
         connstream.close()
             
 
-    def euca_method(self): #JUST COPIED. NEED TO BE MODIFIED
-        
-         #Mount the root image for final edits and compressing
-        self.logger.info('Mounting image...')
-        cmd = 'mkdir -p ' + self.tempdir + '' + self.name
-        self.runCmd(cmd)
-        cmd = 'sudo mount -o loop ' + self.imagefile + ' ' + self.tempdir + '' + self.name
-        self.runCmd(cmd)
+    def euca_method(self, localtempdir): 
 
-        #TODO: Pick kernel and ramdisk from available eki and eri
-
-        #hardcoded for now
-        eki = 'eki-78EF12D2'
-        eri = 'eri-5BB61255'
-
-
+        #Select kernel version
+        #This is not yet supported as we get always the same kernel
+        self.logger.debug("kernel: " + self.kernel)
+        if self.kernel == "None":
+            self.kernel = self.default_euca_kernel
+                      
         #Inject the kernel
         self.logger.info('Retrieving kernel ' + kernel)
-        self.runCmd('sudo wget ' + self._http_server + 'kernel/' + self.kernel + '.modules.tar.gz -O ' + self.tempdir + '' + self.kernel + '.modules.tar.gz')
-        self.runCmd('sudo tar xfz ' + self.tempdir + '' + self.kernel + '.modules.tar.gz --directory ' + self.tempdir + '' + self.name + '/lib/modules/')
+        self.runCmd('wget ' + self._http_server + 'kernel/' + self.kernel + '.modules.tar.gz -O ' + localtempdir + '/temp/' + self.kernel + '.modules.tar.gz')
+        self.runCmd('sudo tar xfz ' + localtempdir + '/temp/' + self.kernel + '.modules.tar.gz --directory ' + localtempdir + '/temp/lib/modules/')
         self.logger.info('Injected kernel ' + kernel)
-
 
         # Setup fstab
         fstab = '''
@@ -205,14 +267,116 @@ class IMDeployServerIaaS(object):
  devpts          /dev/pts      devpts   gid=5,mode=620             0 0
  '''
 
-        f = open(self.tempdir + '/fstab', 'w')
+        f = open(localtempdir + '/fstab', 'w')
         f.write(fstab)
         f.close()
-        os.system('sudo mv -f ' + self.tempdir + '/fstab ' + self.tempdir + 'rootimg/etc/fstab')
-        self.logger.info('Injected fstab')
+        self.runCmd('sudo mv -f ' + localtempdir + '/fstab ' + localtempdir + '/temp/etc/fstab')
+        self.runCmd('sudo chown root:root ' + localtempdir + '/temp/etc/fstab')
+        self.logger.info('fstab Injected')
 
-        #Done making changes to root fs
-        self.runCmd('sudo umount ' + self.tempdir + '' + self.name)
+    def openstack_method(self, localtempdir): #TODO
+
+        #Select kernel version
+        #This is not yet supported as we get always the same kernel
+        self.logger.debug("kernel: " + self.kernel)
+        if self.kernel == "None":
+            self.kernel = self.default_euca_kernel
+                      
+        #Inject the kernel
+        self.logger.info('Retrieving kernel ' + self.kernel)
+        self.runCmd('wget ' + self._http_server + 'kernel/' + self.kernel + '.modules.tar.gz -O ' + localtempdir + '/temp/' + self.kernel + '.modules.tar.gz')
+        self.runCmd('sudo tar xfz ' + localtempdir + '/temp/' + self.kernel + '.modules.tar.gz --directory ' + localtempdir + '/temp/lib/modules/')
+        self.logger.info('Injected kernel ' + kernel)
+
+        # Setup fstab
+        fstab = '''
+# Default Ubuntu fstab
+ /dev/sda1       /             ext3     defaults,errors=remount-ro 0 0
+ /dev/sda3    swap          swap     defaults              0 0
+ proc            /proc         proc     defaults                   0 0
+ devpts          /dev/pts      devpts   gid=5,mode=620             0 0
+ '''
+
+        f = open(localtempdir + '/fstab', 'w')
+        f.write(fstab)
+        f.close()
+        self.runCmd('sudo mv -f ' + localtempdir + '/fstab ' + localtempdir + '/temp/etc/fstab')
+        self.runCmd('sudo chown root:root ' + localtempdir + '/temp/etc/fstab')
+        self.logger.info('fstab Injected')
+
+    def opennebula_method(self, localtempdir): 
+
+        #Select kernel version
+        #This is not yet supported as we get always the same kernel
+        self.logger.debug("kernel: " + self.kernel)
+
+        #download vmcontext.sh
+        self.runCmd('sudo wget ' + self._http_server + "/opennebula/" + self.operatingsystem + '/vmcontext.sh -O ' + localtempdir + '/temp/etc/init.d/vmcontext.sh')
+        self.runCmd('sudo chmod +x ' + localtempdir + '/temp/etc/init.d/vmcontext.sh')
+        self.runCmd('sudo chown root:root ' + localtempdir + '/temp/etc/rc.local')
+
+        device = "sda"
+        rc_local = ""
+        if self.operatingsystem == "ubuntu":
+            #setup vmcontext.sh
+            self.runCmd("sudo ln "+localtempdir+"/temp/etc/init.d/vmcontext.sh "+localtempdir+"/temp/etc/rc2.d/S01vmcontext.sh")
+            device = "sda" 
+            rc_local = "mount -t iso9660 /dev/sr0 /mnt \n"
+            #delete persisten network rules
+            self.runCmd("sudo rm -f "+localtempdir+"/temp/etc/udev/rules.d/70-persistent-net.rules")
+            
+            if self.kernel == "None":
+                self.kernel = self.default_xcat_kernel_ubuntu 
+            
+        elif self.operatingsystem == "centos":
+            #setup vmcontext.sh
+            self.runCmd("sudo chroot "+localtempdir+"/temp chkconfig --add vmcontext.sh")
+            device = "hda"
+            rc_local = "mount -t iso9660 /dev/hdc /mnt \n"
+            
+            if self.kernel == "None":
+                self.kernel = self.default_xcat_kernel_centos
+
+        #Inject the kernel
+        self.logger.info('Retrieving kernel ' + self.kernel)
+        self.runCmd('wget ' + self._http_server + 'kernel/' + self.kernel + '.modules.tar.gz -O ' + localtempdir + '/temp/' + self.kernel + '.modules.tar.gz')
+        self.runCmd('sudo tar xfz ' + localtempdir + '/temp/' + self.kernel + '.modules.tar.gz --directory ' + localtempdir + '/temp/lib/modules/')
+        self.logger.info('Injected kernel ' + kernel)
+
+        #customize rc.local
+        rc_local += "if [ -f /mnt/context.sh ]; then \n"
+        rc_local += "      . /mnt/init.sh \n"
+        rc_local += "fi \n"
+        rc_local += "umount /mnt \n\n"
+        
+        f_org = open(localtempdir + '/temp/etc/rc.local', 'r')
+        f = open(localtempdir + '/rc.local', 'w')
+        
+        write_remain=False
+        for line in f_org:
+            if ( re.search('^#', line) or write_remain ):
+                f.write(line)
+            else:              
+                f.write(rc_local)
+                write_remain = True                
+        f.close() 
+        f_org.close()
+        
+        self.runCmd('sudo mv -f ' + localtempdir + '/rc.local ' + localtempdir + '/temp/etc/rc.local')
+        self.runCmd('sudo chown root:root ' + localtempdir + '/temp/etc/rc.local')
+        
+        # Setup fstab
+        fstab = "# Default Ubuntu fstab \n "
+        "/dev/" + device + "       /             ext3     defaults,errors=remount-ro 0 0 \n"    
+        "proc            /proc         proc     defaults                   0 0 \n"
+        "devpts          /dev/pts      devpts   gid=5,mode=620             0 0 \n"
+ 
+        f = open(localtempdir + '/fstab', 'w')
+        f.write(fstab)
+        f.close()
+        self.runCmd('sudo mv -f ' + localtempdir + '/fstab ' + localtempdir + '/temp/etc/fstab')
+        self.runCmd('sudo chown root:root ' + localtempdir + '/temp/etc/fstab')
+        self.logger.info('fstab Injected')
 
     def handle_image(self, image, localtempdir, connstream):
         #print image
@@ -231,49 +395,79 @@ class IMDeployServerIaaS(object):
 
         localtempdir = self.tempdir + "/" + nameimg + "_0"
 
+        if os.path.isfile(localtempdir):
+            exists = True
+            i = 0       
+            while (exists):            
+                aux = fulldestpath + "_" + i.__str__()
+                if os.path.isfile(aux):
+                    i += 1
+                else:
+                    exists = False
+                    localtempdir = aux + "/"
+
         cmd = 'mkdir -p ' + localtempdir
         self.runCmd(cmd)
 
         realnameimg = ""
         self.logger.info('untar file with image and manifest')
-        cmd = "sudo tar xvfz " + image + " -C " + localtempdir
+        cmd = "tar xvfz " + image + " -C " + localtempdir
         self.logger.debug(cmd)        
         p = Popen(cmd.split(' '), stdout=PIPE, stderr=PIPE)
         std = p.communicate()
         stat = 0
         if len(std[0]) > 0:
-            realnameimg= std[0].split("\n")[0].strip().split(".")[0]            
+            realnameimg = std[0].split("\n")[0].strip().split(".")[0]            
         if p.returncode != 0:
             self.logger.error('Command: ' + cmd + ' failed, status: ' + str(p.returncode) + ' --- ' + std[1])
             stat = 1
 
+        cmd = 'rm -f ' + image 
+        status = self.runCmd(cmd)
+        
         if (stat != 0):
             msg = "Error: the files were not extracted"
             self.errormsg(connstream, msg)
-            success = False
-        else:
-            self.manifestname = realnameimg + ".manifest.xml"
-    
-            manifestfile = open(localtempdir + "/" + self.manifestname, 'r')
-            manifest = parse(manifestfile)
-    
-            self.name = ""
-            self.givenname = ""
-            self.operatingsystem = ""
-            self.version = ""
-            self.arch = ""        
-    
-            self.name = manifest.getElementsByTagName('name')[0].firstChild.nodeValue.strip()
-            self.givenname = manifest.getElementsByTagName('givenname')
-            self.operatingsystem = manifest.getElementsByTagName('os')[0].firstChild.nodeValue.strip()
-            self.version = manifest.getElementsByTagName('version')[0].firstChild.nodeValue.strip()
-            self.arch = manifest.getElementsByTagName('arch')[0].firstChild.nodeValue.strip()
-            #kernel = manifest.getElementsByTagName('kernel')[0].firstChild.nodeValue.strip()
-    
-            self.logger.debug(self.name + " " + self.operatingsystem + " " + self.version + " " + self.arch)
-            success = True
+            return False
+        
+        self.manifestname = realnameimg + ".manifest.xml"
 
-        return success
+        manifestfile = open(localtempdir + "/" + self.manifestname, 'r')
+        manifest = parse(manifestfile)
+
+        self.name = ""
+        self.givenname = ""
+        self.operatingsystem = ""
+        self.version = ""
+        self.arch = ""        
+
+        self.name = manifest.getElementsByTagName('name')[0].firstChild.nodeValue.strip()
+        self.givenname = manifest.getElementsByTagName('givenname')
+        self.operatingsystem = manifest.getElementsByTagName('os')[0].firstChild.nodeValue.strip()
+        self.version = manifest.getElementsByTagName('version')[0].firstChild.nodeValue.strip()
+        self.arch = manifest.getElementsByTagName('arch')[0].firstChild.nodeValue.strip()
+        #kernel = manifest.getElementsByTagName('kernel')[0].firstChild.nodeValue.strip()
+
+        self.logger.debug(self.name + " " + self.operatingsystem + " " + self.version + " " + self.arch)
+
+        
+        #create rootimg and temp directories
+        cmd = 'mkdir -p ' + localtempdir + '/temp'
+        status = self.runCmd(cmd)    
+        if status != 0:
+            msg = "ERROR: creating temp directory inside " + localtempdir
+            self.errormsg(connstream, msg)
+            return False
+
+        #mount image to extract files
+        cmd = 'sudo mount -o loop ' + localtempdir + '/' + self.name + '.img ' + localtempdir + '/temp'
+        status = self.runCmd(cmd)    
+        if status != 0:
+            msg = "ERROR: mounting image"
+            self.errormsg(connstream, msg)
+            return False
+        
+        return True
 
     def errormsg(self, connstream, msg):
         self.logger.error(msg)
@@ -282,7 +476,6 @@ class IMDeployServerIaaS(object):
         connstream.close()
     
     def runCmd(self, cmd):
-        cmd = 'sudo ' + cmd
         cmdLog = logging.getLogger('DeployXcat.exec')
         cmdLog.debug(cmd)
         p = Popen(cmd.split(' '), stdout=PIPE, stderr=PIPE)

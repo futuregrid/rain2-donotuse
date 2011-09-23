@@ -283,6 +283,7 @@ def main():
     OS = ""
     if args.OS == "Ubuntu" or args.OS == "ubuntu":
         OS = "ubuntu"
+        supported_versions = ["karmic","lucid","maverick","natty"]
         if type(args.version) is NoneType:
             version = default_ubuntu
         elif args.version == "9.10" or args.version == "karmic":
@@ -293,6 +294,9 @@ def main():
             version = "maverick"
         elif args.version == "11.04" or args.version == "natty":
             version = "natty"
+        else:
+            print "ERROR: Incorrect OS version specified. Supported OS version for " + OS + " are " + str(supported_versions)
+            sys.exit(1)
     elif args.OS == "Debian" or args.OS == "debian":
         OS = "debian"
         version = default_debian
@@ -301,11 +305,15 @@ def main():
         version = default_rhel
     elif args.OS == "CentOS" or args.OS == "CentOS" or args.OS == "centos":
         OS = "centos"
+        supported_versions = ["5","5.0","5.1","5.2","5.3","5.4","5.5","5.6","5.7","6","6.0"]
         if type(args.version) is NoneType:
-            version = default_centos
-        #later control supported versions
+            version = default_centos            
+        elif str(args.version) in supported_versions:
+            version = args.version
         else:
-            version = default_centos
+            print "ERROR: Incorrect OS version specified. Supported OS version for " + OS + " are " + str(supported_versions)
+            sys.exit(1)
+            
     elif args.OS == "Fedora" or args.OS == "fedora":
         OS = "fedora"
         version = default_fedora

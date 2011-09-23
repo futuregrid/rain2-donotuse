@@ -91,6 +91,18 @@ class IMServerConf(object):
         self._certfile_moab = ""
         self._keyfile_moab = ""
         
+        #image server iaas
+        self._iaas_port = 0
+        self._tempdir_iaas = ""   
+        self._proc_max_iaas = "" 
+        self._http_server_iaas = ""    
+        self._log_iaas = ""
+        self._logLevel_iaas = ""   
+        self._ca_certs_iaas = ""
+        self._certfile_iaas = ""
+        self._keyfile_iaas = ""
+        
+        
         self._logLevel_default = "DEBUG"
         self._logType = ["DEBUG", "INFO", "WARNING", "ERROR"]
         
@@ -195,6 +207,26 @@ class IMServerConf(object):
     def getKeyFileMoab(self):
         return self._keyfile_moab
             
+    #image server IaaS    
+    def getIaasPort(self):
+        return self._iaas_port
+    def getTempDirIaaS(self):
+        return self._tempdir_iaas
+    def getProcMaxIaaS(self):
+        return self._proc_max_iaas
+    def getHttpServerIaas(self):
+        return self._http_server_iaas
+    def getLogIaas(self):
+        return self._log_iaas
+    def getLogLevelIaas(self):
+        return self._logLevel_iaas
+    def getCaCertsIaas(self):
+        return self._ca_certs_iaas
+    def getCertFileIaas(self):
+        return self._certfile_iaas
+    def getKeyFileIaas(self):
+        return self._keyfile_iaas
+
     
     ############################################################
     # load_generateServerConfig
@@ -417,7 +449,7 @@ class IMServerConf(object):
             sys.exit(1)
 
     ############################################################
-    # load_deployConfig
+    # load_deployServerMoab
     ############################################################
     def load_deployServerMoabConfig(self):
         section = "DeployServerMoab"
@@ -477,6 +509,72 @@ class IMServerConf(object):
             sys.exit(1)
         if not os.path.isfile(self._keyfile_moab):
             print "Error: keyfile file not found in "  + self._keyfile_moab 
+            sys.exit(1)
+
+    ############################################################
+    # load_deployServerIaas
+    ############################################################
+    def load_deployServerIaasConfig(self):
+        section = "DeployServerIaas"
+        try:
+            self._iaas_port = int(self._config.get(section, 'port', 0))
+        except ConfigParser.NoOptionError:
+            print "Error: No port option found in section " + section
+            sys.exit(1)  
+        except ConfigParser.NoSectionError:
+            print "Error: no section "+section+" found in the "+self._configfile+" config file"
+            sys.exit(1)
+        try:
+            self._proc_max_iaas = int(self._config.get(section, 'proc_max', 0))
+        except ConfigParser.NoOptionError:
+            print "Error: No proc_max option found in section " + section
+            sys.exit(1)     
+        try:
+            self._tempdir_iaas = os.path.expanduser(self._config.get(section, 'tempdir', 0))
+        except ConfigParser.NoOptionError:
+            print "Error: No tempdir option found in section " + section
+            sys.exit(1)            
+        try:
+            self._http_server_iaas = self._config.get(section, 'http_server', 0)
+        except ConfigParser.NoOptionError:
+            print "Error: No http_server option found in section " + section
+            sys.exit(1)        
+        try:
+            self._log_iaas = os.path.expanduser(self._config.get(section, 'log', 0))
+        except ConfigParser.NoOptionError:
+            print "Error: No log option found in section " + section
+            sys.exit(1)
+        try:
+            tempLevel = string.upper(self._config.get(section, 'log_level', 0))
+        except ConfigParser.NoOptionError:
+            tempLevel = self._logLevel_default
+        if not (tempLevel in self._logType):
+            print "Log level " + tempLevel + " not supported. Using the default one " + self._logLevel_default
+            tempLevel = self._logLevel_default
+        self._logLevel_iaas = eval("logging." + tempLevel)
+        try:
+            self._ca_certs_iaas = os.path.expanduser(self._config.get(section, 'ca_cert', 0))
+        except ConfigParser.NoOptionError:
+            print "Error: No ca_cert option found in section " + section
+            sys.exit(1)
+        if not os.path.isfile(self._ca_certs_iaas):
+            print "Error: ca_cert file not found in "  + self._ca_certs_iaas 
+            sys.exit(1)
+        try:
+            self._certfile_iaas = os.path.expanduser(self._config.get(section, 'certfile', 0))
+        except ConfigParser.NoOptionError:
+            print "Error: No certfile option found in section " + section
+            sys.exit(1)
+        if not os.path.isfile(self._certfile_iaas):
+            print "Error: certfile file not found in "  + self._certfile_iaas 
+            sys.exit(1)
+        try:
+            self._keyfile_iaas = os.path.expanduser(self._config.get(section, 'keyfile', 0))
+        except ConfigParser.NoOptionError:
+            print "Error: No keyfile option found in section " + section
+            sys.exit(1)
+        if not os.path.isfile(self._keyfile_iaas):
+            print "Error: keyfile file not found in "  + self._keyfile_iaas 
             sys.exit(1)
 
 

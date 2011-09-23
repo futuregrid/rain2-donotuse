@@ -423,18 +423,52 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
         runCmd('touch ' + tempdir + '' + name + '/var/log/yum.log')
 
         #to create base_os
-        centosLog.info('Getting appropiate release package')
-        if (version == "5.6"):
-            runCmd('wget http://mirror.centos.org/centos/5.6/os/x86_64/CentOS/centos-release-5-6.el5.centos.1.x86_64.rpm -O ' + tempdir + 'centos-release.rpm')
-        elif(version == "5.5"): #the 5.5 is not supported yet
-            runCmd('wget http://mirror.centos.org/centos/5.5/os/x86_64/CentOS/centos-release-5-5.el5.centos.x86_64.rpm -O ' + tempdir + 'centos-release.rpm')
+        #centosLog.info('Getting appropiate release package')
+        #if (version == "5.6"):
+        #    runCmd('wget http://mirror.centos.org/centos/5.6/os/x86_64/CentOS/centos-release-5-6.el5.centos.1.x86_64.rpm -O ' + tempdir + 'centos-release.rpm')
+        #elif(version == "5.5"): #the 5.5 is not supported yet
+        #    runCmd('wget http://mirror.centos.org/centos/5.5/os/x86_64/CentOS/centos-release-5-5.el5.centos.x86_64.rpm -O ' + tempdir + 'centos-release.rpm')
 
-        runCmd('rpm -ihv --nodeps --root ' + tempdir + '' + name + ' ' + tempdir + 'centos-release.rpm')
-        runCmd('rm -f ' + tempdir + 'centos-release.rpm')
-        #to create base_os
-        #centosLog.info('Modifying repositories to match the version requested')
+        #runCmd('rpm -ihv --nodeps --root ' + tempdir + '' + name + ' ' + tempdir + 'centos-release.rpm')
+        #runCmd('rm -f ' + tempdir + 'centos-release.rpm')
+        
+        centosLog.info('Creating yum.conf with the repositories')
+        f = open("./yum.conf","w")
+        f.write(
+        "[main]\n"
+        "cachedir=/var/cache/yum\n"
+        "debuglevel=2\n"
+        "logfile=/var/log/yum.log\n"
+        "exclude=*-debuginfo\n"
+        "gpgcheck=0\n"
+        "obsoletes=1\n"
+        "pkgpolicy=newest\n"
+        "distroverpkg=redhat-release\n"
+        "tolerant=1\n"
+        "exactarch=1\n"
+        "reposdir=/dev/null\n"
+        "metadata_expire=1800\n"
+        "\n"
+        "[base]\n"
+        "name=CentOS 5 - $basearch - Base\n"
+        "baseurl=http://mirror.centos.org/centos/"+version+"/os/"+arch+"/\n"
+        "enabled=1\n"
+        "\n"
+        "[updates-released]\n"
+        "name=CentOS 5 - $basearch - Released Updates\n"
+        "baseurl=http://mirror.centos.org/centos/"+version+"/updates/"+arch+"/\n"
+        "enabled=1\n"
+        "\n"
+        "[extras]\n"
+        "name=CentOS 5 Extras $releasever - $basearch\n"
+        "baseurl=http://mirror.centos.org/centos/"+version+"/extras/"+arch+"/\n"
+        "enabled=1 \n")
+        f.close()
+        
+        #to create base_os        
         centosLog.info('Installing base OS')
-        runCmd('yum --installroot=' + tempdir + '' + name + ' -y groupinstall Core')
+        #runCmd('yum --installroot=' + tempdir + '' + name + ' -y groupinstall Core')
+        runCmd('yum -c ./yum.conf --installroot=' + tempdir + '' + name + ' -y groupinstall Core')
 
         centosLog.info('Copying configuration files')
 
@@ -449,13 +483,13 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
         #base_os done
 
     centosLog.info('Installing some util packages')
-    runCmd('chroot ' + tempdir + '' + name + ' yum -y install wget nfs-utils gcc make man python26')
+    runCmd('chroot ' + tempdir + '' + name + ' yum -c ./yum.conf -y install wget nfs-utils gcc make man python26')
 
 #Move ldap to deploy    
     if (ldap):
         #this is for LDAP auth and mount home dirs. Later, we may control if we install this or not.
         centosLog.info('Installing LDAP packages')
-        runCmd('chroot ' + tempdir + '' + name + ' yum -y install openldap-clients nss_ldap')
+        runCmd('chroot ' + tempdir + '' + name + ' yum -c ./yum.conf -y install openldap-clients nss_ldap')
 
         centosLog.info('Configuring LDAP access')
         runCmd('wget '+ http_server +'/ldap/nsswitch.conf -O ' + tempdir + '' + name + '/etc/nsswitch.conf')
@@ -493,7 +527,7 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
     centosLog.info('Installing BCFG2 client')
     runCmd('chroot ' + tempdir + '' + name + ' rpm -ivh http://download.fedora.redhat.com/pub/epel/5/i386/epel-release-5-4.noarch.rpm')
     """"    
-    runCmd('chroot '+tempdir+''+name + ' yum -y install bcfg2')
+    runCmd('chroot '+tempdir+''+name + ' yum -c ./yum.conf -y install bcfg2')
     #os.system('chroot '+tempdir+' '+name+' apt-get -y install bcfg2')
     centosLog.info('Installed BCFG2 client')
 
@@ -514,7 +548,7 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
     #Install packages
     if pkgs != None:
         centosLog.info('Installing user-defined packages')
-        runCmd('chroot ' + tempdir + '' + name + ' yum -y install ' + pkgs)
+        runCmd('chroot ' + tempdir + '' + name + ' yum -c ./yum.conf -y install ' + pkgs)
         centosLog.info('Installed user-defined packages')
 
     #Setup BCFG2 server groups
