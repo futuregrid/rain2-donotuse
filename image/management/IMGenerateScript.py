@@ -393,7 +393,11 @@ def buildRHEL(name, version, arch, pkgs, tempdir):
 
 
 def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
-
+    
+    #actualizar python-hashlib in the centos-5.6 image (the opennebula one) to use centos-6
+    
+    #we need to remove img file when error
+    
     output = ""
     namedir = name
 
@@ -432,6 +436,8 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
 
         #runCmd('rpm -ihv --nodeps --root ' + tempdir + '' + name + ' ' + tempdir + 'centos-release.rpm')
         #runCmd('rm -f ' + tempdir + 'centos-release.rpm')
+        
+        runCmd("yum -y install python-hashlib")
         
         runCmd("yum clean all")
         
@@ -523,7 +529,15 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
         #base_os done
 
     centosLog.info('Installing some util packages')
-    runCmd('chroot ' + tempdir + '' + name + ' yum -y install wget nfs-utils gcc make man python26')
+    if not os.path.isfile(tempdir + '' + name +"/proc/cpuinfo"):
+        os.system("touch "+ tempdir + '' + name +"/proc/cpuinfo")
+    runCmd('chroot ' + tempdir + '' + name + ' yum clean all')
+    if (re.search("^5",version)):
+        runCmd('chroot ' + tempdir + '' + name + ' rpm -ivh http://download.fedora.redhat.com/pub/epel/5/'+arch+'/epel-release-5-4.noarch.rpm')
+        runCmd('chroot ' + tempdir + '' + name + ' yum -y install wget nfs-utils gcc make man python26')
+    elif (re.search("^6",version)):
+        runCmd('chroot ' + tempdir + '' + name + ' rpm -ivh http://download.fedora.redhat.com/pub/epel/6/'+arch+'/epel-release-6-5.noarch.rpm')
+        runCmd('chroot ' + tempdir + '' + name + ' yum -y install wget nfs-utils gcc make man')    
 
 #Move ldap to deploy    
     if (ldap):
@@ -564,8 +578,7 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
 
     # Install BCFG2 client
 
-    centosLog.info('Installing BCFG2 client')
-    runCmd('chroot ' + tempdir + '' + name + ' rpm -ivh http://download.fedora.redhat.com/pub/epel/5/i386/epel-release-5-4.noarch.rpm')
+    centosLog.info('Installing BCFG2 client')    
     """"    
     runCmd('chroot '+tempdir+''+name + ' yum -y install bcfg2')
     #os.system('chroot '+tempdir+' '+name+' apt-get -y install bcfg2')

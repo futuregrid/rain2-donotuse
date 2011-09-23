@@ -56,6 +56,8 @@ class IMDeploy(object):
         self._certfile = self._deployConf.getCertFileDep()
         self._keyfile = self._deployConf.getKeyFileDep()
 
+        self.iaasmachine ="" 
+        self._iaas_port = 0
         
         self._log = fgLog.fgLog(self._deployConf.getLogFileDeploy(), self._deployConf.getLogLevelDeploy(), "DeployClient", printLogStdout)
         
