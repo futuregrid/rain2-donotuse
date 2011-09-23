@@ -327,7 +327,7 @@ def main():
     
     
     if args.getimg:
-        print "The image " + imgId + " is located in " + str(status)
+        print "The image is located in " + str(status)
     else:
         print "Your image has be uploaded in the repository with ID=" + str(status)
     
