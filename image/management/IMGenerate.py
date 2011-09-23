@@ -305,11 +305,14 @@ def main():
         version = default_rhel
     elif args.OS == "CentOS" or args.OS == "CentOS" or args.OS == "centos":
         OS = "centos"
-        supported_versions = ["5","5.0","5.1","5.2","5.3","5.4","5.5","5.6","5.7"]#,"6","6.0"]
+        supported_versions = ["5","5.0","5.1","5.2","5.3","5.4","5.5","5.6","5.7","6","6.0"]
         if type(args.version) is NoneType:
             version = default_centos            
         elif str(args.version) in supported_versions:
-            version = args.version
+            if re("^5",str(args.version)):
+                version = "5"
+            elif re("^6",str(args.version)):
+                version = "6"
         else:
             print "ERROR: Incorrect OS version specified. Supported OS version for " + OS + " are " + str(supported_versions)
             sys.exit(1)
