@@ -268,7 +268,7 @@ class IMGenerateServer(object):
                 
             if (stat == 0):
                 self.logger.info("Sending IMGenerateScript.py to the VM")
-                cmdscp = "scp -q " + self.serverdir + '/IMGenerateScript.py  ' + self.rootId + "@" + vmaddr + ":/root/"
+                cmdscp = "scp -q " + self.serverdir + '/image/management/IMGenerateScript.py  ' + self.rootId + "@" + vmaddr + ":/root/"
                 self.logger.info(cmdscp)
                 stat = os.system(cmdscp)
                 if (stat != 0):
