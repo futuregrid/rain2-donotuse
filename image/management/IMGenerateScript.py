@@ -17,6 +17,7 @@ import sys
 import socket
 from subprocess import *
 import time
+import re
 #from xml.dom.ext import *
 from xml.dom.minidom import Document, parse
 
@@ -432,37 +433,76 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
         #runCmd('rpm -ihv --nodeps --root ' + tempdir + '' + name + ' ' + tempdir + 'centos-release.rpm')
         #runCmd('rm -f ' + tempdir + 'centos-release.rpm')
         
+        runCmd("yum clean all")
+        
         centosLog.info('Creating yum.conf with the repositories')
         f = open("./yum.conf","w")
-        f.write(
-        "[main]\n"
-        "cachedir=/var/cache/yum\n"
-        "debuglevel=2\n"
-        "logfile=/var/log/yum.log\n"
-        "exclude=*-debuginfo\n"
-        "gpgcheck=0\n"
-        "obsoletes=1\n"
-        "pkgpolicy=newest\n"
-        "distroverpkg=redhat-release\n"
-        "tolerant=1\n"
-        "exactarch=1\n"
-        "reposdir=/dev/null\n"
-        "metadata_expire=1800\n"
-        "\n"
-        "[base]\n"
-        "name=CentOS 5 - $basearch - Base\n"
-        "baseurl=http://mirror.centos.org/centos/"+version+"/os/"+arch+"/\n"
-        "enabled=1\n"
-        "\n"
-        "[updates-released]\n"
-        "name=CentOS 5 - $basearch - Released Updates\n"
-        "baseurl=http://mirror.centos.org/centos/"+version+"/updates/"+arch+"/\n"
-        "enabled=1\n"
-        "\n"
-        "[extras]\n"
-        "name=CentOS 5 Extras $releasever - $basearch\n"
-        "baseurl=http://mirror.centos.org/centos/"+version+"/extras/"+arch+"/\n"
-        "enabled=1 \n")
+        if (re.search("^5",version)):
+            f.write(
+            "[main]\n"
+            "cachedir=/var/cache/yum\n"
+            "debuglevel=2\n"
+            "logfile=/var/log/yum.log\n"
+            "exclude=*-debuginfo\n"
+            "gpgcheck=0\n"
+            "obsoletes=1\n"
+            "pkgpolicy=newest\n"
+            "distroverpkg=redhat-release\n"
+            "tolerant=1\n"
+            "exactarch=1\n"
+            "reposdir=/dev/null\n"
+            "metadata_expire=1800\n"
+            "\n"
+            "[base]\n"
+            "name=CentOS 5 - $basearch - Base\n"
+            "baseurl=http://vault.centos.org/centos/"+version+"/os/"+arch+"/\n"
+            #"baseurl=http://mirror.centos.org/centos/"+version+"/os/"+arch+"/\n"
+            "enabled=1\n"
+            "\n"
+            "[updates-released]\n"
+            "name=CentOS 5 - $basearch - Released Updates\n"
+            "baseurl=http://vault.centos.org/centos/"+version+"/updates/"+arch+"/\n"
+            #"baseurl=http://mirror.centos.org/centos/"+version+"/updates/"+arch+"/\n"
+            "enabled=1\n"
+            "\n"
+            "[extras]\n"
+            "name=CentOS 5 Extras $releasever - $basearch\n"
+            "baseurl=http://vault.centos.org/centos/"+version+"/extras/"+arch+"/\n"
+            #"baseurl=http://mirror.centos.org/centos/"+version+"/extras/"+arch+"/\n"
+            "enabled=1 \n")
+        elif (re.search("^6",version)):
+            f.write(
+            "[main]\n"
+            "cachedir=/var/cache/yum\n"
+            "debuglevel=2\n"
+            "logfile=/var/log/yum.log\n"
+            "exclude=*-debuginfo\n"
+            "gpgcheck=0\n"
+            "obsoletes=1\n"
+            "pkgpolicy=newest\n"
+            "distroverpkg=redhat-release\n"
+            "tolerant=1\n"
+            "exactarch=1\n"
+            "reposdir=/dev/null\n"
+            "metadata_expire=1800\n"
+            "\n"
+            "[base]\n"
+            "name=CentOS 6 - $basearch - Base\n"
+            #"baseurl=http://vault.centos.org/centos/"+version+"/os/"+arch+"/\n"
+            "baseurl=http://mirror.centos.org/centos/"+version+"/os/"+arch+"/\n"
+            "enabled=1\n"
+            "\n"
+            "[updates-released]\n"
+            "name=CentOS 6 - $basearch - Released Updates\n"
+            #"baseurl=http://vault.centos.org/centos/"+version+"/updates/"+arch+"/\n"
+            "baseurl=http://mirror.centos.org/centos/"+version+"/updates/"+arch+"/\n"
+            "enabled=1\n"
+            "\n"
+            "[extras]\n"
+            "name=CentOS 6 Extras $releasever - $basearch\n"
+            #"baseurl=http://vault.centos.org/centos/"+version+"/extras/"+arch+"/\n"
+            "baseurl=http://mirror.centos.org/centos/"+version+"/extras/"+arch+"/\n"
+            "enabled=1 \n")
         f.close()
         
         #to create base_os        
@@ -483,13 +523,13 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
         #base_os done
 
     centosLog.info('Installing some util packages')
-    runCmd('chroot ' + tempdir + '' + name + ' yum -c ./yum.conf -y install wget nfs-utils gcc make man python26')
+    runCmd('chroot ' + tempdir + '' + name + ' yum -y install wget nfs-utils gcc make man python26')
 
 #Move ldap to deploy    
     if (ldap):
         #this is for LDAP auth and mount home dirs. Later, we may control if we install this or not.
         centosLog.info('Installing LDAP packages')
-        runCmd('chroot ' + tempdir + '' + name + ' yum -c ./yum.conf -y install openldap-clients nss_ldap')
+        runCmd('chroot ' + tempdir + '' + name + ' yum -y install openldap-clients nss_ldap')
 
         centosLog.info('Configuring LDAP access')
         runCmd('wget '+ http_server +'/ldap/nsswitch.conf -O ' + tempdir + '' + name + '/etc/nsswitch.conf')
@@ -527,7 +567,7 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
     centosLog.info('Installing BCFG2 client')
     runCmd('chroot ' + tempdir + '' + name + ' rpm -ivh http://download.fedora.redhat.com/pub/epel/5/i386/epel-release-5-4.noarch.rpm')
     """"    
-    runCmd('chroot '+tempdir+''+name + ' yum -c ./yum.conf -y install bcfg2')
+    runCmd('chroot '+tempdir+''+name + ' yum -y install bcfg2')
     #os.system('chroot '+tempdir+' '+name+' apt-get -y install bcfg2')
     centosLog.info('Installed BCFG2 client')
 
@@ -548,7 +588,7 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
     #Install packages
     if pkgs != None:
         centosLog.info('Installing user-defined packages')
-        runCmd('chroot ' + tempdir + '' + name + ' yum -c ./yum.conf -y install ' + pkgs)
+        runCmd('chroot ' + tempdir + '' + name + ' yum -y install ' + pkgs)
         centosLog.info('Installed user-defined packages')
 
     #Setup BCFG2 server groups
