@@ -319,7 +319,7 @@ class IMDeployServerIaaS(object):
         rc_local = ""
         if self.operatingsystem == "ubuntu":
             #setup vmcontext.sh
-            self.runCmd("sudo ln "+localtempdir+"/temp/etc/init.d/vmcontext.sh "+localtempdir+"/temp/etc/rc2.d/S01vmcontext.sh")
+            self.runCmd("sudo ln -s "+localtempdir+"/temp/etc/init.d/vmcontext.sh "+localtempdir+"/temp/etc/rc2.d/S01vmcontext.sh")
             device = "sda" 
             rc_local = "mount -t iso9660 /dev/sr0 /mnt \n"
             #delete persisten network rules
@@ -331,8 +331,13 @@ class IMDeployServerIaaS(object):
         elif self.operatingsystem == "centos":
             #setup vmcontext.sh
             self.runCmd("sudo chroot "+localtempdir+"/temp chkconfig --add vmcontext.sh")
-            device = "hda"
-            rc_local = "mount -t iso9660 /dev/hdc /mnt \n"
+            if self.version == "5":
+                device = "hda"
+                rc_local = "mount -t iso9660 /dev/hdc /mnt \n"  
+            elif self.version == "6":
+                device = "sda"
+                rc_local = "mount -t iso9660 /dev/sr0 /mnt \n"  #in centos 6 is sr0            
+                self.runCmd("sudo rm -f "+localtempdir+"/temp/etc/udev/rules.d/70-persistent-net.rules")
             
             if self.kernel == "None":
                 self.kernel = self.default_xcat_kernel_centos
