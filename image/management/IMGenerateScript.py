@@ -446,9 +446,9 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
         #runCmd('rm -f ' + tempdir + 'centos-release.rpm')
         
         #runCmd("yum -y install python-hashlib")
-        """
-        runCmd("yum clean all")
         
+        runCmd("yum clean all")
+        """
         centosLog.info('Creating yum.conf with the repositories')
         f = open("./yum.conf","w")
         if (re.search("^5",version)):
