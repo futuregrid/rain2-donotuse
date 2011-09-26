@@ -429,6 +429,12 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
         runCmd('mkdir -p ' + tempdir + '' + name + '/var/lib/rpm ' + tempdir + '' + name + '/var/log ' + tempdir + '' + name + '/dev/pts ' + tempdir + '' + name + '/dev/shm')
         runCmd('touch ' + tempdir + '' + name + '/var/log/yum.log')
 
+
+        if (re.search("^5",version)):
+            runCmd('chroot ' + tempdir + '' + name + ' rpm -ivh http://download.fedora.redhat.com/pub/epel/5/'+arch+'/epel-release-5-4.noarch.rpm')        
+        elif (re.search("^6",version)):
+            runCmd('chroot ' + tempdir + '' + name + ' rpm -ivh http://download.fedora.redhat.com/pub/epel/6/'+arch+'/epel-release-6-5.noarch.rpm')
+        
         #to create base_os
         #centosLog.info('Getting appropiate release package')
         #if (version == "5.6"):
@@ -532,10 +538,6 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
         os.system("touch "+ tempdir + '' + name +"/proc/cpuinfo")
     runCmd('chroot ' + tempdir + '' + name + ' yum clean all')
     
-    if (re.search("^5",version)):
-        runCmd('chroot ' + tempdir + '' + name + ' rpm -ivh http://download.fedora.redhat.com/pub/epel/5/'+arch+'/epel-release-5-4.noarch.rpm')        
-    elif (re.search("^6",version)):
-        runCmd('chroot ' + tempdir + '' + name + ' rpm -ivh http://download.fedora.redhat.com/pub/epel/6/'+arch+'/epel-release-6-5.noarch.rpm')
             
     runCmd('chroot ' + tempdir + '' + name + ' yum -y install wget nfs-utils gcc make man')
 #Move ldap to deploy    
