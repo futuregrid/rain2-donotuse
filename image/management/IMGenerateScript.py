@@ -439,8 +439,8 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
         #runCmd('rpm -ihv --nodeps --root ' + tempdir + '' + name + ' ' + tempdir + 'centos-release.rpm')
         #runCmd('rm -f ' + tempdir + 'centos-release.rpm')
         
-        runCmd("yum -y install python-hashlib")
-        
+        #runCmd("yum -y install python-hashlib")
+        """
         runCmd("yum clean all")
         
         centosLog.info('Creating yum.conf with the repositories')
@@ -509,11 +509,11 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
             "baseurl=http://mirror.centos.org/centos/"+version+"/extras/"+arch+"/\n"
             "enabled=1 \n")
         f.close()
-        
+        """
         #to create base_os        
         centosLog.info('Installing base OS')
-        #runCmd('yum --installroot=' + tempdir + '' + name + ' -y groupinstall Core')
-        runCmd('yum -c ./yum.conf --installroot=' + tempdir + '' + name + ' -y groupinstall Core')
+        runCmd('yum --installroot=' + tempdir + '' + name + ' -y groupinstall Core')
+        #runCmd('yum -c ./yum.conf --installroot=' + tempdir + '' + name + ' -y groupinstall Core')
 
         centosLog.info('Copying configuration files')
 

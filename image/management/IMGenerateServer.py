@@ -240,7 +240,7 @@ class IMGenerateServer(object):
         elif self.os == "rhel":
             vmfile = self.vmfile_rhel
         elif self.os == "centos":
-            vmfile = self.vmfile_centos
+            vmfile = self.vmfile_centos[self.version]
 
         # ---Start xmlrpc client to opennebula server-------------
         try:

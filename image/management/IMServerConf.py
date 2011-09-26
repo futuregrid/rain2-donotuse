@@ -46,7 +46,7 @@ class IMServerConf(object):
         self._gen_port = 0
         self._proc_max = 0
         self._refresh_status = 0
-        self._vmfile_centos = ""
+        self._vmfile_centos = {}
         self._vmfile_rhel = ""
         self._vmfile_ubuntu ="" 
         self._vmfile_debian = ""
@@ -251,8 +251,12 @@ class IMServerConf(object):
         except ConfigParser.NoOptionError:
             print "Error: No refresh option found in section " + section
             sys.exit(1)
-        try:
-            self._vmfile_centos = os.path.expanduser(self._config.get(section, 'vmfile_centos', 0))
+        try:            
+            centos_temp = os.path.expanduser(self._config.get(section, 'vmfile_centos', 0))
+            centos_temp1 = centos_temp.split(",")
+            for i in range(len(centos_temp1)):      
+                self._vmfile_centos[centos_temp1[i].split(":")[0].strip()]=centos_temp1[i].split(":")[1].strip()
+            
         except ConfigParser.NoOptionError:
             print "Error: No vmfile_centos option found in section " + section
             sys.exit(1)
