@@ -443,7 +443,7 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
         #runCmd("yum -y install python-hashlib")
         
         #runCmd("yum clean all")
-        
+        """
         centosLog.info('Creating yum.conf with the repositories')
         f = open("./yum.conf","w")        
         f.write(
@@ -480,7 +480,7 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
         "enabled=1 \n")
         
         f.close()
-        
+        """
         #to create base_os        
         centosLog.info('Installing base OS')
         runCmd('yum --installroot=' + tempdir + '' + name + ' -y groupinstall Core')
