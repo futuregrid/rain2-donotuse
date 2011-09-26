@@ -289,38 +289,7 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
 
     ubuntuLog.info('Installing some util packages')
     runCmd('chroot ' + tempdir + '' + name + ' apt-get -y install wget nfs-common gcc make libcrypto++8 man')
-
-
-
-
-#Move ldap to deploy    
-    if (ldap):
-        #this is for LDAP auth and mount home dirs. Later, we may control if we install this or not.
-        ubuntuLog.info('Installing LDAP packages')
-        ldapexec = "/tmp/ldap.install"
-        os.system('echo "!#/bin/bash \nexport DEBIAN_FRONTEND=noninteractive \napt-get ' + \
-                  '-y install ldap-utils libpam-ldap libnss-ldap nss-updatedb libnss-db" >' + tempdir + '' + name + '' + ldapexec)
-        os.system('chmod +x ' + tempdir + '' + name + '' + ldapexec)
-        runCmd('chroot ' + tempdir + '' + name + ' ' + ldapexec)
-
-
-        #try this other way
-        #chroot maverick-vm /bin/bash -c 'DEBIAN_FRONTEND=noninteractive apt-get -y --force-yes install linux-image-server'
-        #env DEBIAN_FRONTEND="noninteractive" chroot /tmp/javi3789716749 /bin/bash -c 'apt-get --force-yes -y install ldap-utils libpam-ldap libpam-ldap libnss-ldap nss-updatedb libnss-db'
-
-        ubuntuLog.info('Configuring LDAP access')
-        runCmd('wget '+ http_server +'/ldap/nsswitch.conf -O ' + tempdir + '' + name + '/etc/nsswitch.conf')
-        runCmd('mkdir -p ' + tempdir + '' + name + '/etc/ldap/cacerts ' + tempdir + '' + name + '/N/u')
-        runCmd('wget '+ http_server +'/ldap/cacerts/12d3b66a.0 -O ' + tempdir + '' + name + '/etc/ldap/cacerts/12d3b66a.0')
-        runCmd('wget '+ http_server +'/ldap/cacerts/cacert.pem -O ' + tempdir + '' + name + '/etc/ldap/cacerts/cacert.pem')
-        runCmd('wget '+ http_server +'/ldap/ldap.conf -O ' + tempdir + '' + name + '/etc/ldap.conf')
-        runCmd('wget '+ http_server +'/ldap/openldap/ldap.conf -O ' + tempdir + '' + name + '/etc/ldap/ldap.conf')
-        os.system('sed -i \'s/openldap/ldap/g\' ' + tempdir + '' + name + '/etc/ldap/ldap.conf')
-        os.system('sed -i \'s/openldap/ldap/g\' ' + tempdir + '' + name + '/etc/ldap.conf')
-
-        runCmd('wget '+ http_server +'/ldap/sshd_ubuntu -O ' + tempdir + '' + name + '/usr/sbin/sshd')
-        os.system('echo "UseLPK yes" >> ' + tempdir + '' + name + '/etc/ssh/sshd_config')
-        os.system('echo "LpkLdapConf /etc/ldap.conf" >> ' + tempdir + '' + name + '/etc/ssh/sshd_config')
+        
 
 
     #Setup networking
