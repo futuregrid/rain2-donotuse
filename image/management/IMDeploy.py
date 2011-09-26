@@ -39,7 +39,7 @@ class IMDeploy(object):
         self.kernel = kernel
         self.user = user
         self.passwd = passwd
-        self.verbose = verbose
+        self._verbose = verbose
         self.printLogStdout = printLogStdout
         
         self.machine = ""  #(india or minicluster or ...)
@@ -116,7 +116,7 @@ class IMDeploy(object):
                 ret = iaasServer.read(1024)
                 if (re.search('^ERROR', ret)):
                     self._log.error('The image has not been generated properly. Exit error:' + ret)
-                    if self.verbose:
+                    if self._verbose:
                         print "ERROR: The image has not been generated properly. Exit error:" + ret    
                 else:                           
                     results = ret.split(",")
@@ -131,23 +131,23 @@ class IMDeploy(object):
                             eval("self."+iaas_type+"_method("+imagebackpath+","+kernel+","+operatingsystem+")")
                         else:
                             self._log.error("CANNOT retrieve the image from server. EXIT.")
-                            if self.verbose:
+                            if self._verbose:
                                 print "ERROR: CANNOT retrieve the image from server. EXIT."
                     else:
                         self._log.error("Incorrect reply from server. EXIT.")
-                        if self.verbose:
+                        if self._verbose:
                             print "ERROR: Incorrect reply from server. EXIT."
                     
                 
             else:       
                 self._log.error(str(checkauthstat[0]))
-                if self.verbose:
+                if self._verbose:
                     print checkauthstat[0]
                 return
                             
         except ssl.SSLError:
             self._log.error("CANNOT establish SSL connection. EXIT")
-            if self.verbose:
+            if self._verbose:
                 print "ERROR: CANNOT establish SSL connection."
         
                 
@@ -201,12 +201,12 @@ class IMDeploy(object):
         f.close()
         
         self._log.debug("Authenticating against OpenNebula")
-        if self.verbose:
+        if self._verbose:
             print "Authenticating against OpenNebula"
         os.system("oneauth login "+self.user)
         
         self._log.debug("Uploading image to OpenNebula")
-        if self.verbose:
+        if self._verbose:
             print "Uploading image to OpenNebula"
         os.system("oneimage register "+filename + ".one")
         
@@ -311,7 +311,7 @@ class IMDeploy(object):
             self.machine = "minicluster"
         else:
             self._log.error("Machine name not recognized")
-            if self.verbose:
+            if self._verbose:
                 print "ERROR: Machine name not recognized"
             sys.exit(1)
         
@@ -353,7 +353,7 @@ class IMDeploy(object):
         """
         
         #xCAT server                
-        if self.verbose:
+        if self._verbose:
             print 'Connecting to xCAT server'
 
         #msg = self.name + ',' + self.operatingsystem + ',' + self.version + ',' + self.arch + ',' + self.kernel + ',' + self.shareddirserver + ',' + self.machine
@@ -381,11 +381,11 @@ class IMDeploy(object):
             while not endloop:
                 ret = xcatServer.read(1024)
                 if (ret == "OK"):
-                    if self.verbose:                        
+                    if self._verbose:                        
                         print "Your image request is being processed"
                     endloop = True
                 elif (ret == "TryAuthAgain"):
-                    if self.verbose:
+                    if self._verbose:
                         print "Permission denied, please try again. User is "+self.user
                     m = hashlib.md5()
                     m.update(getpass())
@@ -393,7 +393,7 @@ class IMDeploy(object):
                     xcatServer.write(passwd)
                 else:
                     self._log.error(str(ret))
-                    if self.verbose:
+                    if self._verbose:
                         print ret
                     endloop = True
                     fail = True
@@ -404,7 +404,7 @@ class IMDeploy(object):
                 #check if the server received all parameters
                 if ret != 'OK':
                     self._log.error('Incorrect reply from the xCat server:' + str(ret))
-                    if self.verbose:
+                    if self._verbose:
                         print 'Incorrect reply from the xCat server:' + str(ret)
                     sys.exit(1)
                 #recieve the prefix parameter from xcat server
@@ -412,19 +412,19 @@ class IMDeploy(object):
                 self._log.debug("String received from xcat server " + moabstring)
                 params = moabstring.split(',')
                 imagename = params[0] + '' + params[2] + '' + params[1]
-                if self.verbose:
+                if self._verbose:
                     print 'Connecting to Moab server'	    
                 moabstring += ',' + self.machine
             else:
                 self._log.error(str(checkauthstat[0]))
-                if self.verbose:
+                if self._verbose:
                     print checkauthstat[0]
                 return
         
                     
         except ssl.SSLError:
             self._log.error("CANNOT establish SSL connection. EXIT")
-            if self.verbose:
+            if self._verbose:
                 print "ERROR: CANNOT establish SSL connection."
         
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -442,14 +442,14 @@ class IMDeploy(object):
             ret = moabServer.read(100)
             if ret != 'OK':
                 self._log.error('Incorrect reply from the Moab server:' + str(ret))
-                if self.verbose:
+                if self._verbose:
                     print 'Incorrect reply from the Moab server:' + str(ret)
                 sys.exit(1)
-            if self.verbose:
+            if self._verbose:
                 print 'Your image has been deployed in xCAT as ' + imagename + '. Please allow a few minutes for xCAT to register the image before attempting to use it.'
         except ssl.SSLError:
             self._log.error("CANNOT establish SSL connection. EXIT")
-            if self.verbose:
+            if self._verbose:
                 print "ERROR: CANNOT establish SSL connection. EXIT"
 
     ############################################################
@@ -489,12 +489,12 @@ class IMDeploy(object):
                 output = fulldestpath                
             else:
                 self._log.error("Error retrieving the image. Exit status " + str(stat))
-                if self.verbose:
+                if self._verbose:
                     print "Error retrieving the image. Exit status " + str(stat)
                 #remove the temporal file
         except os.error:
             self._log("Error, The image cannot be retieved" + str(sys.exc_info()))
-            if self.verbose:
+            if self._verbose:
                 print "Error, The image cannot be retieved" + str(sys.exc_info())
             output = None
 
