@@ -366,12 +366,15 @@ class IMGenerateServer(object):
                                 self.errormsg(channel, msg)    
                         #Remove file from server because the client  or the repository already finished                                                                       
                         os.system("rm -f " + self.tempdirserver + "" + status + ".tgz")   
-            
+        else:
+            msg = "ERROR: booting VM"
+            self.errormsg(channel, msg)
             #destroy VM
-            self.logger.info("Destroy VM")
-            server.one.vm.action(self.oneauth, "finalize", vmID)
             
-            self.logger.info("Image Generation DONE")
+        self.logger.info("Destroy VM")
+        server.one.vm.action(self.oneauth, "finalize", vmID)
+        
+        self.logger.info("Image Generation DONE")
     
     def errormsg(self, channel, msg):
         self.logger.error(msg)
