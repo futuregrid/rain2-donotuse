@@ -617,23 +617,23 @@ sysfs   /sys     sysfs    defaults       0 0
         self.logger.info('Installing LDAP packages')
         ldapexec = "/tmp/ldap.install"
         os.system('echo "!#/bin/bash \nexport DEBIAN_FRONTEND=noninteractive \napt-get ' + \
-                  '-y install ldap-utils libpam-ldap libnss-ldap nss-updatedb libnss-db" >' + tempdir + '' + name + '' + ldapexec)
-        os.system('chmod +x ' + tempdir + '' + name + '' + ldapexec)
-        self.runCmd('chroot ' + tempdir + '' + name + ' ' + ldapexec)
+                  '-y install ldap-utils libpam-ldap libnss-ldap nss-updatedb libnss-db" >' + self.path + '/rootimg/' + ldapexec)
+        os.system('chmod +x ' + self.path + '/rootimg/' + ldapexec)
+        self.runCmd('chroot ' + self.path + '/rootimg/ ' + ldapexec)
         #try this other way
         #chroot maverick-vm /bin/bash -c 'DEBIAN_FRONTEND=noninteractive apt-get -y --force-yes install linux-image-server'
         #env DEBIAN_FRONTEND="noninteractive" chroot /tmp/javi3789716749 /bin/bash -c 'apt-get --force-yes -y install ldap-utils libpam-ldap libpam-ldap libnss-ldap nss-updatedb libnss-db'
         self.logger.info('Configuring LDAP access')
-        self.runCmd('wget '+ http_server +'/ldap/nsswitch.conf -O ' + self.path + '/rootimg/etc/nsswitch.conf')
+        self.runCmd('wget '+ self.http_server +'/ldap/nsswitch.conf -O ' + self.path + '/rootimg/etc/nsswitch.conf')
         self.runCmd('mkdir -p ' + self.path + '/rootimg/etc/openldap/cacerts ' + self.path + '/rootimg/N/u')
-        self.runCmd('wget '+ http_server +'/ldap/cacerts/12d3b66a.0 -O ' + self.path + '/rootimg/etc/openldap/cacerts/12d3b66a.0')
-        self.runCmd('wget '+ http_server +'/ldap/cacerts/cacert.pem -O ' + self.path + '/rootimg/etc/openldap/cacerts/cacert.pem')
-        self.runCmd('wget '+ http_server +'/ldap/ldap.conf -O ' + self.path + '/rootimg/etc/ldap.conf')
-        self.runCmd('wget '+ http_server +'/ldap/openldap/ldap.conf -O ' + self.path + '/rootimg/etc/openldap/ldap.conf')
-        os.system('sudo sed -i \'s/openldap/ldap/g\' ' + tempdir + '' + name + '/etc/ldap/ldap.conf')
-        os.system('sudo sed -i \'s/openldap/ldap/g\' ' + tempdir + '' + name + '/etc/ldap.conf')
+        self.runCmd('wget '+ self.http_server +'/ldap/cacerts/12d3b66a.0 -O ' + self.path + '/rootimg/etc/openldap/cacerts/12d3b66a.0')
+        self.runCmd('wget '+ self.http_server +'/ldap/cacerts/cacert.pem -O ' + self.path + '/rootimg/etc/openldap/cacerts/cacert.pem')
+        self.runCmd('wget '+ self.http_server +'/ldap/ldap.conf -O ' + self.path + '/rootimg/etc/ldap.conf')
+        self.runCmd('wget '+ self.http_server +'/ldap/openldap/ldap.conf -O ' + self.path + '/rootimg/etc/openldap/ldap.conf')
+        os.system('sudo sed -i \'s/openldap/ldap/g\' ' + self.path + '/rootimg/etc/ldap/ldap.conf')
+        os.system('sudo sed -i \'s/openldap/ldap/g\' ' + self.path + '/rootimg/etc/ldap.conf')
 
-        self.runCmd('wget '+ http_server +'/ldap/sshd_ubuntu -O ' + tempdir + '' + name + '/usr/sbin/sshd')
+        self.runCmd('wget '+ self.http_server +'/ldap/sshd_ubuntu -O ' + self.path + '/rootimg/usr/sbin/sshd')
         os.system('echo "UseLPK yes" | sudo tee -a ' + self.path + '/rootimg/etc/ssh/sshd_config > /dev/null')
         os.system('echo "LpkLdapConf /etc/ldap.conf" | sudo tee -a ' + self.path + '/rootimg/etc/ssh/sshd_config > /dev/null')
 
@@ -775,15 +775,15 @@ sysfs   /sys     sysfs    defaults       0 0
         self.runCmd('chroot ' + self.path + '/rootimg/ yum -y install openldap-clients nss_ldap')
 
         self.logger.info('Configuring LDAP access')
-        self.runCmd('wget '+ http_server +'/ldap/nsswitch.conf -O ' + self.path + '/rootimg/etc/nsswitch.conf')
+        self.runCmd('wget '+ self.http_server +'/ldap/nsswitch.conf -O ' + self.path + '/rootimg/etc/nsswitch.conf')
         self.runCmd('mkdir -p ' + self.path + '/rootimg/etc/openldap/cacerts ' + self.path + '/rootimg/N/u')
-        self.runCmd('wget '+ http_server +'/ldap/cacerts/12d3b66a.0 -O ' + self.path + '/rootimg/etc/openldap/cacerts/12d3b66a.0')
-        self.runCmd('wget '+ http_server +'/ldap/cacerts/cacert.pem -O ' + self.path + '/rootimg/etc/openldap/cacerts/cacert.pem')
-        self.runCmd('wget '+ http_server +'/ldap/ldap.conf -O ' + self.path + '/rootimg/etc/ldap.conf')
-        self.runCmd('wget '+ http_server +'/ldap/openldap/ldap.conf -O ' + self.path + '/rootimg/etc/openldap/ldap.conf')
+        self.runCmd('wget '+ self.http_server +'/ldap/cacerts/12d3b66a.0 -O ' + self.path + '/rootimg/etc/openldap/cacerts/12d3b66a.0')
+        self.runCmd('wget '+ self.http_server +'/ldap/cacerts/cacert.pem -O ' + self.path + '/rootimg/etc/openldap/cacerts/cacert.pem')
+        self.runCmd('wget '+ self.http_server +'/ldap/ldap.conf -O ' + self.path + '/rootimg/etc/ldap.conf')
+        self.runCmd('wget '+ self.http_server +'/ldap/openldap/ldap.conf -O ' + self.path + '/rootimg/etc/openldap/ldap.conf')
         os.system('sudo sed -i \'s/enforcing/disabled/g\' ' + self.path + '/rootimg/etc/selinux/config')
 
-        self.runCmd('wget '+ http_server +'/ldap/sshd_centos -O ' + self.path + '/rootimg/usr/sbin/sshd')
+        self.runCmd('wget '+ self.http_server +'/ldap/sshd_centos -O ' + self.path + '/rootimg/usr/sbin/sshd')
         os.system('echo "UseLPK yes" | sudo tee -a ' + self.path + '/rootimg/etc/ssh/sshd_config > /dev/null')
         os.system('echo "LpkLdapConf /etc/ldap.conf" | sudo tee -a ' + self.path + '/rootimg/etc/ssh/sshd_config > /dev/null')
 
