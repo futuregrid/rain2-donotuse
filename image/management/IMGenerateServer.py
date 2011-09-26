@@ -319,6 +319,8 @@ class IMGenerateServer(object):
                         server.one.vm.action(self.oneauth, "finalize", vmID)
                         
                         self.logger.debug("Generating tgz with image and manifest files")
+                        self.logger.debug("tar cfz " + self.tempdirserver + "/" + status + ".tgz -C " + self.tempdirserver + \
+                                        " " + status + ".manifest.xml " + status + ".img")
                         out = os.system("tar cfz " + self.tempdirserver + "/" + status + ".tgz -C " + self.tempdirserver + \
                                         " " + status + ".manifest.xml " + status + ".img")
                         if out == 0:

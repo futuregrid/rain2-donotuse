@@ -309,9 +309,9 @@ def main():
         if type(args.version) is NoneType:
             version = default_centos            
         elif str(args.version) in supported_versions:
-            if re("^5",str(args.version)):
+            if re.search("^5",str(args.version)):
                 version = "5"
-            elif re("^6",str(args.version)):
+            elif re.search("^6",str(args.version)):
                 version = "6"
         else:
             print "ERROR: Incorrect OS version specified. Supported OS version for " + OS + " are " + str(supported_versions)

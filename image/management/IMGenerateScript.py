@@ -373,6 +373,8 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
     #else:
     #    output = "Error generating bcfg2 group configuration"
 
+    output = name
+
     os.system('rm -f ' + tempdir + '' + name + '/usr/sbin/policy-rc.d')
 
     cleanup(name)
@@ -611,6 +613,7 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
     #else:
     #    output = "Error generating bcfg2 group configuration"
 
+    output = name
 
     cleanup(name)
 
