@@ -243,7 +243,7 @@ class IMDeployServerXcat(object):
                 self.errormsg(connstream, msg)
                 return
             
-        else: #Centos                    
+        elif (self.operatingsystem == "centos"): #Centos                    
             status = self.customize_centos_img()
             if status != 0:
                 msg = "ERROR: customizing the image. Look into server logs for details"
@@ -265,13 +265,13 @@ class IMDeployServerXcat(object):
                 return
             
             #getting generic initrd and kernel
-            cmd = 'wget ' + self.http_server + '/kernel/tftp/xcat/centos5/' + self.arch + '/initrd.img -O ' + tftpimgdir + '/initrd.img'
+            cmd = 'wget ' + self.http_server + '/kernel/tftp/xcat/centos'+self.version+'/' + self.arch + '/initrd.img -O ' + tftpimgdir + '/initrd.img'
             status = self.runCmd(cmd)    
             if status != 0:
                 msg = "ERROR: retrieving/copying initrd.img"
                 self.errormsg(connstream, msg)
                 return    
-            cmd = 'wget ' + self.http_server + '/kernel/tftp/xcat/centos5/' + self.arch + '/vmlinuz -O ' + tftpimgdir + '/vmlinuz'
+            cmd = 'wget ' + self.http_server + '/kernel/tftp/xcat/centos'+self.version+'/' + self.arch + '/vmlinuz -O ' + tftpimgdir + '/vmlinuz'
             status = self.runCmd(cmd)    
             if status != 0:
                 msg = "ERROR: retrieving/copying vmlinuz"
