@@ -336,12 +336,12 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
     #runCmd('chroot '+tempdir+' '+name+' DEBIAN_PRIORITY=critical')
 
     # Install BCFG2 client
-    ubuntuLog.info('Installing BCFG2 client')
+    #ubuntuLog.info('Installing BCFG2 client')
 
-    #os.system('chroot '+tempdir+' '+name+' apt-get update')
-    runCmd('chroot ' + tempdir + '' + name + ' apt-get -y install bcfg2')
-    #os.system('chroot '+tempdir+' '+name+' apt-get -y install bcfg2')
-    ubuntuLog.info('Installed BCFG2 client')
+    ##os.system('chroot '+tempdir+' '+name+' apt-get update')
+    #runCmd('chroot ' + tempdir + '' + name + ' apt-get -y install bcfg2')
+    ##os.system('chroot '+tempdir+' '+name+' apt-get -y install bcfg2')
+    #ubuntuLog.info('Installed BCFG2 client')
     """
 
     #Configure BCFG2 client
@@ -364,14 +364,14 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
         ubuntuLog.info('Installed user-defined packages')
 
     #Setup BCFG2 server groups
-    success = push_bcfg2_group(name, pkgs, 'ubuntu', version)
-    if success:
-        ubuntuLog.info('Setup new BCFG2 group')
-        #Finished, now clean up
-        ubuntuLog.info('Genereated Ubuntu image ' + name + ' successfully!')
-        output = name
-    else:
-        output = "Error generating bcfg2 group configuration"
+    #success = push_bcfg2_group(name, pkgs, 'ubuntu', version)
+    #if success:
+    #    ubuntuLog.info('Setup new BCFG2 group')
+    #    #Finished, now clean up
+    #    ubuntuLog.info('Genereated Ubuntu image ' + name + ' successfully!')
+    #    output = name
+    #else:
+    #    output = "Error generating bcfg2 group configuration"
 
     os.system('rm -f ' + tempdir + '' + name + '/usr/sbin/policy-rc.d')
 
@@ -529,13 +529,13 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
     if not os.path.isfile(tempdir + '' + name +"/proc/cpuinfo"):
         os.system("touch "+ tempdir + '' + name +"/proc/cpuinfo")
     runCmd('chroot ' + tempdir + '' + name + ' yum clean all')
+    
     if (re.search("^5",version)):
-        runCmd('chroot ' + tempdir + '' + name + ' rpm -ivh http://download.fedora.redhat.com/pub/epel/5/'+arch+'/epel-release-5-4.noarch.rpm')
-        runCmd('chroot ' + tempdir + '' + name + ' yum -y install wget nfs-utils gcc make man python26')
+        runCmd('chroot ' + tempdir + '' + name + ' rpm -ivh http://download.fedora.redhat.com/pub/epel/5/'+arch+'/epel-release-5-4.noarch.rpm')        
     elif (re.search("^6",version)):
         runCmd('chroot ' + tempdir + '' + name + ' rpm -ivh http://download.fedora.redhat.com/pub/epel/6/'+arch+'/epel-release-6-5.noarch.rpm')
-        runCmd('chroot ' + tempdir + '' + name + ' yum -y install wget nfs-utils gcc make man')    
-
+            
+    runCmd('chroot ' + tempdir + '' + name + ' yum -y install wget nfs-utils gcc make man')
 #Move ldap to deploy    
     if (ldap):
         #this is for LDAP auth and mount home dirs. Later, we may control if we install this or not.
@@ -575,7 +575,7 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
 
     # Install BCFG2 client
 
-    centosLog.info('Installing BCFG2 client')    
+    #centosLog.info('Installing BCFG2 client')    
     """"    
     runCmd('chroot '+tempdir+''+name + ' yum -y install bcfg2')
     #os.system('chroot '+tempdir+' '+name+' apt-get -y install bcfg2')
@@ -602,14 +602,14 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
         centosLog.info('Installed user-defined packages')
 
     #Setup BCFG2 server groups
-    success = push_bcfg2_group(name, pkgs, 'centos', version)
-    if success:
-        centosLog.info('Setup new BCFG2 group')
-        #Finished, now clean up
-        centosLog.info('Genereated centos image ' + name + ' successfully!')
-        output = name
-    else:
-        output = "Error generating bcfg2 group configuration"
+    #success = push_bcfg2_group(name, pkgs, 'centos', version)
+    #if success:
+    #    centosLog.info('Setup new BCFG2 group')
+    #    #Finished, now clean up
+    #    centosLog.info('Genereated centos image ' + name + ' successfully!')
+    #    output = name
+    #else:
+    #    output = "Error generating bcfg2 group configuration"
 
 
     cleanup(name)
