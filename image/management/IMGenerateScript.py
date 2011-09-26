@@ -431,18 +431,18 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
         runCmd('touch ' + tempdir + '' + name + '/var/log/yum.log')
 
         #to create base_os
-        #centosLog.info('Getting appropiate release package')
-        #if (version == "5.6"):
-        #    runCmd('wget http://mirror.centos.org/centos/5.6/os/x86_64/CentOS/centos-release-5-6.el5.centos.1.x86_64.rpm -O ' + tempdir + 'centos-release.rpm')
-        #elif(version == "5.5"): #the 5.5 is not supported yet
-        #    runCmd('wget http://mirror.centos.org/centos/5.5/os/x86_64/CentOS/centos-release-5-5.el5.centos.x86_64.rpm -O ' + tempdir + 'centos-release.rpm')
+        centosLog.info('Getting appropiate release package')
+        if (version == "5"):
+            runCmd('wget http://mirror.centos.org/centos/5/os/x86_64/CentOS/centos-release-5-7.el5.centos.x86_64.rpm -O ' + tempdir + 'centos-release.rpm')            
+        elif(version == "6"): #the 5.5 is not supported yet
+            runCmd('wget http://mirror.centos.org/centos/6.0/os/x86_64/Packages/centos-release-6-0.el6.centos.5.x86_64.rpm -O ' + tempdir + 'centos-release.rpm')            
 
-        #runCmd('rpm -ihv --nodeps --root ' + tempdir + '' + name + ' ' + tempdir + 'centos-release.rpm')
-        #runCmd('rm -f ' + tempdir + 'centos-release.rpm')
+        runCmd('rpm -ihv --nodeps --root ' + tempdir + '' + name + ' ' + tempdir + 'centos-release.rpm')
+        runCmd('rm -f ' + tempdir + 'centos-release.rpm')
         
         #runCmd("yum -y install python-hashlib")
         
-        runCmd("yum clean all")
+        #runCmd("yum clean all")
         
         centosLog.info('Creating yum.conf with the repositories')
         f = open("./yum.conf","w")        
@@ -499,10 +499,9 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
         #base_os done
 
     centosLog.info('Installing some util packages')
-    if not os.path.isfile(tempdir + '' + name +"/proc/cpuinfo"):
-        os.system("touch "+ tempdir + '' + name +"/proc/cpuinfo")
-    runCmd('chroot ' + tempdir + '' + name + ' yum clean all')
-    
+    #if not os.path.isfile(tempdir + '' + name +"/proc/cpuinfo"):
+    #    os.system("touch "+ tempdir + '' + name +"/proc/cpuinfo")
+    #runCmd('chroot ' + tempdir + '' + name + ' yum clean all')
     if (re.search("^5",version)):
         runCmd('chroot ' + tempdir + '' + name + ' rpm -ivh http://download.fedora.redhat.com/pub/epel/5/'+arch+'/epel-release-5-4.noarch.rpm')        
     elif (re.search("^6",version)):
