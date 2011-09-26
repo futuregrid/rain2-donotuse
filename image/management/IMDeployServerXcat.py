@@ -326,7 +326,7 @@ class IMDeployServerXcat(object):
         self.runCmd('rpower tc1 boot')
         """
 
-        connstream.write("OK")    
+        connstream.write('OK')    
         self.logger.debug("sending to the client the info needed to register the image in Moab")
 
         moabstring = self.prefix + ',' + self.name + ',' + self.operatingsystem + ',' + self.arch    
