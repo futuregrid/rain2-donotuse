@@ -88,6 +88,7 @@ def main():
     parser.add_option("-c", "--httpserver", dest = "httpserver", help = "httpserver to download config files")
     parser.add_option("-b", "--bcfg2url", dest = "bcfg2url", help = "address where our IMBcfg2GroupManagerServer is listening")
     parser.add_option("-p", "--bcfg2port", dest = "bcfg2port", help = "port where our IMBcfg2GroupManagerServer is listening")
+    
 
     (ops, args) = parser.parse_args()
 
@@ -506,26 +507,10 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
         runCmd('chroot ' + tempdir + '' + name + ' rpm -ivh http://download.fedora.redhat.com/pub/epel/5/'+arch+'/epel-release-5-4.noarch.rpm')        
     elif (re.search("^6",version)):
         runCmd('chroot ' + tempdir + '' + name + ' rpm -ivh http://download.fedora.redhat.com/pub/epel/6/'+arch+'/epel-release-6-5.noarch.rpm')
-            
+
     runCmd('chroot ' + tempdir + '' + name + ' yum -y install wget nfs-utils gcc make man')
-#Move ldap to deploy    
-    if (ldap):
-        #this is for LDAP auth and mount home dirs. Later, we may control if we install this or not.
-        centosLog.info('Installing LDAP packages')
-        runCmd('chroot ' + tempdir + '' + name + ' yum -y install openldap-clients nss_ldap')
+   
 
-        centosLog.info('Configuring LDAP access')
-        runCmd('wget '+ http_server +'/ldap/nsswitch.conf -O ' + tempdir + '' + name + '/etc/nsswitch.conf')
-        runCmd('mkdir -p ' + tempdir + '' + name + '/etc/openldap/cacerts ' + tempdir + '' + name + '/N/u')
-        runCmd('wget '+ http_server +'/ldap/cacerts/12d3b66a.0 -O ' + tempdir + '' + name + '/etc/openldap/cacerts/12d3b66a.0')
-        runCmd('wget '+ http_server +'/ldap/cacerts/cacert.pem -O ' + tempdir + '' + name + '/etc/openldap/cacerts/cacert.pem')
-        runCmd('wget '+ http_server +'/ldap/ldap.conf -O ' + tempdir + '' + name + '/etc/ldap.conf')
-        runCmd('wget '+ http_server +'/ldap/openldap/ldap.conf -O ' + tempdir + '' + name + '/etc/openldap/ldap.conf')
-        os.system('sed -i \'s/enforcing/disabled/g\' ' + tempdir + '' + name + '/etc/selinux/config')
-
-        runCmd('wget '+ http_server +'/ldap/sshd_centos -O ' + tempdir + '' + name + '/usr/sbin/sshd')
-        os.system('echo "UseLPK yes" >> ' + tempdir + '' + name + '/etc/ssh/sshd_config')
-        os.system('echo "LpkLdapConf /etc/ldap.conf" >> ' + tempdir + '' + name + '/etc/ssh/sshd_config')
 
     #Mount proc and pts
     #runCmd('mount -t proc proc '+tempdir+''+name + '/proc')

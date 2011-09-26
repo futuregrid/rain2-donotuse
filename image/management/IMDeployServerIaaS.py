@@ -333,7 +333,7 @@ class IMDeployServerIaaS(object):
             self.runCmd("sudo chroot "+localtempdir+"/temp chkconfig --add vmcontext.sh")
             if self.version == "5":
                 device = "hda"
-                rc_local = "mount -t iso9660 /dev/hdc /mnt \n"  
+                rc_local = "mount -t iso9660 /dev/hdc /mnt \n"
             elif self.version == "6":
                 device = "sda"
                 rc_local = "mount -t iso9660 /dev/sr0 /mnt \n"  #in centos 6 is sr0            
