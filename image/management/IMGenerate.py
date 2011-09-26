@@ -328,15 +328,15 @@ def main():
     imgen = IMGenerate(arch, OS, version, args.user, args.software, args.givenname, args.desc, args.getimg, passwd, verbose, args.debug)
     status = imgen.generate()
     
-    
-    if args.getimg:
-        print "The image is located in " + str(status)
-    else:
-        print "Your image has be uploaded in the repository with ID=" + str(status)
-    
-    print '\n The image and the manifest generated are packaged in a tgz file.' + \
-          '\n Please be aware that this FutureGrid image does not have kernel and fstab. Thus, ' + \
-          'it is not built for any deployment type. To deploy the new image, use the IMDeploy command.'
+    if status != None:
+        if args.getimg:
+            print "The image is located in " + str(status)
+        else:
+            print "Your image has be uploaded in the repository with ID=" + str(status)
+        
+        print '\n The image and the manifest generated are packaged in a tgz file.' + \
+              '\n Please be aware that this FutureGrid image does not have kernel and fstab. Thus, ' + \
+              'it is not built for any deployment type. To deploy the new image, use the IMDeploy command.'
 
 
 if __name__ == "__main__":

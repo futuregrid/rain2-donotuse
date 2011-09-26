@@ -442,74 +442,44 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
         #runCmd("yum -y install python-hashlib")
         
         runCmd("yum clean all")
-        """
+        
         centosLog.info('Creating yum.conf with the repositories')
-        f = open("./yum.conf","w")
-        if (re.search("^5",version)):
-            f.write(
-            "[main]\n"
-            "cachedir=/var/cache/yum\n"
-            "debuglevel=2\n"
-            "logfile=/var/log/yum.log\n"
-            "exclude=*-debuginfo\n"
-            "gpgcheck=0\n"
-            "obsoletes=1\n"
-            "pkgpolicy=newest\n"
-            "distroverpkg=redhat-release\n"
-            "tolerant=1\n"
-            "exactarch=1\n"
-            "reposdir=/dev/null\n"
-            "metadata_expire=1800\n"
-            "\n"
-            "[base]\n"
-            "name=CentOS 5 - $basearch - Base\n"            
-            #"baseurl=http://vault.centos.org/"+version+"/os/"+arch+"/\n"
-            "baseurl=http://mirror.centos.org/centos/"+version+"/os/"+arch+"/\n"
-            "enabled=1\n"
-            "\n"
-            "[updates-released]\n"
-            "name=CentOS 5 - $basearch - Released Updates\n"
-            #"baseurl=http://vault.centos.org/"+version+"/updates/"+arch+"/\n"            
-            "baseurl=http://mirror.centos.org/centos/"+version+"/updates/"+arch+"/\n"
-            "enabled=1\n"
-            "\n"
-            "[extras]\n"
-            "name=CentOS 5 Extras $releasever - $basearch\n"
-            #"baseurl=http://vault.centos.org/"+version+"/extras/"+arch+"/\n"
-            "baseurl=http://mirror.centos.org/centos/"+version+"/extras/"+arch+"/\n"
-            "enabled=1 \n")
-        elif (re.search("^6",version)):
-            f.write(
-            "[main]\n"
-            "cachedir=/var/cache/yum\n"
-            "debuglevel=2\n"
-            "logfile=/var/log/yum.log\n"
-            "exclude=*-debuginfo\n"
-            "gpgcheck=0\n"
-            "obsoletes=1\n"
-            "pkgpolicy=newest\n"
-            "distroverpkg=redhat-release\n"
-            "tolerant=1\n"
-            "exactarch=1\n"
-            "reposdir=/dev/null\n"
-            "metadata_expire=1800\n"
-            "\n"
-            "[base]\n"
-            "name=CentOS 6 - $basearch - Base\n"            
-            "baseurl=http://mirror.centos.org/centos/"+version+"/os/"+arch+"/\n"
-            "enabled=1\n"
-            "\n"
-            "[updates-released]\n"
-            "name=CentOS 6 - $basearch - Released Updates\n"            
-            "baseurl=http://mirror.centos.org/centos/"+version+"/updates/"+arch+"/\n"
-            "enabled=1\n"
-            "\n"
-            "[extras]\n"
-            "name=CentOS 6 Extras $releasever - $basearch\n"            
-            "baseurl=http://mirror.centos.org/centos/"+version+"/extras/"+arch+"/\n"
-            "enabled=1 \n")
+        f = open("./yum.conf","w")        
+        f.write(
+        "[main]\n"
+        "cachedir=/var/cache/yum\n"
+        "debuglevel=2\n"
+        "logfile=/var/log/yum.log\n"
+        "exclude=*-debuginfo\n"
+        "gpgcheck=0\n"
+        "obsoletes=1\n"
+        "pkgpolicy=newest\n"
+        "distroverpkg=redhat-release\n"
+        "tolerant=1\n"
+        "exactarch=1\n"
+        "reposdir=/dev/null\n"
+        "metadata_expire=1800\n"
+        "\n"
+        "[base]\n"
+        "name=CentOS "+version+" - $basearch - Base\n"            
+        #"baseurl=http://vault.centos.org/"+version+"/os/"+arch+"/\n"
+        "baseurl=http://mirror.centos.org/centos/"+version+"/os/"+arch+"/\n"
+        "enabled=1\n"
+        "\n"
+        "[updates-released]\n"
+        "name=CentOS "+version+" - $basearch - Released Updates\n"
+        #"baseurl=http://vault.centos.org/"+version+"/updates/"+arch+"/\n"            
+        "baseurl=http://mirror.centos.org/centos/"+version+"/updates/"+arch+"/\n"
+        "enabled=1\n"
+        "\n"
+        "[extras]\n"
+        "name=CentOS "+version+" Extras $releasever - $basearch\n"
+        #"baseurl=http://vault.centos.org/"+version+"/extras/"+arch+"/\n"
+        "baseurl=http://mirror.centos.org/centos/"+version+"/extras/"+arch+"/\n"
+        "enabled=1 \n")
+        
         f.close()
-        """
+        
         #to create base_os        
         centosLog.info('Installing base OS')
         runCmd('yum --installroot=' + tempdir + '' + name + ' -y groupinstall Core')
