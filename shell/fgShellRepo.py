@@ -25,6 +25,7 @@ class fgShellRepo(Cmd):
     #
     ############################################################
     def __init__(self):
+        print "Init Repo"
         verbose = True        
         printLogStdout = False
         self._service = IRServiceProxy(verbose, printLogStdout)

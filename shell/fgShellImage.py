@@ -1,0 +1,163 @@
+#!/usr/bin/env python
+"""
+FutureGrid Command Line Interface
+
+Image Management
+"""
+import os
+#import cmd
+import readline
+import sys
+from futuregrid.shell import fgShellUtils
+import logging
+from futuregrid.utils import fgLog
+from cmd2 import Cmd
+from cmd2 import options
+from cmd2 import make_option
+import textwrap
+import argparse
+
+class fgShellImage(Cmd):
+
+    def __init__(self):
+        #self._service = rain()
+        print "Init Image"
+
+    def do_imagegenerate(self, args):
+
+        #Default params
+        base_os = ""
+        spacer = "-"
+        default_ubuntu = "maverick"
+        default_debian = "lenny"
+        default_rhel = "5.5"
+        default_centos = "5.6"
+        default_fedora = "13"
+        #kernel = "2.6.27.21-0.1-xen"
+        
+        argslist = args.split("-")[1:]        
+        
+        prefix = ''
+        sys.argv=['']
+        for i in range(len(argslist)):
+            if argslist[i] == "":
+                prefix = '-'
+            else:
+                newlist = argslist[i].split(" ")
+                sys.argv += [prefix+'-'+newlist[0]]
+                newlist = newlist [1:]
+                rest = ""
+                for j in range(len(newlist)):
+                    rest+=" "+newlist[j]
+                rest=rest.strip()
+                sys.argv += [rest]
+                #sys.argv += [prefix+'-'+argslist[i]]
+                prefix = ''
+        #print sys.argv
+    
+        parser = argparse.ArgumentParser(prog="IMGenerate", formatter_class=argparse.RawDescriptionHelpFormatter,
+                                         description="FutureGrid Image Deployment Help")
+        parser.add_argument('-d', '--debug', dest='debug', action="store_true", help='Print logs in the screen for debug')
+        parser.add_argument("-o", "--os", dest="OS", metavar='OSName', help="specify destination Operating System")
+        parser.add_argument("-v", "--version", dest="version", metavar='OSversion', help="Operating System version")
+        parser.add_argument("-a", "--arch", dest="arch", metavar='arch', help="Destination hardware architecture")
+        parser.add_argument("-s", "--software", dest="software", metavar='software', help="Software list to be automatically installed")
+        parser.add_argument("-n", "--name", dest="givenname", metavar='givenname', help="Desired recognizable name of the image")
+        parser.add_argument("-e", "--description", dest="desc", metavar='description', help="Short description of the image and its purpose")
+        parser.add_argument("-g", "--getimg", dest="getimg", default=False, action="store_true", help="Retrieve the image instead of uploading to the image repository")
+        
+        args = parser.parse_args()
+        
+        print 'Image generator client...'
+        
+        verbose = True
+
+        
+        arch = "x86_64" #Default to 64-bit
+    
+        #Parse arch command line arg
+        if args.arch != None:
+            if args.arch == "i386" or args.arch == "i686":
+                arch = "i386"
+            elif args.arch == "amd64" or args.arch == "x86_64":
+                arch = "x86_64"
+            else:
+                print "ERROR: Incorrect architecture type specified (i386|x86_64)"
+                sys.exit(1)
+    
+        print 'Selected Architecture: ' + arch
+    
+        # Build the image
+        version = ""
+        #Parse OS and version command line args
+        OS = ""
+        if args.OS == "Ubuntu" or args.OS == "ubuntu":
+            OS = "ubuntu"
+            supported_versions = ["karmic","lucid","maverick","natty"]
+            if type(args.version) is NoneType:
+                version = default_ubuntu
+            elif args.version == "9.10" or args.version == "karmic":
+                version = "karmic"
+            elif args.version == "10.04" or args.version == "lucid":
+                version = "lucid"
+            elif args.version == "10.10" or args.version == "maverick":
+                version = "maverick"
+            elif args.version == "11.04" or args.version == "natty":
+                version = "natty"
+            else:
+                print "ERROR: Incorrect OS version specified. Supported OS version for " + OS + " are " + str(supported_versions)
+                sys.exit(1)
+        elif args.OS == "Debian" or args.OS == "debian":
+            OS = "debian"
+            version = default_debian
+        elif args.OS == "Redhat" or args.OS == "redhat" or args.OS == "rhel":
+            OS = "rhel"
+            version = default_rhel
+        elif args.OS == "CentOS" or args.OS == "CentOS" or args.OS == "centos":
+            OS = "centos"
+            supported_versions = ["5","5.0","5.1","5.2","5.3","5.4","5.5","5.6","5.7"]#,"6","6.0"]
+            if type(args.version) is NoneType:
+                version = default_centos            
+            elif str(args.version) in supported_versions:
+                if re.search("^5",str(args.version)):
+                    version = "5"
+                elif re.search("^6",str(args.version)):
+                    version = "6"
+            else:
+                print "ERROR: Incorrect OS version specified. Supported OS version for " + OS + " are " + str(supported_versions)
+                sys.exit(1)
+                
+        elif args.OS == "Fedora" or args.OS == "fedora":
+            OS = "fedora"
+            version = default_fedora
+        else:
+            print "ERROR: Incorrect OS type specified"
+            sys.exit(1)
+            
+        
+        imgen = IMGenerate(arch, OS, version, self.user, args.software, args.givenname, args.desc, args.getimg, self.passwd, verbose, args.debug)
+        status = imgen.generate()
+        
+        if status != None:
+            if args.getimg:
+                print "The image is located in " + str(status)
+            else:
+                print "Your image has be uploaded in the repository with ID=" + str(status)
+            
+            print '\n The image and the manifest generated are packaged in a tgz file.' + \
+                  '\n Please be aware that this FutureGrid image does not have kernel and fstab. Thus, ' + \
+                  'it is not built for any deployment type. To deploy the new image, use the IMDeploy command.'
+
+    def help_imagegenerate(self):
+        msg = "IMAGE generate command: Generate an image "              
+        self.print_man("generate ", msg)
+
+    def do_imagedeploy(self, args):
+
+        self.help_imagedeploy()
+
+    def help_imagedeploy(self):
+        msg = "IMAGE deploy command: Deploy an image in a FG infrastructure. \n "
+        self.print_man("deploy ", msg)
+
+        

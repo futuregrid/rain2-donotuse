@@ -106,11 +106,11 @@ class IMDeployServerMoab(object):
                 moabstring = ""    
                 if self.machine == "minicluster":
                     moabstring = 'echo \"' + self.prefix + self.operatingsystem + '' + self.name + ' ' + self.arch + ' ' + self.prefix + \
-                                self.operatingsystem + '' + self.name + ' compute netboot\" >> ' + self.moabInstallPath + '/tools/msm/images.txt'
+                                self.operatingsystem + '' + self.name + ' compute netboot\" | sudo tee -a ' + self.moabInstallPath + '/tools/msm/images.txt > /dev/null'
                     #moabstring = 'echo \"' + prefix + operatingsystem + '' + name + ' ' + arch + ' boottarget ' + prefix + operatingsystem + '' + name + ' netboot\" >> ' + moabInstallPath + '/tools/msm/images.txt'
                 elif self.machine == "india":
                     moabstring = 'echo \"' + self.prefix + self.operatingsystem + '' + self.name + ' ' + self.arch + ' boottarget ' + \
-                                self.prefix + self.operatingsystem + '' + self.name + ' netboot\" >> ' + self.moabInstallPath + '/tools/msm/images.txt'
+                                self.prefix + self.operatingsystem + '' + self.name + ' netboot\" | sudo tee -a ' + self.moabInstallPath + '/tools/msm/images.txt > /dev/null'
     
     
                 #This message inster the line in the images.txt file    
@@ -129,7 +129,7 @@ class IMDeployServerMoab(object):
                     connstream.shutdown(socket.SHUT_RDWR)
                     connstream.close()
     
-                cmd = 'mschedctl -R'
+                cmd = 'sudo mschedctl -R'
                 status = self.runCmd(cmd)
                 """
 	            if not os.path.isfile('/tmp/image-deploy-fork.lock'):

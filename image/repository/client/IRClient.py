@@ -161,7 +161,8 @@ def main():
 
 
     args = parser.parse_args()
-    #print args
+    print sys.argv
+    print args
     if len(sys.argv) == 3:
         print "\nERROR: You need to select and additional option to indicate the operation that you want to do. \n"
         parser.print_help()

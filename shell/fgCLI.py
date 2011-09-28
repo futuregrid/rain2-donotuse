@@ -18,6 +18,7 @@ from futuregrid.shell.fgShellRepo import fgShellRepo
 from futuregrid.shell.fgShellHadoop import fgShellHadoop
 from futuregrid.shell.fgShellRain import fgShellRain
 from futuregrid.shell.fgShellConf import fgShellConf
+from futuregrid.shell.fgShellImage import fgShellImage
 import logging
 #from futuregrid.utils.syscheck import sysCheck
 
@@ -31,7 +32,8 @@ class fgShell(fgShellUtils,
               Cmd,
               fgShellRepo,
               fgShellHadoop,
-              fgShellRain):
+              fgShellRain,
+              fgShellImage):
 
     # TODO: when a script file is used, we must switch on echo, whne
     # it than gost to interactive it needs to be switched of?
@@ -160,7 +162,9 @@ class fgShell(fgShellUtils,
             elif (arg == "hadoop"):
                 requirements = ["Hadoop"]
             elif (arg == "rain"):
-                requirements = ["Rain"]#"Repo","Gene","Rain"] #rain context requires initialize repo and generation             
+                requirements = ["Rain"]#"Repo","Gene","Rain"] #rain context requires initialize repo and generation
+            elif (arg == "image"):
+                requirements = ["Repo","Image"]             
 
             for i in requirements:
                 if not i in self._contextOn:
