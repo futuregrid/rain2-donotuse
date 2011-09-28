@@ -111,7 +111,32 @@ class IMDeploy(object):
             
             iaasServer.write(msg)
             
-            if self.check_auth(iaasServer, checkauthstat):            
+            if self.check_auth(iaasServer, checkauthstat):
+                
+                if image_source == "disk":
+                    ret = iaasServer.read(2048)
+                    cmd = ''
+                    status = ''
+                    if (self.iaasmachine == "localhost" or self.iaasmachine == "127.0.0.1"):
+                        self._log.info('Copying the image to the right directory')
+                        cmd = 'cp ' + image + ' ' + ret                        
+                        status = self.runCmd(cmd)
+                    else:                    
+                        self._log.info('Uploading image. You may be asked for ssh/paraphrase password')
+                        if self._verbose:
+                            cmd = 'scp ' + image + ' ' + self.user + '@' + self.iaasmachine + ':' + ret
+                        else:                        
+                            cmd = 'scp -q ' + image + ' ' + self.user + '@' + self.iaasmachine + ':' + ret
+                        status = self.runCmd(cmd)
+                    if status == 0:
+                        iaasServer.write('OK,'+os.path.split(image)[1].strip())
+                    else:                    
+                        iaasServer.write('ERROR from client, ')
+                        self._log.error("ERROR sending image to server via scp. EXIT.")
+                        if self._verbose:
+                            print "ERROR sending image to server via scp. EXIT."
+                        return                        
+                                         
                 #print msg
                 ret = iaasServer.read(1024)
                 if (re.search('^ERROR', ret)):
@@ -127,6 +152,8 @@ class IMDeploy(object):
                         #imagebackpath = retrieve
                         localpath = "./"
                         imagebackpath = self._retrieveImg(imgURIinServer, localpath)
+                        #if we want to introduce retries we need to put next line after checking that the image is actually here
+                        iaasServer.write('OK')                        
                         if imagebackpath != None:            
                             eval("self."+iaas_type+"_method("+imagebackpath+","+kernel+","+operatingsystem+")")
                         else:

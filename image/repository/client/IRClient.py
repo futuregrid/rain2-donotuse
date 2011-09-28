@@ -226,10 +226,7 @@ def main():
             status = service.put(args.user, passwd, args.user, args.put[0], "")
             ok = True
         else:
-            usage()
-        #id2 = service.put(os.popen('whoami', 'r').read().strip(), None, "/home/javi/tst3.iso", "vmtype=vmware")
-        #print "image has been uploaded and registered with id " + str(id1)
-        #id2 = service.put(os.popen('whoami', 'r').read().strip(), None, "/home/javi/tst2.iso", "vmtype=11|imgType=0|os=UBUNTU|arch=x86_64| owner=tstuser2| description=another test| tag=tsttaga, tsttagb")
+            usage()        
         if(ok):            
             if (re.search('^ERROR', status)):
                 print 'The image has not been uploaded. Exit error: ' + status
@@ -292,7 +289,7 @@ def main():
                 print "userlist: Error:" + str(sys.exc_info()[0]) + "\n"
                 service._log.error("userlist: Error interpreting the list of users from Image Repository" + str(sys.exc_info()[0]))
         else:
-            print "No list of images returned. \n" + \
+            print "No list of user returned. \n" + \
                   "Please verify that you are admin \n"
                   
 #LOOK into how to use math ops, maybe we need to put it between ""

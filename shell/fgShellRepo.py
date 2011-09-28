@@ -28,6 +28,7 @@ class fgShellRepo(Cmd):
         verbose = True        
         printLogStdout = False
         self._service = IRServiceProxy(verbose, printLogStdout)
+        
 
     ############################################################
     # test
@@ -48,20 +49,24 @@ class fgShellRepo(Cmd):
     def do_repohistimg(self, args):
         args = self.getArgs(args)
 
+        #connect with the server
+        if not self._service.connection():
+            print "ERROR: Connection with the server failed"
+            sys.exit(1)
+
         if(len(args) == 1):
-            imgsList = self._service.histImg(os.popen('whoami', 'r').read().strip(), args[0])
+            imgsList = self._service.histImg(self.user, self.passwd, self.user, args[0])
         else:
-            imgsList = self._service.histImg(os.popen('whoami', 'r').read().strip(), "None")
+            imgsList = self._service.histImg(self.user, self.passwd, self.user, "None")
 
         try:
-            imgs = eval(imgsList[0])
-            print imgs['head']
-            for key in imgs.keys():
-                if key != 'head':
-                    print imgs[key]
+            imgs = eval(imgsList)            
+            for key in imgs.keys():                                
+                print imgs[key]
         except:
-            print "do_repohistimg: Error:" + str(sys.exc_info()[0]) + "\n"
-            self._log.error("do_repohistimg: Error interpreting the list of images from Image Repository" + str(sys.exc_info()[0]))
+            print "Server replied: " + str(imgsList)
+            print "histimg: Error:" + str(sys.exc_info()) + "\n"
+            service._log.error("do_repohistimg: Error interpreting the list of images from Image Repository" + str(sys.exc_info()[0]))
 
     def help_repohistimg(self):
         msg = "Image Repository histimg command: Return information about the " + \
@@ -71,21 +76,27 @@ class fgShellRepo(Cmd):
     def do_repohistuser(self, args):
         args = self.getArgs(args)
 
-        if(len(args) == 1):
-            userList = self._service.histUser(os.popen('whoami', 'r').read().strip(), args[0])
-        else:
-            userList = self._service.histUser(os.popen('whoami', 'r').read().strip(), "None")
+        #connect with the server
+        if not self._service.connection():
+            print "ERROR: Connection with the server failed"
+            sys.exit(1)
 
-        try:
-            #print userList
-            users = eval(userList[0])
-            print users['head']
-            for key in users.keys():
-                if key != 'head':
+        if(len(args) == 1):
+            userList = self._service.histUser(self.user, self.passwd, self.user, args[0])
+        else:
+            userList = self._service.histUser(self.user, self.passwd, self.user, "None")
+
+        if userList == 'None':
+            print "ERROR: Not user found"
+        else:            
+            try:
+                users = eval(userList)            
+                for key in users.keys():                
                     print users[key]
-        except:
-            print "do_repohistuser: Error:" + str(sys.exc_info()[0]) + "\n"
-            self._log.error("do_repohistuser: Error interpreting the list of users from Image Repository" + str(sys.exc_info()[0]))
+            except:
+                print "Server replied: " + str(userList)
+                print "histuser: Error:" + str(sys.exc_info()) + "\n"
+                service._log.error("do_repohistuser: Error interpreting the list of users from Image Repository" + str(sys.exc_info()))
 
     def help_repohistuser(self):
         msg = "Image Repository histuser command: Return information about the " + \
@@ -101,7 +112,11 @@ class fgShellRepo(Cmd):
 
         args = self.getArgs(args)
         if (len(args) == 1):
-            status = self._service.userAdd(os.popen('whoami', 'r').read().strip(), args[0])
+            #connect with the server
+            if not self._service.connection():
+                print "ERROR: Connection with the server failed"
+                sys.exit(1)
+            status = self._service.userAdd(self.user, self.passwd, self.user, args[0])
             if(status == "True"):
                 print "User created successfully."
                 print "Remember that you still need to activate this user (see setuserstatus command)\n"
@@ -110,6 +125,7 @@ class fgShellRepo(Cmd):
                       "Please verify that you are admin and that the username does not exist \n"
         else:
             self.help_repouseradd()
+        
 
     def help_repouseradd(self):
         '''Help message for the repouseradd command'''
@@ -125,7 +141,11 @@ class fgShellRepo(Cmd):
 
         args = self.getArgs(args)
         if (len(args) == 1):
-            status = self._service.userDel(os.popen('whoami', 'r').read().strip(), args[0])
+            #connect with the server
+            if not self._service.connection():
+                print "ERROR: Connection with the server failed"
+                sys.exit(1)
+            status = self._service.userDel(self.user, self.passwd, self.user, args[0])
             if(status == "True"):
                 print "User deleted successfully."
             else:
@@ -145,23 +165,26 @@ class fgShellRepo(Cmd):
 
     def do_repouserlist(self, args):
         '''Image Repository userlist command: Get list of users'''
+        
+        #connect with the server
+        if not self._service.connection():
+            print "ERROR: Connection with the server failed"
+            sys.exit(1)
 
-        #args=self.getArgs(args)      
-        ok = False
+        userList = self._service.userList(self.user, self.passwd, self.user)
 
-        userList = self._service.userList(os.popen('whoami', 'r').read().strip())
-
-        if(userList[0].strip() != "None"):
+        if(userList.strip() != "None"):
             try:
-                imgs = eval(userList[0])
+                imgs = eval(userList)
                 print str(len(imgs)) + " users found"
                 for key in imgs.keys():
                     print imgs[key]
             except:
+                print "Server replied: " + str(userList)
                 print "do_repouserlist: Error:" + str(sys.exc_info()[0]) + "\n"
                 self._log.error("do_repouserlist: Error interpreting the list of users from Image Repository" + str(sys.exc_info()[0]))
         else:
-            print "No list of images returned. \n" + \
+            print "No list of user returned. \n" + \
                   "Please verify that you are admin \n"
 
     def help_repouserlist(self):
@@ -180,7 +203,11 @@ class fgShellRepo(Cmd):
 
         args = self.getArgs(args)
         if (len(args) == 2):
-            status = self._service.setUserQuota(os.popen('whoami', 'r').read().strip(), args[0], args[1])
+            #connect with the server
+            if not self._service.connection():
+                print "ERROR: Connection with the server failed"
+                sys.exit(1)
+            status = self._service.setUserQuota(self.user, self.passwd, self.user, args[0], args[1])
             if(status == "True"):
                 print "User quota changed successfully."
             else:
@@ -201,7 +228,11 @@ class fgShellRepo(Cmd):
     def do_reposetuserrole(self, args):
         args = self.getArgs(args)
         if (len(args) == 2):
-            status = self._service.setUserRole(os.popen('whoami', 'r').read().strip(), args[0], args[1])
+            #connect with the server
+            if not self._service.connection():
+                print "ERROR: Connection with the server failed"
+                sys.exit(1)
+            status = self._service.setUserRole(self.user, self.passwd, self.user, args[0], args[1])
             if(status == "True"):
                 print "User role has been changed successfully."
             else:
@@ -221,7 +252,11 @@ class fgShellRepo(Cmd):
     def do_reposetuserstatus(self, args):
         args = self.getArgs(args)
         if (len(args) == 2):
-            status = self._service.setUserStatus(os.popen('whoami', 'r').read().strip(), args[0], args[1])
+            #connect with the server
+            if not self._service.connection():
+                print "ERROR: Connection with the server failed"
+                sys.exit(1)
+            status = self._service.setUserStatus(self.user, self.passwd, self.user, args[0], args[1])
             if(status == "True"):
                 print "User role has been changed successfully."
             else:
@@ -243,28 +278,31 @@ class fgShellRepo(Cmd):
         the criteria. If not argument provided it get all
         images. queryString can "be: * ; * where field=XX, field2=YY;
         field1,field2 where field3=XX'''
-
-        #args=self.getArgs(args)      
-        ok = False
-
+   
+        #connect with the server
+        if not self._service.connection():
+            print "ERROR: Connection with the server failed"
+            sys.exit(1)
+        
         if (args.strip() == ""):
-            imgsList = self._service.query(os.popen('whoami', 'r').read().strip(), "*")
+            imgsList = self._service.query(self.user, self.passwd, self.user, "*")
         else:
-            imgsList = self._service.query(os.popen('whoami', 'r').read().strip(), args)
-        #else:
-        #    self.help_repolist()
+            imgsList = self._service.query(self.user, self.passwd, self.user, args)
 
-        if(imgsList[0].strip() != "None"):
-            try:
-                imgs = eval(imgsList[0])
+
+        if(imgsList != None):
+            try:                
+                imgs = eval(imgsList)
                 print str(len(imgs)) + " items found"
                 for key in imgs.keys():
                     print imgs[key]
             except:
-                print "do_repolist: Error:" + str(sys.exc_info()[0]) + "\n"
-                self._log.error("do_repolist: Error interpreting the list of images from Image Repository" + str(sys.exc_info()[0]))
+                print "Server replied: " + str(imgsList)
+                print "list: Error:" + str(sys.exc_info()) + "\n"
+                service._log.error("list: Error interpreting the list of images from Image Repository" + str(sys.exc_info()))
         else:
             print "No list of images returned"
+       
 
     def help_repolist(self):
         '''Help message for the repouserlist command'''
@@ -283,7 +321,12 @@ class fgShellRepo(Cmd):
         #second = second.replace("&", "|")
 
         if (len(args) >= 2):
-            status = self._service.updateItem(os.popen('whoami', 'r').read().strip(), args[0], second)
+            #connect with the server
+            if not service.connection():
+                print "ERROR: Connection with the server failed"
+                sys.exit(1)
+            
+            status = self._service.updateItem(self.user, self.passwd, self.user, args[0], second)
             if(status == "True"):
                 print "The metadata of img " + args[0] + " has been updated"
             else:
@@ -336,7 +379,11 @@ class fgShellRepo(Cmd):
     def do_reposetpermission(self, args):
         args = self.getArgs(args)
         if (len(args) == 2):
-            status = self._service.setPermission(os.popen('whoami', 'r').read().strip(), args[0], args[1])
+            #connect with the server
+            if not service.connection():
+                print "ERROR: Connection with the server failed"
+                sys.exit(1)
+            status = self._service.setPermission(self.user, self.passwd, self.user, args[0], args[1])
             if(status == "True"):
                 print "Permission of img " + args[0] + " updated"
             else:
@@ -357,8 +404,12 @@ class fgShellRepo(Cmd):
         '''Image Repository get command: Get an image or only the URI by id.'''
         args = self.getArgs(args)
 
-        if (len(args) == 2):
-            imgstatus = self._service.get(os.popen('whoami', 'r').read().strip(), args[0], args[1], "./")
+        if (len(args) == 1):
+            #connect with the server
+            if not service.connection():
+                print "ERROR: Connection with the server failed"
+                sys.exit(1)
+            imgstatus = self._service.get(self.user, self.passwd, self.user, "img", args[1], "./")
 
             if imgstatus:
                 print "The image " + imgId + " is located in " +imgstatus
@@ -369,7 +420,7 @@ class fgShellRepo(Cmd):
 
     def help_repoget(self):
         '''Help message for the repoget command'''
-        self.print_man("get <img OR uri> <imgId>", self.do_repoget.__doc__)
+        self.print_man("get <imgId>", self.do_repoget.__doc__)
 
     ############################################################
     # put
@@ -386,34 +437,30 @@ class fgShellRepo(Cmd):
 
         #second = second.replace("&", "|")
 
-        status = 0
+        status = ""
         ok = False
         if (len(args) > 1):
-            status = self._service.put(os.popen('whoami', 'r').read().strip(), args[0], second)
+            #connect with the server
+            if not service.connection():
+                print "ERROR: Connection with the server failed"
+                sys.exit(1)
+            status = self._service.put(self.user, self.passwd, self.user, args[0], second)
             ok = True
         elif (len(args) == 1):
-            status = self._service.put(os.popen('whoami', 'r').read().strip(), args[0], "")
+            #connect with the server
+            if not service.connection():
+                print "ERROR: Connection with the server failed"
+                sys.exit(1)
+            status = self._service.put(self.user, self.passwd, self.user, args[0], "")
             ok = True
         else:
             self.help_repoput()
-        #id2 = service.put(os.popen('whoami', 'r').read().strip(), None, "/home/javi/tst3.iso", "vmtype=vmware")
-        #print "image has been uploaded and registered with id " + str(id1)
-        #id2 = service.put(os.popen('whoami', 'r').read().strip(), None, "/home/javi/tst2.iso", "vmtype=11|imgType=0|os=UBUNTU|arch=x86_64| owner=tstuser2| description=another test| tag=tsttaga, tsttagb")
-        #print status        
+     
         if(ok):
-            if(status == "0"):
-                print "The image has NOT been uploaded. Please, verify that the file exists and the metadata string is valid"
-            elif(status == "-1"):
-                print "The image has NOT been uploaded"
-                print "The User does not exist"
-            elif(status == "-2"):
-                print "The image has NOT been uploaded"
-                print "The User is not active"
-            elif(status == "-3"):
-                print "The image has NOT been uploaded"
-                print "The file exceed the quota"
+            if (re.search('^ERROR', status)):
+                print 'The image has not been uploaded. Exit error: ' + status
             else:
-                print "image has been uploaded and registered with id " + str(status)
+                print "The image has been uploaded and registered with id " + str(status)
 
 
     def help_repoput(self):
@@ -448,7 +495,11 @@ class fgShellRepo(Cmd):
         the repository.'''
         args = self.getArgs(args)
         if (len(args) == 1):
-            if (self._service.remove(os.popen('whoami', 'r').read().strip(), args[0]) == "True"):
+            #connect with the server
+            if not service.connection():
+                print "ERROR: Connection with the server failed"
+                sys.exit(1)
+            if (self._service.remove(self.user, self.passwd, self.user, args[0]) == "True"):
                 print "The image with imgId=" + args[0] + " has been removed"
             else:
                 print "The image with imgId=" + args[0] + " has NOT been removed. Please verify the imgId and if you are the image owner"

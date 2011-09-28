@@ -39,6 +39,7 @@ class fgShellConf(object):
                     print "ERROR: configuration file "+configFileName+" not found"
                     sys.exit(1)
 
+
         self._logfile = "" #self._loghistdir__+"/fg.log"
         self._histfile = "" #self._loghistdir+"/hist.txt"        
         self._scriptfile = os.environ['PWD'] + "/script"
@@ -105,45 +106,31 @@ class fgShellConf(object):
     def loadConfig(self):
         '''loads the configuration from the config file'''
         config = ConfigParser.ConfigParser()
-        if(os.path.isfile(self._configfile)):
-            config.read(self._configfile)
-        else:
-            print "Error: Config file not found" + self._configfile
-            sys.exit(0)
+        config.read(self._configfile)
+        section="fg-shell"
 
         try:
-            self._loghistdir = os.path.expanduser(config.get('DEFAULT', 'loghistdir', 0))
-        except ConfigParser.NoOptionError:
-            print "Error: No option loghistdir in section LogHist"
-            sys.exit(0)
-
-
-        #Directory where history and logs are
-        if not (os.path.isdir(self._loghistdir)):
-            os.system("mkdir " + self._loghistdir)
-
-        try:
-            self._logfile = os.path.expanduser(config.get('LogHist', 'log', 0))
+            self._logfile = os.path.expanduser(config.get(section, 'log', 0))
         except ConfigParser.NoOptionError:
             print "Error: No option log in section LogHist"
             sys.exit(0)
 
         ##History
         try:
-            self._histfile = os.path.expanduser(config.get('LogHist', 'history', 0))
+            self._histfile = os.path.expanduser(config.get(section, 'history', 0))
         except ConfigParser.NoOptionError:
             print "Error: No option history in section LogHist"
             sys.exit(0)
 
         ##Script
         try:
-            self._scriptfile = os.path.expanduser(config.get('LogHist', 'script', 0))
+            self._scriptfile = os.path.expanduser(config.get(section, 'script', 0))
         except ConfigParser.NoOptionError:
             pass
 
         ##Log
         try:
-            tempLevel = string.upper(config.get('LogHist', 'log_level', 0))
+            tempLevel = string.upper(config.get(section, 'log_level', 0))
         except ConfigParser.NoOptionError:
             tempLevel = self._LogLevel
 

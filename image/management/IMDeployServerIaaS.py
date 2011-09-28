@@ -16,7 +16,7 @@ import logging.handlers
 import time
 from IMServerConf import IMServerConf
 from xml.dom.minidom import Document, parse
-
+from random import randrange
 #Import client repository
 sys.path.append(os.getcwd())
 sys.path.append(os.path.dirname(__file__) + "/../")
@@ -178,31 +178,55 @@ class IMDeployServerIaaS(object):
                     self.errormsg(connstream, msg)
                     return
 
+                self.logger.debug("image name " + nameimg)
 
-        #GET IMAGE from repo
-        if not self._reposervice.connection():
-            msg = "ERROR: Connection with the Image Repository failed"
-            self.errormsg(connstream, msg)
-            return
-        else:
-            self.logger.info("Retrieving image from repository")
-            image = self._reposervice.get(self.user, passwd, self.user, "img", imgID, self.tempdir)                  
-            if image == None:
-                msg = "ERROR: Cannot get access to the image with imgId " + str(imgID)
+        #create a unique directory
+        auxdir = str(randrange(999999999999999999999999))
+        localtempdir = self.tempdir + "/" + auxdir + "_0"
+        while os.path.isfile(localtempdir):
+            auxdir = str(randrange(999999999999999999999999))
+            localtempdir = self.tempdir + "/" + auxdir + "_0"
+
+        cmd = 'mkdir -p ' + localtempdir
+        self.runCmd(cmd)
+
+        if imgSource == "repo":
+            #GET IMAGE from repo
+            if not self._reposervice.connection():
+                msg = "ERROR: Connection with the Image Repository failed"
                 self.errormsg(connstream, msg)
-                self._reposervice.disconnect()
                 return
             else:
-                self._reposervice.disconnect()
-        ################
+                self.logger.info("Retrieving image from repository")
+                image = self._reposervice.get(self.user, passwd, self.user, "img", imgID, localtempdir)                  
+                if image == None:
+                    msg = "ERROR: Cannot get access to the image with imgId " + str(imgID)
+                    self.errormsg(connstream, msg)
+                    self._reposervice.disconnect()
+                    return
+                else:
+                    self._reposervice.disconnect()
+        else:
+            connstream.write(localtempdir)
+            status = connstream.read(1024)
+            status = status.split(',')
+            if len(status)==2:
+                image = localtempdir + '/' + status[1].strip()
+                if status[0].strip() != 'OK':                
+                    msg = "ERROR: Receiving image from client: "+str(status)
+                    self.errormsg(connstream, msg)
+                    return
+            else:
+                msg = "ERROR: Message received from client is incorrect: "+str(status)
+                self.errormsg(connstream, msg)
+                return
 
         if not os.path.isfile(image):
             msg = "ERROR: file " + image + " not found"
             self.errormsg(connstream, msg)
             return
         
-        #extracts image/manifest, read manifest 
-        localtempdir = "error_getting_localtempdir"
+        #extracts image/manifest, read manifest
         if not self.handle_image(image, localtempdir, connstream):
             return            
 
@@ -385,7 +409,9 @@ class IMDeployServerIaaS(object):
 
     def handle_image(self, image, localtempdir, connstream):
         #print image
-        success = True   
+        success = True
+        
+        """   
         urlparts = image.split("/")
         #print urlparts
         self.logger.debug("urls parts: " + str(urlparts))
@@ -413,7 +439,8 @@ class IMDeployServerIaaS(object):
 
         cmd = 'mkdir -p ' + localtempdir
         self.runCmd(cmd)
-
+        """
+        
         realnameimg = ""
         self.logger.info('untar file with image and manifest')
         cmd = "tar xvfz " + image + " -C " + localtempdir

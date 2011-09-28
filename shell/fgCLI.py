@@ -25,7 +25,7 @@ from futuregrid.utils.fgLog import fgLog
 import inspect
 
 from cmd2 import Cmd, make_option, options, Cmd2TestCase
-import unittest, optparse, sys
+import unittest, sys
 
 class fgShell(fgShellUtils,
               Cmd,
@@ -65,25 +65,35 @@ class fgShell(fgShellUtils,
 
     # #####################################################################
 
-    def __init__(self, silent = False):
+    def __init__(self, silent, user, passwd):
+
+        self.base_cmds = ['exec', 'help', 'history','manual', 'quit', 'use', 'contexts', 'script']
+        base_cmd2 = ['li', 'load', 'pause', 'py', 'run', 'save', 'shortcuts', 'set', 'show', 'historysession']
+        self.base_cmds += base_cmd2
 
         self._locals = {}
         self._globals = {}
 
+        self.user = user
+        self.passwd = passwd
+
         #Load Config
         self._conf = fgShellConf()
+        
         #Setup log  
-        self._log = fgLog(self._conf.getLogFile(), self._conf.getLogLevel(), "FGShell", True)
+        self._log = fgLog(self._conf.getLogFile(), self._conf.getLogLevel(), "FGShell", False)
 
-        Cmd.__init__(self)
-        fgShellUtils.__init__(self)
+        self._log.debug("\nReading Configuration file from " + self._conf.getConfigFile() + "\n")
 
+        Cmd.__init__(self)        
+        fgShellUtils.__init__(self)        
 
         #Context        
-        self.env = ["repo", "rain", "hadoop", ""]
+        self.env = ["repo", "rain", "hadoop", "image", ""]
         self.text = {'repo':'Image Repository',
                      'rain':'Dynamic Provisioning',
-                     'hadoop':'Apache Hadoop'}
+                     'hadoop':'Apache Hadoop',
+                     'image': 'Image Management'}
         self._use = ""
         self._contextOn = [] # initialized contexts
 
@@ -101,8 +111,7 @@ class fgShell(fgShellUtils,
             self.intro = self.loadBanner()
         ##Load History
         self.loadhist("no argument needed")
-        #e = sysCheck()
-
+        #e = sysCheck()        
     
 
     @options([make_option('-p', '--piglatin', action="store_true", help="atinLay"),
@@ -183,7 +192,9 @@ class fgShell(fgShellUtils,
         print "FG Contexts:"
         print "-------------"
         for i in self.env:
-            print i
+            if i != "":
+                print i
+                print "    "+self.text[i]
 
     def help_contexts(self):
         '''Help message for contexts'''
@@ -226,9 +237,7 @@ class fgShell(fgShellUtils,
 
 
     def getDocUndoc(self, args):
-        base_cmds = ['exec', 'help', 'history','manual', 'quit', 'use', 'contexts', 'script']
-        base_cmd2 = ['li', 'load', 'pause', 'py', 'run', 'save', 'shortcuts', 'set', 'show', 'historysession']
-        base_cmds += base_cmd2
+        
         final_doc = []
         final_undoc = []
         spec_doc = []
@@ -279,7 +288,7 @@ class fgShell(fgShellUtils,
                             cmds_doc.append(com)
                         else:
                             cmds_undoc.append(com)
-        for i in base_cmds:
+        for i in self.base_cmds:
             if (i in cmds_doc):
                 final_doc.append(i)
             elif (i in cmds_undoc):
@@ -365,10 +374,12 @@ class fgShell(fgShellUtils,
     def customHelpNoContext(self, args):
         if args:
             try:
-                func = getattr(self, 'help_' + self._use + args)
+                #func = getattr(self, 'help_' + self._use + args)
+                func = getattr(self, 'help_' + args)
             except AttributeError:
                 try:
-                    doc = getattr(self, 'do_' + self._use + args).__doc__
+                    #doc = getattr(self, 'do_' + self._use + args).__doc__
+                    doc = getattr(self, 'do_' + args).__doc__
                     if doc:
                         self.stdout.write("%s\n" % str(doc))
                         return
@@ -392,11 +403,15 @@ class fgShell(fgShellUtils,
         if args:
             if (args.strip().startswith(self._use)):
                 args = args[len(self._use):]
+            prefix=""
+            if not args in self.base_cmds:
+                prefix = self._use
+                
             try:
-                func = getattr(self, 'help_' + self._use + args)
+                func = getattr(self, 'help_' + prefix + args)
             except AttributeError:
                 try:
-                    doc = getattr(self, 'do_' + self._use + args).__doc__
+                    doc = getattr(self, 'do_' + prefix + args).__doc__
                     if doc:
                         self.stdout.write("%s\n" % str(doc))
                         return
@@ -529,7 +544,7 @@ class fgShell(fgShellUtils,
         pass
 
 
-def runCLI(filename = None, silent = False, interactive = False):
+def runCLI(user, passwd, filename, silent, interactive):
     '''runs the commandline shell
     
     @param filename commands within the file will be interpreted
@@ -539,11 +554,13 @@ def runCLI(filename = None, silent = False, interactive = False):
     @interactive after the commands are interpreted the shell is put
     into interactive mode
     '''
-    if filename == None:
-        cli = fgShell(silent)
-        cli.cmdloop()
+    
+    if filename == None:        
+        cli = fgShell(silent,user, passwd)                
+        cli.cmdloop()        
     else:
-        cli = fgShell(silent = True)
+        silent = True
+        cli = fgShell(silent, user, passwd)
         cli.do_exec(filename)
         if interactive:
             cli.cmdloop()
