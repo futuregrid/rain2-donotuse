@@ -17,6 +17,9 @@ from cmd2 import make_option
 import textwrap
 import argparse
 
+from futuregrid.image.management.IMDeploy import IMDeploy
+from futuregrid.image.management.IMGenerate import IMGenerate
+
 class fgShellImage(Cmd):
 
     def __init__(self):
@@ -154,7 +157,80 @@ class fgShellImage(Cmd):
 
     def do_imagedeploy(self, args):
 
-        self.help_imagedeploy()
+
+        argslist = args.split("-")[1:]        
+        
+        prefix = ''
+        sys.argv=['']
+        for i in range(len(argslist)):
+            if argslist[i] == "":
+                prefix = '-'
+            else:
+                newlist = argslist[i].split(" ")
+                sys.argv += [prefix+'-'+newlist[0]]
+                newlist = newlist [1:]
+                rest = ""
+                for j in range(len(newlist)):
+                    rest+=" "+newlist[j]
+                rest=rest.strip()
+                sys.argv += [rest]
+                #sys.argv += [prefix+'-'+argslist[i]]
+                prefix = ''
+
+        parser = argparse.ArgumentParser(prog="IMDeploy", formatter_class=argparse.RawDescriptionHelpFormatter,
+                                     description="FutureGrid Image Deployment Help ")
+        parser.add_argument('-d', '--debug', dest='debug', action="store_true", help='Print logs in the screen for debug')
+        parser.add_argument('-k', '--kernel', dest="kernel", metavar='Kernel version', help="Specify the desired kernel" 
+                            "(must be exact version and approved for use within FG). Not yet supported")
+        group = parser.add_mutually_exclusive_group(required=True)    
+        group.add_argument('-i', '--image', dest='image', metavar='ImgFile', help='tgz file that contains manifest and img')
+        group.add_argument('-r', '--imgid', dest='imgid', metavar='ImgId', help='Id of the image stored in the repository')
+        group1 = parser.add_mutually_exclusive_group(required=True)
+        group1.add_argument('-x', '--xcat', dest='xcat', metavar='MachineName', help='Deploy image to xCAT. The argument is the machine name (minicluster, india ...)')
+        group1.add_argument('-e', '--euca', dest='euca', metavar='Address', help='Deploy the image to Eucalyptus, which is in the specified addr')
+        group1.add_argument('-o', '--opennebula', dest='opennebula', metavar='Address', help='Deploy the image to OpenNebula, which is in the specified addr')
+        group1.add_argument('-n', '--nimbus', dest='nimbus', metavar='Address', help='Deploy the image to Nimbus, which is in the specified addr')
+        
+        args = parser.parse_args()
+    
+        print 'Starting image deployer...'
+        
+        verbose = True #to activate the print
+    
+        #TODO: if Kernel is provided we need to verify that it is supported. 
+        
+        imgdeploy = IMDeploy(args.kernel, self.user, self.passwd, verbose, args.debug)
+    
+        used_args = sys.argv[1:]
+        
+        print args
+        
+        image_source = "repo"
+        image = args.imgid    
+        if args.image != None:
+            image_source = "disk"
+            image = args.image
+            if not  os.path.isfile(args.image):            
+                print 'ERROR: Image file not found'            
+                sys.exit(1)
+        #XCAT
+        if args.xcat != None:
+            if args.imgid == None:
+                print "ERROR: You need to specify the id of the image that you want to deploy (-r/--imgid option)."
+                print "The parameter -i/--image cannot be used with this type of deployment"
+                sys.exit(1)
+            else:
+                imgdeploy.xcat_method(args.xcat, args.imgid)
+        #EUCALYPTUS
+        elif args.euca != None:
+            imgdeploy.iaas_generic(args.euca, image, image_source, "euca")        
+        #OpenNebula
+        elif args.opennebula != None:
+            imgdeploy.iaas_generic(args.opennebula, image, image_source, "opennebula")
+        #NIMBUS
+        elif args.nimbus != None:
+            #TODO        
+            print "Nimbus deployment is not implemented yet"
 
     def help_imagedeploy(self):
         msg = "IMAGE deploy command: Deploy an image in a FG infrastructure. \n "
