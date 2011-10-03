@@ -6,21 +6,30 @@ corresponding IaaS framework
 __author__ = 'Javier Diaz, Andrew Younge'
 __version__ = '0.1'
 
-import socket, ssl
-import sys
-import os
+from types import *
 import re
-from subprocess import *
 import logging
 import logging.handlers
+import random
+from random import randrange
+import os
+import sys
+import socket, ssl
+from multiprocessing import Process
+
+from subprocess import *
+#from xml.dom.ext import *
+from xml.dom.minidom import Document, parseString, parse
+import xmlrpclib
 import time
 from IMServerConf import IMServerConf
-from xml.dom.minidom import Document, parse
-from random import randrange
+
 #Import client repository
 sys.path.append(os.getcwd())
-sys.path.append(os.path.dirname(__file__) + "/../")
-from repository.client.IRServiceProxy import IRServiceProxy
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../../")
+from image.repository.client.IRServiceProxy import IRServiceProxy
+from utils.FGTypes import FGCredential
+from utils import FGAuth
 
 
 class IMDeployServerIaaS(object):
@@ -48,15 +57,15 @@ class IMDeployServerIaaS(object):
         
         self.port = self._deployConf.getIaasPort()
         self.http_server = self._deployConf.getHttpServerIaas()
-        self.proc_max = self._deployConf.getProcMaxIaaS()
+        self.proc_max = self._deployConf.getProcMaxIaas()
                         
-        self.tempdir = self._deployConf.getTempDirIaaS()
-        self.log_filename = self._deployConf.getLogIaaS()
-        self.logLevel = self._deployConf.getLogLevelIaaS()
+        self.tempdir = self._deployConf.getTempDirIaas()
+        self.log_filename = self._deployConf.getLogIaas()
+        self.logLevel = self._deployConf.getLogLevelIaas()
         
-        self._ca_certs = self._deployConf.getCaCertsIaaS()
-        self._certfile = self._deployConf.getCertFileIaaS()
-        self._keyfile = self._deployConf.getKeyFileIaaS()
+        self._ca_certs = self._deployConf.getCaCertsIaas()
+        self._certfile = self._deployConf.getCertFileIaas()
+        self._keyfile = self._deployConf.getKeyFileIaas()
         
         
         self.default_euca_kernel = '2.6.27.21-0.1-xen'
@@ -66,11 +75,13 @@ class IMDeployServerIaaS(object):
         self.logger = self.setup_logger()
         
         #Image repository Object
-        self._reposervice = IRServiceProxy(False)
+        verbose=False
+        printLogStdout=False
+        self._reposervice = IRServiceProxy(verbose,printLogStdout)
         
     def setup_logger(self):
         #Setup logging
-        logger = logging.getLogger("DeployXcat")
+        logger = logging.getLogger("DeployIaaS")
         logger.setLevel(self.logLevel)
         formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
         handler = logging.FileHandler(self.log_filename)
@@ -129,7 +140,9 @@ class IMDeployServerIaaS(object):
                     connstream.close() 
             finally:
                 self.logger.info("IaaS deploy server Request DONE")        
-                
+     
+    def auth(self, userCred):
+        return FGAuth.auth(self.user, userCred)             
                 
     def process_client(self, connstream):
         self.logger.info('Accepted new connection')        
@@ -209,7 +222,9 @@ class IMDeployServerIaaS(object):
         else:
             connstream.write(localtempdir)
             status = connstream.read(1024)
+            
             status = status.split(',')
+            
             if len(status)==2:
                 image = localtempdir + '/' + status[1].strip()
                 if status[0].strip() != 'OK':                
@@ -246,7 +261,7 @@ class IMDeployServerIaaS(object):
         retry_done = 0
         umounted = False
         #Done making changes to root fs
-        while umounted: 
+        while not umounted: 
             status = self.runCmd('sudo umount ' + localtempdir + '/temp')
             if status == 0:
                 umounted = True
@@ -266,7 +281,7 @@ class IMDeployServerIaaS(object):
           
         connstream.shutdown(socket.SHUT_RDWR)
         connstream.close()
-            
+        self.logger.info("Image Deploy Request DONE")
 
     def euca_method(self, localtempdir): 
 
@@ -277,10 +292,10 @@ class IMDeployServerIaaS(object):
             self.kernel = self.default_euca_kernel
                       
         #Inject the kernel
-        self.logger.info('Retrieving kernel ' + kernel)
-        self.runCmd('wget ' + self._http_server + 'kernel/' + self.kernel + '.modules.tar.gz -O ' + localtempdir + '/temp/' + self.kernel + '.modules.tar.gz')
-        self.runCmd('sudo tar xfz ' + localtempdir + '/temp/' + self.kernel + '.modules.tar.gz --directory ' + localtempdir + '/temp/lib/modules/')
-        self.logger.info('Injected kernel ' + kernel)
+        self.logger.info('Retrieving kernel ' + self.kernel)
+        self.runCmd('wget ' + self.http_server + 'kernel/' + self.kernel + '.modules.tar.gz -O ' + localtempdir + '/' + self.kernel + '.modules.tar.gz')
+        self.runCmd('sudo tar xfz ' + localtempdir + '/' + self.kernel + '.modules.tar.gz --directory ' + localtempdir + '/temp/lib/modules/')
+        self.logger.info('Injected kernel ' + self.kernel)
 
         # Setup fstab
         fstab = '''
@@ -298,6 +313,8 @@ class IMDeployServerIaaS(object):
         self.runCmd('sudo chown root:root ' + localtempdir + '/temp/etc/fstab')
         self.logger.info('fstab Injected')
 
+        
+
     def openstack_method(self, localtempdir): #TODO
 
         #Select kernel version
@@ -308,7 +325,7 @@ class IMDeployServerIaaS(object):
                       
         #Inject the kernel
         self.logger.info('Retrieving kernel ' + self.kernel)
-        self.runCmd('wget ' + self._http_server + 'kernel/' + self.kernel + '.modules.tar.gz -O ' + localtempdir + '/temp/' + self.kernel + '.modules.tar.gz')
+        self.runCmd('wget ' + self.http_server + 'kernel/' + self.kernel + '.modules.tar.gz -O ' + localtempdir + '/temp/' + self.kernel + '.modules.tar.gz')
         self.runCmd('sudo tar xfz ' + localtempdir + '/temp/' + self.kernel + '.modules.tar.gz --directory ' + localtempdir + '/temp/lib/modules/')
         self.logger.info('Injected kernel ' + kernel)
 
@@ -335,7 +352,7 @@ class IMDeployServerIaaS(object):
         self.logger.debug("kernel: " + self.kernel)
 
         #download vmcontext.sh
-        self.runCmd('sudo wget ' + self._http_server + "/opennebula/" + self.operatingsystem + '/vmcontext.sh -O ' + localtempdir + '/temp/etc/init.d/vmcontext.sh')
+        self.runCmd('sudo wget ' + self.http_server + "/opennebula/" + self.operatingsystem + '/vmcontext.sh -O ' + localtempdir + '/temp/etc/init.d/vmcontext.sh')
         self.runCmd('sudo chmod +x ' + localtempdir + '/temp/etc/init.d/vmcontext.sh')
         self.runCmd('sudo chown root:root ' + localtempdir + '/temp/etc/rc.local')
 
@@ -368,7 +385,7 @@ class IMDeployServerIaaS(object):
 
         #Inject the kernel
         self.logger.info('Retrieving kernel ' + self.kernel)
-        self.runCmd('wget ' + self._http_server + 'kernel/' + self.kernel + '.modules.tar.gz -O ' + localtempdir + '/temp/' + self.kernel + '.modules.tar.gz')
+        self.runCmd('wget ' + self.http_server + 'kernel/' + self.kernel + '.modules.tar.gz -O ' + localtempdir + '/temp/' + self.kernel + '.modules.tar.gz')
         self.runCmd('sudo tar xfz ' + localtempdir + '/temp/' + self.kernel + '.modules.tar.gz --directory ' + localtempdir + '/temp/lib/modules/')
         self.logger.info('Injected kernel ' + kernel)
 
@@ -503,12 +520,16 @@ class IMDeployServerIaaS(object):
 
     def errormsg(self, connstream, msg):
         self.logger.error(msg)
-        connstream.write(msg)
-        connstream.shutdown(socket.SHUT_RDWR)
-        connstream.close()
+        try:
+            connstream.write(msg)
+            connstream.shutdown(socket.SHUT_RDWR)
+            connstream.close()
+        except:
+            self.logger.debug("In errormsg: " + str(sys.exc_info()))
+        self.logger.info("Image Deploy Request DONE")
     
     def runCmd(self, cmd):
-        cmdLog = logging.getLogger('DeployXcat.exec')
+        cmdLog = logging.getLogger('DeployIaaS.exec')
         cmdLog.debug(cmd)
         p = Popen(cmd.split(' '), stdout=PIPE, stderr=PIPE)
         std = p.communicate()
@@ -529,7 +550,7 @@ def main():
     #    print "Sorry, you need to run with root privileges"
     #    sys.exit(1)
 
-    server = IMDeployServerXcat()
+    server = IMDeployServerIaaS()
     server.start()
 
 if __name__ == "__main__":

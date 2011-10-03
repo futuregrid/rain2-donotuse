@@ -67,7 +67,9 @@ class IMDeployServerXcat(object):
         self.logger = self.setup_logger()
         
         #Image repository Object
-        self._reposervice = IRServiceProxy(False,False)
+        verbose=False
+        printLogStdout=False
+        self._reposervice = IRServiceProxy(verbose,printLogStdout)
         
     def setup_logger(self):
         #Setup logging
@@ -796,7 +798,7 @@ sysfs   /sys     sysfs    defaults       0 0
             connstream.shutdown(socket.SHUT_RDWR)
             connstream.close()
         except:
-            self._log.debug("In errormsg: " + str(sys.exc_info()))
+            self.logger.debug("In errormsg: " + str(sys.exc_info()))
         self.logger.info("Image Deploy Request DONE")
     
     def runCmd(self, cmd):

@@ -210,9 +210,9 @@ class IMServerConf(object):
     #image server IaaS    
     def getIaasPort(self):
         return self._iaas_port
-    def getTempDirIaaS(self):
+    def getTempDirIaas(self):
         return self._tempdir_iaas
-    def getProcMaxIaaS(self):
+    def getProcMaxIaas(self):
         return self._proc_max_iaas
     def getHttpServerIaas(self):
         return self._http_server_iaas

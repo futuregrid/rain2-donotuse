@@ -293,7 +293,7 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
 
 
     #Setup networking
-    os.system('echo localhost > ' + tempdir + '' + name + '/etc/hostname')
+    os.system('echo "localhost" > ' + tempdir + '' + name + '/etc/hostname')
     runCmd('hostname localhost')
     
     runCmd('wget ' + http_server + '/conf/ubuntu/interfaces -O ' + tempdir + '' + name + '/etc/network/interfaces')
@@ -536,6 +536,9 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
     #    output = name
     #else:
     #    output = "Error generating bcfg2 group configuration"
+
+    #create /etc/shadow file
+    os.system('pwconv')
 
     output = name
 

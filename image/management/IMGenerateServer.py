@@ -5,7 +5,6 @@ Server that manage the image generation by provisioning VM and interacting with 
 __author__ = 'Javier Diaz'
 __version__ = '0.1'
 
-from optparse import OptionParser
 from types import *
 import re
 import logging

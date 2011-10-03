@@ -53,7 +53,7 @@ class fgShellRepo(Cmd):
         #connect with the server
         if not self._service.connection():
             print "ERROR: Connection with the server failed"
-            sys.exit(1)
+            return
 
         if(len(args) == 1):
             imgsList = self._service.histImg(self.user, self.passwd, self.user, args[0])
@@ -80,7 +80,7 @@ class fgShellRepo(Cmd):
         #connect with the server
         if not self._service.connection():
             print "ERROR: Connection with the server failed"
-            sys.exit(1)
+            return
 
         if(len(args) == 1):
             userList = self._service.histUser(self.user, self.passwd, self.user, args[0])
@@ -116,7 +116,7 @@ class fgShellRepo(Cmd):
             #connect with the server
             if not self._service.connection():
                 print "ERROR: Connection with the server failed"
-                sys.exit(1)
+                return
             status = self._service.userAdd(self.user, self.passwd, self.user, args[0])
             if(status == "True"):
                 print "User created successfully."
@@ -145,7 +145,7 @@ class fgShellRepo(Cmd):
             #connect with the server
             if not self._service.connection():
                 print "ERROR: Connection with the server failed"
-                sys.exit(1)
+                return
             status = self._service.userDel(self.user, self.passwd, self.user, args[0])
             if(status == "True"):
                 print "User deleted successfully."
@@ -170,7 +170,7 @@ class fgShellRepo(Cmd):
         #connect with the server
         if not self._service.connection():
             print "ERROR: Connection with the server failed"
-            sys.exit(1)
+            return
 
         userList = self._service.userList(self.user, self.passwd, self.user)
 
@@ -207,7 +207,7 @@ class fgShellRepo(Cmd):
             #connect with the server
             if not self._service.connection():
                 print "ERROR: Connection with the server failed"
-                sys.exit(1)
+                return
             status = self._service.setUserQuota(self.user, self.passwd, self.user, args[0], args[1])
             if(status == "True"):
                 print "User quota changed successfully."
@@ -232,7 +232,7 @@ class fgShellRepo(Cmd):
             #connect with the server
             if not self._service.connection():
                 print "ERROR: Connection with the server failed"
-                sys.exit(1)
+                return
             status = self._service.setUserRole(self.user, self.passwd, self.user, args[0], args[1])
             if(status == "True"):
                 print "User role has been changed successfully."
@@ -256,7 +256,7 @@ class fgShellRepo(Cmd):
             #connect with the server
             if not self._service.connection():
                 print "ERROR: Connection with the server failed"
-                sys.exit(1)
+                return
             status = self._service.setUserStatus(self.user, self.passwd, self.user, args[0], args[1])
             if(status == "True"):
                 print "User role has been changed successfully."
@@ -283,7 +283,7 @@ class fgShellRepo(Cmd):
         #connect with the server
         if not self._service.connection():
             print "ERROR: Connection with the server failed"
-            sys.exit(1)
+            return
         
         if (args.strip() == ""):
             imgsList = self._service.query(self.user, self.passwd, self.user, "*")
@@ -325,7 +325,7 @@ class fgShellRepo(Cmd):
             #connect with the server
             if not service.connection():
                 print "ERROR: Connection with the server failed"
-                sys.exit(1)
+                return
             
             status = self._service.updateItem(self.user, self.passwd, self.user, args[0], second)
             if(status == "True"):
@@ -383,7 +383,7 @@ class fgShellRepo(Cmd):
             #connect with the server
             if not service.connection():
                 print "ERROR: Connection with the server failed"
-                sys.exit(1)
+                return
             status = self._service.setPermission(self.user, self.passwd, self.user, args[0], args[1])
             if(status == "True"):
                 print "Permission of img " + args[0] + " updated"
@@ -409,7 +409,7 @@ class fgShellRepo(Cmd):
             #connect with the server
             if not service.connection():
                 print "ERROR: Connection with the server failed"
-                sys.exit(1)
+                return
             imgstatus = self._service.get(self.user, self.passwd, self.user, "img", args[1], "./")
 
             if imgstatus:
@@ -444,14 +444,14 @@ class fgShellRepo(Cmd):
             #connect with the server
             if not service.connection():
                 print "ERROR: Connection with the server failed"
-                sys.exit(1)
+                return
             status = self._service.put(self.user, self.passwd, self.user, args[0], second)
             ok = True
         elif (len(args) == 1):
             #connect with the server
             if not service.connection():
                 print "ERROR: Connection with the server failed"
-                sys.exit(1)
+                return
             status = self._service.put(self.user, self.passwd, self.user, args[0], "")
             ok = True
         else:
@@ -499,7 +499,7 @@ class fgShellRepo(Cmd):
             #connect with the server
             if not service.connection():
                 print "ERROR: Connection with the server failed"
-                sys.exit(1)
+                return
             if (self._service.remove(self.user, self.passwd, self.user, args[0]) == "True"):
                 print "The image with imgId=" + args[0] + " has been removed"
             else:

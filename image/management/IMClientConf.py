@@ -61,6 +61,8 @@ class IMClientConf(object):
         #image deploy
         self._xcat_port = 0
         self._moab_port = 0
+        self._iaas_serveraddr = ""
+        self._iaas_port = 0
         self._http_server = ""
         self._ca_certs_dep = ""
         self._certfile_dep = ""
@@ -103,6 +105,10 @@ class IMClientConf(object):
         return self._xcat_port
     def getMoabPort(self):
         return self._moab_port
+    def getIaasServerAddr(self):
+        return self._iaas_serveraddr
+    def getIaasPort(self):
+        return self._iaas_port
     def getHttpServer(self):
         return self._http_server
     def getCaCertsDep(self):
@@ -204,7 +210,17 @@ class IMClientConf(object):
             self._moab_port = int(self._config.get(section, 'moab_port', 0))
         except ConfigParser.NoOptionError:
             print "Error: No moab_port option found in section "+section
-            sys.exit(1)         
+            sys.exit(1)   
+        try:
+            self._iaas_serveraddr = self._config.get(section, 'iaas_serveraddr', 0)
+        except ConfigParser.NoOptionError:
+            print "Error: No iaas_serveraddr option found in section " + machine
+            sys.exit(1)
+        try:
+            self._iaas_port = int(self._config.get(section, 'iaas_port', 0))
+        except ConfigParser.NoOptionError:
+            print "Error: No iaas_port option found in section "+section
+            sys.exit(1)                      
         try:
             self._http_server = self._config.get(section, 'http_server', 0)
         except ConfigParser.NoOptionError:

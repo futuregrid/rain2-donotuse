@@ -14,7 +14,7 @@ import socket, ssl
 from subprocess import *
 import logging
 from xml.dom.minidom import Document, parse
-
+import re
 from getpass import getpass
 import hashlib
 
@@ -56,8 +56,8 @@ class IMDeploy(object):
         self._certfile = self._deployConf.getCertFileDep()
         self._keyfile = self._deployConf.getKeyFileDep()
 
-        self.iaasmachine ="" 
-        self._iaas_port = 0
+        self.iaasmachine = self._deployConf.getIaasServerAddr()
+        self._iaas_port = self._deployConf.getIaasPort()
         
         self._log = fgLog.fgLog(self._deployConf.getLogFileDeploy(), self._deployConf.getLogLevelDeploy(), "DeployClient", printLogStdout)
         
@@ -106,7 +106,7 @@ class IMDeploy(object):
                                         ssl_version=ssl.PROTOCOL_TLSv1)
             iaasServer.connect((self.iaasmachine, self._iaas_port))
             
-            msg =  str(image) + ',' + str(image_source) + ',' + iaas_type + ',' + self.kernel + ',' + str(self.user) + ',' + str(self.passwd) + ",ldappassmd5" 
+            msg = str(image) + ',' + str(image_source) + ',' + str(iaas_type) + ',' + str(self.kernel) + ',' + str(self.user) + ',' + str(self.passwd) + ",ldappassmd5" 
             #self._log.debug('Sending message: ' + msg)
             
             iaasServer.write(msg)
@@ -128,8 +128,9 @@ class IMDeploy(object):
                         else:                        
                             cmd = 'scp -q ' + image + ' ' + self.user + '@' + self.iaasmachine + ':' + ret
                         status = self.runCmd(cmd)
+                    
                     if status == 0:
-                        iaasServer.write('OK,'+os.path.split(image)[1].strip())
+                        iaasServer.write('OK,' + os.path.split(image)[1].strip())
                     else:                    
                         iaasServer.write('ERROR from client, ')
                         self._log.error("ERROR sending image to server via scp. EXIT.")
@@ -149,13 +150,16 @@ class IMDeploy(object):
                         imgURIinServer = results[0].strip()
                         kernel = results[1].strip()
                         operatingsystem = results[2].strip()
-                        #imagebackpath = retrieve
+                        #imagebackpath = retrieve   
                         localpath = "./"
                         imagebackpath = self._retrieveImg(imgURIinServer, localpath)
                         #if we want to introduce retries we need to put next line after checking that the image is actually here
                         iaasServer.write('OK')                        
-                        if imagebackpath != None:            
-                            eval("self."+iaas_type+"_method("+imagebackpath+","+kernel+","+operatingsystem+")")
+                        if imagebackpath != None:        
+                            #print "self." + iaas_type + "_method(\""+ str(imagebackpath) + "\",\"" + str(kernel) + "\",\"" +\
+                            #      str(operatingsystem) + "\",\"" + str(iaas_address) + "\")"   
+                            eval("self." + iaas_type + "_method(\""+ str(imagebackpath) + "\",\"" + str(kernel) + "\",\"" +
+                                  str(operatingsystem) + "\",\"" + str(iaas_address) + "\")")
                         else:
                             self._log.error("CANNOT retrieve the image from server. EXIT.")
                             if self._verbose:
@@ -178,7 +182,7 @@ class IMDeploy(object):
                 print "ERROR: CANNOT establish SSL connection."
         
                 
-    def euca_method(self, imagebackpath, kernel, operatingsystem):
+    def euca_method(self, imagebackpath, kernel, operatingsystem, iaas_address):
         #TODO: Pick kernel and ramdisk from available eki and eri
 
         #hardcoded for now
@@ -186,43 +190,61 @@ class IMDeploy(object):
         eri = 'eri-5BB61255'
 
         #CONTACT IMDeployServerIaaS to customize image ...
+
+        if iaas_address != "None":
+            ec2_url = "http://" + iaas_address + "/services/Eucalyptus"
+            s3_url = "http://" + iaas_address + "/services/Walrus"
+        else:
+            ec2_url = os.getenv("EC2_URL")
+            s3_url = os.getenv("S3_URL")
         
         filename = os.path.split(imagebackpath)[1].strip()
 
         print filename
 
         #Bundle Image
-        cmd = 'euca-bundle-image --image ' + imagebackpath + ' --kernel ' + eki + ' --ramdisk ' + eri
+        #cmd = 'euca-bundle-image --image ' + imagebackpath + ' --kernel ' + eki + ' --ramdisk ' + eri
+        cmd = "euca-bundle-image --cert " + str(os.getenv("EC2_CERT")) + " --privatekey " + str(os.getenv("EC2_PRIVATE_KEY")) + \
+              " --user " + str(os.getenv("EC2_USER_ID")) + " --ec2cert " + str(os.getenv("EUCALYPTUS_CERT")) + " --url " + str(ec2_url) + \
+              " -a " + str(os.getenv("EC2_ACCESS_KEY")) + " -s " + str(os.getenv("EC2_SECRET_KEY")) + \
+              " --image " + str(imagebackpath) + " --kernel " + str(eki) + " --ramdisk " + str(eri)
         print cmd
-        self.runCmd(cmd)
-
-        #Upload bundled image
-        cmd = 'euca-upload-bundle --bucket ' + self.user + ' --manifest ' + '/tmp/' + filename + '.manifest.xml'
-        print cmd
-        self._log.debug(cmd)
-        os.system(cmd)
-
-        #Register image
-        cmd = 'euca-register ' + self.user + '/' + filename + '.manifest.xml'
-        self._log.debug(cmd)
-        print cmd
-        os.system(cmd)
-        
-        cmd = "rm -f " + imagebackpath
         self._log.debug(cmd)
         #os.system(cmd)
 
-    def opennebula_method(self, imagebackpath, kernel, operatingsystem):
+        #Upload bundled image
+        #cmd = 'euca-upload-bundle --bucket ' + self.user + ' --manifest ' + '/tmp/' + filename + '.manifest.xml'
+        cmd = "euca-upload-bundle -a " + os.getenv("EC2_ACCESS_KEY") + " -s " + os.getenv("EC2_SECRET_KEY") + \
+            " --url " + s3_url + " --ec2cert " + os.getenv("EUCALYPTUS_CERT") + " --bucket " + self.user + " --manifest " + \
+            "/tmp/" + filename + ".manifest.xml"
+        print cmd      
+        self._log.debug(cmd)  
+        #os.system(cmd)
+
+        #Register image
+        #cmd = 'euca-register ' + self.user + '/' + filename + '.manifest.xml'
+        cmd = "euca-register -a " + os.getenv("EC2_ACCESS_KEY") + " -s " + os.getenv("EC2_SECRET_KEY") + \
+            " --url " + ec2_url + " " + self.user + '/' + filename + '.manifest.xml'        
+        print cmd
+        self._log.debug(cmd)
+        #os.system(cmd)
+        
+        cmd = "rm -f " + imagebackpath
+        print cmd
+        self._log.debug(cmd)
+        #os.system(cmd)
+
+    def opennebula_method(self, imagebackpath, kernel, operatingsystem, iaas_address):
         
         filename = os.path.split(imagebackpath)[1].strip()
 
         print filename
         
-        name = filename.split(".")[0]+"-"+self.user
+        name = filename.split(".")[0] + "-" + self.user
         print name
         
-        f = open( filename + ".one", 'w')
-        f.write("NAME          = \""+name+"\" \n" 
+        f = open(filename + ".one", 'w')
+        f.write("NAME          = \"" + name + "\" \n" 
         "PATH          = " + imagebackpath + " \n"
         "PUBLIC        = NO \n")
         f.close()
@@ -230,36 +252,36 @@ class IMDeploy(object):
         self._log.debug("Authenticating against OpenNebula")
         if self._verbose:
             print "Authenticating against OpenNebula"
-        os.system("oneauth login "+self.user)
+        os.system("oneauth login " + self.user)
         
         self._log.debug("Uploading image to OpenNebula")
         if self._verbose:
             print "Uploading image to OpenNebula"
-        os.system("oneimage register "+filename + ".one")
+        os.system("oneimage register " + filename + ".one")
         
         cmd = "rm -f " + filename + ".one"
         print cmd
         os.system(cmd)
         
-        f = open( filename + "_template.one", 'w')        
+        f = open(filename + "_template.one", 'w')        
         if (operatingsystem == "centos"):                        
             f.write("#--------------------------------------- \n"
                     "# VM definition example \n"
                     "#--------------------------------------- \n"            
-                    "NAME = "+name+" \n"
+                    "NAME = " + name + " \n"
                     "\n"
                     "CPU    = 0.5\n"
                     "MEMORY = 2048\n"
                     "\n"
                     "OS = [ \n"
                     "  arch=\"x86_64\" \n"
-                    "  kernel=\"/srv/cloud/images/testmyimg/centos_ker_ini/vmlinuz-"+kernel+"\", \n"
-                    "  initrd=\"/srv/cloud/images/testmyimg/centos_ker_ini/initrd-"+kernel+"\", \n"
+                    "  kernel=\"/srv/cloud/images/testmyimg/centos_ker_ini/vmlinuz-" + kernel + "\", \n"
+                    "  initrd=\"/srv/cloud/images/testmyimg/centos_ker_ini/initrd-" + kernel + "\", \n"
                     "  root=\"hda\" \n"
                     "  ] \n"
                     " \n"
                     "DISK = [ \n"
-                    "  image   = "+name+",\n"
+                    "  image   = " + name + ",\n"
                     "  target   = \"hda\",\n"
                     "  readonly = \"no\"]\n"
                     "\n"
@@ -283,20 +305,20 @@ class IMDeploy(object):
             f.write("#--------------------------------------- \n"
                     "# VM definition example \n"
                     "#--------------------------------------- \n"            
-                    "NAME = "+name+" \n"
+                    "NAME = " + name + " \n"
                     "\n"
                     "CPU    = 0.5\n"
                     "MEMORY = 2048\n"
                     "\n"
                     "OS = [ \n"
                     "  arch=\"x86_64\" \n"
-                    "  kernel=\"/srv/cloud/images/testmyimg/ubuntu_ker_ini/vmlinuz-"+kernel+"\", \n"
-                    "  initrd=\"/srv/cloud/images/testmyimg/ubuntu_ker_ini/initrd-"+kernel+"\", \n"
+                    "  kernel=\"/srv/cloud/images/testmyimg/ubuntu_ker_ini/vmlinuz-" + kernel + "\", \n"
+                    "  initrd=\"/srv/cloud/images/testmyimg/ubuntu_ker_ini/initrd-" + kernel + "\", \n"
                     "  root=\"sda\" \n"
                     "  ] \n"
                     " \n"
                     "DISK = [ \n"
-                    "  image   = "+name+",\n"
+                    "  image   = " + name + ",\n"
                     "  target  = \"hda\",\n"
                     "  bus     = \"ide\",\n"
                     "  readonly = \"no\"]\n"
@@ -398,7 +420,7 @@ class IMDeploy(object):
                                         ssl_version=ssl.PROTOCOL_TLSv1)
             xcatServer.connect((self.xcatmachine, self._xcat_port))
             
-            msg =  str(image) + ',' + str(self.kernel) + ',' + self.machine + ',' + str(self.user) + ',' + str(self.passwd) + ",ldappassmd5" 
+            msg = str(image) + ',' + str(self.kernel) + ',' + self.machine + ',' + str(self.user) + ',' + str(self.passwd) + ",ldappassmd5" 
             #self._log.debug('Sending message: ' + msg)
             
             xcatServer.write(msg)
@@ -527,20 +549,21 @@ class IMDeploy(object):
 
         return output
 
-    def runCmd(self, cmd):
-        cmdLog = self._log.getLogger('DeployClient.exec')
+
+    def runCmd(self, cmd):        
+        cmdLog = logging.getLogger('DeployClient.exec')
         cmdLog.debug(cmd)
         p = Popen(cmd.split(' '), stdout=PIPE, stderr=PIPE)
         std = p.communicate()
+        status = 0
         if len(std[0]) > 0:
             cmdLog.debug('stdout: ' + std[0])
-        #cmdLog.debug('stderr: '+std[1])
-
-        #cmdLog.debug('Ret status: '+str(p.returncode))
+            cmdLog.debug('stderr: ' + std[1])
         if p.returncode != 0:
             cmdLog.error('Command: ' + cmd + ' failed, status: ' + str(p.returncode) + ' --- ' + std[1])
-            sys.exit(p.returncode)
-
+            status = 1
+            #sys.exit(p.returncode)
+        return status
 
 
 def main():
@@ -556,19 +579,22 @@ def main():
     group = parser.add_mutually_exclusive_group(required=True)    
     group.add_argument('-i', '--image', dest='image', metavar='ImgFile', help='tgz file that contains manifest and img')
     group.add_argument('-r', '--imgid', dest='imgid', metavar='ImgId', help='Id of the image stored in the repository')
-    group1 = parser.add_mutually_exclusive_group(required=True)
+    group1 = parser.add_mutually_exclusive_group()
     group1.add_argument('-x', '--xcat', dest='xcat', metavar='MachineName', help='Deploy image to xCAT. The argument is the machine name (minicluster, india ...)')
-    group1.add_argument('-e', '--euca', dest='euca', metavar='Address', help='Deploy the image to Eucalyptus, which is in the specified addr')
-    group1.add_argument('-o', '--opennebula', dest='opennebula', metavar='Address', help='Deploy the image to OpenNebula, which is in the specified addr')
-    group1.add_argument('-n', '--nimbus', dest='nimbus', metavar='Address', help='Deploy the image to Nimbus, which is in the specified addr')
+    group1.add_argument('-e', '--euca', dest='euca', nargs='?', metavar='Address:port', help='Deploy the image to Eucalyptus, which is in the specified addr')
+    group1.add_argument('-o', '--opennebula', dest='opennebula', nargs='?', metavar='Address', help='Deploy the image to OpenNebula, which is in the specified addr')
+    group1.add_argument('-n', '--nimbus', dest='nimbus', nargs='?', metavar='Address', help='Deploy the image to Nimbus, which is in the specified addr')
     
     args = parser.parse_args()
+
+    #print args
+    
 
     print 'Starting image deployer...'
     
     verbose = True #to activate the print
     
-    print "Please insert the password for the user "+args.user+""
+    print "Please insert the password for the user " + args.user + ""
     m = hashlib.md5()
     m.update(getpass())
     passwd = m.hexdigest()
@@ -579,7 +605,7 @@ def main():
 
     used_args = sys.argv[1:]
     
-    print args
+    
     
     image_source = "repo"
     image = args.imgid    
@@ -597,14 +623,14 @@ def main():
             sys.exit(1)
         else:
             imgdeploy.xcat_method(args.xcat, args.imgid)
-    #EUCALYPTUS
-    elif args.euca != None:
+    #EUCALYPTUS    
+    if ('-e' in used_args or '--euca' in used_args):
         imgdeploy.iaas_generic(args.euca, image, image_source, "euca")        
     #OpenNebula
-    elif args.opennebula != None:
+    elif ('-o' in used_args or '--opennebula' in used_args):
         imgdeploy.iaas_generic(args.opennebula, image, image_source, "opennebula")
     #NIMBUS
-    elif args.nimbus != None:
+    elif ('-n' in used_args or '--nimbus' in used_args):
         #TODO        
         print "Nimbus deployment is not implemented yet"
     
