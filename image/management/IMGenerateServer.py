@@ -306,12 +306,26 @@ class IMGenerateServer(object):
                         #while stat != 0 and :
                         self.logger.info("Umount scratch directory in the VM")
                         cmd = "ssh -q " + self.rootId + "@" + vmaddr
-                        cmdmount = " umount " + self.tempdir
-                        self.logger.debug(cmd + cmdmount)
-                        stat = os.system(cmd + cmdmount)
-                        self.logger.debug("exit status " + str(stat))
+                        cmdmount = " umount " + self.tempdir                        
+                        #stat = os.system(cmd + cmdmount)
+                        #self.logger.debug("exit status " + str(stat))
                             #if stat != 0:
-                            #    time.sleep(2)
+                            #    time.sleep(2)                        
+                        #umount the image
+                        max_retry = 5
+                        retry_done = 0
+                        umounted = False
+                        #Done making changes to root fs
+                        while not umounted:
+                            self.logger.debug(cmd + cmdmount) 
+                            status = os.system(cmd + cmdmount)
+                            if status == 0:
+                                umounted = True
+                            elif retry_done == max_retry:
+                                umounted = True
+                                self.logger.error("Problems to umount the image. Exit status "+str(stat))
+                            else:
+                                time.sleep(2)
                         
                         #destroy VM
                         self.logger.info("Destroy VM")
