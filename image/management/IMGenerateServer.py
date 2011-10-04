@@ -325,7 +325,7 @@ class IMGenerateServer(object):
                                 umounted = True
                                 self.logger.error("Problems to umount the image. Exit status "+str(stat))
                             else:
-                                time.sleep(2)
+                                time.sleep(5)
                         
                         #destroy VM
                         self.logger.info("Destroy VM")
