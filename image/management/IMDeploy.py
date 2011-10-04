@@ -158,7 +158,7 @@ class IMDeploy(object):
                         if imagebackpath != None:        
                             #print "self." + iaas_type + "_method(\""+ str(imagebackpath) + "\",\"" + str(kernel) + "\",\"" +\
                             #      str(operatingsystem) + "\",\"" + str(iaas_address) + "\")"   
-                            eval("self." + iaas_type + "_method(\""+ str(imagebackpath) + "\",\"" + str(kernel) + "\",\"" +
+                            eval("self." + iaas_type + "_method(\"" + str(imagebackpath) + "\",\"" + str(kernel) + "\",\"" + 
                                   str(operatingsystem) + "\",\"" + str(iaas_address) + "\")")
                         else:
                             self._log.error("CANNOT retrieve the image from server. EXIT.")
@@ -233,6 +233,11 @@ class IMDeploy(object):
         print cmd
         self._log.debug(cmd)
         #os.system(cmd)
+        
+        print "Your images has been registered on Eucalyptus with the id printed in the previous line (IMAGE  id)" +\
+              "To launch a VM you can use euca-run-instances -k keyfile -n <#instances> id" +\
+              "More information is provided in https://portal.futuregrid.org/tutorials/eucalyptus"              
+        
 
     def opennebula_method(self, imagebackpath, kernel, operatingsystem, iaas_address):
         
@@ -240,7 +245,7 @@ class IMDeploy(object):
 
         print filename
         
-        name = filename.split(".")[0] + "-" + self.user
+        name = operatingsystem + "-" + filename.split(".")[0] + "-" + self.user
         print name
         
         f = open(filename + ".one", 'w')
@@ -252,36 +257,40 @@ class IMDeploy(object):
         self._log.debug("Authenticating against OpenNebula")
         if self._verbose:
             print "Authenticating against OpenNebula"
-        os.system("oneauth login " + self.user)
+        cmd = "oneauth login " + self.user
+        print cmd
+        #os.system(cmd)
         
         self._log.debug("Uploading image to OpenNebula")
         if self._verbose:
             print "Uploading image to OpenNebula"
-        os.system("oneimage register " + filename + ".one")
+        cmd = "oneimage register " + filename + ".one"
+        print cmd
+        #os.system(cmd)
         
         cmd = "rm -f " + filename + ".one"
         print cmd
-        os.system(cmd)
+        #os.system(cmd)
         
         f = open(filename + "_template.one", 'w')        
         if (operatingsystem == "centos"):                        
             f.write("#--------------------------------------- \n"
                     "# VM definition example \n"
                     "#--------------------------------------- \n"            
-                    "NAME = " + name + " \n"
+                    "NAME = \"" + name + "\" \n"
                     "\n"
                     "CPU    = 0.5\n"
                     "MEMORY = 2048\n"
                     "\n"
                     "OS = [ \n"
-                    "  arch=\"x86_64\" \n"
+                    "  arch=\"x86_64\", \n"
                     "  kernel=\"/srv/cloud/images/testmyimg/centos_ker_ini/vmlinuz-" + kernel + "\", \n"
-                    "  initrd=\"/srv/cloud/images/testmyimg/centos_ker_ini/initrd-" + kernel + "\", \n"
+                    "  initrd=\"/srv/cloud/images/testmyimg/centos_ker_ini/initrd-" + kernel + ".img\", \n"
                     "  root=\"hda\" \n"
                     "  ] \n"
                     " \n"
                     "DISK = [ \n"
-                    "  image   = " + name + ",\n"
+                    "  image   = \"" + name + "\",\n"
                     "  target   = \"hda\",\n"
                     "  readonly = \"no\"]\n"
                     "\n"
@@ -291,7 +300,7 @@ class IMDeploy(object):
                     "FEATURES=[ acpi=\"no\" ]\n"
                     "\n"
                     "CONTEXT = [\n"
-                    "   files = \"/srv/cloud/images/centos/init.sh /srv/cloud/one/.ssh/id_rsa.pub\",\n"
+                    "   files = \"/srv/cloud/images/centos/init.sh /tmp/id_rsa.pub\",\n"
                     "   target = \"hdc\",\n"
                     "   root_pubkey = \"id_rsa.pub\"\n"
                     "]\n"
@@ -305,20 +314,20 @@ class IMDeploy(object):
             f.write("#--------------------------------------- \n"
                     "# VM definition example \n"
                     "#--------------------------------------- \n"            
-                    "NAME = " + name + " \n"
+                    "NAME = \"" + name + "\" \n"
                     "\n"
                     "CPU    = 0.5\n"
                     "MEMORY = 2048\n"
                     "\n"
                     "OS = [ \n"
-                    "  arch=\"x86_64\" \n"
+                    "  arch=\"x86_64\", \n"
                     "  kernel=\"/srv/cloud/images/testmyimg/ubuntu_ker_ini/vmlinuz-" + kernel + "\", \n"
-                    "  initrd=\"/srv/cloud/images/testmyimg/ubuntu_ker_ini/initrd-" + kernel + "\", \n"
+                    "  initrd=\"/srv/cloud/images/testmyimg/ubuntu_ker_ini/initrd.img-" + kernel + "\", \n"
                     "  root=\"sda\" \n"
                     "  ] \n"
                     " \n"
                     "DISK = [ \n"
-                    "  image   = " + name + ",\n"
+                    "  image   = \"" + name + "\",\n"
                     "  target  = \"hda\",\n"
                     "  bus     = \"ide\",\n"
                     "  readonly = \"no\"]\n"
@@ -329,7 +338,7 @@ class IMDeploy(object):
                     "FEATURES=[ acpi=\"no\" ]\n"
                     "\n"
                     "CONTEXT = [\n"
-                    "   files = \"/srv/cloud/images/ubuntu/init.sh /srv/cloud/one/.ssh/id_rsa.pub\",\n"
+                    "   files = \"/srv/cloud/images/ubuntu/init.sh /tmp/id_rsa.pub\",\n"
                     "   target = \"hdc\",\n"
                     "   root_pubkey = \"id_rsa.pub\"\n"
                     "]\n"
@@ -341,9 +350,10 @@ class IMDeploy(object):
         
         f.close()
         
-        print " The file " + filename + "_template.one is an example of the template that it is needed to launch a VM \n"
-        "To see the availabe networks you can use onevnet list\n"
-        "To launch a VM you can use onevm create " + filename + "_template.one \n"
+        print "The file " + filename + "_template.one is an example of the template that it is needed to launch a VM \n" +\
+        "You need to modify the kernel and initrd path to indiacte their location in your particular system\n" +\
+        "To see the availabe networks you can use onevnet list\n" +\
+        "To launch a VM you can use onevm create " + filename + "_template.one \n" 
         
         #create template to upload image to opennebula repository
         
@@ -584,6 +594,7 @@ def main():
     group1.add_argument('-e', '--euca', dest='euca', nargs='?', metavar='Address:port', help='Deploy the image to Eucalyptus, which is in the specified addr')
     group1.add_argument('-o', '--opennebula', dest='opennebula', nargs='?', metavar='Address', help='Deploy the image to OpenNebula, which is in the specified addr')
     group1.add_argument('-n', '--nimbus', dest='nimbus', nargs='?', metavar='Address', help='Deploy the image to Nimbus, which is in the specified addr')
+    group1.add_argument('-s', '--openstack', dest='openstack', nargs='?', metavar='Address', help='Deploy the image to OpenStack, which is in the specified addr')
     
     args = parser.parse_args()
 
@@ -604,8 +615,6 @@ def main():
     imgdeploy = IMDeploy(args.kernel, args.user, passwd, verbose, args.debug)
 
     used_args = sys.argv[1:]
-    
-    
     
     image_source = "repo"
     image = args.imgid    
@@ -633,6 +642,9 @@ def main():
     elif ('-n' in used_args or '--nimbus' in used_args):
         #TODO        
         print "Nimbus deployment is not implemented yet"
+    elif ('-s' in used_args or '--openstack' in used_args):
+        #TODO        
+        print "OpenStack deployment is not implemented yet"
     
 
 if __name__ == "__main__":

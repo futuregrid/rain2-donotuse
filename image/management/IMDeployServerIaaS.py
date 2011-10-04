@@ -69,6 +69,8 @@ class IMDeployServerIaaS(object):
         
         
         self.default_euca_kernel = '2.6.27.21-0.1-xen'
+        self.default_kvm_centos5_kernel = '2.6.18-238.el5'
+        self.default_kvm_ubuntu_kernel = '2.6.35-22-generic'
         
         print "\nReading Configuration file from " + self._deployConf.getConfigFile() + "\n"
         
@@ -299,7 +301,7 @@ class IMDeployServerIaaS(object):
 
         # Setup fstab
         fstab = '''
-# Default Ubuntu fstab
+# Default fstab
  /dev/sda1       /             ext3     defaults,errors=remount-ro 0 0
  /dev/sda3    swap          swap     defaults              0 0
  proc            /proc         proc     defaults                   0 0
@@ -331,7 +333,7 @@ class IMDeployServerIaaS(object):
 
         # Setup fstab
         fstab = '''
-# Default Ubuntu fstab
+# Default fstab
  /dev/sda1       /             ext3     defaults,errors=remount-ro 0 0
  /dev/sda3    swap          swap     defaults              0 0
  proc            /proc         proc     defaults                   0 0
@@ -350,7 +352,7 @@ class IMDeployServerIaaS(object):
         #Select kernel version
         #This is not yet supported as we get always the same kernel
         self.logger.debug("kernel: " + self.kernel)
-
+                
         #download vmcontext.sh
         self.runCmd('sudo wget ' + self.http_server + "/opennebula/" + self.operatingsystem + '/vmcontext.sh -O ' + localtempdir + '/temp/etc/init.d/vmcontext.sh')
         self.runCmd('sudo chmod +x ' + localtempdir + '/temp/etc/init.d/vmcontext.sh')
@@ -360,14 +362,14 @@ class IMDeployServerIaaS(object):
         rc_local = ""
         if self.operatingsystem == "ubuntu":
             #setup vmcontext.sh
-            self.runCmd("sudo ln -s "+localtempdir+"/temp/etc/init.d/vmcontext.sh "+localtempdir+"/temp/etc/rc2.d/S01vmcontext.sh")
+            self.runCmd("sudo ln -s /etc/init.d/vmcontext.sh "+localtempdir+"/temp/etc/rc2.d/S01vmcontext.sh")
             device = "sda" 
             rc_local = "mount -t iso9660 /dev/sr0 /mnt \n"
             #delete persisten network rules
             self.runCmd("sudo rm -f "+localtempdir+"/temp/etc/udev/rules.d/70-persistent-net.rules")
             
             if self.kernel == "None":
-                self.kernel = self.default_xcat_kernel_ubuntu 
+                self.kernel = self.default_kvm_ubuntu_kernel 
             
         elif self.operatingsystem == "centos":
             #setup vmcontext.sh
@@ -381,13 +383,13 @@ class IMDeployServerIaaS(object):
                 self.runCmd("sudo rm -f "+localtempdir+"/temp/etc/udev/rules.d/70-persistent-net.rules")
             
             if self.kernel == "None":
-                self.kernel = self.default_xcat_kernel_centos
+                self.kernel = self.default_kvm_centos5_kernel
 
         #Inject the kernel
         self.logger.info('Retrieving kernel ' + self.kernel)
-        self.runCmd('wget ' + self.http_server + 'kernel/' + self.kernel + '.modules.tar.gz -O ' + localtempdir + '/temp/' + self.kernel + '.modules.tar.gz')
-        self.runCmd('sudo tar xfz ' + localtempdir + '/temp/' + self.kernel + '.modules.tar.gz --directory ' + localtempdir + '/temp/lib/modules/')
-        self.logger.info('Injected kernel ' + kernel)
+        self.runCmd('wget ' + self.http_server + 'kernel/' + self.kernel + '.modules.tar.gz -O ' + localtempdir + '/' + self.kernel + '.modules.tar.gz')
+        self.runCmd('sudo tar xfz ' + localtempdir + '/' + self.kernel + '.modules.tar.gz --directory ' + localtempdir + '/temp/lib/modules/')
+        self.logger.info('Injected kernel ' + self.kernel)
 
         #customize rc.local
         rc_local += "if [ -f /mnt/context.sh ]; then \n"
@@ -410,12 +412,13 @@ class IMDeployServerIaaS(object):
         
         self.runCmd('sudo mv -f ' + localtempdir + '/rc.local ' + localtempdir + '/temp/etc/rc.local')
         self.runCmd('sudo chown root:root ' + localtempdir + '/temp/etc/rc.local')
+        self.runCmd('sudo chmod 755 ' + localtempdir + '/temp/etc/rc.local')
         
         # Setup fstab
-        fstab = "# Default Ubuntu fstab \n "
-        "/dev/" + device + "       /             ext3     defaults,errors=remount-ro 0 0 \n"    
-        "proc            /proc         proc     defaults                   0 0 \n"
-        "devpts          /dev/pts      devpts   gid=5,mode=620             0 0 \n"
+        fstab = "# Default fstab \n "
+        fstab += "/dev/" + device + "       /             ext3     defaults,errors=remount-ro 0 0 \n"    
+        fstab += "proc            /proc         proc     defaults                   0 0 \n"
+        fstab += "devpts          /dev/pts      devpts   gid=5,mode=620             0 0 \n"
  
         f = open(localtempdir + '/fstab', 'w')
         f.write(fstab)
