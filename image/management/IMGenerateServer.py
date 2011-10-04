@@ -292,8 +292,7 @@ class IMGenerateServer(object):
             
                     uid = self._rExec(self.rootId, cmdexec, vmaddr)
                     
-                    self.logger.info("copying fg-image-generate.log to scrach partition " + self.tempdirserver + "/" + str(vmID) + "_gen.log"
-                                     )
+                    self.logger.info("copying fg-image-generate.log to scrach partition " + self.tempdirserver + "/" + str(vmID) + "_gen.log")
                     cmdscp = "scp -q " + self.rootId + "@" + vmaddr + ":/root/fg-image-generate.log " + self.tempdirserver + "/" + str(vmID) + "_gen.log"
                     os.system(cmdscp)
                     
@@ -306,7 +305,7 @@ class IMGenerateServer(object):
                         #while stat != 0 and :
                         self.logger.info("Umount scratch directory in the VM")
                         cmd = "ssh -q " + self.rootId + "@" + vmaddr
-                        cmdmount = " umount " + self.tempdir                        
+                        cmdmount = " umount " + self.tempdir + " 2>/dev/null"                        
                         #stat = os.system(cmd + cmdmount)
                         #self.logger.debug("exit status " + str(stat))
                             #if stat != 0:
