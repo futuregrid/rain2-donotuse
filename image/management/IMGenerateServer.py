@@ -318,10 +318,11 @@ class IMGenerateServer(object):
                         #Done making changes to root fs
                         while not umounted:
                             self.logger.debug(cmd + cmdmount) 
-                            status = os.system(cmd + cmdmount)
-                            if status == 0:
+                            stat = os.system(cmd + cmdmount)
+                            if stat == 0:
                                 umounted = True
                             elif retry_done == max_retry:
+                                self.logger.debug("exit status " + str(stat))
                                 umounted = True
                                 self.logger.error("Problems to umount the image. Exit status "+str(stat))
                             else:
