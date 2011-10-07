@@ -202,7 +202,7 @@ class IRServiceProxy(object):
         output:
         0 is general error
         """
-        
+        status = "0"
         if (self.checkMeta(attributeString) and os.path.isfile(imgFile)):
             
             status = "0"
@@ -253,6 +253,8 @@ class IRServiceProxy(object):
             else:
                 self._log.error(str(checkauthstat[0]))
                 status = checkauthstat[0]
+        else:
+            status = "ERROR: uploading image to the repository. File does not exists or metadata string is invalid"
         return status
         
     ############################################################
