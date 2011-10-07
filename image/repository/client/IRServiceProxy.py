@@ -50,7 +50,7 @@ class IRServiceProxy(object):
         #self._fgirimgstore = self._conf.getFgirimgstore()
         self._port = self._conf.getPort()
         self._serveraddr = self._conf.getServeraddr()
-        self._verbose = verbose
+        self.verbose = verbose
         
         self._ca_certs = self._conf.getCaCerts()
         self._certfile = self._conf.getCertFile()
@@ -101,7 +101,7 @@ class IRServiceProxy(object):
         while not endloop:
             ret = self._connIrServer.read(1024)
             if (ret == "OK"):
-                if self._verbose:
+                if self.verbose:
                     print "Authentication OK"
                 self._log.debug("Authentication OK")
                 endloop = True
@@ -109,7 +109,7 @@ class IRServiceProxy(object):
             elif (ret == "TryAuthAgain"):
                 msg = "Permission denied, please try again. User is " + userId                    
                 self._log.error(msg)
-                if self._verbose:
+                if self.verbose:
                     print msg                            
                 m = hashlib.md5()
                 m.update(getpass())
@@ -117,7 +117,7 @@ class IRServiceProxy(object):
                 self._connIrServer.write(passwd)
             else:                
                 self._log.error(str(ret))
-                if self._verbose:
+                if self.verbose:
                     print ret
                 checkauthstat.append(str(ret))
                 endloop = True
@@ -148,7 +148,7 @@ class IRServiceProxy(object):
                 output = None
         else:
             self._log.error(str(checkauthstat[0]))
-            if self._verbose:
+            if self.verbose:
                 print checkauthstat[0]
             
         return output
@@ -181,7 +181,7 @@ class IRServiceProxy(object):
                 output = None
         else:
             self._log.error(str(checkauthstat[0]))
-            if self._verbose:
+            if self.verbose:
                 print checkauthstat[0]
                 
         return output
@@ -212,7 +212,7 @@ class IRServiceProxy(object):
             size = os.path.getsize(imgFile)
             extension = os.path.splitext(imgFile)[1].strip() 
                         
-            if self._verbose:
+            if self.verbose:
                 print "Checking quota and Generating an ImgId"
             msg = userId + "|" + str(passwd) + "|" + self.passwdtype + "|put|" + userIdB + "|" + str(size) + "|" + extension +\
                  "|" + attributeString
@@ -227,9 +227,9 @@ class IRServiceProxy(object):
                     imgStore = output[0] 
                     imgId = output[1]
                     fileLocation = imgStore + imgId
-                    if self._verbose:
+                    if self.verbose:
                         print "Uploading the image"
-                    if self._verbose:
+                    if self.verbose:
                         cmd = 'scp ' + imgFile + " " + \
                             self._serveraddr + ":" + fileLocation
                     else:
@@ -240,7 +240,7 @@ class IRServiceProxy(object):
                         self._log.error(str(stat))
                         self._connIrServer.write("Fail")
                     else:
-                        if self._verbose:
+                        if self.verbose:
                             print "Registering the image"                            
                         msg = fileLocation
                         self._connIrServer.write(msg)
@@ -278,7 +278,7 @@ class IRServiceProxy(object):
             output = self._connIrServer.read(2048)
         else:
             self._log.error(str(checkauthstat[0]))
-            if self._verbose:
+            if self.verbose:
                 print checkauthstat[0]
             
         return output
@@ -305,7 +305,7 @@ class IRServiceProxy(object):
             output = self._connIrServer.read(2048)
         else:
             self._log.error(str(checkauthstat[0]))
-            if self._verbose:
+            if self.verbose:
                 print checkauthstat[0]
             
         return output
@@ -334,7 +334,7 @@ class IRServiceProxy(object):
                 output = self._connIrServer.read(2048)
             else:
                 self._log.error(str(checkauthstat[0]))
-                if self._verbose:
+                if self.verbose:
                     print checkauthstat[0]
         else:
             output = "Available options: " + str(ImgMeta.Permission)
@@ -363,7 +363,7 @@ class IRServiceProxy(object):
             output = self._connIrServer.read(2048)
         else:
             self._log.error(str(checkauthstat[0]))
-            if self._verbose:
+            if self.verbose:
                 print checkauthstat[0]
             
         return output
@@ -390,7 +390,7 @@ class IRServiceProxy(object):
             output = self._connIrServer.read(2048)
         else:
             self._log.error(str(checkauthstat[0]))
-            if self._verbose:
+            if self.verbose:
                 print checkauthstat[0]
             
         return output
@@ -417,7 +417,7 @@ class IRServiceProxy(object):
             output = self._connIrServer.read(32768)
         else:
             self._log.error(str(checkauthstat[0]))
-            if self._verbose:
+            if self.verbose:
                 print checkauthstat[0]
             
         return output
@@ -446,10 +446,10 @@ class IRServiceProxy(object):
                 output = self._connIrServer.read(2048)
             else:
                 self._log.error(str(checkauthstat[0]))
-                if self._verbose:
+                if self.verbose:
                     print checkauthstat[0]
         except:
-            if self._verbose:
+            if self.verbose:
                 print "ERROR: evaluating the quota. It must be a number or a mathematical operation enclosed in \"\" characters"        
             
         return output
@@ -478,7 +478,7 @@ class IRServiceProxy(object):
                 output = self._connIrServer.read(2048)
             else:
                 self._log.error(str(checkauthstat[0]))
-                if self._verbose:
+                if self.verbose:
                     print checkauthstat[0]
         else:
             output = "Available options: " + str(IRUser.Role)
@@ -509,7 +509,7 @@ class IRServiceProxy(object):
                 output = self._connIrServer.read(2048)
             else:
                 self._log.error(str(checkauthstat[0]))
-                if self._verbose:
+                if self.verbose:
                     print checkauthstat[0]
         else:
             output = "Available options: " + str(IRUser.Status)
@@ -539,7 +539,7 @@ class IRServiceProxy(object):
             output = self._connIrServer.read(32768)
         else:
             self._log.error(str(checkauthstat[0]))
-            if self._verbose:
+            if self.verbose:
                 print checkauthstat[0]
             
         return output
@@ -566,7 +566,7 @@ class IRServiceProxy(object):
             output = self._connIrServer.read(32768)
         else:
             self._log.error(str(checkauthstat[0]))
-            if self._verbose:
+            if self.verbose:
                 print checkauthstat[0]
             
         return output
@@ -672,7 +672,7 @@ class IRServiceProxy(object):
                     fulldestpath = aux
                 
     
-        if self._verbose:
+        if self.verbose:
             #cmdscp = "scp " + userId + "@" + imgURI + " " + fulldestpath
             cmdscp = "scp " + imgURI + " " + fulldestpath
         else:
@@ -681,7 +681,7 @@ class IRServiceProxy(object):
         #print cmdscp
         output = ""
         try:
-            if self._verbose:
+            if self.verbose:
                 print "Retrieving the image"
             stat = os.system(cmdscp)
             if (stat == 0):

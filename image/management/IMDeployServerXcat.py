@@ -767,6 +767,11 @@ sysfs   /sys     sysfs    defaults       0 0
         
         #Inject the kernel
         self.logger.info('Retrieving kernel ' + self.kernel)
+
+#HARDCODED FOR NOW UNTIL I SOLVE THE PROBLEMS WITH THIS VERSION        
+        if (self.version == "6"):
+            self.kernel="2.6.32-71.el6"
+        
         status = self.runCmd('wget ' + self.http_server + '/kernel/' + self.kernel + '.modules.tar.gz -O ' + self.path + '' + self.kernel + '.modules.tar.gz')
         self.runCmd('tar xfz ' + self.path + '' + self.kernel + '.modules.tar.gz --directory ' + self.path + '/rootimg/lib/modules/')
         self.runCmd('rm -f ' + self.path + '' + self.kernel + '.modules.tar.gz')
@@ -774,10 +779,18 @@ sysfs   /sys     sysfs    defaults       0 0
 
         
         self.logger.info('Installing LDAP packages')
-        self.runCmd('chroot ' + self.path + '/rootimg/ yum -y install openldap-clients nss_ldap')
-
+        if (self.version == "5"):
+            self.runCmd('chroot ' + self.path + '/rootimg/ yum -y install openldap-clients nss_ldap')
+            self.runCmd('wget '+ self.http_server +'/ldap/nsswitch.conf -O ' + self.path + '/rootimg/etc/nsswitch.conf')
+        elif (self.version == "6"):
+            self.runCmd('chroot ' + self.path + '/rootimg/ yum -y install openldap-clients nss-pam-ldapd sssd')                       
+            self.runCmd('wget '+ self.http_server +'/ldap/nsswitch.conf_centos6 -O ' + self.path + '/rootimg/etc/nsswitch.conf')
+            self.runCmd('wget '+ self.http_server +'/ldap/sssd.conf_centos6 -O ' + self.path + '/rootimg/etc/sssd/sssd.conf')
+            self.runCmd('chmod 600 '+ self.path + '/rootimg/etc/sssd/sssd.conf')
+            self.runCmd('chroot ' + self.path + '/rootimg/ chkconfig sssd on')
+            
         self.logger.info('Configuring LDAP access')
-        self.runCmd('wget '+ self.http_server +'/ldap/nsswitch.conf -O ' + self.path + '/rootimg/etc/nsswitch.conf')
+        
         self.runCmd('mkdir -p ' + self.path + '/rootimg/etc/openldap/cacerts ' + self.path + '/rootimg/N/u')
         self.runCmd('wget '+ self.http_server +'/ldap/cacerts/12d3b66a.0 -O ' + self.path + '/rootimg/etc/openldap/cacerts/12d3b66a.0')
         self.runCmd('wget '+ self.http_server +'/ldap/cacerts/cacert.pem -O ' + self.path + '/rootimg/etc/openldap/cacerts/cacert.pem')

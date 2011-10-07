@@ -258,6 +258,7 @@ class IMDeploy(object):
         if self._verbose:
             print "Authenticating against OpenNebula"
         cmd = "oneauth login " + self.user
+        #oneuser in OpenNebula 3.0
         print cmd
         #os.system(cmd)
         
@@ -272,7 +273,8 @@ class IMDeploy(object):
         print cmd
         #os.system(cmd)
         
-        f = open(filename + "_template.one", 'w')        
+        f = open(filename + "_template.one", 'w')     
+        #On OpenNebula 3.0 NETWORK_ID and IMAGE_ID  
         if (operatingsystem == "centos"):                        
             f.write("#--------------------------------------- \n"
                     "# VM definition example \n"
