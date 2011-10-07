@@ -785,7 +785,7 @@ sysfs   /sys     sysfs    defaults       0 0
         self.runCmd('wget '+ self.http_server +'/ldap/openldap/ldap.conf -O ' + self.path + '/rootimg/etc/openldap/ldap.conf')
         os.system('sudo sed -i \'s/enforcing/disabled/g\' ' + self.path + '/rootimg/etc/selinux/config')
 
-        self.runCmd('wget '+ self.http_server +'/ldap/sshd_centos -O ' + self.path + '/rootimg/usr/sbin/sshd')
+        self.runCmd('wget '+ self.http_server +'/ldap/sshd_centos'+ self.version + ' -O ' + self.path + '/rootimg/usr/sbin/sshd')
         os.system('echo "UseLPK yes" | sudo tee -a ' + self.path + '/rootimg/etc/ssh/sshd_config > /dev/null')
         os.system('echo "LpkLdapConf /etc/ldap.conf" | sudo tee -a ' + self.path + '/rootimg/etc/ssh/sshd_config > /dev/null')
 

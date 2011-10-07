@@ -187,10 +187,11 @@ class fgShellImage(Cmd):
         group.add_argument('-r', '--imgid', dest='imgid', metavar='ImgId', help='Id of the image stored in the repository')
         group1 = parser.add_mutually_exclusive_group(required=True)
         group1.add_argument('-x', '--xcat', dest='xcat', metavar='MachineName', help='Deploy image to xCAT. The argument is the machine name (minicluster, india ...)')
-        group1.add_argument('-e', '--euca', dest='euca', metavar='Address', help='Deploy the image to Eucalyptus, which is in the specified addr')
-        group1.add_argument('-o', '--opennebula', dest='opennebula', metavar='Address', help='Deploy the image to OpenNebula, which is in the specified addr')
-        group1.add_argument('-n', '--nimbus', dest='nimbus', metavar='Address', help='Deploy the image to Nimbus, which is in the specified addr')
-        
+        group1.add_argument('-e', '--euca', dest='euca', nargs='?', metavar='Address:port', help='Deploy the image to Eucalyptus, which is in the specified addr')        
+        group1.add_argument('-o', '--opennebula', dest='opennebula', nargs='?', metavar='Address', help='Deploy the image to OpenNebula, which is in the specified addr')
+        group1.add_argument('-n', '--nimbus', dest='nimbus', nargs='?', metavar='Address', help='Deploy the image to Nimbus, which is in the specified addr')
+        group1.add_argument('-s', '--openstack', dest='openstack', nargs='?', metavar='Address', help='Deploy the image to OpenStack, which is in the specified addr')
+          
         args = parser.parse_args()
     
         print 'Starting image deployer...'
@@ -221,16 +222,19 @@ class fgShellImage(Cmd):
                 sys.exit(1)
             else:
                 imgdeploy.xcat_method(args.xcat, args.imgid)
-        #EUCALYPTUS
-        elif args.euca != None:
+        #EUCALYPTUS    
+        if ('-e' in used_args or '--euca' in used_args):
             imgdeploy.iaas_generic(args.euca, image, image_source, "euca")        
         #OpenNebula
-        elif args.opennebula != None:
+        elif ('-o' in used_args or '--opennebula' in used_args):
             imgdeploy.iaas_generic(args.opennebula, image, image_source, "opennebula")
         #NIMBUS
-        elif args.nimbus != None:
+        elif ('-n' in used_args or '--nimbus' in used_args):
             #TODO        
             print "Nimbus deployment is not implemented yet"
+        elif ('-s' in used_args or '--openstack' in used_args):
+            #TODO        
+            print "OpenStack deployment is not implemented yet"
 
     def help_imagedeploy(self):
         msg = "IMAGE deploy command: Deploy an image in a FG infrastructure. \n "
