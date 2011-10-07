@@ -67,7 +67,7 @@ class fgShellRepo(Cmd):
         except:
             print "Server replied: " + str(imgsList)
             print "histimg: Error:" + str(sys.exc_info()) + "\n"
-            service._log.error("do_repohistimg: Error interpreting the list of images from Image Repository" + str(sys.exc_info()[0]))
+            self._log.error("do_repohistimg: Error interpreting the list of images from Image Repository" + str(sys.exc_info()[0]))
 
     def help_repohistimg(self):
         msg = "Image Repository histimg command: Return information about the " + \
@@ -97,7 +97,7 @@ class fgShellRepo(Cmd):
             except:
                 print "Server replied: " + str(userList)
                 print "histuser: Error:" + str(sys.exc_info()) + "\n"
-                service._log.error("do_repohistuser: Error interpreting the list of users from Image Repository" + str(sys.exc_info()))
+                self._log.error("do_repohistuser: Error interpreting the list of users from Image Repository" + str(sys.exc_info()))
 
     def help_repohistuser(self):
         msg = "Image Repository histuser command: Return information about the " + \
@@ -323,7 +323,7 @@ class fgShellRepo(Cmd):
 
         if (len(args) >= 2):
             #connect with the server
-            if not service.connection():
+            if not self._service.connection():
                 print "ERROR: Connection with the server failed"
                 return
             
@@ -381,7 +381,7 @@ class fgShellRepo(Cmd):
         args = self.getArgs(args)
         if (len(args) == 2):
             #connect with the server
-            if not service.connection():
+            if not self._service.connection():
                 print "ERROR: Connection with the server failed"
                 return
             status = self._service.setPermission(self.user, self.passwd, self.user, args[0], args[1])
@@ -407,7 +407,7 @@ class fgShellRepo(Cmd):
 
         if (len(args) == 1):
             #connect with the server
-            if not service.connection():
+            if not self._service.connection():
                 print "ERROR: Connection with the server failed"
                 return
             imgstatus = self._service.get(self.user, self.passwd, self.user, "img", args[1], "./")
@@ -442,14 +442,14 @@ class fgShellRepo(Cmd):
         ok = False
         if (len(args) > 1):
             #connect with the server
-            if not service.connection():
+            if not self._service.connection():
                 print "ERROR: Connection with the server failed"
                 return
             status = self._service.put(self.user, self.passwd, self.user, args[0], second)
             ok = True
         elif (len(args) == 1):
             #connect with the server
-            if not service.connection():
+            if not self._service.connection():
                 print "ERROR: Connection with the server failed"
                 return
             status = self._service.put(self.user, self.passwd, self.user, args[0], "")
@@ -497,7 +497,7 @@ class fgShellRepo(Cmd):
         args = self.getArgs(args)
         if (len(args) == 1):
             #connect with the server
-            if not service.connection():
+            if not self._service.connection():
                 print "ERROR: Connection with the server failed"
                 return
             if (self._service.remove(self.user, self.passwd, self.user, args[0]) == "True"):
