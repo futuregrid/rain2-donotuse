@@ -276,15 +276,16 @@ class IRServiceProxy(object):
         checkauthstat = []
         output = None
         success = "False"
-        msg = userId + "|" + str(passwd) + "|" + self.passwdtype + "|modify|" + userIdB + "|" + imgId + "|" + attributeString
-        self._connIrServer.write(msg)
-        if self.check_auth(userId, checkauthstat):
-            #wait for output
-            output = self._connIrServer.read(2048)
-        else:
-            self._log.error(str(checkauthstat[0]))
-            if self.verbose:
-                print checkauthstat[0]
+        if (self.checkMeta(attributeString)):       
+            msg = userId + "|" + str(passwd) + "|" + self.passwdtype + "|modify|" + userIdB + "|" + imgId + "|" + attributeString
+            self._connIrServer.write(msg)
+            if self.check_auth(userId, checkauthstat):
+                #wait for output
+                output = self._connIrServer.read(2048)
+            else:
+                self._log.error(str(checkauthstat[0]))
+                if self.verbose:
+                    print checkauthstat[0]
             
         return output
     
@@ -625,7 +626,7 @@ class IRServiceProxy(object):
                 else:
                     self._log.warning("Wrong attribute: "+key)
                     if self.verbose:
-                        print "Attribute "+key+" is invalid. It will be ignored."
+                        print "WARNING: Attribute "+key+" is invalid. It will be ignored."
         return correct
     """
     ############################################################
