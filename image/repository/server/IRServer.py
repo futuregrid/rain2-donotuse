@@ -55,7 +55,7 @@ class IRServer(object):
                 
         proc_list = []
         total_count = 0
-        while True:        
+        while True:            
             if len(proc_list) == self.proc_max:
                 full = True
                 while full:
@@ -68,7 +68,7 @@ class IRServer(object):
                     if full:
                         time.sleep(self.refresh_status)
             
-            total_count += 1
+            total_count += 1            
             #channel, details = sock.accept()
             newsocket, fromaddr = sock.accept()
             connstream = None
@@ -174,8 +174,7 @@ class IRServer(object):
         #channel.write("OK")
         
         ## For test, remove previous line
-        
-        
+                
         needtoclose = False      
         if (command == "list"):
             if (len(params) == self.numparams + 2):
@@ -192,12 +191,17 @@ class IRServer(object):
             if (len(params) == self.numparams + 3):
                 output = self._service.get(params[4], params[5], params[6])
                 channel.write(str(output))
-                if channel.read(1024) == 'OK':
+                if output != None:
+                    status = channel.read(1024) ##just to wait for client answer.
+                    if status != 'OK':
+                        self._log.error("ERROR: Client did not receive the image")
+                        needtoclose = False
+                    else:
+                        needtoclose = True                 
                     if (self._service.getBackend() != "mysql"):
                         cmdrm = " rm -f " + output             
                         self._log.debug("Deleting Temporal file: " + cmdrm)           
-                        os.system(cmdrm)
-                needtoclose = True                   
+                        os.system(cmdrm)                
             else:
                 msg = "Invalid Number of Parameters"
                 self.errormsg(channel, msg)
@@ -210,12 +214,12 @@ class IRServer(object):
                     if imgId != None:
                         channel.write(self._service.getImgStore() + "," + str(imgId))
                         #waiting for client to upload image
-                        output = channel.read(2048)
+                        output = channel.read(2048)                        
                         if output != 'Fail':
                             #user, imgId, imgFile(uri), attributeString, size, extension
                             output = self._service.put(params[4], imgId, output, params[7], long(params[5]), params[6])
                             channel.write(str(output))
-                            needtoclose = True                          
+                            needtoclose = True                       
                     else:
                         channel.write()
                         msg = "ERROR: The imgId generation failed"
@@ -355,6 +359,8 @@ class IRServer(object):
         if needtoclose:
             channel.shutdown(socket.SHUT_RDWR)
             channel.close()
+            self._log.info("Image Repository Request DONE")
+        else:
             self._log.info("Image Repository Request DONE")
         
     def errormsg(self, channel, msg):

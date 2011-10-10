@@ -176,7 +176,10 @@ class IRServiceProxy(object):
                 output = self._serveraddr + ":" + output
                 if (option == "img"):
                     output = self._retrieveImg(userId, imgId, output, dest)
-                    self._connIrServer.write('OK')
+                    if output != None:
+                        self._connIrServer.write('OK')
+                    else:#this should be used to retry retrieveImg
+                        self._connIrServer.write('Fail')
             else:
                 output = None
         else:
@@ -619,7 +622,10 @@ class IRServiceProxy(object):
                                 print "Wrong value for ImgStatus, please use: " + str(ImgMeta.ImgStatus)
                             correct = False
                             break
-
+                else:
+                    self._log.warning("Wrong attribute: "+key)
+                    if self.verbose:
+                        print "Attribute "+key+" is invalid. It will be ignored."
         return correct
     """
     ############################################################
