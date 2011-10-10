@@ -255,7 +255,6 @@ class IRServiceProxy(object):
                         if status == "0":    
                             status = "ERROR: uploading image to the repository. File does not exists or metadata string is invalid"
                 else:
-                    self._log.debug("Normal output "+str(output))
                     status = output
             else:
                 self._log.error("ERROR:auth failed "+str(checkauthstat[0]))
