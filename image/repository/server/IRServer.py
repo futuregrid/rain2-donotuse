@@ -214,12 +214,15 @@ class IRServer(object):
                     if imgId != None:
                         channel.write(self._service.getImgStore() + "," + str(imgId))
                         #waiting for client to upload image
-                        output = channel.read(2048)                        
+                        output = channel.read(2048)                    
                         if output != 'Fail':
                             #user, imgId, imgFile(uri), attributeString, size, extension
                             output = self._service.put(params[4], imgId, output, params[7], long(params[5]), params[6])
                             channel.write(str(output))
-                            needtoclose = True                       
+                            needtoclose = True
+                        else:
+                            os.system("rm -f "+self._service.getImgStore() + "/" + str(imgId))
+                            self._log.debug("rm -f "+self._service.getImgStore() + "/" + str(imgId))                    
                     else:
                         channel.write()
                         msg = "ERROR: The imgId generation failed"
