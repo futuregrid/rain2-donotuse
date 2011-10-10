@@ -221,9 +221,12 @@ class IRServiceProxy(object):
                  "|" + attributeString
             self._connIrServer.write(msg)
             
-            if self.check_auth(userId, checkauthstat):
+            authstatus = self.check_auth(userId, checkauthstat)
+            self._log.debug("Auth in server status "+str(authstatus))
+            if authstatus:
                 #wait for "OK,tempdir,imgId" or error status                
                 output = self._connIrServer.read(2048)
+                self._log.debug("after auth, repo server answer: "+str(output))
                 #print output
                 if not (re.search('^ERROR', output)):
                     output = output.split(',')                    
@@ -252,9 +255,10 @@ class IRServiceProxy(object):
                         if status == "0":    
                             status = "ERROR: uploading image to the repository. File does not exists or metadata string is invalid"
                 else:
+                    self._log.debug("Normal output "+str(output))
                     status = output
             else:
-                self._log.error(str(checkauthstat[0]))
+                self._log.error("ERROR:auth failed "+str(checkauthstat[0]))
                 status = checkauthstat[0]
         else:
             status = "ERROR: uploading image to the repository. File does not exists or metadata string is invalid"

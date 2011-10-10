@@ -208,11 +208,17 @@ class IRServer(object):
         elif (command == "put"):
             #user, img_size, extension, attributeString   
             if (len(params) == self.numparams + 4):
-                output = self._service.uploadValidator(params[4], long(params[5]))                
-                if str(output) == 'True':                                        
+                self._log.debug("Before uploadValidator ")
+                output = self._service.uploadValidator(params[4], long(params[5]))
+                self._log.debug("After uploadValidator "+str(output))                
+                if str(output) == 'True':
+                    self._log.debug("Before genImgId ")                               
                     imgId = self._service.genImgId()
+                    self._log.debug("After genImgId "+str(imgId))
                     if imgId != None:
+                        self._log.debug("sending to the client: "+str(self._service.getImgStore())+ " , "+str(imgId))
                         channel.write(self._service.getImgStore() + "," + str(imgId))
+                        self._log.debug("sent and waiting in the read")
                         #waiting for client to upload image
                         output = channel.read(2048)                    
                         if output != 'Fail':

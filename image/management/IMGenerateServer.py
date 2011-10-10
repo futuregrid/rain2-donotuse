@@ -176,6 +176,7 @@ class IMGenerateServer(object):
         vmaddr = ""        
         options = ''    
         vmID = 0
+        destroyed=False
         
         #receive the message
         data = channel.read(2048)
@@ -330,6 +331,7 @@ class IMGenerateServer(object):
                         #destroy VM
                         self.logger.info("Destroy VM")
                         server.one.vm.action(self.oneauth, "finalize", vmID)
+                        destroyed = True
                         
                         self.logger.debug("Generating tgz with image and manifest files")
                         self.logger.debug("tar cfz " + self.tempdirserver + "/" + status + ".tgz -C " + self.tempdirserver + \
@@ -363,7 +365,7 @@ class IMGenerateServer(object):
                                     msg = "ERROR: Connection with the Image Repository failed"
                                     self.errormsg(channel, msg)
                                 else:
-                                    self.logger.info("Storing image " + self.tempdirserver + "/" + status + ".tgz" + " in the repository")                                
+                                    self.logger.info("Storing image " + self.tempdirserver + "/" + status + ".tgz" + " in the repository")                            
                                     status_repo = self._reposervice.put(self.user, passwd, self.user, self.tempdirserver + "" + status + ".tgz", "os=" + \
                                                                  self.os + "_" + self.version + "&arch=" + self.arch + "&description=" + \
                                                                  self.desc + "&tag=" + status)
@@ -383,9 +385,9 @@ class IMGenerateServer(object):
             msg = "ERROR: booting VM"
             self.errormsg(channel, msg)
             #destroy VM
-            
-        self.logger.info("Destroy VM")
-        server.one.vm.action(self.oneauth, "finalize", vmID)
+        if not destroyed:
+            self.logger.info("Destroy VM")
+            server.one.vm.action(self.oneauth, "finalize", vmID)
         
         self.logger.info("Image Generation DONE")
     
