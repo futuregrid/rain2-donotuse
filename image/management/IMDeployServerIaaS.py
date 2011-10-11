@@ -276,6 +276,7 @@ class IMDeployServerIaaS(object):
         connstream.write(localtempdir + '/' + self.name + '.img,'+self.kernel+","+self.operatingsystem)
 
         #wait until client retrieve img
+        self.logger.info("Wait until client get the image")
         connstream.read()
         #remove image
         cmd = 'rm -rf ' + localtempdir

@@ -592,6 +592,9 @@ def cleanup(name):
             cmd = "rm -rf " + tempdir + '' + name
             cleanupLog.debug('Executing: ' + cmd)
             os.system(cmd)
+            cmd = "rm -f " + tempdir + '' + name + ".img"
+            cleanupLog.debug('Executing: ' + cmd)
+            os.system(cmd)
 
     else:
         cleanupLog.error("error in clean up")

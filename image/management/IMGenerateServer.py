@@ -305,7 +305,7 @@ class IMGenerateServer(object):
                         #stat = 0
                         #while stat != 0 and :
                         self.logger.info("Umount scratch directory in the VM")
-                        cmd = "ssh -q " + self.rootId + "@" + vmaddr
+                        cmd = "ssh -q -oBatchMode=yes " + self.rootId + "@" + vmaddr
                         cmdmount = " umount " + self.tempdir + " 2>/dev/null"                        
                         #stat = os.system(cmd + cmdmount)
                         #self.logger.debug("exit status " + str(stat))
