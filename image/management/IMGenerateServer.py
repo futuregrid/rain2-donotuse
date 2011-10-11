@@ -433,7 +433,7 @@ class IMGenerateServer(object):
     
             #monitor VM
             booted = False
-            while not booted:
+            while not booted:  #eventually the VM has to boot or fail
                 try:
                     #-------Get Info about VM -------------------------------
                     vminfo = server.one.vm.info(self.oneauth, vm[1])
@@ -443,14 +443,19 @@ class IMGenerateServer(object):
                     #VM_status (init=0, pend=1, act=3, fail=7)
                     vm_status = manifest.getElementsByTagName('STATE')[0].firstChild.nodeValue.strip()
         
-                    if vm_status == "3":
+                    if vm_status == "3": #running
                         #LCM_status (prol=1,boot=2,runn=3, fail=14, unk=16)
                         lcm_status = manifest.getElementsByTagName('LCM_STATE')[0].firstChild.nodeValue.strip()
         
-                        if lcm_status == "3":
+                        if lcm_status == "3": #if vm_status is 3, this will be 3 too.
                             booted = True
-                    elif vm_status == "7":
+                    elif vm_status == "7": #fail
                         self.logger.error("Fail to deploy VM " + str(vm[1]))
+                        booted = True
+                        fail = True
+                        vmaddr = "fail"
+                    elif vm_status == "6": #done
+                        self.logger.error("The status of the VM " + str(vm[1]) + " is DONE")
                         booted = True
                         fail = True
                         vmaddr = "fail"
@@ -470,7 +475,10 @@ class IMGenerateServer(object):
                     self.logger.debug("IP of the VM " + str(vm[1]) + " is " + str(vmaddr))
         
                     access = False
-                    while not access:
+                    maxretry = 10#240  #this says that we wait 20 minutes maximum to allow the VM get online. 
+                    #this also prevent to get here forever if the ssh key was not injected propertly.
+                    retry=0
+                    while not access and retry < maxretry:
                         cmd = "ssh -q -oBatchMode=yes root@" + vmaddr + " uname"
                         p = Popen(cmd, shell=True, stdout=PIPE)
                         status = os.waitpid(p.pid, 0)[1]
@@ -479,6 +487,7 @@ class IMGenerateServer(object):
                             access = True
                             self.logger.debug("The VM " + str(vm[1]) + " with ip " + str(vmaddr) + "is accessible")
                         else:
+                            retry+=1
                             time.sleep(5)
                 else:
                     self.logger.error("Could not determine the IP of the VM " + str(vm[1]) + " for the bridge " + self.bridge)
