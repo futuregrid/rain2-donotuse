@@ -475,7 +475,7 @@ class IMGenerateServer(object):
                     self.logger.debug("IP of the VM " + str(vm[1]) + " is " + str(vmaddr))
         
                     access = False
-                    maxretry = 10#240  #this says that we wait 20 minutes maximum to allow the VM get online. 
+                    maxretry = 240  #this says that we wait 20 minutes maximum to allow the VM get online. 
                     #this also prevent to get here forever if the ssh key was not injected propertly.
                     retry=0
                     self.logger.debug("Waiting to have access to VM")
