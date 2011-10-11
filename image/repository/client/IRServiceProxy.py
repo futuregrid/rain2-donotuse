@@ -233,13 +233,13 @@ class IRServiceProxy(object):
                     imgStore = output[0] 
                     imgId = output[1]
                     fileLocation = imgStore + imgId
+                    self._log.info("Uploading the image")
                     if self.verbose:
-                        print "Uploading the image"
-                    if self.verbose:
+                        print 'Uploading image. You may be asked for ssh/paraphrase password'
                         cmd = 'scp ' + imgFile + " " + \
                             self._serveraddr + ":" + fileLocation
                     else:
-                        cmd = 'scp -q ' + imgFile + " " + \
+                        cmd = 'scp -q -oBatchMode=yes ' + imgFile + " " + \
                             self._serveraddr + ":" + fileLocation
                     stat = os.system(cmd)
                     if (str(stat) != "0"):
@@ -689,7 +689,7 @@ class IRServiceProxy(object):
             cmdscp = "scp " + imgURI + " " + fulldestpath
         else:
             #cmdscp = "scp -q " + userId + "@" + imgURI + " " + fulldestpath
-            cmdscp = "scp -q " + imgURI + " " + fulldestpath
+            cmdscp = "scp -q -oBatchMode=yes " + imgURI + " " + fulldestpath
         #print cmdscp
         output = ""
         try:

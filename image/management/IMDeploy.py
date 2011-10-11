@@ -124,9 +124,10 @@ class IMDeploy(object):
                     else:                    
                         self._log.info('Uploading image. You may be asked for ssh/paraphrase password')
                         if self._verbose:
+                            print 'Uploading image. You may be asked for ssh/paraphrase password'
                             cmd = 'scp ' + image + ' ' + self.user + '@' + self.iaasmachine + ':' + ret
                         else:                        
-                            cmd = 'scp -q ' + image + ' ' + self.user + '@' + self.iaasmachine + ':' + ret
+                            cmd = 'scp -q -oBatchMode=yes ' + image + ' ' + self.user + '@' + self.iaasmachine + ':' + ret
                         status = self.runCmd(cmd)
                     
                     if status == 0:
@@ -536,8 +537,8 @@ class IMDeploy(object):
     
         if self._verbose:            
             cmdscp = "scp " + self.iaasmachine + ":" + imgURI + " " + fulldestpath
-        else:            
-            cmdscp = "scp -q " + self.iaasmachine + ":" + imgURI + " " + fulldestpath
+        else: #this is the case where another application call it. So no password or pharphase is allowed
+            cmdscp = "scp -q -oBatchMode=yes " + self.iaasmachine + ":" + imgURI + " " + fulldestpath
         #print cmdscp
         output = ""
         try:

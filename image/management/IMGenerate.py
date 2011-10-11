@@ -196,9 +196,10 @@ class IMGenerate(object):
     
         cmdscp = ""
         if self.verbose:
+            print 'Retrieving image. You may be asked for ssh/paraphrase password'
             cmdscp = "scp " + self.user + "@" + imgURI + " " + dest
         else:
-            cmdscp = "scp -q " + self.user + "@" + imgURI + " " + dest
+            cmdscp = "scp -q -oBatchMode=yes " + self.user + "@" + imgURI + " " + dest
         output = ""
         try:
             if self.verbose:
