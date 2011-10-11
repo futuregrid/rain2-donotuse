@@ -89,7 +89,7 @@ class IMGenerateServer(object):
         print "\nReading Configuration file from " + self._genConf.getConfigFile() + "\n"
         
         #Image repository Object
-        self._reposervice = IRServiceProxy(False,False)
+        self._reposervice = IRServiceProxy(False, False)
     
     def setup_logger(self):
         #Setup logging
@@ -176,7 +176,7 @@ class IMGenerateServer(object):
         vmaddr = ""        
         options = ''    
         vmID = 0
-        destroyed=False
+        destroyed = False
         
         #receive the message
         data = channel.read(2048)
@@ -324,7 +324,7 @@ class IMGenerateServer(object):
                             elif retry_done == max_retry:
                                 self.logger.debug("exit status " + str(stat))
                                 umounted = True
-                                self.logger.error("Problems to umount the image. Exit status "+str(stat))
+                                self.logger.error("Problems to umount the image. Exit status " + str(stat))
                             else:
                                 time.sleep(5)
                         
@@ -466,20 +466,23 @@ class IMGenerateServer(object):
                 for i in range(len(nics)):
                     if(nics[i].childNodes[0].firstChild.nodeValue.strip() == self.bridge):
                         vmaddr = nics[i].childNodes[1].firstChild.nodeValue.strip()
-    
-                self.logger.debug("IP of the VM " + str(vm[1]) + " is " + str(vmaddr))
-    
-                access = False
-                while not access:
-                    cmd = "ssh -q root@" + vmaddr + " uname"
-                    p = Popen(cmd, shell=True, stdout=PIPE)
-                    status = os.waitpid(p.pid, 0)[1]
-                    #print status
-                    if status == 0:
-                        access = True
-                        self.logger.debug("The VM " + str(vm[1]) + " with ip " + str(vmaddr) + "is accessible")
-                    else:
-                        time.sleep(5)
+                if vmaddr.strip() != "":
+                    self.logger.debug("IP of the VM " + str(vm[1]) + " is " + str(vmaddr))
+        
+                    access = False
+                    while not access:
+                        cmd = "ssh -q -oBatchMode=yes root@" + vmaddr + " uname"
+                        p = Popen(cmd, shell=True, stdout=PIPE)
+                        status = os.waitpid(p.pid, 0)[1]
+                        #print status
+                        if status == 0:
+                            access = True
+                            self.logger.debug("The VM " + str(vm[1]) + " with ip " + str(vmaddr) + "is accessible")
+                        else:
+                            time.sleep(5)
+                else:
+                    self.logger.error("Could not determine the IP of the VM " + str(vm[1]) + " for the bridge " + self.bridge)
+                    vmaddr = "fail"
         else:
             vmaddr = "fail"
     
