@@ -234,9 +234,9 @@ class IMDeploy(object):
         self._log.debug(cmd)
         os.system(cmd)
         
-        print "Your images has been registered on Eucalyptus with the id printed in the previous line (IMAGE  id)" +\
-              "To launch a VM you can use euca-run-instances -k keyfile -n <#instances> id" +\
-              "More information is provided in https://portal.futuregrid.org/tutorials/eucalyptus"              
+        print "Your images has been registered on Eucalyptus with the id printed in the previous line (IMAGE  id) \n" +\
+              "To launch a VM you can use euca-run-instances -k keyfile -n <#instances> id \n" +\
+              "More information is provided in https://portal.futuregrid.org/tutorials/eucalyptus \n"              
         
 
     def opennebula_method(self, imagebackpath, kernel, operatingsystem, iaas_address):

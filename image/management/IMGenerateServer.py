@@ -261,14 +261,14 @@ class IMGenerateServer(object):
             self.logger.info("The VM deployed is in " + vmaddr)
         
             self.logger.info("Mount scratch directory in the VM")
-            cmd = "ssh -q " + self.rootId + "@" + vmaddr
+            cmd = "ssh -q -oBatchMode=yes " + self.rootId + "@" + vmaddr
             cmdmount = " mount -t nfs " + self.addrnfs + ":" + self.tempdirserver + " " + self.tempdir
             self.logger.info(cmd + cmdmount)
             stat = os.system(cmd + cmdmount)
                 
             if (stat == 0):
                 self.logger.info("Sending IMGenerateScript.py to the VM")
-                cmdscp = "scp -q " + self.serverdir + '/image/management/IMGenerateScript.py  ' + self.rootId + "@" + vmaddr + ":/root/"
+                cmdscp = "scp -q -oBatchMode=yes " + self.serverdir + '/image/management/IMGenerateScript.py  ' + self.rootId + "@" + vmaddr + ":/root/"
                 self.logger.info(cmdscp)
                 stat = os.system(cmdscp)
                 if (stat != 0):
@@ -294,7 +294,7 @@ class IMGenerateServer(object):
                     uid = self._rExec(self.rootId, cmdexec, vmaddr)
                     
                     self.logger.info("copying fg-image-generate.log to scrach partition " + self.tempdirserver + "/" + str(vmID) + "_gen.log")
-                    cmdscp = "scp -q " + self.rootId + "@" + vmaddr + ":/root/fg-image-generate.log " + self.tempdirserver + "/" + str(vmID) + "_gen.log"
+                    cmdscp = "scp -q -oBatchMode=yes " + self.rootId + "@" + vmaddr + ":/root/fg-image-generate.log " + self.tempdirserver + "/" + str(vmID) + "_gen.log"
                     os.system(cmdscp)
                     
                     status = uid[0].strip() #it contains error or filename
@@ -478,6 +478,7 @@ class IMGenerateServer(object):
                     maxretry = 10#240  #this says that we wait 20 minutes maximum to allow the VM get online. 
                     #this also prevent to get here forever if the ssh key was not injected propertly.
                     retry=0
+                    self.logger.debug("Waiting to have access to VM")
                     while not access and retry < maxretry:
                         cmd = "ssh -q -oBatchMode=yes root@" + vmaddr + " uname"
                         p = Popen(cmd, shell=True, stdout=PIPE)
@@ -489,6 +490,11 @@ class IMGenerateServer(object):
                         else:
                             retry+=1
                             time.sleep(5)
+                    if retry >= maxretry:
+                        self.logger.error("Could not get access to the VM " + str(vm[1]) + " with ip " + str(vmaddr) + "\n" 
+                                          "Please verify the OpenNebula templates to make sure that the public ssh key to be injected is accessible to the oneadmin user. \n"
+                                          "Also verify that the VM has ssh server and is active on boot.")
+                        vmaddr = "fail"
                 else:
                     self.logger.error("Could not determine the IP of the VM " + str(vm[1]) + " for the bridge " + self.bridge)
                     vmaddr = "fail"
@@ -507,7 +513,7 @@ class IMGenerateServer(object):
         random.seed()
         randid = str(random.getrandbits(32))
     
-        cmdssh = "ssh " + userId + "@" + vmaddr
+        cmdssh = "ssh -oBatchMode=yes " + userId + "@" + vmaddr
         tmpFile = "/tmp/" + str(time.time()) + str(randid)
         #print tmpFile
         cmdexec = cmdexec + " > " + tmpFile
