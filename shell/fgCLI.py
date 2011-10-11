@@ -162,16 +162,14 @@ class fgShell(fgShellUtils,
             elif (arg == "hadoop"):
                 self._requirements = ["Hadoop"]
             elif (arg == "rain"):
-                self._requirements = ["Rain", "Image"]#"Repo","Gene","Rain"] #rain context requires initialize repo and generation
+                self._requirements = ["Rain", "Repo", "Image"]#,"Gene","Rain"] #rain context requires initialize repo and generation
             elif (arg == "image"):
                 self._requirements = ["Repo","Image"]             
 
             allspec = {}
             for i in self._requirements:    
-                self.getDocUndoc(string.lower(i))                
-                
-                allspec[i]=self._specdocHelp
-                
+                self.getDocUndoc(string.lower(i))
+                allspec[string.lower(i)]=self._specdocHelp                
                          
                 if not i in self._contextOn:                    
                     try:
@@ -181,13 +179,14 @@ class fgShell(fgShellUtils,
                         print "The " + self._use + " context may not be initialized correctly"
                         self._log.error(str(sys.exc_info()))
             
-            #self.searchduplicated(allspec)
-            print allspec
+            self.searchduplicated(allspec)
+                        
             allspec_aux = []
             for i in self._requirements:
                 allspec_aux.extend(allspec[string.lower(i)])
-            
+                                  
             self._specdocHelp = allspec_aux 
+            
             temp = ""
             if not (arg == ""):
                 temp = "-"
@@ -200,10 +199,32 @@ class fgShell(fgShellUtils,
 
         self.print_man("use [context]", msg)
 
-    def searchduplicated(allspec):
-        pass
-    
-
+    def searchduplicated(self,allspec):
+        #allspec={'repo': ['get', 'histimg', 'histuser', 'list', 'modify', 'put', 'remove', 'setpermission', 
+        #                  'setuserquota', 'setuserrole', 'setuserstatus', 'useradd', 'userdel', 'userlist'], 
+        #         'image': ['deploy', 'generate'],
+        #         'rain' : ['deploy', 'move'],
+        #         'another' : ['acomna','deploy', 'list']}
+        #self._requirements=['repo','image','rain','another']
+        #print allspec
+        conflicset=set([])
+        for i in range(len(self._requirements)):                             
+            for j in range(i+1, len(self._requirements)):                
+                newset=set(allspec[string.lower(self._requirements[i])]).intersection(set(allspec[string.lower(self._requirements[j])]))
+                if len(newset) > 0:                    
+                    conflicset = conflicset | newset                    
+                    #print "newset" + str(newset)
+                    #print "conflict" + str(conflicset)
+                    for z in conflicset:
+                        try:
+                            allspec[string.lower(self._requirements[i])].remove(z)
+                            allspec[string.lower(self._requirements[j])].remove(z)
+                        except:
+                            pass
+                        allspec[string.lower(self._requirements[i])].append(string.lower(self._requirements[i])+z)
+                        allspec[string.lower(self._requirements[j])].append(string.lower(self._requirements[j])+z)
+                        #print allspec[string.lower(self._requirements[i])]
+                
     ############################
     #CONTEXTS
     ############################
@@ -420,32 +441,52 @@ class fgShell(fgShellUtils,
             #cmd.Cmd.print_topics(self,cmd.Cmd.misc_header, help.keys(), 15,80)
             cmd.Cmd.print_topics(self, undoc_header, self._undocHelp, 15, 80)
 
-
     def customHelp(self, args):
         if args:
-            prefix_aux=""
+            
             prefix=""
+            base=False
             for i in self._requirements:
                 if (args.strip().startswith(string.lower(i))):
                     args = args[len(string.lower(i)):]
-                    prefix_aux=string.lower(i)                 
-               
-            if not args in self.base_cmds:
-                prefix = prefix_aux
-                                
-            try:
-                func = getattr(self, 'help_' + prefix + args)
-            except AttributeError:
+                    prefix=string.lower(i)
+                    break          
+            
+            if args in self.base_cmds:
+                base=True
+                
+            if prefix.strip() == "" and not base:
+                for i in self._requirements:
+                    prefix=string.lower(i)
+                    if args.strip() in self._specdocHelp:                        
+                        try:
+                            func = getattr(self, 'help_' + prefix + args)
+                            func()
+                            return
+                        except AttributeError:
+                            try:
+                                doc = getattr(self, 'do_' + prefix + args).__doc__
+                                if doc:
+                                    self.stdout.write("%s\n" % str(doc))
+                                    return
+                            except AttributeError:
+                                pass        
+            else:
                 try:
-                    doc = getattr(self, 'do_' + prefix + args).__doc__
-                    if doc:
-                        self.stdout.write("%s\n" % str(doc))
-                        return
+                    func = getattr(self, 'help_' + prefix + args)
+                    func()
+                    return
                 except AttributeError:
-                    pass
-                self.stdout.write("%s\n" % str(self.nohelp % (args,)))
-                return
-            func()
+                    try:
+                        doc = getattr(self, 'do_' + prefix + args).__doc__
+                        if doc:
+                            self.stdout.write("%s\n" % str(doc))
+                            return
+                    except AttributeError:
+                        pass
+            self.stdout.write("%s\n" % str(self.nohelp % (args,)))
+            return
+            
         else:
             """
             self.getDocUndoc(self._use)
@@ -460,20 +501,34 @@ class fgShell(fgShellUtils,
             cmd.Cmd.print_topics(self, undoc_header, self._undocHelp, 15, 80)
             """            
             first = True
-            allspec = []
+            allspec = {}
+            undoc = {}
             for i in self._requirements:
-                self.getDocUndoc(string.lower(i))
-                doc_header = "General documented commands in the " + string.lower(i) + " context (type help <topic>):"
-                undoc_header = "Undocumented commands in the " + string.lower(i) + " context (type help <topic>):"
-                specdoc_header = "Specific documented commands in the " + string.lower(i)  + " context (type help <topic>):"
+                self.getDocUndoc(string.lower(i))                
+                doc_header = "General documented commands (type help <topic>):"                
                 if first:
                     cmd.Cmd.print_topics(self, doc_header, self._docHelp, 15, 80)
                     first=False
-                cmd.Cmd.print_topics(self, specdoc_header, self._specdocHelp, 15, 80)
+                
+                allspec[string.lower(i)]=self._specdocHelp 
+                undoc[string.lower(i)]=self._undocHelp
+            
+            self.searchduplicated(allspec)
+                        
+            allspec_aux = []
+            allundoc = []
+            for i in self._requirements:
+                undoc_header = "Undocumented commands in the " + string.lower(i) + " context (type help <topic>):"
+                specdoc_header = "Specific documented commands in the " + string.lower(i)  + " context (type help <topic>):"                
+                cmd.Cmd.print_topics(self, specdoc_header, allspec[string.lower(i)], 15, 80)
                 #cmd.Cmd.print_topics(self,cmd.Cmd.misc_header, help.keys(), 15,80)
-                cmd.Cmd.print_topics(self, undoc_header, self._undocHelp, 15, 80)
-                allspec.extend(self._specdocHelp)
-            self._specdocHelp = allspec
+                cmd.Cmd.print_topics(self, undoc_header, undoc[string.lower(i)], 15, 80)
+                
+                allspec_aux.extend(allspec[string.lower(i)])
+                allundoc.extend(undoc[string.lower(i)])
+                                  
+            self._specdocHelp = allspec_aux 
+            self._undocHelp = allundoc
             
     def complete_help(self, *args):
         listcmd = set(i for i in self._docHelp if i.startswith(args[0]))
