@@ -195,15 +195,14 @@ class IMGenerate(object):
         imgId = imgIds[len(imgIds) - 1]
     
         cmdscp = ""
-        if self.verbose:
-            print 'Retrieving image. You may be asked for ssh/paraphrase password'
+        if self.verbose:            
             cmdscp = "scp " + self.user + "@" + imgURI + " " + dest
-        else:
+        else:#this is the case where another application call it. So no password or passphrase is allowed
             cmdscp = "scp -q -oBatchMode=yes " + self.user + "@" + imgURI + " " + dest
         output = ""
         try:
             if self.verbose:
-                print "Retrieving the image"
+                print 'Retrieving image. You may be asked for ssh/passphrase password'
             self._log.debug(cmdscp)
             stat = os.system(cmdscp)
             stat = 0

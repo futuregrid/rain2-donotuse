@@ -122,11 +122,11 @@ class IMDeploy(object):
                         cmd = 'cp ' + image + ' ' + ret                        
                         status = self.runCmd(cmd)
                     else:                    
-                        self._log.info('Uploading image. You may be asked for ssh/paraphrase password')
+                        self._log.info('Uploading image. You may be asked for ssh/passphrase password')
                         if self._verbose:
-                            print 'Uploading image. You may be asked for ssh/paraphrase password'
+                            print 'Uploading image. You may be asked for ssh/passphrase password'
                             cmd = 'scp ' + image + ' ' + self.user + '@' + self.iaasmachine + ':' + ret
-                        else:                        
+                        else:#this is the case where another application call it. So no password or passphrase is allowed              
                             cmd = 'scp -q -oBatchMode=yes ' + image + ' ' + self.user + '@' + self.iaasmachine + ':' + ret
                         status = self.runCmd(cmd)
                     
@@ -408,7 +408,7 @@ class IMDeploy(object):
             self._log.info(cmd)
             self.runCmd(cmd)
         else:                    
-            self._log.info('Uploading image. You may be asked for ssh/paraphrase password')
+            self._log.info('Uploading image. You may be asked for ssh/passphrase password')
             cmd = 'scp ' + image + ' ' + self.user + '@' + self.loginmachine + ':' + self.shareddirserver + '/' + nameimg + '.tgz'
             self._log.info(cmd)
             self.runCmd(cmd)
@@ -535,15 +535,15 @@ class IMDeploy(object):
                     fulldestpath = aux
                 
     
-        if self._verbose:            
+        if self._verbose:
             cmdscp = "scp " + self.iaasmachine + ":" + imgURI + " " + fulldestpath
-        else: #this is the case where another application call it. So no password or pharphase is allowed
+        else: #this is the case where another application call it. So no password or passphrase is allowed
             cmdscp = "scp -q -oBatchMode=yes " + self.iaasmachine + ":" + imgURI + " " + fulldestpath
         #print cmdscp
         output = ""
         try:
             if self._verbose:
-                print "Retrieving the image"
+                print 'Retrieving image. You may be asked for ssh/passphrase password'
             stat = os.system(cmdscp)
             if (stat == 0):
                 output = fulldestpath                

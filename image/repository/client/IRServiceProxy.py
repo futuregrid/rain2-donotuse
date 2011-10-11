@@ -235,10 +235,10 @@ class IRServiceProxy(object):
                     fileLocation = imgStore + imgId
                     self._log.info("Uploading the image")
                     if self.verbose:
-                        print 'Uploading image. You may be asked for ssh/paraphrase password'
+                        print 'Uploading image. You may be asked for ssh/passphrase password'
                         cmd = 'scp ' + imgFile + " " + \
                             self._serveraddr + ":" + fileLocation
-                    else:
+                    else:#this is the case where another application call it. So no password or passphrase is allowed
                         cmd = 'scp -q -oBatchMode=yes ' + imgFile + " " + \
                             self._serveraddr + ":" + fileLocation
                     stat = os.system(cmd)
@@ -694,7 +694,7 @@ class IRServiceProxy(object):
         output = ""
         try:
             if self.verbose:
-                print "Retrieving the image"
+                print 'Retrieving image. You may be asked for ssh/passphrase password'
             stat = os.system(cmdscp)
             if (stat == 0):
                 output = fulldestpath                
