@@ -122,7 +122,7 @@ class IMDeploy(object):
                         cmd = 'cp ' + image + ' ' + ret                        
                         status = self.runCmd(cmd)
                     else:                    
-                        self._log.info('Uploading image. You may be asked for ssh/passphrase password')
+                        self._log.info('Uploading image.')
                         if self._verbose:
                             print 'Uploading image. You may be asked for ssh/passphrase password'
                             cmd = 'scp ' + image + ' ' + self.user + '@' + self.iaasmachine + ':' + ret
@@ -542,6 +542,7 @@ class IMDeploy(object):
         #print cmdscp
         output = ""
         try:
+            self._log.debug('Retrieving image')
             if self._verbose:
                 print 'Retrieving image. You may be asked for ssh/passphrase password'
             stat = os.system(cmdscp)

@@ -693,6 +693,7 @@ class IRServiceProxy(object):
         #print cmdscp
         output = ""
         try:
+            self._log.debug('Retrieving image. You may be asked for ssh/passphrase password')
             if self.verbose:
                 print 'Retrieving image. You may be asked for ssh/passphrase password'
             stat = os.system(cmdscp)

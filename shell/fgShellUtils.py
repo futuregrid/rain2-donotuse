@@ -548,7 +548,7 @@ class fgShellUtils(Cmd):
     help_group = generic_help
 
     #################################
-    #Deploy nodes
+    #Deploy nodes/images
     #################################
 
     def do_deploy(self, args):
@@ -564,6 +564,24 @@ class fgShellUtils(Cmd):
         else:
             self.generic_error()
     help_deploy = generic_help
+
+    #################################
+    #Generate image
+    #################################
+
+    def do_generate(self, args):
+
+        if(self._use != ""):
+            command = "self.do_" + self._use + "generate(\"" + args + "\")"
+            #print command
+            try:
+                eval(command)
+            except AttributeError:
+                print "The " + self._use + " context does not have a deploy method "
+                self._log.error(str(sys.exc_info()))
+        else:
+            self.generic_error()
+    help_generate = generic_help
 
     ##########################################################################
     # LOAD

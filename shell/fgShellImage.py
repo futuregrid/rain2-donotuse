@@ -58,7 +58,7 @@ class fgShellImage(Cmd):
                 prefix = ''
         #print sys.argv
     
-        parser = argparse.ArgumentParser(prog="IMGenerate", formatter_class=argparse.RawDescriptionHelpFormatter,
+        parser = argparse.ArgumentParser(prog="imagegenerate", formatter_class=argparse.RawDescriptionHelpFormatter,
                                          description="FutureGrid Image Deployment Help")
         parser.add_argument('-d', '--debug', dest='debug', action="store_true", help='Print logs in the screen for debug')
         parser.add_argument("-o", "--os", dest="OS", metavar='OSName', help="specify destination Operating System")
@@ -177,7 +177,7 @@ class fgShellImage(Cmd):
                 #sys.argv += [prefix+'-'+argslist[i]]
                 prefix = ''
 
-        parser = argparse.ArgumentParser(prog="IMDeploy", formatter_class=argparse.RawDescriptionHelpFormatter,
+        parser = argparse.ArgumentParser(prog="imagedeploy", formatter_class=argparse.RawDescriptionHelpFormatter,
                                      description="FutureGrid Image Deployment Help ")
         parser.add_argument('-d', '--debug', dest='debug', action="store_true", help='Print logs in the screen for debug')
         parser.add_argument('-k', '--kernel', dest="kernel", metavar='Kernel version', help="Specify the desired kernel" 

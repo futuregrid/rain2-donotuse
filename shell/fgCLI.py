@@ -20,6 +20,7 @@ from futuregrid.shell.fgShellRain import fgShellRain
 from futuregrid.shell.fgShellConf import fgShellConf
 from futuregrid.shell.fgShellImage import fgShellImage
 import logging
+import string
 #from futuregrid.utils.syscheck import sysCheck
 
 from futuregrid.utils.fgLog import fgLog
@@ -97,6 +98,7 @@ class fgShell(fgShellUtils,
                      'hadoop':'Apache Hadoop',
                      'image': 'Image Management'}
         self._use = ""
+        self._requirements = []
         self._contextOn = [] # initialized contexts
 
         #Help
@@ -141,7 +143,7 @@ class fgShell(fgShellUtils,
 
         if (arg in self.env and self._use != arg):
 
-            requirements = []
+            self._requirements = []
             self._use = arg
 
             if self._use == "":
@@ -155,26 +157,37 @@ class fgShell(fgShellUtils,
                 dashstr += "-"
             print dashstr
 
-            self.getDocUndoc(arg.strip())
-
             if (arg == "repo"):
-                requirements = ["Repo"]
+                self._requirements = ["Repo"]
             elif (arg == "hadoop"):
-                requirements = ["Hadoop"]
+                self._requirements = ["Hadoop"]
             elif (arg == "rain"):
-                requirements = ["Rain"]#"Repo","Gene","Rain"] #rain context requires initialize repo and generation
+                self._requirements = ["Rain", "Image"]#"Repo","Gene","Rain"] #rain context requires initialize repo and generation
             elif (arg == "image"):
-                requirements = ["Repo","Image"]             
+                self._requirements = ["Repo","Image"]             
 
-            for i in requirements:
-                if not i in self._contextOn:
+            allspec = {}
+            for i in self._requirements:    
+                self.getDocUndoc(string.lower(i))                
+                
+                allspec[i]=self._specdocHelp
+                
+                         
+                if not i in self._contextOn:                    
                     try:
                         eval("fgShell" + i + ".__init__(self)")
                         self._contextOn.append(i)
                     except AttributeError:
                         print "The " + self._use + " context may not be initialized correctly"
                         self._log.error(str(sys.exc_info()))
-
+            
+            #self.searchduplicated(allspec)
+            print allspec
+            allspec_aux = []
+            for i in self._requirements:
+                allspec_aux.extend(allspec[string.lower(i)])
+            
+            self._specdocHelp = allspec_aux 
             temp = ""
             if not (arg == ""):
                 temp = "-"
@@ -186,6 +199,10 @@ class fgShell(fgShellUtils,
         "provided it returns to the default context."
 
         self.print_man("use [context]", msg)
+
+    def searchduplicated(allspec):
+        pass
+    
 
     ############################
     #CONTEXTS
@@ -337,6 +354,7 @@ class fgShell(fgShellUtils,
         self._undocHelp = final_undoc
 
 
+    
     def do_help(self, args):
         '''Get help on commands. 'help' or '?' with no arguments prints a 
         list of commands for which help is available. 'help <command>' or 
@@ -370,7 +388,7 @@ class fgShell(fgShellUtils,
 
         else:
             self.customHelp(args)
-
+    
     def help_help(self):
         '''Help method for the help command'''
         self.print_man("help [command]", self.do_help.__doc__)
@@ -405,12 +423,16 @@ class fgShell(fgShellUtils,
 
     def customHelp(self, args):
         if args:
-            if (args.strip().startswith(self._use)):
-                args = args[len(self._use):]
+            prefix_aux=""
             prefix=""
+            for i in self._requirements:
+                if (args.strip().startswith(string.lower(i))):
+                    args = args[len(string.lower(i)):]
+                    prefix_aux=string.lower(i)                 
+               
             if not args in self.base_cmds:
-                prefix = self._use
-                
+                prefix = prefix_aux
+                                
             try:
                 func = getattr(self, 'help_' + prefix + args)
             except AttributeError:
@@ -425,6 +447,7 @@ class fgShell(fgShellUtils,
                 return
             func()
         else:
+            """
             self.getDocUndoc(self._use)
 
             doc_header = "General documented commands in the " + self._use + " context (type help <topic>):"
@@ -435,7 +458,23 @@ class fgShell(fgShellUtils,
             cmd.Cmd.print_topics(self, specdoc_header, self._specdocHelp, 15, 80)
             #cmd.Cmd.print_topics(self,cmd.Cmd.misc_header, help.keys(), 15,80)
             cmd.Cmd.print_topics(self, undoc_header, self._undocHelp, 15, 80)
-
+            """            
+            first = True
+            allspec = []
+            for i in self._requirements:
+                self.getDocUndoc(string.lower(i))
+                doc_header = "General documented commands in the " + string.lower(i) + " context (type help <topic>):"
+                undoc_header = "Undocumented commands in the " + string.lower(i) + " context (type help <topic>):"
+                specdoc_header = "Specific documented commands in the " + string.lower(i)  + " context (type help <topic>):"
+                if first:
+                    cmd.Cmd.print_topics(self, doc_header, self._docHelp, 15, 80)
+                    first=False
+                cmd.Cmd.print_topics(self, specdoc_header, self._specdocHelp, 15, 80)
+                #cmd.Cmd.print_topics(self,cmd.Cmd.misc_header, help.keys(), 15,80)
+                cmd.Cmd.print_topics(self, undoc_header, self._undocHelp, 15, 80)
+                allspec.extend(self._specdocHelp)
+            self._specdocHelp = allspec
+            
     def complete_help(self, *args):
         listcmd = set(i for i in self._docHelp if i.startswith(args[0]))
         listcmd1 = set(i for i in self._undocHelp if i.startswith(args[0]))

@@ -163,9 +163,11 @@ class IMDeployServerMoab(object):
 def main():
 
     #Check if we have root privs 
-    if os.getuid() != 0:
-        print "Sorry, you need to run with root privileges"
-        sys.exit(1)
+    #if os.getuid() != 0:
+    #    print "Sorry, you need to run with root privileges"
+    #    sys.exit(1)
+
+    print "\n The user that executes this must have sudo with NOPASSWD for \"tee -a\" and \"mschedctl -R\" commands"
 
     server = IMDeployServerMoab()
     server.start()
