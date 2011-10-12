@@ -163,13 +163,14 @@ class IMDeployServerXcat(object):
                     return
         
         #check if there is enough space in /install/netboot
-        df = subprocess.Popen(["df","/install/netboot/"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)        
+        #subprocess.Popen
+        df = Popen(["df","/install/netboot/"], stdout=PIPE, stderr=PIPE)        
         output = df.communicate()
         if len(output[0]) > 0:
             self.logger.debug('df stdout: ' + output[0])
             self.logger.debug('df stderr: ' + output[1])        
         try:    
-            usage_percent = int(output.split("\n")[1].split()[4].split("%")[0])
+            usage_percent = int(output[0].split("\n")[1].split()[4].split("%")[0])                    
             if usage_percent > 85:
                 msg="ERROR: Image cannot be deployed due to low disk space. Please contact with your system administrator"            
                 self.errormsg(connstream, msg)

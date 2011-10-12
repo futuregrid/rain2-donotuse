@@ -92,11 +92,11 @@ class fgShell(fgShellUtils,
         fgShellUtils.__init__(self)        
 
         #Context        
-        self.env = ["repo", "rain", "hadoop", "image", ""]
-        self.text = {'repo':'Image Repository',
-                     'rain':'Dynamic Provisioning',
-                     'hadoop':'Apache Hadoop',
-                     'image': 'Image Management'}
+        self.env = ["repo", "hadoop", "image", ""]#, "rain"]
+        self.text = {'image': 'Image Management',
+                     'repo':'Image Repository',
+                     #'rain':'Dynamic Provisioning',
+                     'hadoop':'Apache Hadoop'}
         self._use = ""
         self._requirements = []
         self._contextOn = [] # initialized contexts

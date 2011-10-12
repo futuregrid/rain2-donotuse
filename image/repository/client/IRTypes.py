@@ -41,7 +41,7 @@ class IRUser(object):
     # __repr__
     ############################################################
     def __repr__(self):
-        return "\"userId=%s, cred=%s, fsCap=%s, fsUsed=%s, lastLogin=%s, status=%s, role=%s, ownedImgs=%s \"" % \
+        return "\"userId=%s, cred=%s, fsCap=%s, fsUsed=%s, lastLogin(UTC)=%s, status=%s, role=%s, ownedImgs=%s \"" % \
                 (self._userId, self._cred, self._fsCap, self._fsUsed, \
                  self._lastLogin, self._status, self._role, self._ownedImgs)
 
@@ -166,7 +166,7 @@ class ImgEntry(object):
     # __repr__
     ############################################################
     def __repr__(self):
-        return "\"imgId=%s, imgURI=%s, createdDate=%s, lastAccess=%s, accessCount=%s, size=%s, extension=%s\"" % \
+        return "\"imgId=%s, imgURI=%s, createdDate(UTC)=%s, lastAccess(UTC)=%s, accessCount=%s, size=%s, extension=%s\"" % \
                 (self._imgId, self._imgURI, self._createdDate, self._lastAccess, \
                  self._accessCount, self._size, self._extension)
 

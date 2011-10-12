@@ -59,7 +59,7 @@ class fgShellImage(Cmd):
         #print sys.argv
     
         parser = argparse.ArgumentParser(prog="imagegenerate", formatter_class=argparse.RawDescriptionHelpFormatter,
-                                         description="FutureGrid Image Deployment Help")
+                                         description="FutureGrid Image Generation Help")
         parser.add_argument('-d', '--debug', dest='debug', action="store_true", help='Print logs in the screen for debug')
         parser.add_argument("-o", "--os", dest="OS", metavar='OSName', help="specify destination Operating System")
         parser.add_argument("-v", "--version", dest="version", metavar='OSversion', help="Operating System version")
@@ -170,6 +170,7 @@ class fgShellImage(Cmd):
                 sys.argv += [prefix+'-'+newlist[0]]
                 newlist = newlist [1:]
                 rest = ""
+                print newlist
                 for j in range(len(newlist)):
                     rest+=" "+newlist[j]
                 rest=rest.strip()
@@ -185,7 +186,7 @@ class fgShellImage(Cmd):
         group = parser.add_mutually_exclusive_group(required=True)    
         group.add_argument('-i', '--image', dest='image', metavar='ImgFile', help='tgz file that contains manifest and img')
         group.add_argument('-r', '--imgid', dest='imgid', metavar='ImgId', help='Id of the image stored in the repository')
-        group1 = parser.add_mutually_exclusive_group(required=True)
+        group1 = parser.add_mutually_exclusive_group()
         group1.add_argument('-x', '--xcat', dest='xcat', metavar='MachineName', help='Deploy image to xCAT. The argument is the machine name (minicluster, india ...)')
         group1.add_argument('-e', '--euca', dest='euca', nargs='?', metavar='Address:port', help='Deploy the image to Eucalyptus, which is in the specified addr')        
         group1.add_argument('-o', '--opennebula', dest='opennebula', nargs='?', metavar='Address', help='Deploy the image to OpenNebula, which is in the specified addr')

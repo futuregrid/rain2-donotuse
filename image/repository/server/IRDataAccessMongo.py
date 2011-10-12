@@ -1232,6 +1232,41 @@ class IRUserStoreMongo(AbstractIRUserStore):
 
         return success
 
+    ############################################################
+    # last login
+    ############################################################
+    def updateLastLogin(self, userIdtoModify):
+        """
+        Modify the lastlogin date of a user.
+        
+        return boolean
+        """
+        success = False
+
+        if (self.mongoConnection()):
+            try:
+                
+                dbLink = self._dbConnection[self._dbName]
+                collection = dbLink[self._usercollection]
+
+                collection.update({"userId": userIdtoModify},
+                                  {"$set": {"lastLogin" : datetime.utcnow()}
+                                            }, safe=True)
+                success = True
+            except pymongo.errors.AutoReconnect:
+                self._log.warning("Autoreconnected in IRUserStoreMongo - updateLastLogin")
+            except pymongo.errors.ConnectionFailure:
+                self._log.error("Connection failure: the query cannot be performed ")
+            except TypeError as detail:
+                self._log.error("TypeError in IRUserStoreMongo - updateLastLogin")
+            finally:
+                self._dbConnection.disconnect()
+        else:
+            self._log.error("Could not get access to the database. The lastlogin date has not been changed")
+
+        return success
+
+
     def setRole(self, userId, userIdtoModify, role):
         """
         Modify the role of a user. Only admins can do it

@@ -17,7 +17,7 @@ from cmd2 import Cmd
 from cmd2 import options
 from cmd2 import make_option
 import textwrap
-
+import argparse
 
 class fgShellRepo(Cmd):
 
@@ -43,6 +43,7 @@ class fgShellRepo(Cmd):
         print opts.slow
         self._log.error("SHElll test in fgshell repo")
     """
+    
     ############################################################
     # hist img
     ############################################################
@@ -103,6 +104,43 @@ class fgShellRepo(Cmd):
         msg = "Image Repository histuser command: Return information about the " + \
         "user historical usage."
         self.print_man("histuser [userId]", msg)
+        
+    """ 
+    ###################
+    #user
+    ###################    
+    def do_repouser(self, args):        
+        argslist = args.split("-")[1:]        
+
+        prefix = ''
+        sys.argv=['']
+        for i in range(len(argslist)):
+            if argslist[i] == "":
+                prefix = '-'
+            else:
+                newlist = argslist[i].split(" ")
+                sys.argv += [prefix+'-'+newlist[0]]
+                newlist = newlist [1:]
+                rest = ""                
+                for j in range(len(newlist)):
+                    rest+=" "+newlist[j]
+                rest=rest.strip()
+                sys.argv += [rest]                
+                #sys.argv += [prefix+'-'+argslist[i]]
+                prefix = ''
+
+        parser = argparse.ArgumentParser(prog="repouser", formatter_class=argparse.RawDescriptionHelpFormatter,
+                                     description="User command ")            
+        group1 = parser.add_mutually_exclusive_group()
+        group1.add_argument('-a', '--add', dest='usertoAdd', metavar='userId', help='Add new user to the Image Repository')
+        group1.add_argument('-d', '--del', dest='usertoDel', metavar='userId', help='Delete an user to the Image Repository')        
+        group1.add_argument('-l', '--list', action="store_true", help='List users from Image Repository')        
+        group1.add_argument('-m', '--modify', dest='modify', nargs=3, metavar=('userId', 'quota/role/status', 'value'), help='Modify quota, role or status of an user')
+                  
+        args = parser.parse_args()
+        
+        print args
+    """
     ############################################################
     # user add
     ############################################################

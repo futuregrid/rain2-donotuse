@@ -1197,7 +1197,43 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
             self._log.error("Could not get access to the database. The disk usage has not been changed")
 
         return success
+    
+    ############################################################
+    # updateLastLogin
+    ############################################################
+    def updateLastLogin(self, userIdtoModify):
+        """
+        Modify the lastlogin date of a user.
+        
+        return boolean
+        """
+        success = False
+        if (self.mysqlConnection()):
+            try:
+                
+                cursor = self._dbConnection.cursor()
 
+                update = "UPDATE %s SET lastLogin='%s'WHERE userId='%s'" \
+                                 % (self._tabledata, datetime.utcnow(), userIdtoModify)
+                #print update
+                cursor.execute(update)
+                self._dbConnection.commit()
+
+                success = True
+
+            except MySQLdb.Error, e:
+                self._log.error("Error %d: %s" % (e.args[0], e.args[1]))
+                self._dbConnection.rollback()
+            except IOError as (errno, strerror):
+                self._log.error("I/O error({0}): {1}".format(errno, strerror))
+            except TypeError as detail:
+                self._log.error("TypeError in IRUserStoreMongo - setRole: " + format(detail))
+            finally:
+                self._dbConnection.close()
+        else:
+            self._log.error("Could not get access to the database. The role has not been changed")
+
+        return success
 
     ############################################################
     # setRole

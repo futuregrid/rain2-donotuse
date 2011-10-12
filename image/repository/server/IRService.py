@@ -131,9 +131,11 @@ class IRService(object):
 
     
     def auth(self, userId, userCred, provider):
-        # to be implemented when integrating with the security framework
         cred = FGCredential(provider, userCred)
-        return FGAuth.auth(userId, cred)
+        status = FGAuth.auth(userId, cred)
+        if status:
+            self.userStore.updateLastLogin(userId)
+        return status
 
     ############################################################
     # uploadValidator
