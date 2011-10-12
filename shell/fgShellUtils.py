@@ -13,6 +13,7 @@ import sys
 import textwrap
 from cmd2 import Cmd
 import pkgutil
+import string
 
 class fgShellUtils(Cmd):
 
@@ -233,14 +234,20 @@ class fgShellUtils(Cmd):
 
     def do_runjob(self, args):
         '''run the job'''
-        if(self._use != ""):
-            command = "self.do_" + self._use + "runjob(\"" + args + "\")"
-            #print command
-            try:
-                eval(command)
-            except AttributeError:
-                print "The " + self._use + " context does not have a runjob method "
-                self._log.error(str(sys.exc_info()))
+        if(self._use != ""):            
+            found = False
+            for i in self._requirements:
+                prefix=string.lower(i)
+                command = "self.do_" + prefix + "runjob(\"" + args + "\")"            
+                try:
+                    eval(command)
+                    found = True
+                    break
+                except AttributeError:
+                    pass
+            if not found:
+                print "There is no runjob method in any of the active contexts (" + str(self.requirements) + " )"
+                self._log.error(str(sys.exc_info()))            
         else:
             self.generic_error()
 
@@ -253,13 +260,19 @@ class fgShellUtils(Cmd):
     def do_runscript(self, args):
         '''run the script'''
         if(self._use != ""):
-            command = "self.do_" + self._use + "runscript(\"" + args + "\")"
-            #print command
-            try:
-                eval(command)
-            except AttributeError:
-                print "The " + self._use + " context does not have a runscript method "
-                self._log.error(str(sys.exc_info()))
+            found = False
+            for i in self._requirements:
+                prefix=string.lower(i)
+                command = "self.do_" + prefix + "runscript(\"" + args + "\")"            
+                try:
+                    eval(command)
+                    found = True
+                    break
+                except AttributeError:
+                    pass
+            if not found:
+                print "There is no runscript method in any of the active contexts (" + str(self.requirements) + " )"
+                self._log.error(str(sys.exc_info()))           
         else:
             self.generic_error()
 
@@ -272,13 +285,19 @@ class fgShellUtils(Cmd):
     def do_get(self, args):
         '''TODO: get'''
         if(self._use != ""):
-            command = "self.do_" + self._use + "get(\"" + args + "\")"
-            #print command
-            try:
-                eval(command)
-            except AttributeError:
-                print "The " + self._use + " context does not have a get method "
-                self._log.error(str(sys.exc_info()))
+            found = False
+            for i in self._requirements:
+                prefix=string.lower(i)
+                command = "self.do_" + prefix + "get(\"" + args + "\")"            
+                try:
+                    eval(command)
+                    found = True
+                    break
+                except AttributeError:
+                    pass
+            if not found:
+                print "There is no get method in any of the active contexts (" + str(self.requirements) + " )"
+                self._log.error(str(sys.exc_info()))         
         else:
             self.generic_error()
     help_get = generic_help
@@ -290,13 +309,19 @@ class fgShellUtils(Cmd):
     def do_modify(self, args):
         '''TODO: modify'''
         if(self._use != ""):
-            command = "self.do_" + self._use + "modify(\"" + args + "\")"
-            #print command
-            try:
-                eval(command)
-            except AttributeError:
-                print "The " + self._use + " context does not have a modify method "
-                self._log.error(str(sys.exc_info()))
+            found = False
+            for i in self._requirements:
+                prefix=string.lower(i)
+                command = "self.do_" + prefix + "modify(\"" + args + "\")"            
+                try:
+                    eval(command)
+                    found = True
+                    break
+                except AttributeError:
+                    pass
+            if not found:
+                print "There is no modify method in any of the active contexts (" + str(self.requirements) + " )"
+                self._log.error(str(sys.exc_info()))         
         else:
             self.generic_error()
     help_modify = generic_help
@@ -308,13 +333,19 @@ class fgShellUtils(Cmd):
     def do_setpermission(self, args):
         '''set permissions'''
         if(self._use != ""):
-            command = "self.do_" + self._use + "setpermission(\"" + args + "\")"
-            #print command
-            try:
-                eval(command)
-            except AttributeError:
-                print "The " + self._use + " context does not have a setpermission method "
-                self._log.error(str(sys.exc_info()))
+            found = False
+            for i in self._requirements:
+                prefix=string.lower(i)
+                command = "self.do_" + prefix + "setpermission(\"" + args + "\")"            
+                try:
+                    eval(command)
+                    found = True
+                    break
+                except AttributeError:
+                    pass
+            if not found:
+                print "There is no setpermission method in any of the active contexts (" + str(self.requirements) + " )"
+                self._log.error(str(sys.exc_info()))         
         else:
             self.generic_error()
     help_setpermission = generic_help
@@ -326,12 +357,19 @@ class fgShellUtils(Cmd):
     def do_put(self, args):
         '''TODO: put'''
         if(self._use != ""):
-            command = "self.do_" + self._use + "put(\"" + args + "\")"
-            try:
-                eval(command)
-            except AttributeError:
-                print "The " + self._use + " context does not have a put method"
-                self._log.error(str(sys.exc_info()))
+            found = False
+            for i in self._requirements:
+                prefix=string.lower(i)
+                command = "self.do_" + prefix + "put(\"" + args + "\")"            
+                try:
+                    eval(command)
+                    found = True
+                    break
+                except AttributeError:
+                    pass
+            if not found:
+                print "There is no put method in any of the active contexts (" + str(self.requirements) + " )"
+                self._log.error(str(sys.exc_info()))         
         else:
             self.generic_error()
     help_put = generic_help
@@ -343,12 +381,19 @@ class fgShellUtils(Cmd):
     def do_remove(self, args):
         '''TODO: remove'''
         if(self._use != ""):
-            command = "self.do_" + self._use + "remove(\"" + args + "\")"
-            try:
-                eval(command)
-            except AttributeError:
-                print "The " + self._use + " context does not have a remove method"
-                self._log.error(str(sys.exc_info()))
+            found = False
+            for i in self._requirements:
+                prefix=string.lower(i)
+                command = "self.do_" + prefix + "remove(\"" + args + "\")"            
+                try:
+                    eval(command)
+                    found = True
+                    break
+                except AttributeError:
+                    pass
+            if not found:
+                print "There is no remove method in any of the active contexts (" + str(self.requirements) + " )"
+                self._log.error(str(sys.exc_info()))         
         else:
             self.generic_error()
     help_remove = generic_help
@@ -363,117 +408,44 @@ class fgShellUtils(Cmd):
 
     def do_list(self, args):
         if(self._use != ""):
-            command = "self.do_" + self._use + "list(\"" + args + "\")"
-            try:
-                eval(command)
-            except AttributeError:
-                print "The " + self._use + " context does not have a list method"
-                self._log.error(str(sys.exc_info()))
+            found = False
+            for i in self._requirements:
+                prefix=string.lower(i)
+                command = "self.do_" + prefix + "list(\"" + args + "\")"
+                try:
+                    eval(command)
+                except AttributeError:
+                    pass
+            print "There is no list method in any of the active contexts (" + str(self.requirements)
+            self._log.error(str(sys.exc_info()))
         else:
             self.generic_error()
     help_list = generic_help
 
     #################################
-    #User Add
-    #################################
-
-    def do_useradd(self, args):
-        if(self._use != ""):
-            command = "self.do_" + self._use + "useradd(\"" + args + "\")"
-            #print command
-            try:
-                eval(command)
-            except AttributeError:
-                print "The " + self._use + " context does not have a useradd method "
-                self._log.error(str(sys.exc_info()))
-        else:
-            self.generic_error()
-    help_useradd = generic_help
-
-    #################################
     #User Del
     #################################
 
-    def do_userdel(self, args):
+    def do_user(self, args):        
         if(self._use != ""):
-            command = "self.do_" + self._use + "userdel(\"" + args + "\")"
-            #print command
-            try:
-                eval(command)
-            except AttributeError:
-                print "The " + self._use + " context does not have a userdel method "
+            found = False
+            for i in self._requirements:
+                prefix=string.lower(i)
+                command = "self.do_" + prefix + "user(\"" + args + "\")"            
+                try:
+                    eval(command)
+                    found = True
+                    break
+                except AttributeError:
+                    pass
+            if not found:
+                print "There is no user method in any of the active contexts (" + str(self.requirements) + " )"
                 self._log.error(str(sys.exc_info()))
         else:
             self.generic_error()
-    help_userdel = generic_help
+    help_user = generic_help
 
-    #################################
-    #User List
-    #################################
-
-    def do_userlist(self, args):
-        if(self._use != ""):
-            command = "self.do_" + self._use + "userlist(\"" + args + "\")"
-            #print command
-            try:
-                eval(command)
-            except AttributeError:
-                print "The " + self._use + " context does not have a userlist method "
-                self._log.error(str(sys.exc_info()))
-        else:
-            self.generic_error()
-    help_userlist = generic_help
-
-    #################################
-    #Set User Quota
-    #################################
-
-    def do_setuserquota(self, args):
-        if(self._use != ""):
-            command = "self.do_" + self._use + "setuserquota(\"" + args + "\")"
-            #print command
-            try:
-                eval(command)
-            except AttributeError:
-                print "The " + self._use + " context does not have a setuserquota method "
-                self._log.error(str(sys.exc_info()))
-        else:
-            self.generic_error()
-    help_setuserquota = generic_help
-    #################################
-    #Set User Role
-    #################################
-
-    def do_setuserrole(self, args):
-        if(self._use != ""):
-            command = "self.do_" + self._use + "setuserrole(\"" + args + "\")"
-            #print command
-            try:
-                eval(command)
-            except AttributeError:
-                print "The " + self._use + " context does not have a setuserrole method "
-                self._log.error(str(sys.exc_info()))
-        else:
-            self.generic_error()
-    help_setuserrole = generic_help
-    #################################
-    #Set User Status
-    #################################
-
-    def do_setuserstatus(self, args):
-
-        if(self._use != ""):
-            command = "self.do_" + self._use + "setuserstatus(\"" + args + "\")"
-            #print command
-            try:
-                eval(command)
-            except AttributeError:
-                print "The " + self._use + " context does not have a setuserstatus method "
-                self._log.error(str(sys.exc_info()))
-        else:
-            self.generic_error()
-    help_setuserstatus = generic_help
-
+    
     #################################
     #Hist img
     #################################
@@ -481,13 +453,19 @@ class fgShellUtils(Cmd):
     def do_histimg(self, args):
 
         if(self._use != ""):
-            command = "self.do_" + self._use + "histimg(\"" + args + "\")"
-            #print command
-            try:
-                eval(command)
-            except AttributeError:
-                print "The " + self._use + " context does not have a histimg method "
-                self._log.error(str(sys.exc_info()))
+            found = False
+            for i in self._requirements:
+                prefix=string.lower(i)
+                command = "self.do_" + prefix + "histimg(\"" + args + "\")"            
+                try:
+                    eval(command)
+                    found = True
+                    break
+                except AttributeError:
+                    pass
+            if not found:
+                print "There is no histimg method in any of the active contexts (" + str(self.requirements) + " )"
+                self._log.error(str(sys.exc_info()))         
         else:
             self.generic_error()
     help_histimg = generic_help
@@ -499,13 +477,19 @@ class fgShellUtils(Cmd):
     def do_histuser(self, args):
 
         if(self._use != ""):
-            command = "self.do_" + self._use + "histuser(\"" + args + "\")"
-            #print command
-            try:
-                eval(command)
-            except AttributeError:
-                print "The " + self._use + " context does not have a histuser method "
-                self._log.error(str(sys.exc_info()))
+            found = False
+            for i in self._requirements:
+                prefix=string.lower(i)
+                command = "self.do_" + prefix + "histuser(\"" + args + "\")"            
+                try:
+                    eval(command)
+                    found = True
+                    break
+                except AttributeError:
+                    pass
+            if not found:
+                print "There is no histuser method in any of the active contexts (" + str(self.requirements) + " )"
+                self._log.error(str(sys.exc_info()))         
         else:
             self.generic_error()
     help_histuser = generic_help
@@ -518,13 +502,19 @@ class fgShellUtils(Cmd):
     def do_move(self, args):
 
         if(self._use != ""):
-            command = "self.do_" + self._use + "move(\"" + args + "\")"
-            #print command
-            try:
-                eval(command)
-            except AttributeError:
-                print "The " + self._use + " context does not have a move method "
-                self._log.error(str(sys.exc_info()))
+            found = False
+            for i in self._requirements:
+                prefix=string.lower(i)
+                command = "self.do_" + prefix + "move(\"" + args + "\")"            
+                try:
+                    eval(command)
+                    found = True
+                    break
+                except AttributeError:
+                    pass
+            if not found:
+                print "There is no move method in any of the active contexts (" + str(self.requirements) + " )"
+                self._log.error(str(sys.exc_info()))         
         else:
             self.generic_error()
     help_move = generic_help
@@ -536,13 +526,19 @@ class fgShellUtils(Cmd):
     def do_group(self, args):
 
         if(self._use != ""):
-            command = "self.do_" + self._use + "group(\"" + args + "\")"
-            #print command
-            try:
-                eval(command)
-            except AttributeError:
-                print "The " + self._use + " context does not have a group method "
-                self._log.error(str(sys.exc_info()))
+            found = False
+            for i in self._requirements:
+                prefix=string.lower(i)
+                command = "self.do_" + prefix + "group(\"" + args + "\")"            
+                try:
+                    eval(command)
+                    found = True
+                    break
+                except AttributeError:
+                    pass
+            if not found:
+                print "There is no group method in any of the active contexts (" + str(self.requirements) + " )"
+                self._log.error(str(sys.exc_info()))         
         else:
             self.generic_error()
     help_group = generic_help
@@ -554,13 +550,19 @@ class fgShellUtils(Cmd):
     def do_deploy(self, args):
 
         if(self._use != ""):
-            command = "self.do_" + self._use + "deploy(\"" + args + "\")"
-            #print command
-            try:
-                eval(command)
-            except AttributeError:
-                print "The " + self._use + " context does not have a deploy method "
-                self._log.error(str(sys.exc_info()))
+            found = False
+            for i in self._requirements:
+                prefix=string.lower(i)
+                command = "self.do_" + prefix + "deploy(\"" + args + "\")"            
+                try:
+                    eval(command)
+                    found = True
+                    break
+                except AttributeError:
+                    pass
+            if not found:
+                print "There is no deploy method in any of the active contexts (" + str(self.requirements) + " )"
+                self._log.error(str(sys.exc_info()))         
         else:
             self.generic_error()
     help_deploy = generic_help
@@ -572,13 +574,19 @@ class fgShellUtils(Cmd):
     def do_generate(self, args):
 
         if(self._use != ""):
-            command = "self.do_" + self._use + "generate(\"" + args + "\")"
-            #print command
-            try:
-                eval(command)
-            except AttributeError:
-                print "The " + self._use + " context does not have a deploy method "
-                self._log.error(str(sys.exc_info()))
+            found = False
+            for i in self._requirements:
+                prefix=string.lower(i)
+                command = "self.do_" + prefix + "generate(\"" + args + "\")"            
+                try:
+                    eval(command)
+                    found = True
+                    break
+                except AttributeError:
+                    pass
+            if not found:
+                print "There is no generate method in any of the active contexts (" + str(self.requirements) + " )"
+                self._log.error(str(sys.exc_info()))         
         else:
             self.generic_error()
     help_generate = generic_help

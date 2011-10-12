@@ -105,7 +105,7 @@ class fgShellRepo(Cmd):
         "user historical usage."
         self.print_man("histuser [userId]", msg)
         
-    """ 
+     
     ###################
     #user
     ###################    
@@ -113,19 +113,16 @@ class fgShellRepo(Cmd):
         argslist = args.split("-")[1:]        
 
         prefix = ''
-        sys.argv=['']
+        sys.argv=['']        
         for i in range(len(argslist)):
             if argslist[i] == "":
                 prefix = '-'
             else:
                 newlist = argslist[i].split(" ")
                 sys.argv += [prefix+'-'+newlist[0]]
-                newlist = newlist [1:]
-                rest = ""                
-                for j in range(len(newlist)):
-                    rest+=" "+newlist[j]
-                rest=rest.strip()
-                sys.argv += [rest]                
+                newlist = newlist [1:]                
+                if len(newlist) > 0:                    
+                    sys.argv += newlist          
                 #sys.argv += [prefix+'-'+argslist[i]]
                 prefix = ''
 
@@ -134,18 +131,51 @@ class fgShellRepo(Cmd):
         group1 = parser.add_mutually_exclusive_group()
         group1.add_argument('-a', '--add', dest='usertoAdd', metavar='userId', help='Add new user to the Image Repository')
         group1.add_argument('-d', '--del', dest='usertoDel', metavar='userId', help='Delete an user to the Image Repository')        
-        group1.add_argument('-l', '--list', action="store_true", help='List users from Image Repository')        
+        group1.add_argument('-l', '--list', dest='list', action="store_true", help='List users from Image Repository')        
         group1.add_argument('-m', '--modify', dest='modify', nargs=3, metavar=('userId', 'quota/role/status', 'value'), help='Modify quota, role or status of an user')
                   
         args = parser.parse_args()
         
-        print args
-    """
+        used_args = sys.argv[1:]
+        
+        if len(used_args) == 0:
+            parser.print_help()
+            return
+                
+        if ('-a' in used_args or '--add' in used_args):
+            self.repouseradd(args.usertoAdd)
+        if ('-d' in used_args or '--del' in used_args):
+            self.repouserdel(args.usertoDel)
+        if ('-l' in used_args or '--list' in used_args):
+            self.repouserlist("")
+        if ('-m' in used_args or '--modify' in used_args):
+            if args.modify[1].strip() == "quota":
+                print args.modify[0]
+                print args.modify[2]
+                self.reposetuserquota(args.modify[0],args.modify[2])
+            elif args.modify[1].strip() == "role":
+                if not args.modify[2] in IRTypes.IRUser.Role:
+                    print "ERROR: third positional parameter must be one of these: " + str(IRTypes.IRUser.Role)
+                else:
+                    self.reposetuserrole(args.modify[0],args.modify[2])
+            elif args.modify[1].strip() == "status":
+                if not args.modify[2] in IRTypes.IRUser.Status:
+                    print "ERROR: third positional parameter must be one of these: " + str(IRTypes.IRUser.Status)
+                else:
+                    self.reposetuserstatus(args.modify[0],args.modify[2])
+            else:
+                print "ERROR: second positional parameter must be quota, role or status"
+            
+    
+    def help_repouser(self):
+        msg = "Repo user command: Manage Image Repository Users "              
+        self.print_man("user ", msg)
+        eval("self.do_repouser(\"-h\")")
     ############################################################
     # user add
     ############################################################
 
-    def do_repouseradd(self, args):
+    def repouseradd(self, args):
         '''Image Repository useradd command: Add new user (only Admin
         user can execut it).'''
 
@@ -164,17 +194,12 @@ class fgShellRepo(Cmd):
                       "Please verify that you are admin and that the username does not exist \n"
         else:
             self.help_repouseradd()
-        
-
-    def help_repouseradd(self):
-        '''Help message for the repouseradd command'''
-        self.print_man("useradd <userId>", self.do_repouseradd.__doc__)
 
     ############################################################
     # user del
     ############################################################
 
-    def do_repouserdel(self, args):
+    def repouserdel(self, args):
         '''Image Repository userdel command: Remove a user (only Admin
         user can execut it).'''
 
@@ -193,16 +218,11 @@ class fgShellRepo(Cmd):
         else:
             self.help_repouserdel()
 
-    def help_repouserdel(self):
-        '''Help message for the repouserdel command'''
-        self.print_man("userdel <userId>", self.do_repouserdel.__doc__)
-
-
     ############################################################
     # userlist
     ############################################################
 
-    def do_repouserlist(self, args):
+    def repouserlist(self, args):
         '''Image Repository userlist command: Get list of users'''
         
         #connect with the server
@@ -226,88 +246,59 @@ class fgShellRepo(Cmd):
             print "No list of user returned. \n" + \
                   "Please verify that you are admin \n"
 
-    def help_repouserlist(self):
-        '''Help message for the repouserlist command'''
-        self.print_man("userlist", self.do_repouserlist.__doc__)
-
-
     ############################################################
     # setuserquota
     ############################################################
 
-    def do_reposetuserquota(self, args):
+    def reposetuserquota(self, userId, value):
         '''Image Repository setuserquota command: Establish disk space
         available for users (this is given in bytes). Quota argument
         allow math expressions like 4*1024'''
 
-        args = self.getArgs(args)
-        if (len(args) == 2):
-            #connect with the server
-            if not self._service.connection():
-                print "ERROR: Connection with the server failed"
-                return
-            status = self._service.setUserQuota(self.user, self.passwd, self.user, args[0], args[1])
-            if(status == "True"):
-                print "User quota changed successfully."
-            else:
-                print "The user quota has not been changed. \n" + \
-                      "Please verify that you are admin and that the username exists \n"
+        
+        #connect with the server
+        if not self._service.connection():
+            print "ERROR: Connection with the server failed"
+            return
+        status = self._service.setUserQuota(self.user, self.passwd, self.user, userId, value)
+        if(status == "True"):
+            print "User quota changed successfully."
         else:
-            self.help_reposetuserquota()
-
-    def help_reposetuserquota(self):
-        '''Help message for the repouserlist command'''
-        self.print_man("userquota <userId> <quota in bytes>", 
-                       self.do_reposetuserquota.__doc__)
+            print "The user quota has not been changed. \n" + \
+                  "Please verify that you are admin and that the username exists \n"
 
     ############################################################
     # userrole
     ############################################################
 
-    def do_reposetuserrole(self, args):
-        args = self.getArgs(args)
-        if (len(args) == 2):
-            #connect with the server
-            if not self._service.connection():
-                print "ERROR: Connection with the server failed"
-                return
-            status = self._service.setUserRole(self.user, self.passwd, self.user, args[0], args[1])
-            if(status == "True"):
-                print "User role has been changed successfully."
-            else:
-                print "The user role has not been changed. " + status + "\n"\
-                      "Please verify that you are admin and that the username exists \n"
+    def reposetuserrole(self, userId, value):        
+        #connect with the server
+        if not self._service.connection():
+            print "ERROR: Connection with the server failed"
+            return
+        status = self._service.setUserRole(self.user, self.passwd, self.user, userId, value)
+        if(status == "True"):
+            print "User role has been changed successfully."
         else:
-            self.help_reposetuserrole()
+            print "The user role has not been changed. " + status + "\n"\
+                  "Please verify that you are admin and that the username exists \n"
 
-    def help_reposetuserrole(self):
-        msg = "Image Repository setuserrole command: Change role of a particular " + \
-        "user. Available roles: " + str(IRTypes.IRUser.Role) + "\n"
-        self.print_man("setuserrole <userId> <role>", msg)
     ############################################################
     # userstatus
     ############################################################
 
-    def do_reposetuserstatus(self, args):
-        args = self.getArgs(args)
-        if (len(args) == 2):
-            #connect with the server
-            if not self._service.connection():
-                print "ERROR: Connection with the server failed"
-                return
-            status = self._service.setUserStatus(self.user, self.passwd, self.user, args[0], args[1])
-            if(status == "True"):
-                print "User role has been changed successfully."
-            else:
-                print "The user status has not been changed. " + status + "\n"\
-                      "Please verify that you are admin and that the username exists \n"
+    def reposetuserstatus(self, userId, value):        
+        #connect with the server
+        if not self._service.connection():
+            print "ERROR: Connection with the server failed"
+            return
+        status = self._service.setUserStatus(self.user, self.passwd, self.user, userId, value)
+        if(status == "True"):
+            print "User role has been changed successfully."
         else:
-            self.help_reposetuserstatus()
-
-    def help_reposetuserstatus(self):
-        msg = "Image Repository setuserstatus command: Change status of a " + \
-        "particular user. Available status: " + str(IRTypes.IRUser.Status)
-        self.print_man("setuserstatus <userId> <status>", msg)
+            print "The user status has not been changed. " + status + "\n"\
+                  "Please verify that you are admin and that the username exists \n"
+        
     ############################################################
     # list
     ############################################################

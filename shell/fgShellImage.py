@@ -52,8 +52,9 @@ class fgShellImage(Cmd):
                 rest = ""
                 for j in range(len(newlist)):
                     rest+=" "+newlist[j]
-                rest=rest.strip()
-                sys.argv += [rest]
+                if rest.strip() != "":
+                    rest=rest.strip()
+                    sys.argv += [rest]
                 #sys.argv += [prefix+'-'+argslist[i]]
                 prefix = ''
         #print sys.argv
@@ -70,6 +71,11 @@ class fgShellImage(Cmd):
         parser.add_argument("-g", "--getimg", dest="getimg", default=False, action="store_true", help="Retrieve the image instead of uploading to the image repository")
         
         args = parser.parse_args()
+        
+        used_args = sys.argv[1:]
+        if len(used_args) == 0:
+            parser.print_help()
+            return
         
         print 'Image generator client...'
         
@@ -154,6 +160,7 @@ class fgShellImage(Cmd):
     def help_imagegenerate(self):
         msg = "IMAGE generate command: Generate an image "              
         self.print_man("generate ", msg)
+        eval("self.do_imagegenerate(\"-h\")")
 
     def do_imagedeploy(self, args):
 
@@ -173,8 +180,9 @@ class fgShellImage(Cmd):
                 print newlist
                 for j in range(len(newlist)):
                     rest+=" "+newlist[j]
-                rest=rest.strip()
-                sys.argv += [rest]
+                if rest.strip() != "":
+                    rest=rest.strip()
+                    sys.argv += [rest]
                 #sys.argv += [prefix+'-'+argslist[i]]
                 prefix = ''
 
@@ -240,5 +248,6 @@ class fgShellImage(Cmd):
     def help_imagedeploy(self):
         msg = "IMAGE deploy command: Deploy an image in a FG infrastructure. \n "
         self.print_man("deploy ", msg)
+        eval("self.do_imagedeploy(\"-h\")")
 
         
