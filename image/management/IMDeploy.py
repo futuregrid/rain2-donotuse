@@ -465,9 +465,9 @@ class IMDeploy(object):
                 ret = xcatServer.read(1024)
                 #check if the server received all parameters
                 if ret != 'OK':
-                    self._log.error('Incorrect reply from the xCat server:' + str(ret))
+                    self._log.error('Incorrect reply from the xCat server: ' + str(ret))
                     if self._verbose:
-                        print 'Incorrect reply from the xCat server:' + str(ret)
+                        print 'Incorrect reply from the xCat server: ' + str(ret)
                     sys.exit(1)
                 #recieve the prefix parameter from xcat server
                 moabstring = xcatServer.read(2048)

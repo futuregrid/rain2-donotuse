@@ -161,6 +161,20 @@ class IMDeployServerXcat(object):
                     endloop = True
                     self.errormsg(connstream, msg)
                     return
+        
+        #check if there is enough space in /install/netboot
+        df = subprocess.Popen(["df","/install/netboot/"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)        
+        output = df.communicate()
+        if len(output[0]) > 0:
+            self.logger.debug('stdout: ' + output[0])
+            self.logger.debug('stderr: ' + output[1])
+            
+        usage_percent = int(output.split("\n")[1].split()[4].split("%")[0])
+        if usage_percent > 85:
+            msg="ERROR: Image cannot be deployed due to low disk space. Please contact with your system administrator"            
+            self.errormsg(connstream, msg)
+            return
+        
         #connstream.write("OK")
         #print "---Auth works---"
         #GET IMAGE from repo
@@ -298,15 +312,17 @@ class IMDeployServerXcat(object):
                   self.operatingsystem + '' + self.name + '/' + self.arch + '/compute/rootimg.gz console=ttyS0,115200n8r\''                          
             self.logger.debug(cmd)
             if not self.test_mode:
-                status = os.system("sudo " + cmd)
+                #status = os.system("sudo " + cmd)
+                status = os.system(cmd) #No sudo needed if the user that run IMDeployServerXcat has been configured to execute chtab
 
         #Pack image
         cmd = 'packimage -o ' + self.prefix + self.operatingsystem + '' + self.name + ' -p compute -a ' + self.arch
-        self.logger.debug(cmd)
+        self.logger.debug(cmd)        
         if not self.test_mode:
-            status = self.runCmd(cmd)
-        else:
-            status = 0
+            #status = s.system("sudo " +cmd)
+            status = os.system(cmd) #No sudo needed if the user that run IMDeployServerXcat has been configured to execute packimage
+        else:            
+            status = 0            
         #    
         if status != 0:
             msg = "ERROR: packimage command"

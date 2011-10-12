@@ -363,7 +363,7 @@ class IMDeployServerIaaS(object):
         rc_local = ""
         if self.operatingsystem == "ubuntu":
             #setup vmcontext.sh
-            self.runCmd("sudo ln -s /etc/init.d/vmcontext.sh "+localtempdir+"/temp/etc/rc2.d/S01vmcontext.sh")
+            self.runCmd("sudo sudo chroot "+localtempdir+"/temp ln -s /etc/init.d/vmcontext.sh /etc/rc2.d/S01vmcontext.sh")
             device = "sda" 
             rc_local = "mount -t iso9660 /dev/sr0 /mnt \n"
             #delete persisten network rules
