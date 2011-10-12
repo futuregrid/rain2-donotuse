@@ -166,17 +166,19 @@ class IMDeployServerXcat(object):
         df = subprocess.Popen(["df","/install/netboot/"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)        
         output = df.communicate()
         if len(output[0]) > 0:
-            self.logger.debug('stdout: ' + output[0])
-            self.logger.debug('stderr: ' + output[1])
-            
-        usage_percent = int(output.split("\n")[1].split()[4].split("%")[0])
-        if usage_percent > 85:
-            msg="ERROR: Image cannot be deployed due to low disk space. Please contact with your system administrator"            
+            self.logger.debug('df stdout: ' + output[0])
+            self.logger.debug('df stderr: ' + output[1])        
+        try:    
+            usage_percent = int(output.split("\n")[1].split()[4].split("%")[0])
+            if usage_percent > 85:
+                msg="ERROR: Image cannot be deployed due to low disk space. Please contact with your system administrator"            
+                self.errormsg(connstream, msg)
+                return
+        except:
+            msg="ERROR: Trying to determine the disk usage of /install/netboot partition. Exit status: "+str(sys.exc_info())            
             self.errormsg(connstream, msg)
             return
         
-        #connstream.write("OK")
-        #print "---Auth works---"
         #GET IMAGE from repo
         if not self._reposervice.connection():
             msg = "ERROR: Connection with the Image Repository failed"
