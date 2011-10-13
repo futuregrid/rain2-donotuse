@@ -83,67 +83,67 @@ class IMDeployServerMoab(object):
                 if connstream is ssl.SSLSocket:
                     connstream.shutdown(socket.SHUT_RDWR)
                     connstream.close()
-    
-                self.logger.info('Accepted new connection')
+                
 
     def process_client(self, connstream):
-                #receive the message
-                data = connstream.read(2048)
-                params = data.split(',')
-    
-                #params[0] is prefix
-                #params[1] is name
-                #params[2] is operating system            
-                #params[3] is arch
-                #params[4] is machine (india, minicluster..)
-    
-                self.prefix = params[0]
-                self.name = params[1]
-                self.operatingsystem = params[2]
-                self.arch = params[3]
-                self.machine = params[4]
-    
-                moabstring = ""    
-                if self.machine == "minicluster":
-                    moabstring = 'echo \"' + self.prefix + self.operatingsystem + '' + self.name + ' ' + self.arch + ' ' + self.prefix + \
-                                self.operatingsystem + '' + self.name + ' compute netboot\" | sudo tee -a ' + self.moabInstallPath + '/tools/msm/images.txt > /dev/null'
-                    #moabstring = 'echo \"' + prefix + operatingsystem + '' + name + ' ' + arch + ' boottarget ' + prefix + operatingsystem + '' + name + ' netboot\" >> ' + moabInstallPath + '/tools/msm/images.txt'
-                elif self.machine == "india":
-                    moabstring = 'echo \"' + self.prefix + self.operatingsystem + '' + self.name + ' ' + self.arch + ' boottarget ' + \
-                                self.prefix + self.operatingsystem + '' + self.name + ' netboot\" | sudo tee -a ' + self.moabInstallPath + '/tools/msm/images.txt > /dev/null'
-    
-    
-                #This message inster the line in the images.txt file    
-                self.logger.debug(moabstring)
-                status = os.system(moabstring)
-    
-                if len(params) == self.numparams and status != 0:
-                    msg = 'Error including image name in image.txt file'
-                    self.logger.debug(msg)
-                    connstream.write(msg)
-                    connstream.shutdown(socket.SHUT_RDWR)
-                    connstream.close()
-                    return
-                else:
-                    connstream.write('OK')
-                    connstream.shutdown(socket.SHUT_RDWR)
-                    connstream.close()
-    
-                cmd = 'sudo mschedctl -R'
+        self.logger.info('Accepted new connection')
+        #receive the message
+        data = connstream.read(2048)
+        params = data.split(',')
+
+        #params[0] is prefix
+        #params[1] is name
+        #params[2] is operating system            
+        #params[3] is arch
+        #params[4] is machine (india, minicluster..)
+
+        self.prefix = params[0]
+        self.name = params[1]
+        self.operatingsystem = params[2]
+        self.arch = params[3]
+        self.machine = params[4]
+
+        moabstring = ""    
+        if self.machine == "minicluster":
+            moabstring = 'echo \"' + self.prefix + self.operatingsystem + '' + self.name + ' ' + self.arch + ' ' + self.prefix + \
+                        self.operatingsystem + '' + self.name + ' compute netboot\" | sudo tee -a ' + self.moabInstallPath + '/tools/msm/images.txt > /dev/null'
+            #moabstring = 'echo \"' + prefix + operatingsystem + '' + name + ' ' + arch + ' boottarget ' + prefix + operatingsystem + '' + name + ' netboot\" >> ' + moabInstallPath + '/tools/msm/images.txt'
+        elif self.machine == "india":
+            moabstring = 'echo \"' + self.prefix + self.operatingsystem + '' + self.name + ' ' + self.arch + ' boottarget ' + \
+                        self.prefix + self.operatingsystem + '' + self.name + ' netboot\" | sudo tee -a ' + self.moabInstallPath + '/tools/msm/images.txt > /dev/null'
+
+
+        #This message inster the line in the images.txt file    
+        self.logger.debug(moabstring)
+        status = os.system(moabstring)
+
+        if len(params) == self.numparams and status != 0:
+            msg = 'Error including image name in image.txt file'
+            self.logger.debug(msg)
+            connstream.write(msg)
+            connstream.shutdown(socket.SHUT_RDWR)
+            connstream.close()
+            return
+        else:
+            connstream.write('OK')
+            connstream.shutdown(socket.SHUT_RDWR)
+            connstream.close()
+
+        cmd = 'sudo mschedctl -R'
+        status = self.runCmd(cmd)
+        """
+        if not os.path.isfile('/tmp/image-deploy-fork.lock'):
+        	os.system('touch /tmp/image-deploy-fork.lock')
+            child_pid = os.fork()
+            if child_pid == 0:
+                self.logger.debug("Child Process: PID# %s" % os.getpid())
+                time.sleep(self.timeToRestartMoab)
+                cmd = 'mschedctl -R'
                 status = self.runCmd(cmd)
-                """
-	            if not os.path.isfile('/tmp/image-deploy-fork.lock'):
-	            	os.system('touch /tmp/image-deploy-fork.lock')
-	                child_pid = os.fork()
-	                if child_pid == 0:
-	                    self.logger.debug("Child Process: PID# %s" % os.getpid())
-	                    time.sleep(self.timeToRestartMoab)
-	                    cmd = 'mschedctl -R'
-	                    status = self.runCmd(cmd)
-	                    os.system('rm -f /tmp/image-deploy-fork.lock')
-	                else:
-	                    self.logger.debug("Parent Process: PID# %s" % os.getpid())
-                """
+                os.system('rm -f /tmp/image-deploy-fork.lock')
+            else:
+                self.logger.debug("Parent Process: PID# %s" % os.getpid())
+        """
 
     def runCmd(self, cmd):
         cmdLog = logging.getLogger('DeployMoab.exec')

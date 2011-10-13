@@ -470,7 +470,8 @@ class IMDeployServerXcat(object):
             self.errormsg(connstream, msg)
             return False
         #copy files keeping the permission (-p parameter)
-        cmd = 'cp -rp ' + self.path + 'temp/* ' + self.path + 'rootimg/'                
+        cmd = 'cp -rp ' + self.path + 'temp/* ' + self.path + 'rootimg/'      
+        self.logger.degug("sudo "+cmd)          
         status = os.system("sudo " + cmd)    
         if status != 0:
             msg = "ERROR: copying image"
