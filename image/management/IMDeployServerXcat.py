@@ -306,7 +306,10 @@ class IMDeployServerXcat(object):
                 ' osimage.osarch=' + self.arch + ''
         self.logger.debug(cmd)
         if not self.test_mode:
-            status = os.system("sudo " + cmd)
+            if(self.machine == "minicluster"):
+                status = os.system("sudo " + cmd)
+            else:
+                status = os.system(cmd)
 
         if (self.machine == "india"):
             cmd = 'chtab boottarget.bprofile=' + self.prefix + self.operatingsystem + '' + self.name + ' boottarget.kernel=\'xcat/netboot/' + self.prefix + \
@@ -323,7 +326,10 @@ class IMDeployServerXcat(object):
         self.logger.debug(cmd)        
         if not self.test_mode:
             #status = s.system("sudo " +cmd)
-            status = os.system(cmd) #No sudo needed if the user that run IMDeployServerXcat has been configured to execute packimage
+            if(self.machine == "minicluster"):
+                status = os.system("sudo " + cmd) 
+            else:
+                status = os.system(cmd) #No sudo needed if the user that run IMDeployServerXcat has been configured to execute packimage
         else:            
             status = 0            
         #    
@@ -471,7 +477,7 @@ class IMDeployServerXcat(object):
             return False
         #copy files keeping the permission (-p parameter)
         cmd = 'cp -rp ' + self.path + 'temp/* ' + self.path + 'rootimg/'      
-        self.logger.degug("sudo "+cmd)          
+        self.logger.debug("sudo "+cmd)          
         status = os.system("sudo " + cmd)    
         if status != 0:
             msg = "ERROR: copying image"

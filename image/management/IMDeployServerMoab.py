@@ -131,6 +131,9 @@ class IMDeployServerMoab(object):
 
         cmd = 'sudo mschedctl -R'
         status = self.runCmd(cmd)
+        
+        self.logger.info("Image Deploy Moab DONE")
+        
         """
         if not os.path.isfile('/tmp/image-deploy-fork.lock'):
         	os.system('touch /tmp/image-deploy-fork.lock')
