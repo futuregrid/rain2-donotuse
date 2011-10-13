@@ -322,7 +322,7 @@ class IMDeployServerXcat(object):
                 status = os.system(cmd) #No sudo needed if the user that run IMDeployServerXcat has been configured to execute chtab
 
         #Pack image
-        cmd = 'packimage -o ' + self.prefix + self.operatingsystem + '' + self.name + ' -p compute -a ' + self.arch
+        cmd = 'packimage -o ' + self.prefix + self.operatingsystem + '' + self.name + ' -p compute -a ' + self.arch + ' > /dev/null'
         self.logger.debug(cmd)        
         if not self.test_mode:
             #status = s.system("sudo " +cmd)

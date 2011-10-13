@@ -147,6 +147,7 @@ class IMDeployServerIaaS(object):
         return FGAuth.auth(self.user, userCred)             
                 
     def process_client(self, connstream):
+        self.logger = logging.getLogger("DeployServerIaas." + str(os.getpid()))
         self.logger.info('Accepted new connection')        
         #receive the message
         data = connstream.read(2048)
