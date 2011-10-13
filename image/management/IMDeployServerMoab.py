@@ -129,7 +129,7 @@ class IMDeployServerMoab(object):
             connstream.shutdown(socket.SHUT_RDWR)
             connstream.close()
 
-        cmd = 'sudo ' + moabInstallPath + '/bin/mschedctl -R'
+        cmd = 'sudo ' + self.moabInstallPath + '/bin/mschedctl -R'
         status = self.runCmd(cmd)
         
         self.logger.info("Image Deploy Moab DONE")
