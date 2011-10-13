@@ -534,7 +534,7 @@ class IMDeployServerIaaS(object):
         self.logger.info("Image Deploy Request DONE")
     
     def runCmd(self, cmd):
-        cmdLog = logging.getLogger('DeployIaaS.exec')
+        cmdLog = logging.getLogger('DeployIaaS' + str(os.getpid()) + '.exec')
         cmdLog.debug(cmd)
         p = Popen(cmd.split(' '), stdout=PIPE, stderr=PIPE)
         std = p.communicate()
