@@ -419,7 +419,8 @@ class IMGenerateServer(object):
         #print vmfile
         #-----read template into string -------------------------
         #s=open('./share/examples/ubuntu_context.one','r').read()
-        s = open(vmfile, 'r').read()
+        
+        s = open(os.path.expanduser(vmfile), 'r').read()
         #self.logger.debug("Vm template:\n"+s)
     
         #-----Start VM-------------------------------------------
