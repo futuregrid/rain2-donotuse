@@ -133,15 +133,17 @@ class IMDeployServerIaaS(object):
                 proc_list[len(proc_list) - 1].start()
             except ssl.SSLError:
                 self.logger.error("Unsuccessful connection attempt from: " + repr(fromaddr))
+                self.logger.info("IaaS deploy server Request DONE")
             except socket.error:
                 self.logger.error("Error with the socket connection")
+                self.logger.info("IaaS deploy server Request DONE")
             except:
                 self.logger.error("Uncontrolled Error: " + str(sys.exc_info()))
                 if type(connstream) is ssl.SSLSocket: 
                     connstream.shutdown(socket.SHUT_RDWR)
                     connstream.close() 
-            finally:
-                self.logger.info("IaaS deploy server Request DONE")        
+                self.logger.info("IaaS deploy server Request DONE")
+                        
      
     def auth(self, userCred):
         return FGAuth.auth(self.user, userCred)             
