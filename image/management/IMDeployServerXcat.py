@@ -301,7 +301,7 @@ class IMDeployServerXcat(object):
         self.runCmd(cmd)
                                           
         #XCAT tables                
-        cmd = 'chtab osimage.imagename=' + self.prefix + self.operatingsystem + '' + self.name + '-' + self.arch + '-netboot-compute osimage.profile=compute '\
+        cmd = 'tabch osimage.imagename=' + self.prefix + self.operatingsystem + '' + self.name + '-' + self.arch + '-netboot-compute osimage.profile=compute '\
                 'osimage.imagetype=linux osimage.provmethod=netboot osimage.osname=linux osimage.osvers=' + self.prefix + self.operatingsystem + '' + self.name + \
                 ' osimage.osarch=' + self.arch + ''
         self.logger.debug(cmd)
@@ -312,14 +312,14 @@ class IMDeployServerXcat(object):
                 status = os.system(cmd)
 
         if (self.machine == "india"):
-            cmd = 'chtab boottarget.bprofile=' + self.prefix + self.operatingsystem + '' + self.name + ' boottarget.kernel=\'xcat/netboot/' + self.prefix + \
+            cmd = 'tabch boottarget.bprofile=' + self.prefix + self.operatingsystem + '' + self.name + ' boottarget.kernel=\'xcat/netboot/' + self.prefix + \
                   self.operatingsystem + '' + self.name + '/' + self.arch + '/compute/kernel\' boottarget.initrd=\'xcat/netboot/' + self.prefix + self.operatingsystem + \
                   '' + self.name + '/' + self.arch + '/compute/initrd-stateless.gz\' boottarget.kcmdline=\'imgurl=http://172.29.202.149/install/netboot/' + self.prefix + \
                   self.operatingsystem + '' + self.name + '/' + self.arch + '/compute/rootimg.gz console=ttyS0,115200n8r\''                          
             self.logger.debug(cmd)
             if not self.test_mode:
                 #status = os.system("sudo " + cmd)
-                status = os.system(cmd) #No sudo needed if the user that run IMDeployServerXcat has been configured to execute chtab
+                status = os.system(cmd) #No sudo needed if the user that run IMDeployServerXcat has been configured to execute tabch
 
         #Pack image
         cmd = 'packimage -o ' + self.prefix + self.operatingsystem + '' + self.name + ' -p compute -a ' + self.arch + ' > /dev/null'
