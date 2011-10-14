@@ -690,7 +690,11 @@ sysfs   /sys     sysfs    defaults       0 0
             self.runCmd('mv -f '+ self.path + '/rootimg/etc/netsetup/netsetup.sh ' + self.path + '/rootimg/etc/init.d/netsetup.sh')
             self.runCmd('chmod +x ' + self.path + '/rootimg/etc/init.d/netsetup.sh')
             self.runCmd('chroot ' + self.path + '/rootimg/ /sbin/chkconfig --add netsetup.sh')
-            self.runCmd('rm -f ' + self.path + 'netsetup_minicluster.tgz')
+            self.runCmd('rm -f ' + self.path + 'netsetup_minicluster.tgz')            
+            os.system('echo "ONBOOT=no" | sudo tee -a ' + self.path + '/rootimg/etc/sysconfig/network-scripts/ifcfg-eth1 > /dev/null')
+            os.system('echo "ONBOOT=no" | sudo tee -a ' + self.path + '/rootimg/etc/sysconfig/network-scripts/ifcfg-usb0 > /dev/null')
+            
+            
             
             os.system('cat ' + self.path + '/rootimg/etc/hosts' + ' > ' + self.path + '/temp/_hosts') #Create it in a unique directory
             f = open(self.path + '/temp/_hosts', 'a')
