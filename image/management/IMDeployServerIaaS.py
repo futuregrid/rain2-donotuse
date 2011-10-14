@@ -285,9 +285,12 @@ class IMDeployServerIaaS(object):
         #remove image
         cmd = 'rm -rf ' + localtempdir
         status = self.runCmd(cmd)
-          
-        connstream.shutdown(socket.SHUT_RDWR)
-        connstream.close()
+        
+        try:
+            connstream.shutdown(socket.SHUT_RDWR)
+            connstream.close()
+        except:
+            self.logger.error("ERROR: "+str(sys.exc_info()))
         self.logger.info("Image Deploy Request DONE")
 
     def euca_method(self, localtempdir): 
