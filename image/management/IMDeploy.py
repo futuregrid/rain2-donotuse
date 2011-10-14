@@ -509,6 +509,7 @@ class IMDeploy(object):
                 sys.exit(1)
             if self._verbose:
                 print 'Your image has been deployed in xCAT as ' + imagename + '. Please allow a few minutes for xCAT to register the image before attempting to use it.'
+                print 'To boot an machine using your image: qsub -l os=<imagename>'
         except ssl.SSLError:
             self._log.error("CANNOT establish SSL connection. EXIT")
             if self._verbose:

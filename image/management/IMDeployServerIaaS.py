@@ -74,32 +74,32 @@ class IMDeployServerIaaS(object):
         
         print "\nReading Configuration file from " + self._deployConf.getConfigFile() + "\n"
         
-        self.logger = self.setup_logger()
+        self.logger = self.setup_logger("")
         
         #Image repository Object
         verbose=False
         printLogStdout=False
         self._reposervice = IRServiceProxy(verbose,printLogStdout)
         
-    def setup_logger(self):
-        #Setup logging
-        logger = logging.getLogger("DeployIaaS")
-        logger.setLevel(self.logLevel)
+    def setup_logger(self, extra):
+        #Setup logging        
+        logger = logging.getLogger("DeployIaaS"+extra)
+        logger.setLevel(self.logLevel)    
         formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
         handler = logging.FileHandler(self.log_filename)
         handler.setLevel(self.logLevel)
         handler.setFormatter(formatter)
         logger.addHandler(handler)
-        logger.propagate = False
+        logger.propagate = False #Do not propagate to others
         
         return logger
 
     def start(self): ##DO IT parallel
-
-        self.logger.info('Starting Server on port ' + str(self.port))
+        
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.bind(('', self.port))
         sock.listen(1)
+        self.logger.info('Starting Server on port ' + str(self.port))
         
         proc_list = []
         total_count = 0
@@ -149,8 +149,9 @@ class IMDeployServerIaaS(object):
         return FGAuth.auth(self.user, userCred)             
                 
     def process_client(self, connstream):
-        self.logger = logging.getLogger("DeployServerIaas." + str(os.getpid()))
-        self.logger.info('Accepted new connection')        
+        self.logger = self.setup_logger("." + str(os.getpid()))        
+        self.logger.info('Accepted new connection')
+        
         #receive the message
         data = connstream.read(2048)
         params = data.split(',')
@@ -536,7 +537,7 @@ class IMDeployServerIaaS(object):
         self.logger.info("Image Deploy Request DONE")
     
     def runCmd(self, cmd):
-        cmdLog = logging.getLogger('DeployIaaS' + str(os.getpid()) + '.exec')
+        cmdLog = logging.getLogger('DeployIaaS.' + str(os.getpid()) + '.exec')
         cmdLog.debug(cmd)
         p = Popen(cmd.split(' '), stdout=PIPE, stderr=PIPE)
         std = p.communicate()
