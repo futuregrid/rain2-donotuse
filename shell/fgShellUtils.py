@@ -414,10 +414,13 @@ class fgShellUtils(Cmd):
                 command = "self.do_" + prefix + "list(\"" + args + "\")"
                 try:
                     eval(command)
+                    found = True
+                    break
                 except AttributeError:
                     pass
-            print "There is no list method in any of the active contexts (" + str(self._requirements)
-            self._log.error(str(sys.exc_info()))
+            if not found:
+                print "There is no list method in any of the active contexts (" + str(self._requirements)
+                self._log.error(str(sys.exc_info()))
         else:
             self.generic_error()
     help_list = generic_help
