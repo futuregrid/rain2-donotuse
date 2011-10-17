@@ -246,7 +246,7 @@ class fgShellUtils(Cmd):
                 except AttributeError:
                     pass
             if not found:
-                print "There is no runjob method in any of the active contexts (" + str(self.requirements) + " )"
+                print "There is no runjob method in any of the active contexts (" + str(self.self._requirementss) + " )"
                 self._log.error(str(sys.exc_info()))            
         else:
             self.generic_error()
@@ -271,7 +271,7 @@ class fgShellUtils(Cmd):
                 except AttributeError:
                     pass
             if not found:
-                print "There is no runscript method in any of the active contexts (" + str(self.requirements) + " )"
+                print "There is no runscript method in any of the active contexts (" + str(self._requirements) + " )"
                 self._log.error(str(sys.exc_info()))           
         else:
             self.generic_error()
@@ -296,7 +296,7 @@ class fgShellUtils(Cmd):
                 except AttributeError:
                     pass
             if not found:
-                print "There is no get method in any of the active contexts (" + str(self.requirements) + " )"
+                print "There is no get method in any of the active contexts (" + str(self._requirements) + " )"
                 self._log.error(str(sys.exc_info()))         
         else:
             self.generic_error()
@@ -320,7 +320,7 @@ class fgShellUtils(Cmd):
                 except AttributeError:
                     pass
             if not found:
-                print "There is no modify method in any of the active contexts (" + str(self.requirements) + " )"
+                print "There is no modify method in any of the active contexts (" + str(self._requirements) + " )"
                 self._log.error(str(sys.exc_info()))         
         else:
             self.generic_error()
@@ -344,7 +344,7 @@ class fgShellUtils(Cmd):
                 except AttributeError:
                     pass
             if not found:
-                print "There is no setpermission method in any of the active contexts (" + str(self.requirements) + " )"
+                print "There is no setpermission method in any of the active contexts (" + str(self._requirements) + " )"
                 self._log.error(str(sys.exc_info()))         
         else:
             self.generic_error()
@@ -368,7 +368,7 @@ class fgShellUtils(Cmd):
                 except AttributeError:
                     pass
             if not found:
-                print "There is no put method in any of the active contexts (" + str(self.requirements) + " )"
+                print "There is no put method in any of the active contexts (" + str(self._requirements) + " )"
                 self._log.error(str(sys.exc_info()))         
         else:
             self.generic_error()
@@ -392,7 +392,7 @@ class fgShellUtils(Cmd):
                 except AttributeError:
                     pass
             if not found:
-                print "There is no remove method in any of the active contexts (" + str(self.requirements) + " )"
+                print "There is no remove method in any of the active contexts (" + str(self._requirements) + " )"
                 self._log.error(str(sys.exc_info()))         
         else:
             self.generic_error()
@@ -416,7 +416,7 @@ class fgShellUtils(Cmd):
                     eval(command)
                 except AttributeError:
                     pass
-            print "There is no list method in any of the active contexts (" + str(self.requirements)
+            print "There is no list method in any of the active contexts (" + str(self._requirements)
             self._log.error(str(sys.exc_info()))
         else:
             self.generic_error()
@@ -439,7 +439,7 @@ class fgShellUtils(Cmd):
                 except AttributeError:
                     pass
             if not found:
-                print "There is no user method in any of the active contexts (" + str(self.requirements) + " )"
+                print "There is no user method in any of the active contexts (" + str(self._requirements) + " )"
                 self._log.error(str(sys.exc_info()))
         else:
             self.generic_error()
@@ -464,7 +464,7 @@ class fgShellUtils(Cmd):
                 except AttributeError:
                     pass
             if not found:
-                print "There is no histimg method in any of the active contexts (" + str(self.requirements) + " )"
+                print "There is no histimg method in any of the active contexts (" + str(self._requirements) + " )"
                 self._log.error(str(sys.exc_info()))         
         else:
             self.generic_error()
@@ -488,7 +488,7 @@ class fgShellUtils(Cmd):
                 except AttributeError:
                     pass
             if not found:
-                print "There is no histuser method in any of the active contexts (" + str(self.requirements) + " )"
+                print "There is no histuser method in any of the active contexts (" + str(self._requirements) + " )"
                 self._log.error(str(sys.exc_info()))         
         else:
             self.generic_error()
@@ -513,7 +513,7 @@ class fgShellUtils(Cmd):
                 except AttributeError:
                     pass
             if not found:
-                print "There is no move method in any of the active contexts (" + str(self.requirements) + " )"
+                print "There is no move method in any of the active contexts (" + str(self._requirements) + " )"
                 self._log.error(str(sys.exc_info()))         
         else:
             self.generic_error()
@@ -537,7 +537,7 @@ class fgShellUtils(Cmd):
                 except AttributeError:
                     pass
             if not found:
-                print "There is no group method in any of the active contexts (" + str(self.requirements) + " )"
+                print "There is no group method in any of the active contexts (" + str(self._requirements) + " )"
                 self._log.error(str(sys.exc_info()))         
         else:
             self.generic_error()
@@ -561,7 +561,7 @@ class fgShellUtils(Cmd):
                 except AttributeError:
                     pass
             if not found:
-                print "There is no deploy method in any of the active contexts (" + str(self.requirements) + " )"
+                print "There is no deploy method in any of the active contexts (" + str(self._requirements) + " )"
                 self._log.error(str(sys.exc_info()))         
         else:
             self.generic_error()
@@ -585,7 +585,7 @@ class fgShellUtils(Cmd):
                 except AttributeError:
                     pass
             if not found:
-                print "There is no generate method in any of the active contexts (" + str(self.requirements) + " )"
+                print "There is no generate method in any of the active contexts (" + str(self._requirements) + " )"
                 self._log.error(str(sys.exc_info()))         
         else:
             self.generic_error()
