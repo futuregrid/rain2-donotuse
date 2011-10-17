@@ -16,6 +16,7 @@ from cmd2 import options
 from cmd2 import make_option
 import textwrap
 import argparse
+import re
 
 from futuregrid.image.management.IMDeploy import IMDeploy
 from futuregrid.image.management.IMGenerate import IMGenerate
@@ -80,7 +81,6 @@ class fgShellImage(Cmd):
         print 'Image generator client...'
         
         verbose = True
-
         
         arch = "x86_64" #Default to 64-bit
     
@@ -103,7 +103,7 @@ class fgShellImage(Cmd):
         if args.OS == "Ubuntu" or args.OS == "ubuntu":
             OS = "ubuntu"
             supported_versions = ["karmic","lucid","maverick","natty"]
-            if type(args.version) is NoneType:
+            if args.version == None:
                 version = default_ubuntu
             elif args.version == "9.10" or args.version == "karmic":
                 version = "karmic"
@@ -125,7 +125,7 @@ class fgShellImage(Cmd):
         elif args.OS == "CentOS" or args.OS == "CentOS" or args.OS == "centos":
             OS = "centos"
             supported_versions = ["5","5.0","5.1","5.2","5.3","5.4","5.5","5.6","5.7"]#,"6","6.0"]
-            if type(args.version) is NoneType:
+            if args.version == None:
                 version = default_centos            
             elif str(args.version) in supported_versions:
                 if re.search("^5",str(args.version)):
@@ -142,7 +142,6 @@ class fgShellImage(Cmd):
         else:
             print "ERROR: Incorrect OS type specified"
             sys.exit(1)
-            
         
         imgen = IMGenerate(arch, OS, version, self.user, args.software, args.givenname, args.desc, args.getimg, self.passwd, verbose, args.debug)
         status = imgen.generate()
