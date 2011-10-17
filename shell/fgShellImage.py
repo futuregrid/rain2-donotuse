@@ -176,7 +176,7 @@ class fgShellImage(Cmd):
                 sys.argv += [prefix+'-'+newlist[0]]
                 newlist = newlist [1:]
                 rest = ""
-                print newlist
+                #print newlist
                 for j in range(len(newlist)):
                     rest+=" "+newlist[j]
                 if rest.strip() != "":
