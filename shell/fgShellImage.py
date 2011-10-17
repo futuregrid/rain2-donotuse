@@ -212,7 +212,7 @@ class fgShellImage(Cmd):
     
         used_args = sys.argv[1:]
         
-        print args
+        #print args
         
         image_source = "repo"
         image = args.imgid    
