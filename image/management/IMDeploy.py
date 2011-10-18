@@ -702,6 +702,8 @@ def main():
         print "Nimbus deployment is not implemented yet"
     elif ('-s' in used_args or '--openstack' in used_args):
         imgdeploy.iaas_generic(args.openstack, image, image_source, "openstack")
+    else:
+        print "ERROR: You need to specify a deployment target"
     
 
 if __name__ == "__main__":

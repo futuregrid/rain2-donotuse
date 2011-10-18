@@ -198,8 +198,6 @@ class IMDeployServerIaaS(object):
                     self.errormsg(connstream, msg)
                     return
 
-                self.logger.debug("image name " + nameimg)
-
         #create a unique directory
         auxdir = str(randrange(999999999999999999999999))
         localtempdir = self.tempdir + "/" + auxdir + "_0"
@@ -336,9 +334,9 @@ class IMDeployServerIaaS(object):
                       
         #Inject the kernel
         self.logger.info('Retrieving kernel ' + self.kernel)
-        self.runCmd('wget ' + self.http_server + 'kernel/' + self.kernel + '.modules.tar.gz -O ' + localtempdir + '/temp/' + self.kernel + '.modules.tar.gz')
-        self.runCmd('sudo tar xfz ' + localtempdir + '/temp/' + self.kernel + '.modules.tar.gz --directory ' + localtempdir + '/temp/lib/modules/')
-        self.logger.info('Injected kernel ' + kernel)
+        self.runCmd('wget ' + self.http_server + 'kernel/' + self.kernel + '.modules.tar.gz -O ' + localtempdir + '/' + self.kernel + '.modules.tar.gz')
+        self.runCmd('sudo tar xfz ' + localtempdir + '/' + self.kernel + '.modules.tar.gz --directory ' + localtempdir + '/temp/lib/modules/')
+        self.logger.info('Injected kernel ' + self.kernel)
 
         # Setup fstab
         fstab = '''
@@ -347,7 +345,6 @@ class IMDeployServerIaaS(object):
  /dev/sda3    swap          swap     defaults              0 0
  proc            /proc         proc     defaults                   0 0
  devpts          /dev/pts      devpts   gid=5,mode=620             0 0
- 
  '''
 
         f = open(localtempdir + '/fstab', 'w')

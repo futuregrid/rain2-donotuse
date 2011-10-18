@@ -242,6 +242,8 @@ class fgShellImage(Cmd):
             print "Nimbus deployment is not implemented yet"
         elif ('-s' in used_args or '--openstack' in used_args):
             imgdeploy.iaas_generic(args.openstack, image, image_source, "openstack")
+        else:
+            print "ERROR: You need to specify a deployment target"
 
     def help_imagedeploy(self):
         msg = "IMAGE deploy command: Deploy an image in a FG infrastructure. \n "
