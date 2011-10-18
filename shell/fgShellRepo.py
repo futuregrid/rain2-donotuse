@@ -18,6 +18,7 @@ from cmd2 import options
 from cmd2 import make_option
 import textwrap
 import argparse
+import re
 
 class fgShellRepo(Cmd):
 
@@ -433,18 +434,19 @@ class fgShellRepo(Cmd):
     def do_repoget(self, args):
         '''Image Repository get command: Get an image or only the URI by id.'''
         args = self.getArgs(args)
-
+        
         if (len(args) == 1):
             #connect with the server
             if not self._service.connection():
                 print "ERROR: Connection with the server failed"
                 return
-            imgstatus = self._service.get(self.user, self.passwd, self.user, "img", args[1], "./")
+            
+            imgstatus = self._service.get(self.user, self.passwd, self.user, "img", args[0], "./")
 
             if imgstatus:
-                print "The image " + imgId + " is located in " +imgstatus
+                print "The image " + args[0] + " is located in " +imgstatus
             else:
-                print "Cannot get access to the image with imgId = " + args[1]
+                print "Cannot get access to the image with imgId = " + args[0]
         else:
             self.help_repoget()
 

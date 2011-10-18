@@ -31,9 +31,10 @@ class fgShellUtils(Cmd):
         '''Convert the string args to a list of arguments.'''
         aux = args.strip()
         argsList = []
-
+        
         if(aux != ""):
             values = aux.split(" ")
+            
             for i in values:
                 istriped = i.strip()
                 if (istriped != ""):
