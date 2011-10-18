@@ -239,7 +239,62 @@ class IMDeploy(object):
               "To launch a VM you can use euca-run-instances -k keyfile -n <#instances> id \n" +\
               "More information is provided in https://portal.futuregrid.org/tutorials/eucalyptus \n"              
         
+    def openstack_method(self, imagebackpath, kernel, operatingsystem, iaas_address):
+        #TODO: Pick kernel and ramdisk from available eki and eri
 
+        #hardcoded for now
+        eki = 'aki-00000026'
+        eri = 'ari-00000027'
+
+        #CONTACT IMDeployServerIaaS to customize image ...
+
+        if iaas_address != "None":
+            ec2_url = "http://" + iaas_address + "/services/Cloud"
+            s3_url = "http://" + iaas_address + ":3333"
+        else:
+            ec2_url = os.getenv("EC2_URL")
+            s3_url = os.getenv("S3_URL")
+        
+        filename = os.path.split(imagebackpath)[1].strip()
+
+        print filename
+
+        #Bundle Image
+        #cmd = 'euca-bundle-image --image ' + imagebackpath + ' --kernel ' + eki + ' --ramdisk ' + eri
+        cmd = "euca-bundle-image --cert " + str(os.getenv("EC2_CERT")) + " --privatekey " + str(os.getenv("EC2_PRIVATE_KEY")) + \
+              " --user " + str(os.getenv("EC2_USER_ID")) + " --ec2cert " + str(os.getenv("EUCALYPTUS_CERT")) + " --url " + str(ec2_url) + \
+              " -a " + str(os.getenv("EC2_ACCESS_KEY")) + " -s " + str(os.getenv("EC2_SECRET_KEY")) + \
+              " --image " + str(imagebackpath) + " --kernel " + str(eki) + " --ramdisk " + str(eri)
+        print cmd
+        self._log.debug(cmd)
+        os.system(cmd)
+
+        #Upload bundled image
+        #cmd = 'euca-upload-bundle --bucket ' + self.user + ' --manifest ' + '/tmp/' + filename + '.manifest.xml'
+        cmd = "euca-upload-bundle -a " + os.getenv("EC2_ACCESS_KEY") + " -s " + os.getenv("EC2_SECRET_KEY") + \
+            " --url " + s3_url + " --ec2cert " + os.getenv("EUCALYPTUS_CERT") + " --bucket " + self.user + " --manifest " + \
+            "/tmp/" + filename + ".manifest.xml"
+        print cmd      
+        self._log.debug(cmd)  
+        os.system(cmd)
+
+        #Register image
+        #cmd = 'euca-register ' + self.user + '/' + filename + '.manifest.xml'
+        cmd = "euca-register -a " + os.getenv("EC2_ACCESS_KEY") + " -s " + os.getenv("EC2_SECRET_KEY") + \
+            " --url " + ec2_url + " " + self.user + '/' + filename + '.manifest.xml'        
+        print cmd
+        self._log.debug(cmd)
+        os.system(cmd)
+        
+        cmd = "rm -f " + imagebackpath
+        print cmd
+        self._log.debug(cmd)
+        #os.system(cmd)
+        
+        print "Your images has been registered on Eucalyptus with the id printed in the previous line (IMAGE  id) \n" +\
+              "To launch a VM you can use euca-run-instances -k keyfile -n <#instances> id \n" +\
+              "More information is provided in https://portal.futuregrid.org/tutorials/eucalyptus \n"
+              
     def opennebula_method(self, imagebackpath, kernel, operatingsystem, iaas_address):
         
         filename = os.path.split(imagebackpath)[1].strip()
