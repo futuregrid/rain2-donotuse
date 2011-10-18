@@ -69,6 +69,7 @@ class IMDeployServerIaaS(object):
         
         
         self.default_euca_kernel = '2.6.27.21-0.1-xen'
+        self.default_openstack_kernel = '2.6.28-11-generic'
         self.default_kvm_centos5_kernel = '2.6.18-238.el5'
         self.default_kvm_ubuntu_kernel = '2.6.35-22-generic'
         
@@ -331,7 +332,7 @@ class IMDeployServerIaaS(object):
         #This is not yet supported as we get always the same kernel
         self.logger.debug("kernel: " + self.kernel)
         if self.kernel == "None":
-            self.kernel = self.default_euca_kernel
+            self.kernel = self.default_openstack_kernel
                       
         #Inject the kernel
         self.logger.info('Retrieving kernel ' + self.kernel)
@@ -346,6 +347,7 @@ class IMDeployServerIaaS(object):
  /dev/sda3    swap          swap     defaults              0 0
  proc            /proc         proc     defaults                   0 0
  devpts          /dev/pts      devpts   gid=5,mode=620             0 0
+ 
  '''
 
         f = open(localtempdir + '/fstab', 'w')

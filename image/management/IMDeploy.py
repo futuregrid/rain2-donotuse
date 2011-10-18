@@ -701,8 +701,7 @@ def main():
         #TODO        
         print "Nimbus deployment is not implemented yet"
     elif ('-s' in used_args or '--openstack' in used_args):
-        #TODO        
-        print "OpenStack deployment is not implemented yet"
+        imgdeploy.iaas_generic(args.openstack, image, image_source, "openstack")
     
 
 if __name__ == "__main__":
