@@ -240,7 +240,7 @@ class IMDeploy(object):
                   " --image " + str(imagebackpath) + " --kernel " + str(eki) + " --ramdisk " + str(eri)
             print cmd
             self._log.debug(cmd)
-            os.system(cmd)
+            stat = os.system(cmd)
     
             #Upload bundled image
             #cmd = 'euca-upload-bundle --bucket ' + self.user + ' --manifest ' + '/tmp/' + filename + '.manifest.xml'
@@ -249,7 +249,7 @@ class IMDeploy(object):
                 "/tmp/" + filename + ".manifest.xml"
             print cmd      
             self._log.debug(cmd)  
-            os.system(cmd)
+            stat = os.system(cmd)
     
             #Register image
             #cmd = 'euca-register ' + self.user + '/' + filename + '.manifest.xml'
@@ -257,12 +257,13 @@ class IMDeploy(object):
                 " --url " + ec2_url + " " + self.user + '/' + filename + '.manifest.xml'        
             print cmd
             self._log.debug(cmd)
-            os.system(cmd)
+            stat = os.system(cmd)
             
             cmd = "rm -f " + imagebackpath
-            print cmd
-            self._log.debug(cmd)
-            os.system(cmd)
+            if stat == 0:
+                print cmd
+                self._log.debug(cmd)
+                os.system(cmd)
             
             print "Your image has been registered on Eucalyptus with the id printed in the previous line (IMAGE  id) \n" + \
                   "To launch a VM you can use euca-run-instances -k keyfile -n <#instances> id \n" + \
@@ -326,7 +327,7 @@ class IMDeploy(object):
                   " --image " + str(imagebackpath) + " --kernel " + str(eki) + " --ramdisk " + str(eri)
             print cmd
             self._log.debug(cmd)
-            os.system(cmd)
+            stat=os.system(cmd)
     
             #Upload bundled image
             #cmd = 'euca-upload-bundle --bucket ' + self.user + ' --manifest ' + '/tmp/' + filename + '.manifest.xml'
@@ -335,7 +336,7 @@ class IMDeploy(object):
                 "/tmp/" + filename + ".manifest.xml"
             print cmd      
             self._log.debug(cmd)  
-            os.system(cmd)
+            stat=os.system(cmd)
     
             #Register image
             #cmd = 'euca-register ' + self.user + '/' + filename + '.manifest.xml'
@@ -343,12 +344,13 @@ class IMDeploy(object):
                 " --url " + ec2_url + " " + self.user + '/' + filename + '.manifest.xml'        
             print cmd
             self._log.debug(cmd)
-            os.system(cmd)
+            stat=os.system(cmd)
             
-            cmd = "rm -f " + imagebackpath
-            print cmd
-            self._log.debug(cmd)
-            os.system(cmd)
+            cmd = "rm -f " + imagebackpath            
+            if stat == 0:
+                print cmd
+                self._log.debug(cmd)
+                os.system(cmd)
             
             print "Your image has been registered on OpenStack with the id printed in the previous line (IMAGE  id) \n" + \
                   "To launch a VM you can use euca-run-instances -k keyfile -n <#instances> id \n" + \
