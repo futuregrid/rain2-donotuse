@@ -348,7 +348,7 @@ class IMDeploy(object):
             cmd = "rm -f " + imagebackpath
             print cmd
             self._log.debug(cmd)
-            #os.system(cmd)
+            os.system(cmd)
             
             print "Your image has been registered on OpenStack with the id printed in the previous line (IMAGE  id) \n" + \
                   "To launch a VM you can use euca-run-instances -k keyfile -n <#instances> id \n" + \
