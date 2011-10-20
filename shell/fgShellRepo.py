@@ -295,7 +295,7 @@ class fgShellRepo(Cmd):
             return
         status = self._service.setUserStatus(self.user, self.passwd, self.user, userId, value)
         if(status == "True"):
-            print "User role has been changed successfully."
+            print "User status has been changed successfully."
         else:
             print "The user status has not been changed. " + status + "\n"\
                   "Please verify that you are admin and that the username exists \n"
