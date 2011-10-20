@@ -26,6 +26,11 @@ class fgShellImage(Cmd):
     def __init__(self):
         #self._service = rain()
         print "Init Image"
+        
+        self.imgen = IMGenerate(None, None, None, self.user, None, None, None, None, self.passwd, True, False)
+        self.imgdeploy = IMDeploy(None, self.user, self.passwd, True, False)
+        
+        
 
     def do_imagegenerate(self, args):
 
@@ -143,8 +148,17 @@ class fgShellImage(Cmd):
             print "ERROR: Incorrect OS type specified"
             sys.exit(1)
         
-        imgen = IMGenerate(arch, OS, version, self.user, args.software, args.givenname, args.desc, args.getimg, self.passwd, verbose, args.debug)
-        status = imgen.generate()
+        #self.imgen = IMGenerate(arch, OS, version, self.user, args.software, args.givenname, args.desc, args.getimg, self.passwd, verbose, args.debug)
+        self.imgen.setArch(arch)
+        self.imgen.setOs(OS)
+        self.imgen.setVersion(version)
+        self.imgen.setSoftware(args.software)
+        self.imgen.setGivenname(args.givenname)
+        self.imgen.setDesc(args.desc)
+        self.imgen.setGetimg(args.getimg)
+        self.imgen.setDebug(args.debug)
+        
+        status = self.imgen.generate()
         
         if status != None:
             if args.getimg:
@@ -200,6 +214,7 @@ class fgShellImage(Cmd):
         group1.add_argument('-n', '--nimbus', dest='nimbus', nargs='?', metavar='Address', help='Deploy the image to Nimbus, which is in the specified addr')
         group1.add_argument('-s', '--openstack', dest='openstack', nargs='?', metavar='Address', help='Deploy the image to OpenStack, which is in the specified addr')
         parser.add_argument('-v', '--varfile', dest='varfile', help='Address of the environment variable files. Currently this is used by Eucalyptus and OpenStack')
+        parser.add_argument('-g', '--getimg', dest='getimg', action="store_true", help='Customize the image for a particular cloud framework but does not register it. So the user gets the image file.')
         
         args = parser.parse_args()
     
@@ -209,7 +224,10 @@ class fgShellImage(Cmd):
     
         #TODO: if Kernel is provided we need to verify that it is supported. 
         
-        imgdeploy = IMDeploy(args.kernel, self.user, self.passwd, verbose, args.debug)
+        #imgdeploy = IMDeploy(args.kernel, self.user, self.passwd, verbose, args.debug)
+        self.imgdeploy.setKernel(args.kernel)
+        self.imgdeploy.setDebug(args.debug)
+        
     
         used_args = sys.argv[1:]
         
@@ -230,19 +248,39 @@ class fgShellImage(Cmd):
                 print "The parameter -i/--image cannot be used with this type of deployment"
                 sys.exit(1)
             else:
-                imgdeploy.xcat_method(args.xcat, args.imgid)
+                self.imgdeploy.xcat_method(args.xcat, args.imgid)
+                
+        varfile=""
+        if args.varfile != None:
+            varfile=os.path.expanduser(args.varfile)
         #EUCALYPTUS    
         if ('-e' in used_args or '--euca' in used_args):
-            imgdeploy.iaas_generic(args.euca, image, image_source, "euca")        
+            if not args.getimg:            
+                if args.varfile == None:
+                    print "ERROR: You need to specify the path of the file with the Eucalyptus environment variables"
+                elif not os.path.isfile(str(os.path.expanduser(varfile))):
+                    print "ERROR: Variable files not found. You need to specify the path of the file with the Eucalyptus environment variables"
+                else:    
+                    self.imgdeploy.iaas_generic(args.euca, image, image_source, "euca", varfile, args.getimg)                
+            else:    
+                self.imgdeploy.iaas_generic(args.euca, image, image_source, "euca", varfile, args.getimg)        
         #OpenNebula
-        elif ('-o' in used_args or '--opennebula' in used_args):
-            imgdeploy.iaas_generic(args.opennebula, image, image_source, "opennebula")
+        elif ('-o' in used_args or '--opennebula' in used_args):            
+            self.imgdeploy.iaas_generic(args.opennebula, image, image_source, "opennebula", varfile, args.getimg)
         #NIMBUS
         elif ('-n' in used_args or '--nimbus' in used_args):
             #TODO        
             print "Nimbus deployment is not implemented yet"
         elif ('-s' in used_args or '--openstack' in used_args):
-            imgdeploy.iaas_generic(args.openstack, image, image_source, "openstack")
+            if not args.getimg:
+                if args.varfile == None:
+                    print "ERROR: You need to specify the path of the file with the OpenStack environment variables"
+                elif not os.path.isfile(str(os.path.expanduser(varfile))):
+                    print "ERROR: Variable files not found. You need to specify the path of the file with the OpenStack environment variables"
+                else:    
+                    self.imgdeploy.iaas_generic(args.openstack, image, image_source, "openstack", varfile, args.getimg) 
+            else:    
+                self.imgdeploy.iaas_generic(args.openstack, image, image_source, "openstack", varfile, args.getimg)
         else:
             print "ERROR: You need to specify a deployment target"
 

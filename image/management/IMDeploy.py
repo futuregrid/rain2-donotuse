@@ -63,6 +63,12 @@ class IMDeploy(object):
         
         self.tempdir = "" #DEPRECATED
 
+    def setKernel(self, kernel):
+        self.kernel = kernel
+    def setDebug(self, printLogStdout):
+        self.printLogStdout = printLogStdout
+    
+
     def check_auth(self, socket_conn, checkauthstat):
         endloop = False
         passed = False
@@ -190,28 +196,28 @@ class IMDeploy(object):
         eki = 'eki-78EF12D2'
         eri = 'eri-5BB61255'
 
-        if not getimg:
+        if not eval(getimg):
             
-            os.environ["EUCA_KEY_DIR"]=os.path.dirname(varfile)
+            os.environ["EUCA_KEY_DIR"] = os.path.dirname(varfile)
             
             #read variables
-            f = open(varfile,'r')
+            f = open(varfile, 'r')
             for line in f:
                 if re.search("^export ", line):
                     line = line.split()[1]                    
                     parts = line.split("=")
                     #parts[0] is the variable name
                     #parts[1] is the value
-                    parts[0]=parts[0].strip()
+                    parts[0] = parts[0].strip()
                     value = ""
-                    for i in range(1,len(parts)):
-                        parts[i]=parts[i].strip()
+                    for i in range(1, len(parts)):
+                        parts[i] = parts[i].strip()
                         parts[i] = os.path.expanduser(os.path.expandvars(parts[i]))                    
                         value += parts[i] + "="
                     value = value.rstrip("=")
                     value = value.strip('"')
                     value = value.strip("'") 
-                    os.environ[parts[0]]=value
+                    os.environ[parts[0]] = value
             f.close()
             
             #CONTACT IMDeployServerIaaS to customize image ...    
@@ -276,28 +282,28 @@ class IMDeploy(object):
         eki = 'aki-00000026'
         eri = 'ari-00000027'
 
-        if not getimg:
+        if not eval(getimg):
             
-            os.environ["NOVA_KEY_DIR"]=os.path.dirname(varfile)
+            os.environ["NOVA_KEY_DIR"] = os.path.dirname(varfile)
             
             #read variables
-            f = open(varfile,'r')
+            f = open(varfile, 'r')
             for line in f:
                 if re.search("^export ", line):
                     line = line.split()[1]                    
                     parts = line.split("=")
                     #parts[0] is the variable name
                     #parts[1] is the value
-                    parts[0]=parts[0].strip()
+                    parts[0] = parts[0].strip()
                     value = ""
-                    for i in range(1,len(parts)):
-                        parts[i]=parts[i].strip()
+                    for i in range(1, len(parts)):
+                        parts[i] = parts[i].strip()
                         parts[i] = os.path.expanduser(os.path.expandvars(parts[i]))                    
                         value += parts[i] + "="
                     value = value.rstrip("=")
                     value = value.strip('"')
                     value = value.strip("'") 
-                    os.environ[parts[0]]=value
+                    os.environ[parts[0]] = value
             f.close()
             #CONTACT IMDeployServerIaaS to customize image ...
     
@@ -344,7 +350,7 @@ class IMDeploy(object):
             self._log.debug(cmd)
             #os.system(cmd)
             
-            print "Your image has been registered on Eucalyptus with the id printed in the previous line (IMAGE  id) \n" + \
+            print "Your image has been registered on OpenStack with the id printed in the previous line (IMAGE  id) \n" + \
                   "To launch a VM you can use euca-run-instances -k keyfile -n <#instances> id \n" + \
                   "Remember to load you OpenStack environment before you run the instance (source novarc) \n " + \
                   "More information is provided in https://portal.futuregrid.org/tutorials/oss " + \
@@ -352,7 +358,7 @@ class IMDeploy(object):
         else:
             print "Your OpenStack image is located in " + str(imagebackpath) + " \n" + \
             "Remember to load you OpenStack environment before you run the instance (source novarc) \n" + \
-            "More information is provided in https://portal.futuregrid.org/tutorials/oss " +\
+            "More information is provided in https://portal.futuregrid.org/tutorials/oss " + \
             " and in https://portal.futuregrid.org/tutorials/eucalyptus\n"
             
     def opennebula_method(self, imagebackpath, kernel, operatingsystem, iaas_address, varfile, getimg):
@@ -752,28 +758,38 @@ def main():
             sys.exit(1)
         else:
             imgdeploy.xcat_method(args.xcat, args.imgid)
+    
+    varfile=""
+    if args.varfile != None:
+        varfile=os.path.expanduser(args.varfile)
     #EUCALYPTUS    
     if ('-e' in used_args or '--euca' in used_args):
-        if varfile == None and not args.getimg:
-            "ERROR: You need to specify the path of the file with the Eucalyptus environment variables"
-        elif not os.path.isfile(str(os.path.expanduser(args.varfile))) and not args.getimg:
-            "ERROR: Variable files not found. You need to specify the path of the file with the Eucalyptus environment variables"
+        if not args.getimg:
+            if args.varfile == None:
+                print "ERROR: You need to specify the path of the file with the Eucalyptus environment variables"
+            elif not os.path.isfile(str(os.path.expanduser(varfile))):
+                print "ERROR: Variable files not found. You need to specify the path of the file with the Eucalyptus environment variables"
+            else:    
+                imgdeploy.iaas_generic(args.euca, image, image_source, "euca", varfile, args.getimg)        
         else:    
-            imgdeploy.iaas_generic(args.euca, image, image_source, "euca", os.path.expanduser(args.varfile), args.getimg)        
+            imgdeploy.iaas_generic(args.euca, image, image_source, "euca", varfile, args.getimg)
     #OpenNebula
     elif ('-o' in used_args or '--opennebula' in used_args):
-        imgdeploy.iaas_generic(args.opennebula, image, image_source, "opennebula", os.path.expanduser(args.varfile), args.getimg)
+        imgdeploy.iaas_generic(args.opennebula, image, image_source, "opennebula", varfile, args.getimg)
     #NIMBUS
     elif ('-n' in used_args or '--nimbus' in used_args):
         #TODO        
         print "Nimbus deployment is not implemented yet"
     elif ('-s' in used_args or '--openstack' in used_args):
-        if varfile == None and not args.getimg:
-            "ERROR: You need to specify the path of the file with the OpenStack environment variables"
-        elif not os.path.isfile(str(os.path.expanduser(args.varfile))) and not args.getimg:
-            "ERROR: Variable files not found. You need to specify the path of the file with the OpenStack environment variables"
+        if not args.getimg:
+            if args.varfile == None:
+                print "ERROR: You need to specify the path of the file with the OpenStack environment variables"
+            elif not os.path.isfile(str(os.path.expanduser(varfile))):
+                print "ERROR: Variable files not found. You need to specify the path of the file with the OpenStack environment variables"
+            else:    
+                imgdeploy.iaas_generic(args.openstack, image, image_source, "openstack", varfile, args.getimg)
         else:    
-            imgdeploy.iaas_generic(args.openstack, image, image_source, "openstack", os.path.expanduser(args.varfile), args.getimg)
+            imgdeploy.iaas_generic(args.openstack, image, image_source, "openstack", varfile, args.getimg)
     else:
         print "ERROR: You need to specify a deployment target"
     

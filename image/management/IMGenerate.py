@@ -60,6 +60,23 @@ class IMGenerate(object):
         
         self._log = fgLog.fgLog(self._genConf.getLogFileGen(), self._genConf.getLogLevelGen(), "GenerateClient", printLogStdout)
 
+    def setArch(self, arch):
+        self.arch = arch
+    def setOs(self, os):
+        self.OS = os
+    def setVersion(self, version):
+        self.version = version
+    def setSoftware(self, software):
+        self.software = software
+    def setGivenname(self, givenname):
+        self.givenname = givenname        
+    def setDesc(self, desc):
+        self.desc = desc
+    def setGetimg(self, getimg):
+        self.getimg = getimg
+    def setDebug(self, printLogStdout):
+        self.printLogStdout = printLogStdout
+
     def generate(self):
         #generate string with options separated by | character
         output = None
@@ -283,7 +300,7 @@ def main():
     OS = ""
     if args.OS == "Ubuntu" or args.OS == "ubuntu":
         OS = "ubuntu"
-        supported_versions = ["karmic","lucid","maverick","natty"]
+        supported_versions = ["karmic", "lucid", "maverick", "natty"]
         if type(args.version) is NoneType:
             version = default_ubuntu
         elif args.version == "9.10" or args.version == "karmic":
@@ -305,13 +322,13 @@ def main():
         version = default_rhel
     elif args.OS == "CentOS" or args.OS == "CentOS" or args.OS == "centos":
         OS = "centos"
-        supported_versions = ["5","5.0","5.1","5.2","5.3","5.4","5.5","5.6","5.7","6","6.0"]
+        supported_versions = ["5", "5.0", "5.1", "5.2", "5.3", "5.4", "5.5", "5.6", "5.7", "6", "6.0"]
         if type(args.version) is NoneType:
             version = default_centos            
         elif str(args.version) in supported_versions:
-            if re.search("^5",str(args.version)):
+            if re.search("^5", str(args.version)):
                 version = "5"
-            elif re.search("^6",str(args.version)):
+            elif re.search("^6", str(args.version)):
                 version = "6"
         else:
             print "ERROR: Incorrect OS version specified. Supported OS version for " + OS + " are " + str(supported_versions)
