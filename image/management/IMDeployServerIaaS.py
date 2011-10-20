@@ -78,13 +78,13 @@ class IMDeployServerIaaS(object):
         self.logger = self.setup_logger("")
         
         #Image repository Object
-        verbose=False
-        printLogStdout=False
-        self._reposervice = IRServiceProxy(verbose,printLogStdout)
+        verbose = False
+        printLogStdout = False
+        self._reposervice = IRServiceProxy(verbose, printLogStdout)
         
     def setup_logger(self, extra):
         #Setup logging        
-        logger = logging.getLogger("DeployIaaS"+extra)
+        logger = logging.getLogger("DeployIaaS" + extra)
         logger.setLevel(self.logLevel)    
         formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
         handler = logging.FileHandler(self.log_filename)
@@ -230,14 +230,14 @@ class IMDeployServerIaaS(object):
             
             status = status.split(',')
             
-            if len(status)==2:
+            if len(status) == 2:
                 image = localtempdir + '/' + status[1].strip()
                 if status[0].strip() != 'OK':                
-                    msg = "ERROR: Receiving image from client: "+str(status)
+                    msg = "ERROR: Receiving image from client: " + str(status)
                     self.errormsg(connstream, msg)
                     return
             else:
-                msg = "ERROR: Message received from client is incorrect: "+str(status)
+                msg = "ERROR: Message received from client is incorrect: " + str(status)
                 self.errormsg(connstream, msg)
                 return
 
@@ -275,8 +275,11 @@ class IMDeployServerIaaS(object):
                 self.logger.error("Problems to umount the image")
             else:
                 time.sleep(2)
-                
-        connstream.write(localtempdir + '/' + self.name + '.img,'+self.kernel+","+self.operatingsystem)
+        
+        status = self.runCmd("mv -f " + localtempdir + '/' + self.name + '.img ' + localtempdir + '/' + self.operatingsystem + self.version + self.name + '.img')
+        
+        
+        connstream.write(localtempdir + '/' + self.operatingsystem + self.version + self.name + '.img,' + self.kernel + "," + self.operatingsystem)
 
         #wait until client retrieve img
         self.logger.info("Wait until client get the image")
@@ -289,7 +292,7 @@ class IMDeployServerIaaS(object):
             connstream.shutdown(socket.SHUT_RDWR)
             connstream.close()
         except:
-            self.logger.error("ERROR: "+str(sys.exc_info()))
+            self.logger.error("ERROR: " + str(sys.exc_info()))
         self.logger.info("Image Deploy Request DONE")
 
     def euca_method(self, localtempdir): 
@@ -354,6 +357,63 @@ class IMDeployServerIaaS(object):
         self.runCmd('sudo chown root:root ' + localtempdir + '/temp/etc/fstab')
         self.logger.info('fstab Injected')
 
+        #install curl just in case
+        if self.operatingsystem == "ubuntu":
+            self.runCmd('sudo chroot ' + localtempdir + '/temp/ apt-get -y install curl cloud-init')
+            cloud_cfg = '''
+cloud_type: auto
+user: root
+disable_root: 0
+preserve_hostname: False
+''' 
+            f = open(localtempdir + '/cloud.cfg', 'w')
+            f.write(cloud_cfg)
+            f.close()
+            self.runCmd('sudo mv -f ' + localtempdir + '/cloud.cfg ' + localtempdir + '/temp/etc/cloud/cloud.cfg')
+            self.runCmd('sudo chown root:root ' + localtempdir + '/temp/etc/cloud/cloud.cfg')
+        elif self.operatingsystem == "centos":
+            #customize rc.local
+            rc_local = '''         
+route del -net 169.254.0.0 netmask 255.255.0.0 dev eth0
+# load pci hotplug for dynamic disk attach in KVM (for EBS)
+depmod -a
+modprobe acpiphp
+
+# simple attempt to get the user ssh key using the meta-data service
+mkdir -p /root/.ssh
+echo >> /root/.ssh/authorized_keys
+curl -m 10 -s http://169.254.169.254/latest/meta-data/public-keys/0/openssh-key | grep 'ssh-rsa' >> /root/.ssh/authorized_keys
+echo "AUTHORIZED_KEYS:"
+echo "************************"
+cat /root/.ssh/authorized_keys
+echo "************************"
+'''
+            f_org = open(localtempdir + '/temp/etc/rc.local', 'r')
+            f = open(localtempdir + '/rc.local', 'w')
+            
+            write_remain = False
+            for line in f_org:
+                if (re.search('^#', line) or write_remain):
+                    f.write(line)
+                else:              
+                    f.write(rc_local)
+                    write_remain = True                
+            f.close() 
+            f_org.close()
+            
+            self.runCmd('sudo mv -f ' + localtempdir + '/rc.local ' + localtempdir + '/temp/etc/rc.local')
+            self.runCmd('sudo chroot ' + localtempdir + '/temp/ cp -f /etc/rc.local /etc/rc3.d/../')
+            self.runCmd('sudo chown root:root ' + localtempdir + '/temp/etc/rc.local')
+            self.runCmd('sudo chmod 755 ' + localtempdir + '/temp/etc/rc.local')
+            cmd = 'echo "NOZEROCONF=yes" | sudo tee -a ' + localtempdir + '/temp/etc/sysconfig/network > /dev/null'
+            self.logger.debug(cmd)
+            os.system(cmd)
+
+            self.runCmd('sudo chroot ' + localtempdir + '/temp/ yum -y install curl')
+
+
+
+
     def opennebula_method(self, localtempdir): 
 
         #Select kernel version
@@ -369,25 +429,25 @@ class IMDeployServerIaaS(object):
         rc_local = ""
         if self.operatingsystem == "ubuntu":
             #setup vmcontext.sh
-            self.runCmd("sudo sudo chroot "+localtempdir+"/temp ln -s /etc/init.d/vmcontext.sh /etc/rc2.d/S01vmcontext.sh")
+            self.runCmd("sudo sudo chroot " + localtempdir + "/temp ln -s /etc/init.d/vmcontext.sh /etc/rc2.d/S01vmcontext.sh")
             device = "sda" 
             rc_local = "mount -t iso9660 /dev/sr0 /mnt \n"
             #delete persisten network rules
-            self.runCmd("sudo rm -f "+localtempdir+"/temp/etc/udev/rules.d/70-persistent-net.rules")
+            self.runCmd("sudo rm -f " + localtempdir + "/temp/etc/udev/rules.d/70-persistent-net.rules")
             
             if self.kernel == "None":
                 self.kernel = self.default_kvm_ubuntu_kernel 
             
         elif self.operatingsystem == "centos":
             #setup vmcontext.sh
-            self.runCmd("sudo chroot "+localtempdir+"/temp chkconfig --add vmcontext.sh")
+            self.runCmd("sudo chroot " + localtempdir + "/temp chkconfig --add vmcontext.sh")
             if self.version == "5":
                 device = "hda"
                 rc_local = "mount -t iso9660 /dev/hdc /mnt \n"
             elif self.version == "6":
                 device = "sda"
                 rc_local = "mount -t iso9660 /dev/sr0 /mnt \n"  #in centos 6 is sr0            
-                self.runCmd("sudo rm -f "+localtempdir+"/temp/etc/udev/rules.d/70-persistent-net.rules")
+                self.runCmd("sudo rm -f " + localtempdir + "/temp/etc/udev/rules.d/70-persistent-net.rules")
             
             if self.kernel == "None":
                 self.kernel = self.default_kvm_centos5_kernel
@@ -407,9 +467,9 @@ class IMDeployServerIaaS(object):
         f_org = open(localtempdir + '/temp/etc/rc.local', 'r')
         f = open(localtempdir + '/rc.local', 'w')
         
-        write_remain=False
+        write_remain = False
         for line in f_org:
-            if ( re.search('^#', line) or write_remain ):
+            if (re.search('^#', line) or write_remain):
                 f.write(line)
             else:              
                 f.write(rc_local)
@@ -420,6 +480,8 @@ class IMDeployServerIaaS(object):
         self.runCmd('sudo mv -f ' + localtempdir + '/rc.local ' + localtempdir + '/temp/etc/rc.local')
         self.runCmd('sudo chown root:root ' + localtempdir + '/temp/etc/rc.local')
         self.runCmd('sudo chmod 755 ' + localtempdir + '/temp/etc/rc.local')
+        #in centos /etc/rc.local is a symbolink link of /etc/rc.d/rc.local/
+        os.system('sudo chroot ' + localtempdir + '/temp/ cp -f /etc/rc.local /etc/rc3.d/../')
         
         # Setup fstab
         fstab = "# Default fstab \n "

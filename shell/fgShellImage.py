@@ -124,7 +124,7 @@ class fgShellImage(Cmd):
             version = default_rhel
         elif args.OS == "CentOS" or args.OS == "CentOS" or args.OS == "centos":
             OS = "centos"
-            supported_versions = ["5","5.0","5.1","5.2","5.3","5.4","5.5","5.6","5.7"]#,"6","6.0"]
+            supported_versions = ["5","5.0","5.1","5.2","5.3","5.4","5.5","5.6","5.7","6","6.0"]
             if args.version == None:
                 version = default_centos            
             elif str(args.version) in supported_versions:
@@ -199,7 +199,8 @@ class fgShellImage(Cmd):
         group1.add_argument('-o', '--opennebula', dest='opennebula', nargs='?', metavar='Address', help='Deploy the image to OpenNebula, which is in the specified addr')
         group1.add_argument('-n', '--nimbus', dest='nimbus', nargs='?', metavar='Address', help='Deploy the image to Nimbus, which is in the specified addr')
         group1.add_argument('-s', '--openstack', dest='openstack', nargs='?', metavar='Address', help='Deploy the image to OpenStack, which is in the specified addr')
-          
+        parser.add_argument('-v', '--varfile', dest='varfile', help='Address of the environment variable files. Currently this is used by Eucalyptus and OpenStack')
+        
         args = parser.parse_args()
     
         print 'Starting image deployer...'

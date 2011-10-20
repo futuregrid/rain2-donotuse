@@ -93,7 +93,7 @@ class IMDeploy(object):
         return passed
 
     #This need to be redo
-    def iaas_generic(self, iaas_address, image, image_source, iaas_type):
+    def iaas_generic(self, iaas_address, image, image_source, iaas_type, varfile, getimg):
         checkauthstat = []     
         
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -160,7 +160,7 @@ class IMDeploy(object):
                             #print "self." + iaas_type + "_method(\""+ str(imagebackpath) + "\",\"" + str(kernel) + "\",\"" +\
                             #      str(operatingsystem) + "\",\"" + str(iaas_address) + "\")"   
                             eval("self." + iaas_type + "_method(\"" + str(imagebackpath) + "\",\"" + str(kernel) + "\",\"" + 
-                                  str(operatingsystem) + "\",\"" + str(iaas_address) + "\")")
+                                  str(operatingsystem) + "\",\"" + str(iaas_address) + "\",\"" + str(varfile) + "\",\"" + str(getimg) + "\")")
                         else:
                             self._log.error("CANNOT retrieve the image from server. EXIT.")
                             if self._verbose:
@@ -183,119 +183,179 @@ class IMDeploy(object):
                 print "ERROR: CANNOT establish SSL connection."
         
                 
-    def euca_method(self, imagebackpath, kernel, operatingsystem, iaas_address):
+    def euca_method(self, imagebackpath, kernel, operatingsystem, iaas_address, varfile, getimg):
         #TODO: Pick kernel and ramdisk from available eki and eri
 
         #hardcoded for now
         eki = 'eki-78EF12D2'
         eri = 'eri-5BB61255'
 
-        #CONTACT IMDeployServerIaaS to customize image ...
-
-        if iaas_address != "None":
-            ec2_url = "http://" + iaas_address + "/services/Eucalyptus"
-            s3_url = "http://" + iaas_address + "/services/Walrus"
+        if not getimg:
+            
+            os.environ["EUCA_KEY_DIR"]=os.path.dirname(varfile)
+            
+            #read variables
+            f = open(varfile,'r')
+            for line in f:
+                if re.search("^export ", line):
+                    line = line.split()[1]                    
+                    parts = line.split("=")
+                    #parts[0] is the variable name
+                    #parts[1] is the value
+                    parts[0]=parts[0].strip()
+                    value = ""
+                    for i in range(1,len(parts)):
+                        parts[i]=parts[i].strip()
+                        parts[i] = os.path.expanduser(os.path.expandvars(parts[i]))                    
+                        value += parts[i] + "="
+                    value = value.rstrip("=")
+                    value = value.strip('"')
+                    value = value.strip("'") 
+                    os.environ[parts[0]]=value
+            f.close()
+            
+            #CONTACT IMDeployServerIaaS to customize image ...    
+            if iaas_address != "None":
+                ec2_url = "http://" + iaas_address + "/services/Eucalyptus"
+                s3_url = "http://" + iaas_address + "/services/Walrus"
+            else:
+                ec2_url = os.getenv("EC2_URL")
+                s3_url = os.getenv("S3_URL")
+            
+            filename = os.path.split(imagebackpath)[1].strip()
+    
+            print filename
+    
+            #Bundle Image
+            #cmd = 'euca-bundle-image --image ' + imagebackpath + ' --kernel ' + eki + ' --ramdisk ' + eri
+            cmd = "euca-bundle-image --cert " + str(os.getenv("EC2_CERT")) + " --privatekey " + str(os.getenv("EC2_PRIVATE_KEY")) + \
+                  " --user " + str(os.getenv("EC2_USER_ID")) + " --ec2cert " + str(os.getenv("EUCALYPTUS_CERT")) + " --url " + str(ec2_url) + \
+                  " -a " + str(os.getenv("EC2_ACCESS_KEY")) + " -s " + str(os.getenv("EC2_SECRET_KEY")) + \
+                  " --image " + str(imagebackpath) + " --kernel " + str(eki) + " --ramdisk " + str(eri)
+            print cmd
+            self._log.debug(cmd)
+            os.system(cmd)
+    
+            #Upload bundled image
+            #cmd = 'euca-upload-bundle --bucket ' + self.user + ' --manifest ' + '/tmp/' + filename + '.manifest.xml'
+            cmd = "euca-upload-bundle -a " + os.getenv("EC2_ACCESS_KEY") + " -s " + os.getenv("EC2_SECRET_KEY") + \
+                " --url " + s3_url + " --ec2cert " + os.getenv("EUCALYPTUS_CERT") + " --bucket " + self.user + " --manifest " + \
+                "/tmp/" + filename + ".manifest.xml"
+            print cmd      
+            self._log.debug(cmd)  
+            os.system(cmd)
+    
+            #Register image
+            #cmd = 'euca-register ' + self.user + '/' + filename + '.manifest.xml'
+            cmd = "euca-register -a " + os.getenv("EC2_ACCESS_KEY") + " -s " + os.getenv("EC2_SECRET_KEY") + \
+                " --url " + ec2_url + " " + self.user + '/' + filename + '.manifest.xml'        
+            print cmd
+            self._log.debug(cmd)
+            os.system(cmd)
+            
+            cmd = "rm -f " + imagebackpath
+            print cmd
+            self._log.debug(cmd)
+            os.system(cmd)
+            
+            print "Your image has been registered on Eucalyptus with the id printed in the previous line (IMAGE  id) \n" + \
+                  "To launch a VM you can use euca-run-instances -k keyfile -n <#instances> id \n" + \
+                  "Remember to load you Eucalyptus environment before you run the instance (source eucarc) \n " + \
+                  "More information is provided in https://portal.futuregrid.org/tutorials/eucalyptus \n"
         else:
-            ec2_url = os.getenv("EC2_URL")
-            s3_url = os.getenv("S3_URL")
+            
+            print "Your Eucalyptus image is located in " + str(imagebackpath) + " \n" + \
+            "Remember to load you Eucalyptus environment before you run the instance (source eucarc) \n" + \
+            "More information is provided in https://portal.futuregrid.org/tutorials/eucalyptus \n"
+                        
         
-        filename = os.path.split(imagebackpath)[1].strip()
-
-        print filename
-
-        #Bundle Image
-        #cmd = 'euca-bundle-image --image ' + imagebackpath + ' --kernel ' + eki + ' --ramdisk ' + eri
-        cmd = "euca-bundle-image --cert " + str(os.getenv("EC2_CERT")) + " --privatekey " + str(os.getenv("EC2_PRIVATE_KEY")) + \
-              " --user " + str(os.getenv("EC2_USER_ID")) + " --ec2cert " + str(os.getenv("EUCALYPTUS_CERT")) + " --url " + str(ec2_url) + \
-              " -a " + str(os.getenv("EC2_ACCESS_KEY")) + " -s " + str(os.getenv("EC2_SECRET_KEY")) + \
-              " --image " + str(imagebackpath) + " --kernel " + str(eki) + " --ramdisk " + str(eri)
-        print cmd
-        self._log.debug(cmd)
-        os.system(cmd)
-
-        #Upload bundled image
-        #cmd = 'euca-upload-bundle --bucket ' + self.user + ' --manifest ' + '/tmp/' + filename + '.manifest.xml'
-        cmd = "euca-upload-bundle -a " + os.getenv("EC2_ACCESS_KEY") + " -s " + os.getenv("EC2_SECRET_KEY") + \
-            " --url " + s3_url + " --ec2cert " + os.getenv("EUCALYPTUS_CERT") + " --bucket " + self.user + " --manifest " + \
-            "/tmp/" + filename + ".manifest.xml"
-        print cmd      
-        self._log.debug(cmd)  
-        os.system(cmd)
-
-        #Register image
-        #cmd = 'euca-register ' + self.user + '/' + filename + '.manifest.xml'
-        cmd = "euca-register -a " + os.getenv("EC2_ACCESS_KEY") + " -s " + os.getenv("EC2_SECRET_KEY") + \
-            " --url " + ec2_url + " " + self.user + '/' + filename + '.manifest.xml'        
-        print cmd
-        self._log.debug(cmd)
-        os.system(cmd)
-        
-        cmd = "rm -f " + imagebackpath
-        print cmd
-        self._log.debug(cmd)
-        os.system(cmd)
-        
-        print "Your images has been registered on Eucalyptus with the id printed in the previous line (IMAGE  id) \n" +\
-              "To launch a VM you can use euca-run-instances -k keyfile -n <#instances> id \n" +\
-              "More information is provided in https://portal.futuregrid.org/tutorials/eucalyptus \n"              
-        
-    def openstack_method(self, imagebackpath, kernel, operatingsystem, iaas_address):
+    def openstack_method(self, imagebackpath, kernel, operatingsystem, iaas_address, varfile, getimg):
         #TODO: Pick kernel and ramdisk from available eki and eri
 
         #hardcoded for now
         eki = 'aki-00000026'
         eri = 'ari-00000027'
 
-        #CONTACT IMDeployServerIaaS to customize image ...
-
-        if iaas_address != "None":
-            ec2_url = "http://" + iaas_address + "/services/Cloud"
-            s3_url = "http://" + iaas_address + ":3333"
+        if not getimg:
+            
+            os.environ["NOVA_KEY_DIR"]=os.path.dirname(varfile)
+            
+            #read variables
+            f = open(varfile,'r')
+            for line in f:
+                if re.search("^export ", line):
+                    line = line.split()[1]                    
+                    parts = line.split("=")
+                    #parts[0] is the variable name
+                    #parts[1] is the value
+                    parts[0]=parts[0].strip()
+                    value = ""
+                    for i in range(1,len(parts)):
+                        parts[i]=parts[i].strip()
+                        parts[i] = os.path.expanduser(os.path.expandvars(parts[i]))                    
+                        value += parts[i] + "="
+                    value = value.rstrip("=")
+                    value = value.strip('"')
+                    value = value.strip("'") 
+                    os.environ[parts[0]]=value
+            f.close()
+            #CONTACT IMDeployServerIaaS to customize image ...
+    
+            if iaas_address != "None":
+                ec2_url = "http://" + iaas_address + "/services/Cloud"
+                s3_url = "http://" + iaas_address + ":3333"
+            else:
+                ec2_url = os.getenv("EC2_URL")
+                s3_url = os.getenv("S3_URL")
+            
+            filename = os.path.split(imagebackpath)[1].strip()
+    
+            print filename
+    
+            #Bundle Image
+            #cmd = 'euca-bundle-image --image ' + imagebackpath + ' --kernel ' + eki + ' --ramdisk ' + eri
+            cmd = "euca-bundle-image --cert " + str(os.getenv("EC2_CERT")) + " --privatekey " + str(os.getenv("EC2_PRIVATE_KEY")) + \
+                  " --user " + str(os.getenv("EC2_USER_ID")) + " --ec2cert " + str(os.getenv("EUCALYPTUS_CERT")) + " --url " + str(ec2_url) + \
+                  " -a " + str(os.getenv("EC2_ACCESS_KEY")) + " -s " + str(os.getenv("EC2_SECRET_KEY")) + \
+                  " --image " + str(imagebackpath) + " --kernel " + str(eki) + " --ramdisk " + str(eri)
+            print cmd
+            self._log.debug(cmd)
+            os.system(cmd)
+    
+            #Upload bundled image
+            #cmd = 'euca-upload-bundle --bucket ' + self.user + ' --manifest ' + '/tmp/' + filename + '.manifest.xml'
+            cmd = "euca-upload-bundle -a " + os.getenv("EC2_ACCESS_KEY") + " -s " + os.getenv("EC2_SECRET_KEY") + \
+                " --url " + s3_url + " --ec2cert " + os.getenv("EUCALYPTUS_CERT") + " --bucket " + self.user + " --manifest " + \
+                "/tmp/" + filename + ".manifest.xml"
+            print cmd      
+            self._log.debug(cmd)  
+            os.system(cmd)
+    
+            #Register image
+            #cmd = 'euca-register ' + self.user + '/' + filename + '.manifest.xml'
+            cmd = "euca-register -a " + os.getenv("EC2_ACCESS_KEY") + " -s " + os.getenv("EC2_SECRET_KEY") + \
+                " --url " + ec2_url + " " + self.user + '/' + filename + '.manifest.xml'        
+            print cmd
+            self._log.debug(cmd)
+            os.system(cmd)
+            
+            cmd = "rm -f " + imagebackpath
+            print cmd
+            self._log.debug(cmd)
+            #os.system(cmd)
+            
+            print "Your image has been registered on Eucalyptus with the id printed in the previous line (IMAGE  id) \n" + \
+                  "To launch a VM you can use euca-run-instances -k keyfile -n <#instances> id \n" + \
+                  "Remember to load you OpenStack environment before you run the instance (source novarc) \n " + \
+                  "More information is provided in https://portal.futuregrid.org/tutorials/oss " + \
+                  " and in https://portal.futuregrid.org/tutorials/eucalyptus\n"
         else:
-            ec2_url = os.getenv("EC2_URL")
-            s3_url = os.getenv("S3_URL")
-        
-        filename = os.path.split(imagebackpath)[1].strip()
-
-        print filename
-
-        #Bundle Image
-        #cmd = 'euca-bundle-image --image ' + imagebackpath + ' --kernel ' + eki + ' --ramdisk ' + eri
-        cmd = "euca-bundle-image --cert " + str(os.getenv("EC2_CERT")) + " --privatekey " + str(os.getenv("EC2_PRIVATE_KEY")) + \
-              " --user " + str(os.getenv("EC2_USER_ID")) + " --ec2cert " + str(os.getenv("EUCALYPTUS_CERT")) + " --url " + str(ec2_url) + \
-              " -a " + str(os.getenv("EC2_ACCESS_KEY")) + " -s " + str(os.getenv("EC2_SECRET_KEY")) + \
-              " --image " + str(imagebackpath) + " --kernel " + str(eki) + " --ramdisk " + str(eri)
-        print cmd
-        self._log.debug(cmd)
-        os.system(cmd)
-
-        #Upload bundled image
-        #cmd = 'euca-upload-bundle --bucket ' + self.user + ' --manifest ' + '/tmp/' + filename + '.manifest.xml'
-        cmd = "euca-upload-bundle -a " + os.getenv("EC2_ACCESS_KEY") + " -s " + os.getenv("EC2_SECRET_KEY") + \
-            " --url " + s3_url + " --ec2cert " + os.getenv("EUCALYPTUS_CERT") + " --bucket " + self.user + " --manifest " + \
-            "/tmp/" + filename + ".manifest.xml"
-        print cmd      
-        self._log.debug(cmd)  
-        os.system(cmd)
-
-        #Register image
-        #cmd = 'euca-register ' + self.user + '/' + filename + '.manifest.xml'
-        cmd = "euca-register -a " + os.getenv("EC2_ACCESS_KEY") + " -s " + os.getenv("EC2_SECRET_KEY") + \
-            " --url " + ec2_url + " " + self.user + '/' + filename + '.manifest.xml'        
-        print cmd
-        self._log.debug(cmd)
-        os.system(cmd)
-        
-        cmd = "rm -f " + imagebackpath
-        print cmd
-        self._log.debug(cmd)
-        #os.system(cmd)
-        
-        print "Your images has been registered on Eucalyptus with the id printed in the previous line (IMAGE  id) \n" +\
-              "To launch a VM you can use euca-run-instances -k keyfile -n <#instances> id \n" +\
-              "More information is provided in https://portal.futuregrid.org/tutorials/eucalyptus \n"
-              
-    def opennebula_method(self, imagebackpath, kernel, operatingsystem, iaas_address):
+            print "Your OpenStack image is located in " + str(imagebackpath) + " \n" + \
+            "Remember to load you OpenStack environment before you run the instance (source novarc) \n" + \
+            "More information is provided in https://portal.futuregrid.org/tutorials/oss " +\
+            " and in https://portal.futuregrid.org/tutorials/eucalyptus\n"
+            
+    def opennebula_method(self, imagebackpath, kernel, operatingsystem, iaas_address, varfile, getimg):
         
         filename = os.path.split(imagebackpath)[1].strip()
 
@@ -408,9 +468,9 @@ class IMDeploy(object):
         
         f.close()
         
-        print "The file " + filename + "_template.one is an example of the template that it is needed to launch a VM \n" +\
-        "You need to modify the kernel and initrd path to indiacte their location in your particular system\n" +\
-        "To see the availabe networks you can use onevnet list\n" +\
+        print "The file " + filename + "_template.one is an example of the template that it is needed to launch a VM \n" + \
+        "You need to modify the kernel and initrd path to indiacte their location in your particular system\n" + \
+        "To see the availabe networks you can use onevnet list\n" + \
         "To launch a VM you can use onevm create " + filename + "_template.one \n" 
         
         #create template to upload image to opennebula repository
@@ -653,6 +713,8 @@ def main():
     group1.add_argument('-o', '--opennebula', dest='opennebula', nargs='?', metavar='Address', help='Deploy the image to OpenNebula, which is in the specified addr')
     group1.add_argument('-n', '--nimbus', dest='nimbus', nargs='?', metavar='Address', help='Deploy the image to Nimbus, which is in the specified addr')
     group1.add_argument('-s', '--openstack', dest='openstack', nargs='?', metavar='Address', help='Deploy the image to OpenStack, which is in the specified addr')
+    parser.add_argument('-v', '--varfile', dest='varfile', help='Address of the environment variable files. Currently this is used by Eucalyptus and OpenStack')
+    parser.add_argument('-g', '--getimg', dest='getimg', action="store_true", help='Customize the image for a particular cloud framework but does not register it. So the user gets the image file.')
     
     args = parser.parse_args()
 
@@ -692,16 +754,26 @@ def main():
             imgdeploy.xcat_method(args.xcat, args.imgid)
     #EUCALYPTUS    
     if ('-e' in used_args or '--euca' in used_args):
-        imgdeploy.iaas_generic(args.euca, image, image_source, "euca")        
+        if varfile == None and not args.getimg:
+            "ERROR: You need to specify the path of the file with the Eucalyptus environment variables"
+        elif not os.path.isfile(str(os.path.expanduser(args.varfile))) and not args.getimg:
+            "ERROR: Variable files not found. You need to specify the path of the file with the Eucalyptus environment variables"
+        else:    
+            imgdeploy.iaas_generic(args.euca, image, image_source, "euca", os.path.expanduser(args.varfile), args.getimg)        
     #OpenNebula
     elif ('-o' in used_args or '--opennebula' in used_args):
-        imgdeploy.iaas_generic(args.opennebula, image, image_source, "opennebula")
+        imgdeploy.iaas_generic(args.opennebula, image, image_source, "opennebula", os.path.expanduser(args.varfile), args.getimg)
     #NIMBUS
     elif ('-n' in used_args or '--nimbus' in used_args):
         #TODO        
         print "Nimbus deployment is not implemented yet"
     elif ('-s' in used_args or '--openstack' in used_args):
-        imgdeploy.iaas_generic(args.openstack, image, image_source, "openstack")
+        if varfile == None and not args.getimg:
+            "ERROR: You need to specify the path of the file with the OpenStack environment variables"
+        elif not os.path.isfile(str(os.path.expanduser(args.varfile))) and not args.getimg:
+            "ERROR: Variable files not found. You need to specify the path of the file with the OpenStack environment variables"
+        else:    
+            imgdeploy.iaas_generic(args.openstack, image, image_source, "openstack", os.path.expanduser(args.varfile), args.getimg)
     else:
         print "ERROR: You need to specify a deployment target"
     
