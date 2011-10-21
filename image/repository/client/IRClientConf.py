@@ -147,7 +147,7 @@ class IRClientConf(object):
         try:
             self._logfile = os.path.expanduser(config.get(section, 'log', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No log option found in section "+section
+            print "Error: No log option found in section "+section + " file " + self._configfile
             sys.exit(1)
         except ConfigParser.NoSectionError:
             print "Error: no section "+section+" found in the "+self._configfile+" config file"
@@ -170,19 +170,19 @@ class IRClientConf(object):
         try:
             self._port = int(config.get(section, 'port', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No port option found in section "+section
+            print "Error: No port option found in section "+section + " file " + self._configfile
             sys.exit(1)
         #Server address
         try:
             self._serveraddr = os.path.expanduser(config.get(section, 'serveraddr', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No serveraddr option found in section "+section
+            print "Error: No serveraddr option found in section "+section + " file " + self._configfile
             sys.exit(1)
         
         try:
             self._ca_certs = os.path.expanduser(config.get(section, 'ca_cert', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No ca_cert option found in section " + section
+            print "Error: No ca_cert option found in section " + section + " file " + self._configfile
             sys.exit(1)
         if not os.path.isfile(self._ca_certs):
             print "Error: ca_cert file not found in "  + self._ca_certs 
@@ -190,7 +190,7 @@ class IRClientConf(object):
         try:
             self._certfile = os.path.expanduser(config.get(section, 'certfile', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No certfile option found in section " + section
+            print "Error: No certfile option found in section " + section + " file " + self._configfile
             sys.exit(1)
         if not os.path.isfile(self._certfile):
             print "Error: certfile file not found in "  + self._certfile 
@@ -198,7 +198,7 @@ class IRClientConf(object):
         try:
             self._keyfile = os.path.expanduser(config.get(section, 'keyfile', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No keyfile option found in section " + section
+            print "Error: No keyfile option found in section " + section + " file " + self._configfile
             sys.exit(1)
         if not os.path.isfile(self._keyfile):
             print "Error: keyfile file not found in "  + self._keyfile 

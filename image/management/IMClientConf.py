@@ -43,7 +43,7 @@ class IMClientConf(object):
                 #print self._configfile
 
                 if not os.path.isfile(self._configfile):   
-                    print "ERROR: configuration file "+configFileName+" not found"
+                    print "ERROR: configuration file " + configFileName + " not found"
                     sys.exit(1)
                     
         self._logLevel_default = "DEBUG"
@@ -138,49 +138,49 @@ class IMClientConf(object):
     ############################################################
     def load_generationConfig(self):        
         
-        section="Generation"
+        section = "Generation"
         try:
             self._serveraddr = self._config.get(section, 'serveraddr', 0)
         except ConfigParser.NoOptionError:
-            print "Error: No serveraddr option found in section "+section
+            print "Error: No serveraddr option found in section " + section + " file " + self._configfile
             sys.exit(1)
         except ConfigParser.NoSectionError:
-            print "Error: no section "+section+" found in the "+self._configfile+" config file"
+            print "Error: no section " + section + " found in the " + self._configfile + " config file"
             sys.exit(1)
         #Server address        
         try:
             self._gen_port = int(self._config.get(section, 'port', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No port option found in section " + section
+            print "Error: No port option found in section " + section + " file " + self._configfile
             sys.exit(1)
         try:
             self._ca_certs_gen = os.path.expanduser(self._config.get(section, 'ca_cert', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No ca_cert option found in section " + section
+            print "Error: No ca_cert option found in section " + section + " file " + self._configfile
             sys.exit(1)
         if not os.path.isfile(self._ca_certs_gen):
-            print "Error: ca_cert file not found in "  + self._ca_certs_gen 
+            print "Error: ca_cert file not found in " + self._ca_certs_gen 
             sys.exit(1)
         try:
             self._certfile_gen = os.path.expanduser(self._config.get(section, 'certfile', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No certfile option found in section " + section
+            print "Error: No certfile option found in section " + section + " file " + self._configfile
             sys.exit(1)
         if not os.path.isfile(self._certfile_gen):
-            print "Error: certfile file not found in "  + self._certfile_gen 
+            print "Error: certfile file not found in " + self._certfile_gen 
             sys.exit(1)
         try:
             self._keyfile_gen = os.path.expanduser(self._config.get(section, 'keyfile', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No keyfile option found in section " + section
+            print "Error: No keyfile option found in section " + section + " file " + self._configfile
             sys.exit(1)
         if not os.path.isfile(self._keyfile_gen):
-            print "Error: keyfile file not found in "  + self._keyfile_gen 
+            print "Error: keyfile file not found in " + self._keyfile_gen 
             sys.exit(1)
         try:
             self._logFileGen = os.path.expanduser(self._config.get(section, 'log', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No log option found in section " + section
+            print "Error: No log option found in section " + section + " file " + self._configfile
             sys.exit(1)
         try:
             tempLevel = string.upper(self._config.get(section, 'log_level', 0))
@@ -201,15 +201,15 @@ class IMClientConf(object):
         try:
             self._xcat_port = int(self._config.get(section, 'xcat_port', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No xcat_port option found in section "+section
+            print "Error: No xcat_port option found in section " + section + " file " + self._configfile
             sys.exit(1)  
         except ConfigParser.NoSectionError:
-            print "Error: no section "+section+" found in the "+self._configfile+" config file"
+            print "Error: no section " + section + " found in the " + self._configfile + " config file"
             sys.exit(1)      
         try:
             self._moab_port = int(self._config.get(section, 'moab_port', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No moab_port option found in section "+section
+            print "Error: No moab_port option found in section " + section + " file " + self._configfile
             sys.exit(1)   
         try:
             self._iaas_serveraddr = self._config.get(section, 'iaas_serveraddr', 0)
@@ -219,12 +219,12 @@ class IMClientConf(object):
         try:
             self._iaas_port = int(self._config.get(section, 'iaas_port', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No iaas_port option found in section "+section
+            print "Error: No iaas_port option found in section " + section + " file " + self._configfile
             sys.exit(1)                      
         try:
             self._http_server = self._config.get(section, 'http_server', 0)
         except ConfigParser.NoOptionError:
-            print "Error: No http_server option found in section "+section
+            print "Error: No http_server option found in section " + section + " file " + self._configfile
             sys.exit(1)
         
         #try:
@@ -235,31 +235,31 @@ class IMClientConf(object):
         try:
             self._ca_certs_dep = os.path.expanduser(self._config.get(section, 'ca_cert', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No ca_cert option found in section " + section
+            print "Error: No ca_cert option found in section " + section + " file " + self._configfile
             sys.exit(1)
         if not os.path.isfile(self._ca_certs_dep):
-            print "Error: ca_cert file not found in "  + self._ca_certs_dep 
+            print "Error: ca_cert file not found in " + self._ca_certs_dep 
             sys.exit(1)
         try:
             self._certfile_dep = os.path.expanduser(self._config.get(section, 'certfile', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No certfile option found in section " + section
+            print "Error: No certfile option found in section " + section + " file " + self._configfile
             sys.exit(1)
         if not os.path.isfile(self._certfile_dep):
-            print "Error: certfile file not found in "  + self._certfile_dep 
+            print "Error: certfile file not found in " + self._certfile_dep 
             sys.exit(1)
         try:
             self._keyfile_dep = os.path.expanduser(self._config.get(section, 'keyfile', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No keyfile option found in section " + section
+            print "Error: No keyfile option found in section " + section + " file " + self._configfile
             sys.exit(1)
         if not os.path.isfile(self._keyfile_dep):
-            print "Error: keyfile file not found in "  + self._keyfile_dep 
+            print "Error: keyfile file not found in " + self._keyfile_dep 
             sys.exit(1)
         try:
             self._logFileDeploy = os.path.expanduser(self._config.get(section, 'log', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No log option found in section " + section
+            print "Error: No log option found in section " + section + " file " + self._configfile
             sys.exit(1)
         try:
             tempLevel = string.upper(self._config.get(section, 'log_level', 0))
@@ -278,19 +278,19 @@ class IMClientConf(object):
         try:
             self._loginmachine = self._config.get(machine, 'loginmachine', 0)
         except ConfigParser.NoOptionError:
-            print "Error: No loginmachine option found in section " + machine
+            print "Error: No loginmachine option found in section " + machine + " file " + self._configfile
             sys.exit(1)
         except ConfigParser.NoSectionError:
-            print "Error: no section "+section+" found in the "+self._configfile+" config file"
+            print "Error: no section " + section + " found in the " + self._configfile + " config file"
             sys.exit(1)              
         try:
             self._moabmachine = self._config.get(machine, 'moabmachine', 0)
         except ConfigParser.NoOptionError:
-            print "Error: No moabmachine option found in section " + machine
+            print "Error: No moabmachine option found in section " + machine + " file " + self._configfile
             sys.exit(1)
         try:
             self._xcatmachine = self._config.get(machine, 'xcatmachine', 0)
         except ConfigParser.NoOptionError:
-            print "Error: No xcatmachine option found in section " + machine
+            print "Error: No xcatmachine option found in section " + machine + " file " + self._configfile
             sys.exit(1) 
 
