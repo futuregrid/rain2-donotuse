@@ -344,7 +344,7 @@ def main():
         else:
             userList = service.histUser(args.user, passwd, args.user, "None")
         
-        if userList == 'None':
+        if userList == None:
             print "ERROR: Not user found"
         else:            
             try:

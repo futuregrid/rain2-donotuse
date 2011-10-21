@@ -48,11 +48,11 @@ class IRServer(object):
         self._keyfile = self._repoconf.getKeyFile()
         
     def start(self):
-        self._log.info('Starting Server on port ' + str(self.port))
+        
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.bind(('', self.port))
         sock.listen(1) #Maximum of system unaccepted connections. Maximum value depend of the system (usually 5) 
-                
+        self._log.info('Starting Server on port ' + str(self.port))        
         proc_list = []
         total_count = 0
         while True:            

@@ -89,7 +89,7 @@ class fgShellRepo(Cmd):
         else:
             userList = self._service.histUser(self.user, self.passwd, self.user, "None")
 
-        if userList == 'None':
+        if userList == None:
             print "ERROR: Not user found"
         else:            
             try:
