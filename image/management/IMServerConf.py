@@ -46,6 +46,7 @@ class IMServerConf(object):
         self._gen_port = 0
         self._proc_max = 0
         self._refresh_status = 0
+        self._wait_max = 3600
         self._vmfile_centos = {}
         self._vmfile_rhel = ""
         self._vmfile_ubuntu ="" 
@@ -121,7 +122,9 @@ class IMServerConf(object):
     def getProcMax(self):
         return self._proc_max
     def getRefreshStatus(self):
-        self._refresh_status
+        return self._refresh_status
+    def getWaitMax(self):
+        return self._wait_max
     def getVmFileCentos(self):
         return self._vmfile_centos
     def getVmFileRhel(self):
@@ -250,6 +253,11 @@ class IMServerConf(object):
             self._refresh_status = int(self._config.get(section, 'refresh', 0))
         except ConfigParser.NoOptionError:
             print "Error: No refresh option found in section " + section
+            sys.exit(1)
+        try:
+            self._wait_max = int(self._config.get(section, 'wait_max', 0))
+        except ConfigParser.NoOptionError:
+            print "Error: No wait_max option found in section " + section
             sys.exit(1)
         try:            
             centos_temp = os.path.expanduser(self._config.get(section, 'vmfile_centos', 0))

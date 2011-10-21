@@ -59,6 +59,7 @@ class IMGenerateServer(object):
         self.port = self._genConf.getGenPort()
         self.proc_max = self._genConf.getProcMax()
         self.refresh_status = self._genConf.getRefreshStatus()
+        self.wait_max = self._getConf.getWaitMax()
         self.vmfile_centos = self._genConf.getVmFileCentos()
         self.vmfile_rhel = self._genConf.getVmFileRhel()
         self.vmfile_ubuntu = self._genConf.getVmFileUbuntu()
@@ -436,8 +437,7 @@ class IMGenerateServer(object):
     
             #monitor VM
             booted = False
-            maxretry = 720  #this says that we wait 60 minutes maximum to allow the VM get online. 
-                    #this also prevent to get here forever if the ssh key was not injected propertly.
+            maxretry = self.max_wail/5 #time that the VM has to change from penn to runn 
             retry=0
             while not booted and retry < maxretry:  #eventually the VM has to boot or fail
                 try:
@@ -471,7 +471,8 @@ class IMGenerateServer(object):
                 except:
                     pass
             if retry >= maxretry:
-                self.logger.error("The VM " + str(vm[1]) + " took too long to boot \n")
+                self.logger.error("The VM " + str(vm[1]) + " did not change to runn status. Please verify that the status of the OpenNebula hosts "
+                                  "or increase the wait time in the configuration file (max_wait) \n")
                 vmaddr = "fail"
                 fail = True
             if not fail:
