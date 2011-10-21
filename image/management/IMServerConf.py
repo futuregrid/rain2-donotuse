@@ -239,7 +239,7 @@ class IMServerConf(object):
         try:
             self._gen_port = int(self._config.get(section, 'port', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No port option found in section " + section
+            print "Error: No port option found in section " + section + " file " + self._configfile
             sys.exit(1)
         except ConfigParser.NoSectionError:
             print "Error: no section "+section+" found in the "+self._configfile+" config file"
@@ -247,17 +247,17 @@ class IMServerConf(object):
         try:
             self._proc_max = int(self._config.get(section, 'proc_max', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No proc_max option found in section " + section
+            print "Error: No proc_max option found in section " + section + " file " + self._configfile
             sys.exit(1)
         try:
             self._refresh_status = int(self._config.get(section, 'refresh', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No refresh option found in section " + section
+            print "Error: No refresh option found in section " + section + " file " + self._configfile
             sys.exit(1)
         try:
             self._wait_max = int(self._config.get(section, 'wait_max', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No wait_max option found in section " + section
+            print "Error: No wait_max option found in section " + section + " file " + self._configfile
             sys.exit(1)
         try:            
             centos_temp = os.path.expanduser(self._config.get(section, 'vmfile_centos', 0))
@@ -266,32 +266,32 @@ class IMServerConf(object):
                 self._vmfile_centos[centos_temp1[i].split(":")[0].strip()]=centos_temp1[i].split(":")[1].strip()
             
         except ConfigParser.NoOptionError:
-            print "Error: No vmfile_centos option found in section " + section
+            print "Error: No vmfile_centos option found in section " + section + " file " + self._configfile
             sys.exit(1)
         try:
             self._vmfile_rhel = os.path.expanduser(self._config.get(section, 'vmfile_rhel', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No vmfile_rhel option found in section " + section
+            print "Error: No vmfile_rhel option found in section " + section + " file " + self._configfile
             sys.exit(1)
         try:
             self._vmfile_ubuntu = os.path.expanduser(self._config.get(section, 'vmfile_ubuntu', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No vmfile_ubuntu option found in section " + section
+            print "Error: No vmfile_ubuntu option found in section " + section + " file " + self._configfile
             sys.exit(1)
         try:
             self._vmfile_debian = os.path.expanduser(self._config.get(section, 'vmfile_debian', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No vmfile_debian option found in section " + section
+            print "Error: No vmfile_debian option found in section " + section + " file " + self._configfile
             sys.exit(1)
         try:
             self._xmlrpcserver = self._config.get(section, 'xmlrpcserver', 0)
         except ConfigParser.NoOptionError:
-            print "Error: No xmlrpcserver option found in section " + section
+            print "Error: No xmlrpcserver option found in section " + section + " file " + self._configfile
             sys.exit(1)
         try:
             self._bridge = self._config.get(section, 'bridge', 0)
         except ConfigParser.NoOptionError:
-            print "Error: No bridge option found in section " + section
+            print "Error: No bridge option found in section " + section + " file " + self._configfile
             sys.exit(1)
         try:
             self._serverdir = os.path.expanduser(self._config.get(section, 'serverdir', 0))
@@ -300,47 +300,47 @@ class IMServerConf(object):
         try:
             self._addrnfs = self._config.get(section, 'addrnfs', 0)
         except ConfigParser.NoOptionError:
-            print "Error: No addrnfs option found in section " + section
+            print "Error: No addrnfs option found in section " + section + " file " + self._configfile
             sys.exit(1)
         try:
             self._tempdirserver_gen = os.path.expanduser(self._config.get(section, 'tempdirserver', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No tempdirserver option found in section " + section
+            print "Error: No tempdirserver option found in section " + section + " file " + self._configfile
             sys.exit(1)
         try:
             self._tempdir_gen = os.path.expanduser(self._config.get(section, 'tempdir', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No tempdir option found in section " + section
+            print "Error: No tempdir option found in section " + section + " file " + self._configfile
             sys.exit(1)            
         try:
             self._http_server_gen = self._config.get(section, 'http_server', 0)
         except ConfigParser.NoOptionError:
-            print "Error: No http_server option found in section " + section
+            print "Error: No http_server option found in section " + section + " file " + self._configfile
             sys.exit(1)
         try:
             self._bcfg2_url = self._config.get(section, 'bcfg2_url', 0)
         except ConfigParser.NoOptionError:
-            print "Error: No bcfg2_url option found in section " + section
+            print "Error: No bcfg2_url option found in section " + section + " file " + self._configfile
             sys.exit(1)
         try:
             self._bcfg2_port = int(self._config.get(section, 'bcfg2_port', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No bcfg2_port option found in section " + section
-            sys.exit(1)
+            print "Error: No bcfg2_port option found in section " + section + " file " + self._configfile
+            sys.exit(1) 
         try:
             self._oneuser = self._config.get(section, 'oneuser', 0)
         except ConfigParser.NoOptionError:
-            print "Error: No oneuser option found in section " + section
+            print "Error: No oneuser option found in section " + section + " file " + self._configfile
             sys.exit(1)
         try:
             self._onepass = self._config.get(section, 'onepass', 0)
         except ConfigParser.NoOptionError:
-            print "Error: No onepass option found in section " + section
+            print "Error: No onepass option found in section " + section + " file " + self._configfile
             sys.exit(1)
         try:
             self._log_gen = os.path.expanduser(self._config.get(section, 'log', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No log option found in section " + section
+            print "Error: No log option found in section " + section + " file " + self._configfile
             sys.exit(1)
         try:
             tempLevel = string.upper(self._config.get(section, 'log_level', 0))
@@ -354,7 +354,7 @@ class IMServerConf(object):
         try:
             self._ca_certs_gen = os.path.expanduser(self._config.get(section, 'ca_cert', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No ca_cert option found in section " + section
+            print "Error: No ca_cert option found in section " + section + " file " + self._configfile
             sys.exit(1)
         if not os.path.isfile(self._ca_certs_gen):
             print "Error: ca_cert file not found in "  + self._ca_certs_gen 
@@ -362,7 +362,7 @@ class IMServerConf(object):
         try:
             self._certfile_gen = os.path.expanduser(self._config.get(section, 'certfile', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No certfile option found in section " + section
+            print "Error: No certfile option found in section " + section + " file " + self._configfile
             sys.exit(1)
         if not os.path.isfile(self._certfile_gen):
             print "Error: certfile file not found in "  + self._certfile_gen 
@@ -370,7 +370,7 @@ class IMServerConf(object):
         try:
             self._keyfile_gen = os.path.expanduser(self._config.get(section, 'keyfile', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No keyfile option found in section " + section
+            print "Error: No keyfile option found in section " + section + " file " + self._configfile
             sys.exit(1)
         if not os.path.isfile(self._keyfile_gen):
             print "Error: keyfile file not found in "  + self._keyfile_gen 
@@ -384,7 +384,7 @@ class IMServerConf(object):
         try:
             self._xcat_port = int(self._config.get(section, 'xcat_port', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No xcat_port option found in section " + section
+            print "Error: No xcat_port option found in section " + section + " file " + self._configfile
             sys.exit(1)
         except ConfigParser.NoSectionError:
             print "Error: no section "+section+" found in the "+self._configfile+" config file"
@@ -392,17 +392,17 @@ class IMServerConf(object):
         try:
             self._xcatNetbootImgPath = os.path.expanduser(self._config.get(section, 'xcatNetbootImgPath', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No xcatNetbootImgPath option found in section " + section
+            print "Error: No xcatNetbootImgPath option found in section " + section + " file " + self._configfile
             sys.exit(1)
         try:
             self._http_server = self._config.get(section, 'http_server', 0)
         except ConfigParser.NoOptionError:
-            print "Error: No http_server option found in section " + section
+            print "Error: No http_server option found in section " + section + " file " + self._configfile
             sys.exit(1)
         try:
             self._log_xcat = os.path.expanduser(self._config.get(section, 'log', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No log option found in section " + section
+            print "Error: No log option found in section " + section + " file " + self._configfile
             sys.exit(1)
         try:
             tempLevel = string.upper(self._config.get(section, 'log_level', 0))
@@ -423,22 +423,22 @@ class IMServerConf(object):
         try:
             self._default_xcat_kernel_centos = self._config.get(section, 'default_xcat_kernel_centos', 0)
         except ConfigParser.NoOptionError:
-            print "Error: No default_xcat_kernel_centos option found in section " + section
+            print "Error: No default_xcat_kernel_centos option found in section " + section + " file " + self._configfile
             sys.exit(1)
         try:
             self._default_xcat_kernel_ubuntu = self._config.get(section, 'default_xcat_kernel_ubuntu', 0)
         except ConfigParser.NoOptionError:
-            print "Error: No default_xcat_kernel_ubuntu option found in section " + section
+            print "Error: No default_xcat_kernel_ubuntu option found in section " + section + " file " + self._configfile
             sys.exit(1)    
         try:
             self._tempdir_xcat = os.path.expanduser(self._config.get(section, 'tempdir', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No tempdir option found in section " + section
+            print "Error: No tempdir option found in section " + section + " file " + self._configfile
             sys.exit(1)
         try:
             self._ca_certs_xcat = os.path.expanduser(self._config.get(section, 'ca_cert', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No ca_cert option found in section " + section
+            print "Error: No ca_cert option found in section " + section + " file " + self._configfile
             sys.exit(1)
         if not os.path.isfile(self._ca_certs_xcat):
             print "Error: ca_cert file not found in "  + self._ca_certs_xcat 
@@ -446,7 +446,7 @@ class IMServerConf(object):
         try:
             self._certfile_xcat = os.path.expanduser(self._config.get(section, 'certfile', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No certfile option found in section " + section
+            print "Error: No certfile option found in section " + section + " file " + self._configfile
             sys.exit(1)
         if not os.path.isfile(self._certfile_xcat):
             print "Error: keyfile file not found in "  + self._certfile_xcat 
@@ -454,7 +454,7 @@ class IMServerConf(object):
         try:
             self._keyfile_xcat = os.path.expanduser(self._config.get(section, 'keyfile', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No keyfile option found in section " + section
+            print "Error: No keyfile option found in section " + section + " file " + self._configfile
             sys.exit(1)
         if not os.path.isfile(self._keyfile_xcat):
             print "Error: keyfile file not found in "  + self._keyfile_xcat 
@@ -468,7 +468,7 @@ class IMServerConf(object):
         try:
             self._moab_port = int(self._config.get(section, 'moab_port', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No moab_port option found in section " + section
+            print "Error: No moab_port option found in section " + section + " file " + self._configfile
             sys.exit(1)  
         except ConfigParser.NoSectionError:
             print "Error: no section "+section+" found in the "+self._configfile+" config file"
@@ -476,7 +476,7 @@ class IMServerConf(object):
         try:
             self._moabInstallPath = os.path.expanduser(self._config.get(section, 'moabInstallPath', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No moabInstallPath option found in section " + section
+            print "Error: No moabInstallPath option found in section " + section + " file " + self._configfile
             sys.exit(1)
         """
         try:
@@ -488,7 +488,7 @@ class IMServerConf(object):
         try:
             self._log_moab = os.path.expanduser(self._config.get(section, 'log', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No log option found in section " + section
+            print "Error: No log option found in section " + section + " file " + self._configfile
             sys.exit(1)
         try:
             tempLevel = string.upper(self._config.get(section, 'log_level', 0))
@@ -501,7 +501,7 @@ class IMServerConf(object):
         try:
             self._ca_certs_moab = os.path.expanduser(self._config.get(section, 'ca_cert', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No ca_cert option found in section " + section
+            print "Error: No ca_cert option found in section " + section + " file " + self._configfile
             sys.exit(1)
         if not os.path.isfile(self._ca_certs_moab):
             print "Error: ca_cert file not found in "  + self._ca_certs_moab 
@@ -509,7 +509,7 @@ class IMServerConf(object):
         try:
             self._certfile_moab = os.path.expanduser(self._config.get(section, 'certfile', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No certfile option found in section " + section
+            print "Error: No certfile option found in section " + section + " file " + self._configfile
             sys.exit(1)
         if not os.path.isfile(self._certfile_moab):
             print "Error: certfile file not found in "  + self._certfile_moab 
@@ -517,7 +517,7 @@ class IMServerConf(object):
         try:
             self._keyfile_moab = os.path.expanduser(self._config.get(section, 'keyfile', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No keyfile option found in section " + section
+            print "Error: No keyfile option found in section " + section + " file " + self._configfile
             sys.exit(1)
         if not os.path.isfile(self._keyfile_moab):
             print "Error: keyfile file not found in "  + self._keyfile_moab 
@@ -531,7 +531,7 @@ class IMServerConf(object):
         try:
             self._iaas_port = int(self._config.get(section, 'port', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No port option found in section " + section
+            print "Error: No port option found in section " + section + " file " + self._configfile
             sys.exit(1)  
         except ConfigParser.NoSectionError:
             print "Error: no section "+section+" found in the "+self._configfile+" config file"
@@ -539,22 +539,22 @@ class IMServerConf(object):
         try:
             self._proc_max_iaas = int(self._config.get(section, 'proc_max', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No proc_max option found in section " + section
+            print "Error: No proc_max option found in section " + section + " file " + self._configfile
             sys.exit(1)     
         try:
             self._tempdir_iaas = os.path.expanduser(self._config.get(section, 'tempdir', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No tempdir option found in section " + section
+            print "Error: No tempdir option found in section " + section + " file " + self._configfile
             sys.exit(1)            
         try:
             self._http_server_iaas = self._config.get(section, 'http_server', 0)
         except ConfigParser.NoOptionError:
-            print "Error: No http_server option found in section " + section
+            print "Error: No http_server option found in section " + section + " file " + self._configfile
             sys.exit(1)        
         try:
             self._log_iaas = os.path.expanduser(self._config.get(section, 'log', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No log option found in section " + section
+            print "Error: No log option found in section " + section + " file " + self._configfile
             sys.exit(1)
         try:
             tempLevel = string.upper(self._config.get(section, 'log_level', 0))
@@ -567,7 +567,7 @@ class IMServerConf(object):
         try:
             self._ca_certs_iaas = os.path.expanduser(self._config.get(section, 'ca_cert', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No ca_cert option found in section " + section
+            print "Error: No ca_cert option found in section " + section + " file " + self._configfile
             sys.exit(1)
         if not os.path.isfile(self._ca_certs_iaas):
             print "Error: ca_cert file not found in "  + self._ca_certs_iaas 
@@ -575,7 +575,7 @@ class IMServerConf(object):
         try:
             self._certfile_iaas = os.path.expanduser(self._config.get(section, 'certfile', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No certfile option found in section " + section
+            print "Error: No certfile option found in section " + section + " file " + self._configfile
             sys.exit(1)
         if not os.path.isfile(self._certfile_iaas):
             print "Error: certfile file not found in "  + self._certfile_iaas 
@@ -583,7 +583,7 @@ class IMServerConf(object):
         try:
             self._keyfile_iaas = os.path.expanduser(self._config.get(section, 'keyfile', 0))
         except ConfigParser.NoOptionError:
-            print "Error: No keyfile option found in section " + section
+            print "Error: No keyfile option found in section " + section + " file " + self._configfile
             sys.exit(1)
         if not os.path.isfile(self._keyfile_iaas):
             print "Error: keyfile file not found in "  + self._keyfile_iaas 
