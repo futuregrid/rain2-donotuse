@@ -207,7 +207,8 @@ class IMDeployServerIaaS(object):
 
         cmd = 'mkdir -p ' + localtempdir
         self.runCmd(cmd)
-
+        self.runCmd("chmod 777 " + localtempdir)
+        
         if imgSource == "repo":
             #GET IMAGE from repo
             if not self._reposervice.connection():
