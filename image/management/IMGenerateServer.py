@@ -470,7 +470,9 @@ class IMGenerateServer(object):
                         time.sleep(5)
                 except:
                     pass
-        
+            if retry >= maxretry:
+                self.logger.error("The VM " + str(vm[1]) + " took too long to boot \n")
+                vmaddr = "fail"
             if not fail:
                 #get IP
                 nics = manifest.getElementsByTagName('NIC')
