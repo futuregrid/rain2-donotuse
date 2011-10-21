@@ -436,7 +436,10 @@ class IMGenerateServer(object):
     
             #monitor VM
             booted = False
-            while not booted:  #eventually the VM has to boot or fail
+            maxretry = 720  #this says that we wait 60 minutes maximum to allow the VM get online. 
+                    #this also prevent to get here forever if the ssh key was not injected propertly.
+            retry=0
+            while not booted and retry < maxretry:  #eventually the VM has to boot or fail
                 try:
                     #-------Get Info about VM -------------------------------
                     vminfo = server.one.vm.info(self.oneauth, vm[1])
@@ -463,6 +466,7 @@ class IMGenerateServer(object):
                         fail = True
                         vmaddr = "fail"
                     else:
+                        retry+=1
                         time.sleep(5)
                 except:
                     pass

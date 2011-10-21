@@ -89,6 +89,7 @@ class IMDeploy(object):
                 m.update(getpass())
                 passwd = m.hexdigest()
                 socket_conn.write(passwd)
+                self.passwd = passwd
             else:                
                 self._log.error(str(ret))
                 if self._verbose:

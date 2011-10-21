@@ -138,6 +138,7 @@ class IMGenerate(object):
                 m.update(getpass())
                 passwd = m.hexdigest()
                 genServer.write(passwd)
+                self.passwd = passwd
             else:
                 self._log.error(str(ret))
                 if self.verbose:
