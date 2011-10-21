@@ -82,7 +82,7 @@ class IRServer(object):
                               ssl_version=ssl.PROTOCOL_TLSv1)
                 #print connstream                                
                 proc_list.append(Process(target=self.repo, args=(connstream,)))            
-                proc_list[len(proc_list) - 1].start()
+                proc_list[len(proc_list) - 1].start()                
             except ssl.SSLError:
                 self._log.error("Unsuccessful connection attempt from: " + repr(fromaddr) + " " + str(sys.exc_info()))
             except socket.error:
