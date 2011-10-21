@@ -437,7 +437,7 @@ class IMGenerateServer(object):
     
             #monitor VM
             booted = False
-            maxretry = self.max_wail/5 #time that the VM has to change from penn to runn 
+            maxretry = self.wait_max/5 #time that the VM has to change from penn to runn 
             retry=0
             while not booted and retry < maxretry:  #eventually the VM has to boot or fail
                 try:
