@@ -330,7 +330,7 @@ class fgShellRepo(Cmd):
             except:
                 print "Server replied: " + str(imgsList)
                 print "list: Error:" + str(sys.exc_info()) + "\n"
-                service._log.error("list: Error interpreting the list of images from Image Repository" + str(sys.exc_info()))
+                self._service._log.error("list: Error interpreting the list of images from Image Repository" + str(sys.exc_info()))
         else:
             print "No list of images returned"
        
