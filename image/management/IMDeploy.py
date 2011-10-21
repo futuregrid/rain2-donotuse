@@ -273,6 +273,7 @@ class IMDeploy(object):
         else:
             
             print "Your Eucalyptus image is located in " + str(imagebackpath) + " \n" + \
+            "The kernel and ramdisk to use are " + eki + " and " + eri + " respectively \n" + \
             "Remember to load you Eucalyptus environment before you run the instance (source eucarc) \n" + \
             "More information is provided in https://portal.futuregrid.org/tutorials/eucalyptus \n"
                         
@@ -328,7 +329,7 @@ class IMDeploy(object):
                   " --image " + str(imagebackpath) + " --kernel " + str(eki) + " --ramdisk " + str(eri)
             print cmd
             self._log.debug(cmd)
-            stat=os.system(cmd)
+            stat = os.system(cmd)
     
             #Upload bundled image
             #cmd = 'euca-upload-bundle --bucket ' + self.user + ' --manifest ' + '/tmp/' + filename + '.manifest.xml'
@@ -337,7 +338,7 @@ class IMDeploy(object):
                 "/tmp/" + filename + ".manifest.xml"
             print cmd      
             self._log.debug(cmd)  
-            stat=os.system(cmd)
+            stat = os.system(cmd)
     
             #Register image
             #cmd = 'euca-register ' + self.user + '/' + filename + '.manifest.xml'
@@ -345,7 +346,7 @@ class IMDeploy(object):
                 " --url " + ec2_url + " " + self.user + '/' + filename + '.manifest.xml'        
             print cmd
             self._log.debug(cmd)
-            stat=os.system(cmd)
+            stat = os.system(cmd)
             
             cmd = "rm -f " + imagebackpath            
             if stat == 0:
@@ -360,6 +361,7 @@ class IMDeploy(object):
                   " and in https://portal.futuregrid.org/tutorials/eucalyptus\n"
         else:
             print "Your OpenStack image is located in " + str(imagebackpath) + " \n" + \
+            "The kernel and ramdisk to use are " + eki + " and " + eri + " respectively \n" + \
             "Remember to load you OpenStack environment before you run the instance (source novarc) \n" + \
             "More information is provided in https://portal.futuregrid.org/tutorials/oss " + \
             " and in https://portal.futuregrid.org/tutorials/eucalyptus\n"
@@ -763,9 +765,9 @@ def main():
         else:
             imgdeploy.xcat_method(args.xcat, args.imgid)
     else:
-        varfile=""
+        varfile = ""
         if args.varfile != None:
-            varfile=os.path.expanduser(args.varfile)
+            varfile = os.path.expanduser(args.varfile)
         #EUCALYPTUS    
         if ('-e' in used_args or '--euca' in used_args):
             if not args.getimg:
