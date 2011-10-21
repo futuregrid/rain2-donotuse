@@ -59,7 +59,7 @@ class IMGenerateServer(object):
         self.port = self._genConf.getGenPort()
         self.proc_max = self._genConf.getProcMax()
         self.refresh_status = self._genConf.getRefreshStatus()
-        self.wait_max = self._getConf.getWaitMax()
+        self.wait_max = self._genConf.getWaitMax()
         self.vmfile_centos = self._genConf.getVmFileCentos()
         self.vmfile_rhel = self._genConf.getVmFileRhel()
         self.vmfile_ubuntu = self._genConf.getVmFileUbuntu()
