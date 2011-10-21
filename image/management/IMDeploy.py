@@ -267,7 +267,7 @@ class IMDeploy(object):
                 os.system(cmd)
             
             print "Your image has been registered on Eucalyptus with the id printed in the previous line (IMAGE  id) \n" + \
-                  "To launch a VM you can use euca-run-instances -k keyfile -n <#instances> id \n" + \
+                  "To launch a VM you can use euca-run-instances -k keyfile -n <#instances> id  \n" + \
                   "Remember to load you Eucalyptus environment before you run the instance (source eucarc) \n " + \
                   "More information is provided in https://portal.futuregrid.org/tutorials/eucalyptus \n"
         else:
@@ -634,6 +634,7 @@ class IMDeploy(object):
             if self._verbose:
                 print 'Your image has been deployed in xCAT as ' + imagename + '. Please allow a few minutes for xCAT to register the image before attempting to use it.'
                 print 'To boot an machine using your image: qsub -l os=<imagename>'
+                print 'To check the status of the job you can use checkjob and showq commands'
         except ssl.SSLError:
             self._log.error("CANNOT establish SSL connection. EXIT")
             if self._verbose:
@@ -761,40 +762,40 @@ def main():
             sys.exit(1)
         else:
             imgdeploy.xcat_method(args.xcat, args.imgid)
-    
-    varfile=""
-    if args.varfile != None:
-        varfile=os.path.expanduser(args.varfile)
-    #EUCALYPTUS    
-    if ('-e' in used_args or '--euca' in used_args):
-        if not args.getimg:
-            if args.varfile == None:
-                print "ERROR: You need to specify the path of the file with the Eucalyptus environment variables"
-            elif not os.path.isfile(str(os.path.expanduser(varfile))):
-                print "ERROR: Variable files not found. You need to specify the path of the file with the Eucalyptus environment variables"
+    else:
+        varfile=""
+        if args.varfile != None:
+            varfile=os.path.expanduser(args.varfile)
+        #EUCALYPTUS    
+        if ('-e' in used_args or '--euca' in used_args):
+            if not args.getimg:
+                if args.varfile == None:
+                    print "ERROR: You need to specify the path of the file with the Eucalyptus environment variables"
+                elif not os.path.isfile(str(os.path.expanduser(varfile))):
+                    print "ERROR: Variable files not found. You need to specify the path of the file with the Eucalyptus environment variables"
+                else:    
+                    imgdeploy.iaas_generic(args.euca, image, image_source, "euca", varfile, args.getimg)        
             else:    
-                imgdeploy.iaas_generic(args.euca, image, image_source, "euca", varfile, args.getimg)        
-        else:    
-            imgdeploy.iaas_generic(args.euca, image, image_source, "euca", varfile, args.getimg)
-    #OpenNebula
-    elif ('-o' in used_args or '--opennebula' in used_args):
-        imgdeploy.iaas_generic(args.opennebula, image, image_source, "opennebula", varfile, args.getimg)
-    #NIMBUS
-    elif ('-n' in used_args or '--nimbus' in used_args):
-        #TODO        
-        print "Nimbus deployment is not implemented yet"
-    elif ('-s' in used_args or '--openstack' in used_args):
-        if not args.getimg:
-            if args.varfile == None:
-                print "ERROR: You need to specify the path of the file with the OpenStack environment variables"
-            elif not os.path.isfile(str(os.path.expanduser(varfile))):
-                print "ERROR: Variable files not found. You need to specify the path of the file with the OpenStack environment variables"
+                imgdeploy.iaas_generic(args.euca, image, image_source, "euca", varfile, args.getimg)
+        #OpenNebula
+        elif ('-o' in used_args or '--opennebula' in used_args):
+            imgdeploy.iaas_generic(args.opennebula, image, image_source, "opennebula", varfile, args.getimg)
+        #NIMBUS
+        elif ('-n' in used_args or '--nimbus' in used_args):
+            #TODO        
+            print "Nimbus deployment is not implemented yet"
+        elif ('-s' in used_args or '--openstack' in used_args):
+            if not args.getimg:
+                if args.varfile == None:
+                    print "ERROR: You need to specify the path of the file with the OpenStack environment variables"
+                elif not os.path.isfile(str(os.path.expanduser(varfile))):
+                    print "ERROR: Variable files not found. You need to specify the path of the file with the OpenStack environment variables"
+                else:    
+                    imgdeploy.iaas_generic(args.openstack, image, image_source, "openstack", varfile, args.getimg)
             else:    
                 imgdeploy.iaas_generic(args.openstack, image, image_source, "openstack", varfile, args.getimg)
-        else:    
-            imgdeploy.iaas_generic(args.openstack, image, image_source, "openstack", varfile, args.getimg)
-    else:
-        print "ERROR: You need to specify a deployment target"
+        else:
+            print "ERROR: You need to specify a deployment target"
     
 
 if __name__ == "__main__":
