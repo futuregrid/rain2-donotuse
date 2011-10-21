@@ -51,6 +51,7 @@ import re
 import sys
 from random import randrange
 import ConfigParser
+import string
 
 class ImgStoreMongo(AbstractImgStore):
 
@@ -879,50 +880,58 @@ class ImgMetaStoreMongo(AbstractImgMetaStore):
                 dbLink = self._dbConnection[self._dbName]
                 collection = dbLink[self._metacollection]
 
-                criteria = criteria.strip()  #remove spaces before
-                segs = criteria.split(" ")  #splits in parts                
-                args = [x.strip() for x in segs]
-
-                fieldsFound = False
-                where = False
                 fieldsWhere = {}
-                fields = []
+                fields = []                
+                criteria = criteria.strip()  #remove spaces before                
+                beforewhere=""
+                afterwhere=""
+                if re.search("where",criteria):
+                    beforewhere, afterwhere = criteria.split("where")  #splits in parts                    
+                elif re.search("WHERE", criteria):
+                    beforewhere, afterwhere = criteria.split("WHERE")  #splits in parts
+                else:
+                    beforewhere=criteria
+                
+                beforewhere=beforewhere.strip()
+                afterwhere=afterwhere.strip()
+                
+                beforewhere = beforewhere.split(" ")                        
+                args = [x.strip() for x in beforewhere]              
                 for i in range(len(args)):
                     if (args[i] != " "):
-                        if not fieldsFound:
-                            if (args[i] == "*"):
-                                del fields[:]
-                                fields = "*"
-                                fieldsFound = True
-                            else:
-                                aux = args[i].split(",")
-                                aux1 = [z.strip() for z in aux]
-                                for j in aux1:
-                                    if (j != ""):
-                                        if (j == "*"):
-                                            del fields[:]
-                                            fields = "*"
-                                            fieldsFound = True
-                                        elif (j == "where" or j == "WHERE"):
-                                            where = True
-                                            fieldsFound = True
-                                        else:
-                                            fields.append(j)
-                        elif not where:
-                            if (args[i] == "where" or args[i] == "WHERE"):
-                                where = True
+                        if (args[i] == "*"):
+                            del fields[:]
+                            fields = "*"
+                            break
                         else:
+                            exit=False
                             aux = args[i].split(",")
                             aux1 = [z.strip() for z in aux]
                             for j in aux1:
                                 if (j != ""):
-                                    aux2 = j.split("=")
-                                    if (aux2[0].strip() == "imgId"):
-                                        fieldsWhere["_id"] = aux2[1].strip()
-                                    #elif (aux2[0].strip() == "imgType" or aux2[0].strip() == "vmType" or aux2[0].strip() == "imgStatus"):
-                                     #   fieldsWhere[aux2[0].strip()]=int(aux2[1].strip())
+                                    if (j == "*"):
+                                        del fields[:]
+                                        fields = "*"
+                                        exit=True
+                                        break                                    
                                     else:
-                                        fieldsWhere[aux2[0].strip()] = aux2[1].strip()
+                                        fields.append(j)
+                            if exit:
+                                break            
+                if afterwhere != "":                    
+                    afterwhere = string.replace(afterwhere,' ', '')                                        
+                    aux = afterwhere.split(",")
+                    aux1 = [z.strip() for z in aux]
+                    for j in aux1:
+                        if (j != ""):                                    
+                            aux2 = j.split("=")
+                                                                
+                            if (aux2[0].strip() == "imgId" or aux2[0].strip() == "imgid"):
+                                fieldsWhere["_id"] = aux2[1].strip()
+                            #elif (aux2[0].strip() == "imgType" or aux2[0].strip() == "vmType" or aux2[0].strip() == "imgStatus"):
+                             #   fieldsWhere[aux2[0].strip()]=int(aux2[1].strip())
+                            else:
+                                fieldsWhere[aux2[0].strip()] = aux2[1].strip()
 
                 self._log.debug("fields " + fields.__str__())
                 self._log.debug("fieldsWhere " + fieldsWhere.__str__())
@@ -946,7 +955,9 @@ class ImgMetaStoreMongo(AbstractImgMetaStore):
             except pymongo.errors.ConnectionFailure:
                 self._log.error("Connection failure: the query cannot be performed")
             except TypeError as detail:
-                self._log.error("TypeError in ImgMetaStoreMongo - queryStore")
+                self._log.error("TypeError in ImgMetaStoreMongo - queryStore "+ str(sys.exc_info()))
+            except:
+                self._log.error("TypeError in ImgMetaStoreMongo - queryStore. " + str(sys.exc_info()))
             finally:
                 self._dbConnection.disconnect()
         else:
