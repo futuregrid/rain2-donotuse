@@ -197,7 +197,7 @@ class IMDeploy(object):
         #hardcoded for now
         eki = 'eki-78EF12D2'
         eri = 'eri-5BB61255'
-
+        imageId = None
         if not eval(getimg):
             
             os.environ["EUCA_KEY_DIR"] = os.path.dirname(varfile)
@@ -267,7 +267,7 @@ class IMDeploy(object):
                 self._log.debug('stdout: ' + std[0])
                 self._log.debug('stderr: ' + std[1])
                 print std[0]
-                imageId=std[0].split("IMAGE")[1].strip()
+                imageId = std[0].split("IMAGE")[1].strip()
             if p.returncode != 0:
                 self._log.error('Command: ' + cmd + ' failed, status: ' + str(p.returncode) + ' --- ' + std[1])
                 stat = 1
@@ -279,13 +279,17 @@ class IMDeploy(object):
                 self._log.debug(cmd)
                 os.system(cmd)
             
-            print "Your image has been registered on Eucalyptus with the id printed in the previous line (IMAGE  id) \n" + \
+                print "Your image has been registered on Eucalyptus with the id printed in the previous line (IMAGE  id) \n" + \
                   "To launch a VM you can use euca-run-instances -k keyfile -n <#instances> id  \n" + \
                   "Remember to load you Eucalyptus environment before you run the instance (source eucarc) \n " + \
-                  "More information is provided in https://portal.futuregrid.org/tutorials/eucalyptus \n"
-            return imageId
-        else:
-            
+                  "More information is provided in https://portal.futuregrid.org/tutorials/eucalyptus \n"                
+            else:
+                print "An error occured when uploading image to Eucalyptus. Your image is located in " + str(imagebackpath) + " so you can upload it manually \n" + \
+                "The kernel and ramdisk to use are " + eki + " and " + eri + " respectively \n" + \
+                "Remember to load you Eucalyptus environment before you run the instance (source eucarc) \n" + \
+                "More information is provided in https://portal.futuregrid.org/tutorials/eucalyptus \n"  
+            return imageId              
+        else:            
             print "Your Eucalyptus image is located in " + str(imagebackpath) + " \n" + \
             "The kernel and ramdisk to use are " + eki + " and " + eri + " respectively \n" + \
             "Remember to load you Eucalyptus environment before you run the instance (source eucarc) \n" + \
@@ -298,7 +302,7 @@ class IMDeploy(object):
         #hardcoded for now
         eki = 'aki-00000026'
         eri = 'ari-00000027'
-
+        imageId = None
         if not eval(getimg):
             
             os.environ["NOVA_KEY_DIR"] = os.path.dirname(varfile)
@@ -359,8 +363,7 @@ class IMDeploy(object):
             cmd = "euca-register -a " + os.getenv("EC2_ACCESS_KEY") + " -s " + os.getenv("EC2_SECRET_KEY") + \
                 " --url " + ec2_url + " " + self.user + '/' + filename + '.manifest.xml'        
             print cmd
-            self._log.debug(cmd)
-            imageId = ""
+            self._log.debug(cmd)            
             #stat = os.system(cmd) #execute this with Popen to get the output
             p = Popen(cmd.split(' '), stdout=PIPE, stderr=PIPE)
             std = p.communicate()
@@ -369,7 +372,7 @@ class IMDeploy(object):
                 self._log.debug('stdout: ' + std[0])
                 self._log.debug('stderr: ' + std[1])
                 print std[0]
-                imageId=std[0].split("IMAGE")[1].strip()
+                imageId = std[0].split("IMAGE")[1].strip()
             if p.returncode != 0:
                 self._log.error('Command: ' + cmd + ' failed, status: ' + str(p.returncode) + ' --- ' + std[1])
                 stat = 1
@@ -380,11 +383,17 @@ class IMDeploy(object):
                 self._log.debug(cmd)
                 os.system(cmd)
             
-            print "Your image has been registered on OpenStack with the id printed in the previous line (IMAGE  id) \n" + \
-                  "To launch a VM you can use euca-run-instances -k keyfile -n <#instances> id \n" + \
-                  "Remember to load you OpenStack environment before you run the instance (source novarc) \n " + \
-                  "More information is provided in https://portal.futuregrid.org/tutorials/oss " + \
-                  " and in https://portal.futuregrid.org/tutorials/eucalyptus\n"
+                print "Your image has been registered on OpenStack with the id " + imageId + " \n" + \
+                      "To launch a VM you can use euca-run-instances -k keyfile -n <#instances> id \n" + \
+                      "Remember to load you OpenStack environment before you run the instance (source novarc) \n " + \
+                      "More information is provided in https://portal.futuregrid.org/tutorials/oss " + \
+                      " and in https://portal.futuregrid.org/tutorials/eucalyptus\n"                
+            else:
+                print "An error occured when uploading image to OpenStack. Your image is located in " + str(imagebackpath) + " so you can upload it manually \n" + \
+                "The kernel and ramdisk to use are " + eki + " and " + eri + " respectively \n" + \
+                "Remember to load you Eucalyptus environment before you run the instance (source eucarc) \n" + \
+                "More information is provided in https://portal.futuregrid.org/tutorials/oss " + \
+                " and in https://portal.futuregrid.org/tutorials/eucalyptus\n"
             return imageId
         else:
             print "Your OpenStack image is located in " + str(imagebackpath) + " \n" + \
