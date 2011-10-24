@@ -259,7 +259,19 @@ class IMDeploy(object):
                 " --url " + ec2_url + " " + self.user + '/' + filename + '.manifest.xml'        
             print cmd
             self._log.debug(cmd)
-            stat = os.system(cmd) #execute this with Popen to get the output
+            #stat = os.system(cmd) #execute this with Popen to get the output
+            p = Popen(cmd.split(' '), stdout=PIPE, stderr=PIPE)
+            std = p.communicate()
+            stat = 0
+            if len(std[0]) > 0:
+                self._log.debug('stdout: ' + std[0])
+                self._log.debug('stderr: ' + std[1])
+                print std[0]
+                imageId=std[0].split("IMAGE")[1].strip()
+            if p.returncode != 0:
+                self._log.error('Command: ' + cmd + ' failed, status: ' + str(p.returncode) + ' --- ' + std[1])
+                stat = 1
+            
             
             cmd = "rm -f " + imagebackpath
             if stat == 0:
@@ -271,6 +283,7 @@ class IMDeploy(object):
                   "To launch a VM you can use euca-run-instances -k keyfile -n <#instances> id  \n" + \
                   "Remember to load you Eucalyptus environment before you run the instance (source eucarc) \n " + \
                   "More information is provided in https://portal.futuregrid.org/tutorials/eucalyptus \n"
+            return imageId
         else:
             
             print "Your Eucalyptus image is located in " + str(imagebackpath) + " \n" + \
@@ -353,12 +366,12 @@ class IMDeploy(object):
             std = p.communicate()
             stat = 0
             if len(std[0]) > 0:
-                cmdLog.debug('stdout: ' + std[0])
-                cmdLog.debug('stderr: ' + std[1])
+                self._log.debug('stdout: ' + std[0])
+                self._log.debug('stderr: ' + std[1])
                 print std[0]
                 imageId=std[0].split("IMAGE")[1].strip()
             if p.returncode != 0:
-                cmdLog.error('Command: ' + cmd + ' failed, status: ' + str(p.returncode) + ' --- ' + std[1])
+                self._log.error('Command: ' + cmd + ' failed, status: ' + str(p.returncode) + ' --- ' + std[1])
                 stat = 1
                         
             cmd = "rm -f " + imagebackpath            
