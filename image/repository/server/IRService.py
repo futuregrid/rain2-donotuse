@@ -7,7 +7,7 @@ maintain the proposed deployed code structure. In the later phase this will
 be replaced by a WS implementation
 """
 __author__ = 'Fugang Wang, Javier Diaz'
-__version__ = '0.1'
+__version__ = '0.9'
 
 import cherrypy
 from cherrypy.lib import cptools

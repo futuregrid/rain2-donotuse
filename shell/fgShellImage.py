@@ -4,6 +4,9 @@ FutureGrid Command Line Interface
 
 Image Management
 """
+__author__ = 'Javier Diaz'
+__version__ = '0.9'
+
 import os
 #import cmd
 import readline

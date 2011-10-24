@@ -4,6 +4,8 @@ FutureGrid Command Line Interface
 
 FG-Hadoop
 """
+__author__ = 'Thilina Gunarathne'
+__version__ = '0.9'
 import os
 #import cmd
 import readline

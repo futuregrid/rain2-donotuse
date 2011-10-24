@@ -23,7 +23,7 @@ REMEBER: imgId will be _id (String) in the data collection, which is also _id (O
 """
 
 __author__ = 'Javier Diaz'
-__version__ = '0.1'
+__version__ = '0.9'
 
 from IRDataAccessMongo import ImgStoreMongo
 from IRDataAccessMongo import ImgMetaStoreMongo

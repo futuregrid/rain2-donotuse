@@ -1,4 +1,12 @@
 #!/usr/bin/env python
+"""
+FutureGrid Command Line Interface
+
+Read configuration from file
+"""
+__author__ = 'Javier Diaz'
+__version__ = '0.9'
+
 import os
 import ConfigParser
 import string

@@ -4,6 +4,7 @@ FutureGrid Command Line Interface
 
 Rain
 """
+
 import os
 #import cmd
 import readline

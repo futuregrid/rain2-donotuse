@@ -4,7 +4,7 @@ xCAT image deployment server that DO REGISTER AN IMAGE IN MOAB.
 """
 
 __author__ = 'Javier Diaz, Andrew Younge'
-__version__ = '0.1'
+__version__ = '0.9'
 
 
 import socket, ssl

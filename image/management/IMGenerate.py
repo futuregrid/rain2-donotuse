@@ -3,7 +3,7 @@
 Command line front end for image generator
 """
 __author__ = 'Javier Diaz, Andrew Younge'
-__version__ = '0.1'
+__version__ = '0.9'
 
 import argparse
 from types import *

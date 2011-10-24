@@ -4,6 +4,8 @@ FutureGrid Command Line Interface
 
 Some code has been taken from Cyberade CoG kit shell (http://cogkit.svn.sourceforge.net/viewvc/cogkit/trunk)
 """
+__author__ = 'Javier Diaz'
+__version__ = '0.9'
 
 import os
 #import cmd

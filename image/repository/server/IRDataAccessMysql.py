@@ -12,7 +12,7 @@ MySQL Databases Info:
 
 """
 __author__ = 'Javier Diaz'
-__version__ = '0.1'
+__version__ = '0.9'
 
 
 from IRDataAccess import AbstractImgStore

@@ -3,7 +3,7 @@
 Server that manage the image generation by provisioning VM and interacting with IMGenerateScript
 """
 __author__ = 'Javier Diaz'
-__version__ = '0.1'
+__version__ = '0.9'
 
 from types import *
 import re

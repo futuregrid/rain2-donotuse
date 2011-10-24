@@ -3,7 +3,7 @@
 It generates the images for different OS
 """
 __author__ = 'Javier Diaz, Andrew Younge'
-__version__ = '0.1'
+__version__ = '0.9'
 
 from optparse import OptionParser
 from types import *

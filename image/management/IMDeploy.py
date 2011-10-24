@@ -4,7 +4,7 @@ Command line front end for image deployment
 """
 
 __author__ = 'Javier Diaz, Andrew Younge'
-__version__ = '0.1'
+__version__ = '0.9'
 
 import argparse
 import sys
@@ -166,8 +166,9 @@ class IMDeploy(object):
                         if imagebackpath != None:        
                             #print "self." + iaas_type + "_method(\""+ str(imagebackpath) + "\",\"" + str(kernel) + "\",\"" +\
                             #      str(operatingsystem) + "\",\"" + str(iaas_address) + "\")"   
-                            eval("self." + iaas_type + "_method(\"" + str(imagebackpath) + "\",\"" + str(kernel) + "\",\"" + 
+                            output = eval("self." + iaas_type + "_method(\"" + str(imagebackpath) + "\",\"" + str(kernel) + "\",\"" + 
                                   str(operatingsystem) + "\",\"" + str(iaas_address) + "\",\"" + str(varfile) + "\",\"" + str(getimg) + "\")")
+                            return output
                         else:
                             self._log.error("CANNOT retrieve the image from server. EXIT.")
                             if self._verbose:
@@ -258,7 +259,7 @@ class IMDeploy(object):
                 " --url " + ec2_url + " " + self.user + '/' + filename + '.manifest.xml'        
             print cmd
             self._log.debug(cmd)
-            stat = os.system(cmd)
+            stat = os.system(cmd) #execute this with Popen to get the output
             
             cmd = "rm -f " + imagebackpath
             if stat == 0:
@@ -346,8 +347,20 @@ class IMDeploy(object):
                 " --url " + ec2_url + " " + self.user + '/' + filename + '.manifest.xml'        
             print cmd
             self._log.debug(cmd)
-            stat = os.system(cmd)
-            
+            imageId = ""
+            #stat = os.system(cmd) #execute this with Popen to get the output
+            p = Popen(cmd.split(' '), stdout=PIPE, stderr=PIPE)
+            std = p.communicate()
+            stat = 0
+            if len(std[0]) > 0:
+                cmdLog.debug('stdout: ' + std[0])
+                cmdLog.debug('stderr: ' + std[1])
+                print std[0]
+                imageId=std[0].split("IMAGE")[1].strip()
+            if p.returncode != 0:
+                cmdLog.error('Command: ' + cmd + ' failed, status: ' + str(p.returncode) + ' --- ' + std[1])
+                stat = 1
+                        
             cmd = "rm -f " + imagebackpath            
             if stat == 0:
                 print cmd
@@ -359,6 +372,7 @@ class IMDeploy(object):
                   "Remember to load you OpenStack environment before you run the instance (source novarc) \n " + \
                   "More information is provided in https://portal.futuregrid.org/tutorials/oss " + \
                   " and in https://portal.futuregrid.org/tutorials/eucalyptus\n"
+            return imageId
         else:
             print "Your OpenStack image is located in " + str(imagebackpath) + " \n" + \
             "The kernel and ramdisk to use are " + eki + " and " + eri + " respectively \n" + \

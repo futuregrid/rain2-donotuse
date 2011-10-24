@@ -4,7 +4,7 @@ Description: IaaS image deployment server.  Customizes images and return them to
 corresponding IaaS framework
 """
 __author__ = 'Javier Diaz, Andrew Younge'
-__version__ = '0.1'
+__version__ = '0.9'
 
 from types import *
 import re

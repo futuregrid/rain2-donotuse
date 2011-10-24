@@ -6,7 +6,7 @@ This module defines the common types for the FGIR. These include defining user, 
 """
 
 __author__ = 'Fugang Wang'
-__version__ = '0.1'
+__version__ = '0.9'
 
 from datetime import datetime
 

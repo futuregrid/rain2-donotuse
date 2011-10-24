@@ -32,7 +32,7 @@ REMEBER: imgId will be _id (String) in the data collection, which is also _id (O
 #With authentication, it has to reauthenticate if this exception is raised
 
 __author__ = 'Javier Diaz'
-__version__ = '0.1'
+__version__ = '0.9'
 
 from IRDataAccess import AbstractImgStore
 from IRDataAccess import AbstractImgMetaStore

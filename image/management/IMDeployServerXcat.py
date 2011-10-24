@@ -4,7 +4,7 @@ Description: xCAT image deployment server WITHOUT the MOAB PART.  Customizes and
 # xCAT bare metal
 """
 __author__ = 'Javier Diaz, Andrew Younge'
-__version__ = '0.1'
+__version__ = '0.9'
 
 import socket, ssl
 import sys
