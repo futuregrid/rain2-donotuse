@@ -135,8 +135,8 @@ class RainClient(object):
         
         if self.verbose:
             print completion
-            print "The output of the job is in the file: " + stdout
-            print "The error output of the job is in the file: " + stderr                
+            print "The Standard output is in the file: " + stdout
+            print "The Error output is in the file: " + stderr                
         
         #read exit file and print it
             
