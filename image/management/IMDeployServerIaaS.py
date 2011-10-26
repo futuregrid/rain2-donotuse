@@ -164,6 +164,7 @@ class IMDeployServerIaaS(object):
         #params[4] is the user
         #params[5] is the user password
         #params[6] is the type of password
+        #params[7] is the ldap configure or not
         
         imgID = params[0].strip()
         imgSource = params[1].strip()
@@ -172,6 +173,12 @@ class IMDeployServerIaaS(object):
         self.user = params[4].strip()
         passwd = params[5].strip()
         passwdtype = params[6].strip()
+        ldap = False
+        try:
+            ldap = eval(params[7].strip())
+        except:
+            self.logger.warning("Ldap configure set to False in except")
+            ldap = False
         
                        
         if len(params) != self.numparams:
@@ -254,13 +261,13 @@ class IMDeployServerIaaS(object):
         #self.preprocess()
         
         if (self.iaas == "euca"):
-            self.euca_method(localtempdir)
+            self.euca_method(localtempdir, ldap)
         elif (self.iaas == "nimbus"):
             pass
         elif (self.iaas == "opennebula"):
-            self.opennebula_method(localtempdir)
+            self.opennebula_method(localtempdir, ldap)
         elif (self.iaas == "openstack"):
-            self.openstack_method(localtempdir)  
+            self.openstack_method(localtempdir, ldap)  
         
         #umount the image
         max_retry = 5
@@ -296,7 +303,71 @@ class IMDeployServerIaaS(object):
             self.logger.error("ERROR: " + str(sys.exc_info()))
         self.logger.info("Image Deploy Request DONE")
 
-    def euca_method(self, localtempdir): 
+    def configure_ldap(self, localtempdir):
+        
+        if self.operatingsystem == "centos":
+            self.logger.info('Installing LDAP packages')
+            if (self.version == "5"):
+                self.runCmd('chroot ' + localtempdir + '/temp/ yum -y install openldap-clients nss_ldap')
+                self.runCmd('wget ' + self.http_server + '/ldap/nsswitch.conf -O ' + localtempdir + '/temp/etc/nsswitch.conf')
+            elif (self.version == "6"):
+                self.runCmd('chroot ' + localtempdir + '/temp/ yum -y install openldap-clients nss-pam-ldapd sssd')                       
+                self.runCmd('wget ' + self.http_server + '/ldap/nsswitch.conf_centos6 -O ' + localtempdir + '/temp/etc/nsswitch.conf')
+                self.runCmd('wget ' + self.http_server + '/ldap/sssd.conf_centos6 -O ' + localtempdir + '/temp/etc/sssd/sssd.conf')
+                self.runCmd('chmod 600 ' + localtempdir + '/temp/etc/sssd/sssd.conf')
+                self.runCmd('chroot ' + localtempdir + '/temp/ chkconfig sssd on')
+                
+            self.logger.info('Configuring LDAP access')
+            
+            self.runCmd('mkdir -p ' + localtempdir + '/temp/etc/openldap/cacerts ' + localtempdir + '/temp/N/u')
+            self.runCmd('wget ' + self.http_server + '/ldap/cacerts/12d3b66a.0 -O ' + localtempdir + '/temp/etc/openldap/cacerts/12d3b66a.0')
+            self.runCmd('wget ' + self.http_server + '/ldap/cacerts/cacert.pem -O ' + localtempdir + '/temp/etc/openldap/cacerts/cacert.pem')
+            self.runCmd('wget ' + self.http_server + '/ldap/ldap.conf -O ' + localtempdir + '/temp/etc/ldap.conf')
+            self.runCmd('wget ' + self.http_server + '/ldap/openldap/ldap.conf -O ' + localtempdir + '/temp/etc/openldap/ldap.conf')
+            os.system('sudo sed -i \'s/enforcing/disabled/g\' ' + localtempdir + '/temp/etc/selinux/config')
+            os.system('sudo sed -i \'s/PermitRootLogin yes/PermitRootLogin no/g\' ' + localtempdir + '/temp/etc/ssh/sshd_config')
+            os.system('echo \"PermitRootLogin no\" | sudo tee -a ' + localtempdir + '/temp/etc/ssh/sshd_config > /dev/null')
+            
+            self.runCmd('wget ' + self.http_server + '/ldap/sshd_centos' + self.version + ' -O ' + localtempdir + '/temp/usr/sbin/sshd')
+            os.system('echo "UseLPK yes" | sudo tee -a ' + localtempdir + '/temp/etc/ssh/sshd_config > /dev/null')
+            os.system('echo "LpkLdapConf /etc/ldap.conf" | sudo tee -a ' + localtempdir + '/temp/etc/ssh/sshd_config > /dev/null')
+            
+        else:
+            #services will install, but not start
+            f = open(localtempdir + '/_policy-rc.d', 'w')
+            f.write("#!/bin/sh" + '\n' + "exit 101" + '\n')
+            f.close()        
+            self.runCmd('sudo mv -f ' + localtempdir + '/_policy-rc.d ' + localtempdir + '/temp/usr/sbin/policy-rc.d')        
+            self.runCmd('sudo chmod +x ' + localtempdir + '/temp/usr/sbin/policy-rc.d')            
+            #try this other way
+            #chroot maverick-vm /bin/bash -c 'DEBIAN_FRONTEND=noninteractive apt-get -y --force-yes install linux-image-server'
+            #env DEBIAN_FRONTEND="noninteractive" chroot /tmp/javi3789716749 /bin/bash -c 'apt-get --force-yes -y install ldap-utils libpam-ldap libpam-ldap libnss-ldap nss-updatedb libnss-db'
+            self.logger.info('Configuring LDAP access')
+            self.runCmd('wget ' + self.http_server + '/ldap/nsswitch.conf -O ' + localtempdir + '/temp/etc/nsswitch.conf')
+            self.runCmd('mkdir -p ' + localtempdir + '/temp/etc/ldap/cacerts ' + localtempdir + '/temp/N/u')
+            self.runCmd('wget ' + self.http_server + '/ldap/cacerts/12d3b66a.0 -O ' + localtempdir + '/temp/etc/ldap/cacerts/12d3b66a.0')
+            self.runCmd('wget ' + self.http_server + '/ldap/cacerts/cacert.pem -O ' + localtempdir + '/temp/etc/ldap/cacerts/cacert.pem')
+            self.runCmd('wget ' + self.http_server + '/ldap/ldap.conf -O ' + localtempdir + '/temp/etc/ldap.conf')
+            self.runCmd('wget ' + self.http_server + '/ldap/openldap/ldap.conf -O ' + localtempdir + '/temp/etc/ldap/ldap.conf')
+            os.system('sudo sed -i \'s/openldap/ldap/g\' ' + localtempdir + '/temp/etc/ldap/ldap.conf')
+            os.system('sudo sed -i \'s/openldap/ldap/g\' ' + localtempdir + '/temp/etc/ldap.conf')
+            os.system('sudo sed -i \'s/PermitRootLogin yes/PermitRootLogin no/g\' ' + localtempdir + '/temp/etc/ssh/sshd_config')
+            os.system('echo \"PermitRootLogin no\" | sudo tee -a ' + localtempdir + '/temp/etc/ssh/sshd_config > /dev/null')
+    
+            self.logger.info('Installing LDAP packages')
+            ldapexec = "/tmp/ldap.install"
+            os.system('echo "!#/bin/bash \nexport DEBIAN_FRONTEND=noninteractive \napt-get ' + \
+                      '-y install ldap-utils libnss-ldapd nss-updatedb libnss-db" >' + localtempdir + '/temp/' + ldapexec)
+            os.system('chmod +x ' + localtempdir + '/temp/' + ldapexec)
+            self.runCmd('chroot ' + localtempdir + '/temp/ ' + ldapexec)    
+            #I think this is not needed
+            #self.runCmd('wget '+ self.http_server +'/ldap/sshd_ubuntu -O ' + localtempdir + '/temp/usr/sbin/sshd')
+            #os.system('echo "UseLPK yes" | sudo tee -a ' + localtempdir + '/temp/etc/ssh/sshd_config > /dev/null')
+            #os.system('echo "LpkLdapConf /etc/ldap.conf" | sudo tee -a ' + localtempdir + '/temp/etc/ssh/sshd_config > /dev/null')
+    
+            self.runCmd('rm -f ' + localtempdir + '/temp/usr/sbin/policy-rc.d')
+
+    def euca_method(self, localtempdir, ldap): 
 
         #Select kernel version
         #This is not yet supported as we get always the same kernel
@@ -318,7 +389,8 @@ class IMDeployServerIaaS(object):
  proc            /proc         proc     defaults                   0 0
  devpts          /dev/pts      devpts   gid=5,mode=620             0 0
  '''
-
+        if ldap: #this is for india
+            fstab+="149.165.146.145:/users /N/u      nfs     rw,rsize=1048576,wsize=1048576,intr,nosuid"
         f = open(localtempdir + '/fstab', 'w')
         f.write(fstab)
         f.close()
@@ -328,7 +400,7 @@ class IMDeployServerIaaS(object):
 
         
 
-    def openstack_method(self, localtempdir): #TODO
+    def openstack_method(self, localtempdir, ldap): 
 
         #Select kernel version
         #This is not yet supported as we get always the same kernel
@@ -350,7 +422,9 @@ class IMDeployServerIaaS(object):
  proc            /proc         proc     defaults                   0 0
  devpts          /dev/pts      devpts   gid=5,mode=620             0 0
  '''
-
+        if ldap: #this is for india
+            fstab+="149.165.146.145:/users /N/u      nfs     rw,rsize=1048576,wsize=1048576,intr,nosuid"
+            
         f = open(localtempdir + '/fstab', 'w')
         f.write(fstab)
         f.close()
@@ -413,9 +487,7 @@ echo "************************"
             self.runCmd('sudo chroot ' + localtempdir + '/temp/ yum -y install curl')
 
 
-
-
-    def opennebula_method(self, localtempdir): 
+    def opennebula_method(self, localtempdir, ldap): 
 
         #Select kernel version
         #This is not yet supported as we get always the same kernel
@@ -489,6 +561,8 @@ echo "************************"
         fstab += "/dev/" + device + "       /             ext3     defaults,errors=remount-ro 0 0 \n"    
         fstab += "proc            /proc         proc     defaults                   0 0 \n"
         fstab += "devpts          /dev/pts      devpts   gid=5,mode=620             0 0 \n"
+        if ldap: #this is for india
+            fstab+="149.165.146.145:/users /N/u      nfs     rw,rsize=1048576,wsize=1048576,intr,nosuid"
  
         f = open(localtempdir + '/fstab', 'w')
         f.write(fstab)

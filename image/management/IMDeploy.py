@@ -100,7 +100,7 @@ class IMDeploy(object):
         return passed
 
     #This need to be redo
-    def iaas_generic(self, iaas_address, image, image_source, iaas_type, varfile, getimg):
+    def iaas_generic(self, iaas_address, image, image_source, iaas_type, varfile, getimg, ldap):
         checkauthstat = []     
         
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -113,12 +113,15 @@ class IMDeploy(object):
                                         ssl_version=ssl.PROTOCOL_TLSv1)
             iaasServer.connect((self.iaasmachine, self._iaas_port))
             
-            msg = str(image) + ',' + str(image_source) + ',' + str(iaas_type) + ',' + str(self.kernel) + ',' + str(self.user) + ',' + str(self.passwd) + ",ldappassmd5" 
+            msg = str(image) + ',' + str(image_source) + ',' + str(iaas_type) + ',' + str(self.kernel) + ',' + str(self.user) + ',' + str(self.passwd) + ",ldappassmd5" + ',' + str(ldap) 
             #self._log.debug('Sending message: ' + msg)
             
             iaasServer.write(msg)
             
             if self.check_auth(iaasServer, checkauthstat):
+                
+                if self._verbose:
+                    print "Customizing image for the selected cloud framework: " + iaas_type
                 
                 if image_source == "disk":
                     ret = iaasServer.read(2048)
@@ -622,7 +625,11 @@ class IMDeploy(object):
                     endloop = True
                     fail = True
             """
-            if self.check_auth(xcatServer, checkauthstat):            
+            if self.check_auth(xcatServer, checkauthstat):
+                
+                if self._verbose:
+                    print "Customizing and deploying image on xCAT"
+                      
                 #print msg
                 ret = xcatServer.read(1024)
                 #check if the server received all parameters
@@ -630,7 +637,7 @@ class IMDeploy(object):
                     self._log.error('Incorrect reply from the xCat server: ' + str(ret))
                     if self._verbose:
                         print 'Incorrect reply from the xCat server: ' + str(ret)
-                    sys.exit(1)
+                    return
                 #recieve the prefix parameter from xcat server
                 moabstring = xcatServer.read(2048)
                 self._log.debug("String received from xcat server " + moabstring)
@@ -668,11 +675,12 @@ class IMDeploy(object):
                 self._log.error('Incorrect reply from the Moab server:' + str(ret))
                 if self._verbose:
                     print 'Incorrect reply from the Moab server:' + str(ret)
-                sys.exit(1)
+                return
             if self._verbose:
                 print 'Your image has been deployed in xCAT as ' + imagename + '. Please allow a few minutes for xCAT to register the image before attempting to use it.'
                 print 'To boot an machine using your image: qsub -l os=<imagename>'
                 print 'To check the status of the job you can use checkjob and showq commands'
+            return imagename
         except ssl.SSLError:
             self._log.error("CANNOT establish SSL connection. EXIT")
             if self._verbose:
@@ -801,6 +809,7 @@ def main():
         else:
             imgdeploy.xcat_method(args.xcat, args.imgid)
     else:
+        ldap = False # If this is true, we configure ldap for access to images and forbid the root login.
         varfile = ""
         if args.varfile != None:
             varfile = os.path.expanduser(args.varfile)
@@ -812,12 +821,13 @@ def main():
                 elif not os.path.isfile(str(os.path.expanduser(varfile))):
                     print "ERROR: Variable files not found. You need to specify the path of the file with the Eucalyptus environment variables"
                 else:    
-                    imgdeploy.iaas_generic(args.euca, image, image_source, "euca", varfile, args.getimg)        
+                    
+                    imgdeploy.iaas_generic(args.euca, image, image_source, "euca", varfile, args.getimg, ldap)        
             else:    
-                imgdeploy.iaas_generic(args.euca, image, image_source, "euca", varfile, args.getimg)
+                imgdeploy.iaas_generic(args.euca, image, image_source, "euca", varfile, args.getimg, ldap)
         #OpenNebula
         elif ('-o' in used_args or '--opennebula' in used_args):
-            imgdeploy.iaas_generic(args.opennebula, image, image_source, "opennebula", varfile, args.getimg)
+            imgdeploy.iaas_generic(args.opennebula, image, image_source, "opennebula", varfile, args.getimg, ldap)
         #NIMBUS
         elif ('-n' in used_args or '--nimbus' in used_args):
             #TODO        
@@ -829,9 +839,9 @@ def main():
                 elif not os.path.isfile(str(os.path.expanduser(varfile))):
                     print "ERROR: Variable files not found. You need to specify the path of the file with the OpenStack environment variables"
                 else:    
-                    imgdeploy.iaas_generic(args.openstack, image, image_source, "openstack", varfile, args.getimg)
+                    imgdeploy.iaas_generic(args.openstack, image, image_source, "openstack", varfile, args.getimg, ldap)
             else:    
-                imgdeploy.iaas_generic(args.openstack, image, image_source, "openstack", varfile, args.getimg)
+                imgdeploy.iaas_generic(args.openstack, image, image_source, "openstack", varfile, args.getimg, ldap)
         else:
             print "ERROR: You need to specify a deployment target"
     
