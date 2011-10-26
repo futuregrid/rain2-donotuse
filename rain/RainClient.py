@@ -272,6 +272,8 @@ def main():
                 output = rain.nimbus(output, args.jobscript, args.machines)
             elif ('-s' in used_args or '--openstack' in used_args):
                 output = rain.openstack(output, args.jobscript, args.machines)
+            else:
+                print "ERROR: You need to specify a Rain target (xcat, eucalyptus or openstack)"
         
         
     else:
