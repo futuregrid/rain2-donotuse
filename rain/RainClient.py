@@ -78,12 +78,13 @@ class RainClient(object):
         
         self._log.debug(cmd)
         
-        p_qsub = Popen(cmd.split(' '), stdout=PIPE, stderr=PIPE)
+        p_qsub = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
         std_qsub = p_qsub.communicate()
         if p_qsub.returncode != 0:
             self._log.debug(std_qsub[1])
             if self.verbose:
                 print std_qsub[1]
+            return "ERROR in qsub: " + std_qsub[1]
         else:
             jobid = std[0]
         
@@ -99,7 +100,7 @@ class RainClient(object):
         state = ""
         lines = []
         while alive:            
-            p = Popen(cmd.split(' '), stdout=PIPE, stderr=PIPE)
+            p = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
             std = p.communicate()
             lines = std[0].split('\n')
             if p.returncode != 0:
@@ -263,6 +264,7 @@ def main():
         target = ""
         if args.xcat != None:            
             output = rain.baremetal(output, args.jobscript, args.machines)
+            print output
         else:
             if ('-e' in used_args or '--euca' in used_args):
                 output = rain.euca(output, args.jobscript, args.machines)
