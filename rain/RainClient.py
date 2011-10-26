@@ -23,11 +23,11 @@ import time
 from RainClientConf import RainClientConf
 sys.path.append(os.getcwd())
 try:
-    from futuregrid.image.management import IMDeploy 
+    from futuregrid.image.management.IMDeploy import IMDeploy 
     from futuregrid.utils import fgLog
 except:
     sys.path.append(os.path.dirname(__file__) + "/../") #Directory where fg.py is
-    from image.management import IMDeploy
+    from image.management.IMDeploy import IMDeploy
     from utils import fgLog
 
 class RainClient(object):
