@@ -88,7 +88,7 @@ class RainClient(object):
                 print std_qsub[1]
             return "ERROR in qsub: " + std_qsub[1]
         else:
-            jobid = std_qsub[0]#.strip().split(".")[0]
+            jobid = std_qsub[0].strip().split(".")[0]
             if self.verbose:
                 print "Job id is: " + jobid
                 
@@ -96,7 +96,8 @@ class RainClient(object):
             stdout = "jobscript.o" + jobid
         if stderrfound == False:
             stderr = "jobscript.e" + jobid
-                    
+        
+        time.sleep(2)          
         #execute checkjob checking Status until complete or fail
         cmd = "checkjob " + jobid
         alive = True
