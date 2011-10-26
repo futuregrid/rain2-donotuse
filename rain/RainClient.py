@@ -257,7 +257,7 @@ def main():
         output = args.deployedimageid
         
     if output != None:
-        rain = RainClient()
+        rain = RainClient(verbose, args.debug)
         target = ""
         if args.xcat != None:            
             output = rain.baremetal(output, args.jobscript, args.machines)
