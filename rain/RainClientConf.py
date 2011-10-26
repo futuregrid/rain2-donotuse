@@ -21,7 +21,7 @@ class RainClientConf(object):
     ############################################################
 
     def __init__(self):
-        super(IRClientConf, self).__init__()
+        super(RainClientConf, self).__init__()
 
         ###################################
         #These should be sent from the Shell. We leave it for now to have an independent IR.   
