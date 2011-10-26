@@ -16,6 +16,8 @@ import os
 import sys
 import socket, ssl
 from subprocess import *
+from getpass import getpass
+import hashlib
 
 from RainClientConf import RainClientConf
 sys.path.append(os.getcwd())
