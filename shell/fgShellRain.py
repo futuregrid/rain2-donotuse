@@ -16,7 +16,9 @@ from cmd2 import Cmd
 from cmd2 import options
 from cmd2 import make_option
 import textwrap
-
+import argparse
+import re
+import time
 
 class fgShellRain(Cmd):
 
@@ -92,6 +94,7 @@ class fgShellRain(Cmd):
                     sys.exit(1)
                 else:
                     output = self.imgdeploy.xcat_method(args.xcat, args.imgid)
+                    time.sleep(3)
             else:
                 ldap = True #we configure ldap to run commands and be able to login from on vm to other
                 varfile = ""

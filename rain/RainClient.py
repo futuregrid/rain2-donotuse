@@ -52,7 +52,16 @@ class RainClient(object):
     def baremetal(self, imageidonsystem, jobscript, machines):
         
         #verify that the image requested is in Moab
-        
+        imagefoundinfile = False
+        if not imagefoundinfile:
+            f = open(self.moab_images_file,'r')
+            for i in f:
+                if re.search(imageidonsystem, i):
+                    imagefoundinfile = True
+                    break
+            f.close()
+            if not imagefoundinfile:
+                return "ERROR: The image is not deployed on xCAT/Moab"
         
         
         #read the output file and the error one to print it out to the user.
@@ -90,48 +99,25 @@ class RainClient(object):
         tryagain = True
         retry = 0
         maxretry = self.moab_max_wait / 5
-        imagefoundinfile = False
+        
         while tryagain:
             p_qsub = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
             std_qsub = p_qsub.communicate()
             if p_qsub.returncode != 0:
-                if re.search("cannot locate job", std_qsub[1]):
+                if not re.search("cannot set req attribute \'OperatingSystem\'", std_qsub[1]) and not re.search('no service listening', std_qsub[1]):                    
                     self._log.debug(std_qsub[1])
                     if self.verbose:
                         print std_qsub[1]
                     return "ERROR in qsub: " + std_qsub[1]
-                elif re.search("cannot set req attribute \'OperatingSystem\'", std_qsub[1]):
-                    #if the image is in images.txt we wait. if not we give an error.
-                    if not imagefoundinfile:
-                        f = open(self.moab_images_file,'r')
-                        for i in f:
-                            if re.search(imageidonsystem, i):
-                                imagefoundinfile = True
-                                break
-                        f.close()
-                        if not imagefoundinfile:
-                            tryagain = False
-                            self._log.debug(std_qsub[1])
-                            if self.verbose:
-                                print std_qsub[1]
-                            return "ERROR in qsub: " + std_qsub[1] + " \n The image is not deployed on xCAT/Moab"
-                    if retry >= maxretry:                        
-                        tryagain = False
-                        self._log.debug(std_qsub[1])
-                        if self.verbose:
-                            print std_qsub[1]
-                        return "ERROR in qsub: " + std_qsub[1] + " \n The image is not available on Moab (timeout). Try again later."
-                    else:
-                        retry +=1
-                        sleep(5)
-                elif re.search('no service listening', std_qsub[1]):
+                if retry >= maxretry:
+                    tryagain = False
+                    self._log.debug(std_qsub[1])
+                    if self.verbose:
+                        print std_qsub[1]
+                    return "ERROR in qsub: " + std_qsub[1] + " \n The image is not available on Moab (timeout). Try again later."
+                else:
                     retry +=1
                     sleep(5)
-                else:
-                    self._log.debug(std_qsub[1])
-                    if self.verbose:
-                        print std_qsub[1]
-                    return "ERROR in qsub: " + std_qsub[1]
             else:
                 tryagain = False
                 jobid = std_qsub[0].strip().split(".")[0]
@@ -279,6 +265,7 @@ def main():
                 sys.exit(1)
             else:
                 output = imgdeploy.xcat_method(args.xcat, args.imgid)
+                time.sleep(3)
         else:
             ldap = True #we configure ldap to run commands and be able to login from on vm to other
             varfile = ""
