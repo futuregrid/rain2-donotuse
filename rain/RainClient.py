@@ -161,7 +161,7 @@ def main():
     parser.add_argument('-d', '--debug', dest='debug', action="store_true", help='Print logs in the screen for debug')
     parser.add_argument('-k', '--kernel', dest="kernel", metavar='Kernel version', help="Specify the desired kernel" 
                         "(must be exact version and approved for use within FG). Not yet supported")
-    group = parser.add_mutually_exclusive_group    
+    group = parser.add_mutually_exclusive_group()
     group.add_argument('-i', '--deployedimageid', dest='deployedimageid', metavar='ImgId', help='Id of the image in the target infrastructure. This assumes that the image'
                        ' is deployed in the selected infrastructure.')
     group.add_argument('-r', '--imgid', dest='imgid', metavar='ImgId', help='Id of the image stored in the repository')
