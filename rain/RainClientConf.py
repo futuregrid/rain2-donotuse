@@ -106,7 +106,7 @@ class RainClientConf(object):
         self._logLevel = eval("logging." + tempLevel)
 
         try:
-            self._refresh = int(self._config.get(section, 'refresh', 0))
+            self._refresh = int(config.get(section, 'refresh', 0))
         except ConfigParser.NoOptionError:
             print "Error: No refresh option found in section " + section + " file " + self._configfile
             sys.exit(1)
