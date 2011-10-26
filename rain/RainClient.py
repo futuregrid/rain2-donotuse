@@ -18,6 +18,7 @@ import socket, ssl
 from subprocess import *
 from getpass import getpass
 import hashlib
+import time
 
 from RainClientConf import RainClientConf
 sys.path.append(os.getcwd())
@@ -44,6 +45,7 @@ class RainClient(object):
         
         self._rainConf = RainClientConf()
         self._log = fgLog.fgLog(self._rainConf.getLogFile(), self._rainConf.getLogLevel(), "RainClient", printLogStdout)
+        self.refresh = self._rainConf.getRefresh()
         
     def baremetal(self, imageidonsystem, jobscript, machines):
         #1.in the case of qsub wait until job is done. then we read the output file and the error one to print it out to the user.
@@ -71,7 +73,7 @@ class RainClient(object):
         #execute qsub
         cmd = "qsub "
         if machines > 1:
-            cmd +="-l nodes=" + str(machines)
+            cmd += "-l nodes=" + str(machines)
         if imageidonsystem != None:
             cmd += " -l os=" + imageidonsystem
         cmd += " " + jobscript
@@ -117,6 +119,8 @@ class RainClient(object):
                         break
                 if state == "Completed":
                     alive = False
+                else:
+                    time.sleep(self.refresh)
         completion = ""
         for i in lines:
             if re.search("^Completion Code:", i.strip()):                        

@@ -49,6 +49,7 @@ class RainClientConf(object):
         
         ####################################
 
+        self._refresh = 20
         self._logfile = "" #self._localpath__+"/fg.log"
         self._logLevel = "DEBUG"
         self._logType = ["DEBUG", "INFO", "WARNING", "ERROR"]
@@ -56,21 +57,16 @@ class RainClientConf(object):
         self.loadConfig()
 
 
-    ############################################################
-    # getConfigFile
-    ############################################################
+
     def getConfigFile(self):
         return self._configfile
 
-    ############################################################
-    # getLogFile
-    ############################################################
+    def getRefresh(self):
+        return self._refresh
+
     def getLogFile(self):
         return self._logfile
 
-    ############################################################
-    # getLogLevel
-    ############################################################
     def getLogLevel(self):
         return self._logLevel
 
@@ -109,4 +105,9 @@ class RainClientConf(object):
             tempLevel=self._logLevel
         self._logLevel = eval("logging." + tempLevel)
 
+        try:
+            self._refresh = int(self._config.get(section, 'refresh', 0))
+        except ConfigParser.NoOptionError:
+            print "Error: No refresh option found in section " + section + " file " + self._configfile
+            sys.exit(1)
        
