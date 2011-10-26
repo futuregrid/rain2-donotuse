@@ -43,7 +43,7 @@ class RainClient(object):
         self.printLogStdout = printLogStdout
         
         self._rainConf = RainClientConf()
-        self._log = fgLog.fgLog(self._rainConf.getLogFileGen(), self._rainConf.getLogLevelGen(), "RainClient", printLogStdout)
+        self._log = fgLog.fgLog(self._rainConf.getLogFile(), self._rainConf.getLogLevel(), "RainClient", printLogStdout)
         
     def baremetal(self, imageidonsystem, jobscript, machines):
         #1.in the case of qsub wait until job is done. then we read the output file and the error one to print it out to the user.
