@@ -14,7 +14,7 @@ import logging
 
 configFileName = "fg-client.conf"
 
-class IRClientConf(object):
+class RainClientConf(object):
 
     ############################################################
     # init
