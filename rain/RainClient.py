@@ -104,6 +104,8 @@ class RainClient(object):
         status = 0
         state = ""
         lines = []
+        if self.verbose:
+            print "Wait until the job finishes"
         while alive:            
             p = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
             std = p.communicate()
@@ -118,7 +120,8 @@ class RainClient(object):
                 for i in lines:
                     if re.search("^State:", i.strip()):                        
                         state = i.strip().split(":")[1].strip()
-                        print state
+                        if self.verbose:
+                            print "State: " + state
                         break
                 if state == "Completed":
                     alive = False
