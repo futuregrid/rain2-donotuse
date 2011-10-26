@@ -46,9 +46,16 @@ class RainClient(object):
         self._rainConf = RainClientConf()
         self._log = fgLog.fgLog(self._rainConf.getLogFile(), self._rainConf.getLogLevel(), "RainClient", printLogStdout)
         self.refresh = self._rainConf.getRefresh()
+        self.moab_max_wait = self._rainConf.getMoabMaxWait()
+        self.moab_images_file = self._rainConf.getMoabImagesFile()
         
     def baremetal(self, imageidonsystem, jobscript, machines):
-        #1.in the case of qsub wait until job is done. then we read the output file and the error one to print it out to the user.
+        
+        #verify that the image requested is in Moab
+        
+        
+        
+        #read the output file and the error one to print it out to the user.
         std = []
         f = open(jobscript, 'r')
         #PBS -e stderr.txt
@@ -80,18 +87,58 @@ class RainClient(object):
         
         self._log.debug(cmd)
         
-        p_qsub = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
-        std_qsub = p_qsub.communicate()
-        if p_qsub.returncode != 0:
-            self._log.debug(std_qsub[1])
-            if self.verbose:
-                print std_qsub[1]
-            return "ERROR in qsub: " + std_qsub[1]
-        else:
-            jobid = std_qsub[0].strip().split(".")[0]
-            if self.verbose:
-                print "Job id is: " + jobid
-                
+        tryagain = True
+        retry = 0
+        maxretry = self.moab_max_wait / 5
+        imagefoundinfile = False
+        while tryagain:
+            p_qsub = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
+            std_qsub = p_qsub.communicate()
+            if p_qsub.returncode != 0:
+                if re.search("cannot locate job", std_qsub[1]):
+                    self._log.debug(std_qsub[1])
+                    if self.verbose:
+                        print std_qsub[1]
+                    return "ERROR in qsub: " + std_qsub[1]
+                elif re.search("cannot set req attribute \'OperatingSystem\'", std_qsub[1]):
+                    #if the image is in images.txt we wait. if not we give an error.
+                    if not imagefoundinfile:
+                        f = open(self.moab_images_file,'r')
+                        for i in f:
+                            if re.search(imageidonsystem, i):
+                                imagefoundinfile = True
+                                break
+                        f.close()
+                        if not imagefoundinfile:
+                            tryagain = False
+                            self._log.debug(std_qsub[1])
+                            if self.verbose:
+                                print std_qsub[1]
+                            return "ERROR in qsub: " + std_qsub[1] + " \n The image is not deployed on xCAT/Moab"
+                    if retry >= maxretry:                        
+                        tryagain = False
+                        self._log.debug(std_qsub[1])
+                        if self.verbose:
+                            print std_qsub[1]
+                        return "ERROR in qsub: " + std_qsub[1] + " \n The image is not available on Moab (timeout). Try again later."
+                    else:
+                        retry +=1
+                        sleep(5)
+                elif re.search('no service listening', std_qsub[1]):
+                    retry +=1
+                    sleep(5)
+                else:
+                    self._log.debug(std_qsub[1])
+                    if self.verbose:
+                        print std_qsub[1]
+                    return "ERROR in qsub: " + std_qsub[1]
+            else:
+                jobid = std_qsub[0].strip().split(".")[0]
+                if self.verbose:
+                    print "Job id is: " + jobid
+        if retry >= maxretry:
+            return "ERROR in qsub. " + std_qsub[1]
+        
         if stdoutfound == False:
             stdout = "jobscript.o" + jobid
         if stderrfound == False:
@@ -266,6 +313,7 @@ def main():
                     output = imgdeploy.iaas_generic(args.openstack, image, image_source, "openstack", varfile, args.getimg, ldap)
             else:
                 print "ERROR: You need to specify a deployment target"
+            
     else:
         output = args.deployedimageid
         
@@ -274,7 +322,8 @@ def main():
         target = ""
         if args.xcat != None:            
             output = rain.baremetal(output, args.jobscript, args.machines)
-            print output
+            if output != None:
+                print output
         else:
             if ('-e' in used_args or '--euca' in used_args):
                 output = rain.euca(output, args.jobscript, args.machines)

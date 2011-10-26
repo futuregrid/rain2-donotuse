@@ -49,7 +49,9 @@ class RainClientConf(object):
         
         ####################################
 
-        self._refresh = 20
+        self._refresh = 0
+        self._moab_max_wait = 0
+        self._moab_images_file = ""
         self._logfile = "" #self._localpath__+"/fg.log"
         self._logLevel = "DEBUG"
         self._logType = ["DEBUG", "INFO", "WARNING", "ERROR"]
@@ -61,6 +63,12 @@ class RainClientConf(object):
     def getConfigFile(self):
         return self._configfile
 
+    def getMoabMaxWait(self):
+        return self._moab_max_wait
+    
+    def getMoabImagesFile(self):
+        return self._moab_images_file
+    
     def getRefresh(self):
         return self._refresh
 
@@ -82,15 +90,31 @@ class RainClientConf(object):
         else:
             print "Error: Config file not found" + self._configfile
             sys.exit(1)
-                
+        
+        try:
+            self._moab_max_wait = int(config.get(section, 'moab_max_wait', 0))
+        except ConfigParser.NoOptionError:
+            print "Error: No moab_max_wait option found in section " + section + " file " + self._configfile
+            sys.exit(1)
+        except ConfigParser.NoSectionError:
+            print "Error: no section "+section+" found in the "+self._configfile+" config file"
+            sys.exit(1)
+        try:
+            self._moab_images_file = os.path.expanduser(config.get(section, 'moab_images_file', 0))
+        except ConfigParser.NoOptionError:
+            print "Error: No moab_images_file option found in section "+section + " file " + self._configfile
+            sys.exit(1)        
+        try:
+            self._refresh = int(config.get(section, 'refresh', 0))
+        except ConfigParser.NoOptionError:
+            print "Error: No refresh option found in section " + section + " file " + self._configfile
+            sys.exit(1)              
         try:
             self._logfile = os.path.expanduser(config.get(section, 'log', 0))
         except ConfigParser.NoOptionError:
             print "Error: No log option found in section "+section + " file " + self._configfile
             sys.exit(1)
-        except ConfigParser.NoSectionError:
-            print "Error: no section "+section+" found in the "+self._configfile+" config file"
-            sys.exit(1)
+        
         #dir=os.path.dirname(self._logfile)
         #if not (os.path.isdir(dir)):
         #    os.system("mkdir -p " + dir)
@@ -105,9 +129,5 @@ class RainClientConf(object):
             tempLevel=self._logLevel
         self._logLevel = eval("logging." + tempLevel)
 
-        try:
-            self._refresh = int(config.get(section, 'refresh', 0))
-        except ConfigParser.NoOptionError:
-            print "Error: No refresh option found in section " + section + " file " + self._configfile
-            sys.exit(1)
+        
        
