@@ -86,7 +86,7 @@ class RainClient(object):
                 print std_qsub[1]
             return "ERROR in qsub: " + std_qsub[1]
         else:
-            jobid = std[0]
+            jobid = std_qsub[0]
         
         if stdoutfound == False:
             stdout = "jobscript.o" + jobid
