@@ -92,7 +92,7 @@ class fgShell(fgShellUtils,
         fgShellUtils.__init__(self)        
 
         #Context        
-        self.env = ["repo", "hadoop", "image", "", "rain"]
+        self.env = ["repo", "hadoop", "image", "rain", ""]
         self.text = {'image': 'Image Management',
                      'repo':'Image Repository',
                      'rain':'FG Dynamic Provisioning',

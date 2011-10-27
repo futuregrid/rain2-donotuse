@@ -23,10 +23,10 @@ import time
 class fgShellRain(Cmd):
 
     def __init__(self):
-        #self._service = rain()
+        
         print "Init Rain"
 
-    def do_rainrun(self, args):
+    def do_rainlaunch(self, args):
         argslist = args.split("-")[1:]        
         
         prefix = ''
@@ -154,7 +154,11 @@ class fgShellRain(Cmd):
             
         else:
             print "ERROR: invalid image id."
-        
+    
+    def help_rainlaunch(self):
+        msg = "Rain launch command: Run a command in the requested OS. The requested OS can be already deployed or in the Image Repository"              
+        self.print_man("launch ", msg)
+        eval("self.do_rainlaunch(\"-h\")")
     """
     def do_rainmove(self, args):
 

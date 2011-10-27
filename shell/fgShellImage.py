@@ -27,7 +27,7 @@ from futuregrid.image.management.IMGenerate import IMGenerate
 class fgShellImage(Cmd):
 
     def __init__(self):
-        #self._service = rain()
+        
         print "Init Image"
         
         self.imgen = IMGenerate(None, None, None, self.user, None, None, None, None, self.passwd, True, False)
