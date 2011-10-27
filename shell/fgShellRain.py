@@ -49,7 +49,6 @@ class fgShellRain(Cmd):
 
         parser = argparse.ArgumentParser(prog="RainClient", formatter_class=argparse.RawDescriptionHelpFormatter,
                                      description="FutureGrid Image Deployment Help ")    
-        parser.add_argument('-u', '--user', dest='user', required=True, metavar='user', help='FutureGrid User name')
         parser.add_argument('-d', '--debug', dest='debug', action="store_true", help='Print logs in the screen for debug')
         parser.add_argument('-k', '--kernel', dest="kernel", metavar='Kernel version', help="Specify the desired kernel" 
                             "(must be exact version and approved for use within FG). Not yet supported")
