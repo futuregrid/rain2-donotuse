@@ -171,7 +171,7 @@ class fgShellImage(Cmd):
             
             print '\n The image and the manifest generated are packaged in a tgz file.' + \
                   '\n Please be aware that this FutureGrid image does not have kernel and fstab. Thus, ' + \
-                  'it is not built for any deployment type. To deploy the new image, use the IMDeploy command.'
+                  'it is not built for any deployment type. To deploy the new image, use the Image Management deploy command.'
 
     def help_imagegenerate(self):
         msg = "IMAGE generate command: Generate an image "              
@@ -228,7 +228,7 @@ class fgShellImage(Cmd):
         
         #imgdeploy = IMDeploy(args.kernel, self.user, self.passwd, verbose, args.debug)
         self.imgdeploy.setKernel(args.kernel)
-        self.imgdeploy.setDebug(args.debug)
+        self.imgdeploy.setDebug(args.debug) #this wont work, need to modify fgLog
         
     
         used_args = sys.argv[1:]
@@ -292,4 +292,24 @@ class fgShellImage(Cmd):
         self.print_man("deploy ", msg)
         eval("self.do_imagedeploy(\"-h\")")
 
+    def do_imagehpclist(self, args):
+        '''Image Management hpclist command: Get list of images deployed in the specified HPC machine 
+        '''
+        args = self.getArgs(args)
+
+        if(len(args) == 1):
+            hpcimagelist = self.imgdeploy.xcat_method(args[0], "list")
+            print "The list of available images on xCAT/Moab is:"
+            for i in hpcimagelist:
+                print "  "+ i
+            print "You can get more details by querying the image repository using the list command and the query string: * where tag=imagename. \n" +\
+                  "NOTE: To query the repository you need to remove the OS from the image name (centos,ubuntu,debian,rhel...). " + \
+                  "The real name starts with the username."
+        else:
+            self.help_imagehpclist()
+        
+    def help_imagehpclist(self):
+        '''Help message for the imagehpclist command'''
+        self.print_man("hpclist <machine>", self.do_imagehpclist.__doc__)
+        
         

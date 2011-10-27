@@ -598,7 +598,6 @@ class fgShellUtils(Cmd):
     help_generate = generic_help
 
     def do_launch(self, args):
-        '''TODO: launch'''
         if(self._use != ""):
             found = False
             for i in self._requirements:
@@ -616,6 +615,25 @@ class fgShellUtils(Cmd):
         else:
             self.generic_error()
     help_launch = generic_help
+
+    def do_hpclist(self, args):        
+        if(self._use != ""):
+            found = False
+            for i in self._requirements:
+                prefix=string.lower(i)
+                command = "self.do_" + prefix + "hpclist(\"" + args + "\")"            
+                try:
+                    eval(command)
+                    found = True
+                    break
+                except AttributeError:
+                    pass
+            if not found:
+                print "There is no hpclist method in any of the active contexts (" + str(self._requirements) + " )"
+                self._log.error(str(sys.exc_info()))         
+        else:
+            self.generic_error()
+    help_hpclist = generic_help
 
     ##########################################################################
     # LOAD

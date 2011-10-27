@@ -15,6 +15,7 @@ import logging.handlers
 import time
 from IMServerConf import IMServerConf
 from xml.dom.minidom import Document, parse
+import string
 
 #Import client repository
 sys.path.append(os.getcwd())
@@ -85,11 +86,11 @@ class IMDeployServerXcat(object):
         return logger
 
     def start(self):
-
-        self.logger.info('Starting Server on port ' + str(self.port))
+        
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.bind(('', self.port))
         sock.listen(1)
+        self.logger.info('Starting Server on port ' + str(self.port))
         while True:
             newsocket, fromaddr = sock.accept()
             connstream = None
@@ -161,6 +162,27 @@ class IMDeployServerXcat(object):
                     endloop = True
                     self.errormsg(connstream, msg)
                     return
+        
+        if imgID == "list":
+            #get list of directories
+            #send it back separated by commas              
+            cmd = "ls " + self.xcatNetbootImgPath
+            p = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
+            std = p.communicate()
+            if p.returncode != 0:
+                self.logger.debug(std[1])                              
+                msg="ERROR: Trying to get the xCAT image list. Exit status: "+std[1]        
+                self.errormsg(connstream, msg)
+                return
+            else:
+                aux = std[0].split()
+                xcatimagelist = ",".join(aux)            
+                self.logger.debug("xCAT image list: " + str(xcatimagelist))    
+                connstream.write(xcatimagelist)
+                connstream.shutdown(socket.SHUT_RDWR)
+                connstream.close()            
+                self.logger.info("Image Deploy Request (list) DONE")            
+                return
         
         #check if there is enough space in /install/netboot
         #subprocess.Popen
@@ -565,9 +587,9 @@ sysfs   /sys     sysfs    defaults       0 0
             self.logger.info('Torque for India')
             
             status = self.runCmd('wget ' + self.http_server + '/torque/torque-2.4.8_india/pbs_environment -O ' +\
-                                  self.path + '/rootimage/var/lib/torque/pbs_environment')
+                                  self.path + '/rootimg/var/lib/torque/pbs_environment')
             status = self.runCmd('wget ' + self.http_server + '/torque/torque-2.4.8_india/server_name -O ' +\
-                                  self.path + '/rootimage/var/lib/torque/server_name')
+                                  self.path + '/rootimg/var/lib/torque/server_name')
             
             self.logger.info('Configuring network')
             status = self.runCmd('wget ' + self.http_server + '/conf/ubuntu/netsetup.sh_india -O ' + self.path + '/rootimg/etc/init.d/netsetup.sh')
@@ -658,7 +680,7 @@ sysfs   /sys     sysfs    defaults       0 0
 
         self.logger.info('Installing LDAP packages')
         ldapexec = "/tmp/ldap.install"
-        os.system('echo "!#/bin/bash \nexport DEBIAN_FRONTEND=noninteractive \napt-get ' + \
+        os.system('echo "#!/bin/bash \nexport DEBIAN_FRONTEND=noninteractive \napt-get ' + \
                   '-y install ldap-utils libnss-ldapd nss-updatedb libnss-db" >' + self.path + '/rootimg/' + ldapexec)
         os.system('chmod +x ' + self.path + '/rootimg/' + ldapexec)
         self.runCmd('chroot ' + self.path + '/rootimg/ ' + ldapexec)

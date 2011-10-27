@@ -626,26 +626,29 @@ class IMDeploy(object):
                     fail = True
             """
             if self.check_auth(xcatServer, checkauthstat):
-                
-                if self._verbose:
-                    print "Customizing and deploying image on xCAT"
-                      
-                #print msg
-                ret = xcatServer.read(1024)
-                #check if the server received all parameters
-                if ret != 'OK':
-                    self._log.error('Incorrect reply from the xCat server: ' + str(ret))
+
+                if image == "list":                    
+                    xcatimagelist = xcatServer.read(4096)
+                    self._log.debug("Getting xCAT image list:" + xcatimagelist)
+                    xcatimagelist = xcatimagelist.split(",")
+                    moabstring = 'list,list,list,list,list'           
+                else:
                     if self._verbose:
-                        print 'Incorrect reply from the xCat server: ' + str(ret)
-                    return
-                #recieve the prefix parameter from xcat server
-                moabstring = xcatServer.read(2048)
-                self._log.debug("String received from xcat server " + moabstring)
-                params = moabstring.split(',')
-                imagename = params[0] + '' + params[2] + '' + params[1]
-                if self._verbose:
-                    print 'Connecting to Moab server'	    
-                moabstring += ',' + self.machine
+                        print "Customizing and deploying image on xCAT"
+                    
+                    ret = xcatServer.read(1024)
+                    #check if the server did all right
+                    if ret != 'OK':
+                        self._log.error('Incorrect reply from the xCat server: ' + str(ret))
+                        if self._verbose:
+                            print 'Incorrect reply from the xCat server: ' + str(ret)
+                        return
+                    #recieve the prefix parameter from xcat server
+                    moabstring = xcatServer.read(2048)
+                    self._log.debug("String received from xcat server " + moabstring)
+                    params = moabstring.split(',')
+                    imagename = params[0] + '' + params[2] + '' + params[1]                    	    
+                    moabstring += ',' + self.machine
             else:
                 self._log.error(str(checkauthstat[0]))
                 if self._verbose:
@@ -657,6 +660,9 @@ class IMDeploy(object):
             self._log.error("CANNOT establish SSL connection. EXIT")
             if self._verbose:
                 print "ERROR: CANNOT establish SSL connection."
+        
+        if self._verbose:
+            print 'Connecting to Moab server'
         
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
@@ -670,17 +676,29 @@ class IMDeploy(object):
             
             self._log.debug('Sending message: ' + moabstring)
             moabServer.write(moabstring)
-            ret = moabServer.read(100)
-            if ret != 'OK':
-                self._log.error('Incorrect reply from the Moab server:' + str(ret))
+            
+            if image == "list":                                
+                moabimageslist = moabServer.read(4096)
+                self._log.debug("Getting Moab image list:" + moabimageslist)
+                moabimageslist = moabimageslist.split(",")                
+                setmoab = set(moabimageslist)
+                setxcat = set(xcatimagelist)
+                setand = setmoab & setxcat                
+                imagename = list(setand)
+            else:
+                ret = moabServer.read(100)
+                if ret != 'OK':
+                    self._log.error('Incorrect reply from the Moab server:' + str(ret))
+                    if self._verbose:
+                        print 'Incorrect reply from the Moab server:' + str(ret)
+                    return
                 if self._verbose:
-                    print 'Incorrect reply from the Moab server:' + str(ret)
-                return
-            if self._verbose:
-                print 'Your image has been deployed in xCAT as ' + imagename + '. Please allow a few minutes for xCAT to register the image before attempting to use it.'
-                print 'To boot an machine using your image: qsub -l os=<imagename>'
-                print 'To check the status of the job you can use checkjob and showq commands'
-            return imagename
+                    print 'Your image has been deployed in xCAT as ' + imagename + '.\n Please allow a few minutes for xCAT to register the image before attempting to use it.'
+                    print 'To boot an machine using your image: qsub -l os=<imagename>'
+                    print 'To check the status of the job you can use checkjob and showq commands'
+            #return image deployed or list of images
+            return imagename  
+        
         except ssl.SSLError:
             self._log.error("CANNOT establish SSL connection. EXIT")
             if self._verbose:
@@ -763,6 +781,7 @@ def main():
     group = parser.add_mutually_exclusive_group(required=True)    
     group.add_argument('-i', '--image', dest='image', metavar='ImgFile', help='tgz file that contains manifest and img')
     group.add_argument('-r', '--imgid', dest='imgid', metavar='ImgId', help='Id of the image stored in the repository')
+    group.add_argument('-q', '--list', dest='list', action="store_true", help='List of Id of the images deployed in xCAT/Moab')
     group1 = parser.add_mutually_exclusive_group()
     group1.add_argument('-x', '--xcat', dest='xcat', metavar='MachineName', help='Deploy image to xCAT. The argument is the machine name (minicluster, india ...)')
     group1.add_argument('-e', '--euca', dest='euca', nargs='?', metavar='Address:port', help='Deploy the image to Eucalyptus, which is in the specified addr')
@@ -802,12 +821,20 @@ def main():
             sys.exit(1)
     #XCAT
     if args.xcat != None:
-        if args.imgid == None:
-            print "ERROR: You need to specify the id of the image that you want to deploy (-r/--imgid option)."
+        if args.imgid != None:
+            imgdeploy.xcat_method(args.xcat, args.imgid)
+        elif list:
+            hpcimagelist = imgdeploy.xcat_method(args.xcat, "list")
+            print "The list of available images on xCAT/Moab is:"
+            for i in hpcimagelist:
+                print "  "+ i
+            print "You can get more details by querying the image repository using IRClient.py -q command and the query string: \"* where tag=imagename\". \n" +\
+                "NOTE: To query the repository you need to remove the OS from the image name (centos,ubuntu,debian,rhel...). " + \
+                  "The real name starts with the username."
+        else:            
+            print "ERROR: You need to specify the id of the image that you want to deploy (-r/--imgid option) or the -q/--list option to list the deployed images"
             print "The parameter -i/--image cannot be used with this type of deployment"
             sys.exit(1)
-        else:
-            imgdeploy.xcat_method(args.xcat, args.imgid)
     else:
         ldap = False # If this is true, we configure ldap for access to images and forbid the root login.
         varfile = ""

@@ -356,7 +356,7 @@ class IMDeployServerIaaS(object):
     
             self.logger.info('Installing LDAP packages')
             ldapexec = "/tmp/ldap.install"
-            os.system('echo "!#/bin/bash \nexport DEBIAN_FRONTEND=noninteractive \napt-get ' + \
+            os.system('echo "#!/bin/bash \nexport DEBIAN_FRONTEND=noninteractive \napt-get ' + \
                       '-y install ldap-utils libnss-ldapd nss-updatedb libnss-db" >' + localtempdir + '/temp/' + ldapexec)
             os.system('chmod +x ' + localtempdir + '/temp/' + ldapexec)
             self.runCmd('chroot ' + localtempdir + '/temp/ ' + ldapexec)    

@@ -48,20 +48,24 @@ class RainClient(object):
         self.refresh = self._rainConf.getRefresh()
         self.moab_max_wait = self._rainConf.getMoabMaxWait()
         self.moab_images_file = self._rainConf.getMoabImagesFile()
-        
+    
+    def setDebug(self, printLogStdout):
+        self.printLogStdout = printLogStdout
+      
     def baremetal(self, imageidonsystem, jobscript, machines):
         
-        #verify that the image requested is in Moab
-        imagefoundinfile = False
-        if not imagefoundinfile:
-            f = open(self.moab_images_file,'r')
-            for i in f:
-                if re.search(imageidonsystem, i):
-                    imagefoundinfile = True
-                    break
-            f.close()
+        if imageidonsystem != "default":
+            #verify that the image requested is in Moab
+            imagefoundinfile = False
             if not imagefoundinfile:
-                return "ERROR: The image is not deployed on xCAT/Moab"
+                f = open(self.moab_images_file, 'r')
+                for i in f:
+                    if re.search(imageidonsystem, i):
+                        imagefoundinfile = True
+                        break
+                f.close()
+                if not imagefoundinfile:
+                    return "ERROR: The image is not deployed on xCAT/Moab"
         
         
         #read the output file and the error one to print it out to the user.
@@ -90,7 +94,7 @@ class RainClient(object):
         cmd = "qsub "
         if machines > 1:
             cmd += "-l nodes=" + str(machines)
-        if imageidonsystem != None:
+        if imageidonsystem != "default":
             cmd += " -l os=" + imageidonsystem
         cmd += " " + jobscript
         
@@ -99,30 +103,34 @@ class RainClient(object):
         tryagain = True
         retry = 0
         maxretry = self.moab_max_wait / 5
-        
-        while tryagain:
-            p_qsub = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
-            std_qsub = p_qsub.communicate()
-            if p_qsub.returncode != 0:
-                if not re.search("cannot set req attribute \'OperatingSystem\'", std_qsub[1]) and not re.search('no service listening', std_qsub[1]):                    
-                    self._log.debug(std_qsub[1])
-                    if self.verbose:
-                        print std_qsub[1]
-                    return "ERROR in qsub: " + std_qsub[1]
-                if retry >= maxretry:
-                    tryagain = False
-                    self._log.debug(std_qsub[1])
-                    if self.verbose:
-                        print std_qsub[1]
-                    return "ERROR in qsub: " + std_qsub[1] + " \n The image is not available on Moab (timeout). Try again later."
+        try:
+            while tryagain:
+                p_qsub = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
+                std_qsub = p_qsub.communicate()
+                if p_qsub.returncode != 0:
+                    if not re.search("cannot set req attribute \'OperatingSystem\'", std_qsub[1]) and not re.search('no service listening', std_qsub[1]):                    
+                        self._log.debug(std_qsub[1])
+                        if self.verbose:
+                            print std_qsub[1]
+                        return "ERROR in qsub: " + std_qsub[1]
+                    if retry >= maxretry:
+                        tryagain = False
+                        self._log.debug(std_qsub[1])
+                        if self.verbose:
+                            print std_qsub[1]
+                        return "ERROR in qsub: " + std_qsub[1] + " \n The image is not available on Moab (timeout). Try again later."
+                    else:
+                        retry += 1
+                        sleep(5)
                 else:
-                    retry +=1
-                    sleep(5)
-            else:
-                tryagain = False
-                jobid = std_qsub[0].strip().split(".")[0]
-                if self.verbose:
-                    print "Job id is: " + jobid
+                    tryagain = False
+                    jobid = std_qsub[0].strip().split(".")[0]
+                    if self.verbose:
+                        print "Job id is: " + jobid
+        except:
+            self._log.error("ERROR: qsub command failed. Executed command: \"" + cmd + "\" --- Exception: " + str(sys.exc_info()))
+            return "ERROR: qsub command failed. Executed command: \"" + cmd + "\" --- Exception: " + str(sys.exc_info())
+            
         if retry >= maxretry:
             return "ERROR in qsub. " + std_qsub[1]
         
@@ -205,7 +213,7 @@ def main():
     user = ""
 
     parser = argparse.ArgumentParser(prog="RainClient", formatter_class=argparse.RawDescriptionHelpFormatter,
-                                     description="FutureGrid Image Deployment Help ")    
+                                     description="FutureGrid Rain Help ")    
     parser.add_argument('-u', '--user', dest='user', required=True, metavar='user', help='FutureGrid User name')
     parser.add_argument('-d', '--debug', dest='debug', action="store_true", help='Print logs in the screen for debug')
     parser.add_argument('-k', '--kernel', dest="kernel", metavar='Kernel version', help="Specify the desired kernel" 
@@ -248,6 +256,9 @@ def main():
     if args.deployedimageid != None:
         image_source = "deployed"
         image = args.deployedimageid
+    elif args.imgid == None:  #when non imgId is provided
+        image_source = "default"
+        image = "default"
         
     if not os.path.isfile(args.jobscript):
         print 'Not script file found. Please specify an script file using the paramiter -j/--jobscript'            
@@ -302,8 +313,10 @@ def main():
             else:
                 print "ERROR: You need to specify a deployment target"
             
-    else:
+    elif image_source == "deployed":
         output = args.deployedimageid
+    else:
+        output = image
         
     if output != None:
         rain = RainClient(verbose, args.debug)

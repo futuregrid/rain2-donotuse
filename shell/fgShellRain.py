@@ -9,9 +9,7 @@ import os
 #import cmd
 import readline
 import sys
-from futuregrid.shell import fgShellUtils
 import logging
-from futuregrid.utils import fgLog
 from cmd2 import Cmd
 from cmd2 import options
 from cmd2 import make_option
@@ -19,12 +17,18 @@ import textwrap
 import argparse
 import re
 import time
+from futuregrid.shell import fgShellUtils
+from futuregrid.utils import fgLog
+from futuregrid.rain.RainClient import RainClient
 
 class fgShellRain(Cmd):
 
     def __init__(self):
         
         print "Init Rain"
+        verbose = True
+        debug = False
+        self.rain = RainClient(verbose, debug)
 
     def do_rainlaunch(self, args):
         argslist = args.split("-")[1:]        
@@ -49,7 +53,7 @@ class fgShellRain(Cmd):
 
         parser = argparse.ArgumentParser(prog="RainClient", formatter_class=argparse.RawDescriptionHelpFormatter,
                                      description="FutureGrid Image Deployment Help ")    
-        parser.add_argument('-d', '--debug', dest='debug', action="store_true", help='Print logs in the screen for debug')
+        #parser.add_argument('-d', '--debug', dest='debug', action="store_true", help='Print logs in the screen for debug')
         parser.add_argument('-k', '--kernel', dest="kernel", metavar='Kernel version', help="Specify the desired kernel" 
                             "(must be exact version and approved for use within FG). Not yet supported")
         group = parser.add_mutually_exclusive_group()
@@ -69,22 +73,25 @@ class fgShellRain(Cmd):
         args = parser.parse_args()
         
         used_args = sys.argv[1:]
+        
     
         image_source = "repo"
         image = args.imgid    
         if args.deployedimageid != None:
             image_source = "deployed"
             image = args.deployedimageid
-            
+        elif args.imgid == None:  #when non imgId is provided
+            image_source = "default"
+            image = "default"
+        
         if not os.path.isfile(args.jobscript):
             print 'Not script file found. Please specify an script file using the paramiter -j/--jobscript'            
             sys.exit(1)
         
-        
         output = None
         if image_source == "repo":
             self.imgdeploy.setKernel(args.kernel)
-            self.imgdeploy.setDebug(args.debug)    
+            #self.imgdeploy.setDebug(args.debug)
             #XCAT
             if args.xcat != None:
                 if args.imgid == None:
@@ -129,24 +136,25 @@ class fgShellRain(Cmd):
                         output = self.imgdeploy.iaas_generic(args.openstack, image, image_source, "openstack", varfile, args.getimg, ldap)
                 else:
                     print "ERROR: You need to specify a deployment target"
-        else:
+        elif image_source == "deployed":
             output = args.deployedimageid
+        else:
+            output = image
             
-        if output != None:
-            rain = RainClient(verbose, args.debug)
+        if output != None:            
             target = ""
             if args.xcat != None:            
-                output = rain.baremetal(output, args.jobscript, args.machines)
+                output = self.rain.baremetal(output, args.jobscript, args.machines)
                 print output
             else:
                 if ('-e' in used_args or '--euca' in used_args):
-                    output = rain.euca(output, args.jobscript, args.machines)
+                    output = self.rain.euca(output, args.jobscript, args.machines)
                 elif ('-o' in used_args or '--opennebula' in used_args):
-                    output = rain.opennebula(output, args.jobscript, args.machines)
+                    output = self.rain.opennebula(output, args.jobscript, args.machines)
                 elif ('-n' in used_args or '--nimbus' in used_args):
-                    output = rain.nimbus(output, args.jobscript, args.machines)
+                    output = self.rain.nimbus(output, args.jobscript, args.machines)
                 elif ('-s' in used_args or '--openstack' in used_args):
-                    output = rain.openstack(output, args.jobscript, args.machines)
+                    output = self.rain.openstack(output, args.jobscript, args.machines)
                 else:
                     print "ERROR: You need to specify a Rain target (xcat, eucalyptus or openstack)"
             

@@ -7,21 +7,23 @@ __author__ = 'Javier Diaz, Andrew Younge'
 __version__ = '0.9'
 
 
-import socket, ssl
-import sys
-import os
+from IMServerConf import IMServerConf
 from subprocess import *
 import logging
 import logging.handlers
+import os
+import re
+import socket
+import ssl
+import sys
 import time
-from IMServerConf import IMServerConf
 
 class IMDeployServerMoab(object):
 
     def __init__(self):
         super(IMDeployServerMoab, self).__init__()
         
-        self.numparams = 4   #prefix,name,os,arch
+        self.numparams = 5   #prefix,name,os,arch,machine
         
         self.prefix = ""
         self.name = ""
@@ -41,7 +43,7 @@ class IMDeployServerMoab(object):
         self._certfile = self._deployConf.getCertFileMoab()
         self._keyfile = self._deployConf.getKeyFileMoab()
         
-        print "\nReading Configuration file from "+self._deployConf.getConfigFile()+"\n"
+        print "\nReading Configuration file from " + self._deployConf.getConfigFile() + "\n"
         
         self.logger = self.setup_logger()
                 
@@ -61,10 +63,10 @@ class IMDeployServerMoab(object):
     
     def start(self):  
         
-        self.logger.info('Starting Server on port ' + str(self.port))
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.bind(('', self.port))
         sock.listen(1)
+        self.logger.info('Starting Server on port ' + str(self.port))
         while True:
             newsocket, fromaddr = sock.accept()
             connstream = 0
@@ -103,36 +105,52 @@ class IMDeployServerMoab(object):
         self.arch = params[3]
         self.machine = params[4]
 
-        moabstring = ""    
-        if self.machine == "minicluster":
-            moabstring = 'echo \"' + self.prefix + self.operatingsystem + '' + self.name + ' ' + self.arch + ' ' + self.prefix + \
-                        self.operatingsystem + '' + self.name + ' compute netboot\" | sudo tee -a ' + self.moabInstallPath + '/tools/msm/images.txt > /dev/null'
-            #moabstring = 'echo \"' + prefix + operatingsystem + '' + name + ' ' + arch + ' boottarget ' + prefix + operatingsystem + '' + name + ' netboot\" >> ' + moabInstallPath + '/tools/msm/images.txt'
-        elif self.machine == "india":
-            moabstring = 'echo \"' + self.prefix + self.operatingsystem + '' + self.name + ' ' + self.arch + ' boottarget ' + \
-                        self.prefix + self.operatingsystem + '' + self.name + ' netboot\" | sudo tee -a ' + self.moabInstallPath + '/tools/msm/images.txt > /dev/null'
-
-
-        #This message inster the line in the images.txt file    
-        self.logger.debug(moabstring)
-        status = os.system(moabstring)
-
-        if len(params) == self.numparams and status != 0:
-            msg = 'Error including image name in image.txt file'
-            self.logger.debug(msg)
-            connstream.write(msg)
-            connstream.shutdown(socket.SHUT_RDWR)
-            connstream.close()
+        if len(params) != self.numparams:
+            msg = "ERROR: incorrect message"
+            self.errormsg(connstream, msg)
             return
-        else:
-            connstream.write('OK')
+
+        if self.prefix == "list":
+            moabimageslist = ""
+            f = open(self.moabInstallPath + '/tools/msm/images.txt')
+            for i in f:
+                if not re.search("^#", i):
+                    moabimageslist += i.split()[0] + ","
+            moabimageslist = moabimageslist.rstrip(",")
+            self.logger.debug("Moab image list: " + moabimageslist)
+            connstream.write(moabimageslist)
             connstream.shutdown(socket.SHUT_RDWR)
             connstream.close()
-
-        cmd = 'sudo ' + self.moabInstallPath + '/bin/mschedctl -R'
-        status = self.runCmd(cmd)
+            self.logger.info("Image Deploy Moab (list) DONE")
+        else:
+            moabstring = ""    
+            if self.machine == "minicluster":
+                moabstring = 'echo \"' + self.prefix + self.operatingsystem + '' + self.name + ' ' + self.arch + ' ' + self.prefix + \
+                            self.operatingsystem + '' + self.name + ' compute netboot\" | sudo tee -a ' + self.moabInstallPath + '/tools/msm/images.txt > /dev/null'
+                #moabstring = 'echo \"' + prefix + operatingsystem + '' + name + ' ' + arch + ' boottarget ' + prefix + operatingsystem + '' + name + ' netboot\" >> ' + moabInstallPath + '/tools/msm/images.txt'
+            elif self.machine == "india":
+                moabstring = 'echo \"' + self.prefix + self.operatingsystem + '' + self.name + ' ' + self.arch + ' boottarget ' + \
+                            self.prefix + self.operatingsystem + '' + self.name + ' netboot\" | sudo tee -a ' + self.moabInstallPath + '/tools/msm/images.txt > /dev/null'
+    
+    
+            #This message inster the line in the images.txt file    
+            self.logger.debug(moabstring)
+            status = os.system(moabstring)
+            
+            if status != 0:
+                msg = 'ERROR: including image name in image.txt file'
+                self.logger.debug(msg)
+                self.errormsg(connstream, msg)
+                return
+            else:
+                connstream.write('OK')
+                connstream.shutdown(socket.SHUT_RDWR)
+                connstream.close()
+    
+            cmd = 'sudo ' + self.moabInstallPath + '/bin/mschedctl -R'
+            status = self.runCmd(cmd)
         
-        self.logger.info("Image Deploy Moab DONE")
+            self.logger.info("Image Deploy Moab DONE")
         
         """
         if not os.path.isfile('/tmp/image-deploy-fork.lock'):
@@ -147,6 +165,16 @@ class IMDeployServerMoab(object):
             else:
                 self.logger.debug("Parent Process: PID# %s" % os.getpid())
         """
+
+    def errormsg(self, connstream, msg):
+        self.logger.error(msg)
+        try:
+            connstream.write(msg)
+            connstream.shutdown(socket.SHUT_RDWR)
+            connstream.close()
+        except:
+            self.logger.debug("In errormsg: " + str(sys.exc_info()))
+        self.logger.info("Image Deploy Moab DONE")
 
     def runCmd(self, cmd):
         cmdLog = logging.getLogger('DeployMoab.exec')
