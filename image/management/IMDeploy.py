@@ -781,7 +781,7 @@ def main():
     group = parser.add_mutually_exclusive_group(required=True)    
     group.add_argument('-i', '--image', dest='image', metavar='ImgFile', help='tgz file that contains manifest and img')
     group.add_argument('-r', '--imgid', dest='imgid', metavar='ImgId', help='Id of the image stored in the repository')
-    group.add_argument('-q', '--list', dest='list', action="store_true", help='List of Id of the images deployed in xCAT/Moab')
+    group.add_argument('-l', '--list', dest='list', action="store_true", help='List of Id of the images deployed in xCAT/Moab')
     group1 = parser.add_mutually_exclusive_group()
     group1.add_argument('-x', '--xcat', dest='xcat', metavar='MachineName', help='Deploy image to xCAT. The argument is the machine name (minicluster, india ...)')
     group1.add_argument('-e', '--euca', dest='euca', nargs='?', metavar='Address:port', help='Deploy the image to Eucalyptus, which is in the specified addr')
@@ -792,8 +792,6 @@ def main():
     parser.add_argument('-g', '--getimg', dest='getimg', action="store_true", help='Customize the image for a particular cloud framework but does not register it. So the user gets the image file.')
     
     args = parser.parse_args()
-
-    #print args
     
 
     print 'Starting image deployer...'
@@ -839,13 +837,13 @@ def main():
         ldap = False # If this is true, we configure ldap for access to images and forbid the root login.
         varfile = ""
         if args.varfile != None:
-            varfile = os.path.expanduser(args.varfile)
+            varfile = os.path.expandvars(os.path.expanduser(args.varfile))
         #EUCALYPTUS    
         if ('-e' in used_args or '--euca' in used_args):
             if not args.getimg:
-                if args.varfile == None:
+                if varfile == "":
                     print "ERROR: You need to specify the path of the file with the Eucalyptus environment variables"
-                elif not os.path.isfile(str(os.path.expanduser(varfile))):
+                elif not os.path.isfile(varfile):
                     print "ERROR: Variable files not found. You need to specify the path of the file with the Eucalyptus environment variables"
                 else:    
                     
@@ -861,9 +859,9 @@ def main():
             print "Nimbus deployment is not implemented yet"
         elif ('-s' in used_args or '--openstack' in used_args):
             if not args.getimg:
-                if args.varfile == None:
+                if varfile == "":
                     print "ERROR: You need to specify the path of the file with the OpenStack environment variables"
-                elif not os.path.isfile(str(os.path.expanduser(varfile))):
+                elif not os.path.isfile(varfile):
                     print "ERROR: Variable files not found. You need to specify the path of the file with the OpenStack environment variables"
                 else:    
                     imgdeploy.iaas_generic(args.openstack, image, image_source, "openstack", varfile, args.getimg, ldap)

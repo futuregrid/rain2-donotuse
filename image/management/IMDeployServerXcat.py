@@ -537,9 +537,9 @@ class IMDeployServerXcat(object):
         if(self.machine == "minicluster"):
             self.logger.info('Torque for minicluster')                        
             status = self.runCmd('wget ' + self.http_server + '/torque/torque-2.5.1_minicluster/pbs_environment -O ' +\
-                                  self.path + '/rootimage/var/lib/torque/pbs_environment')
+                                  self.path + '/rootimage/var/spool/torque/pbs_environment')
             status = self.runCmd('wget ' + self.http_server + '/torque/torque-2.5.1_minicluster/server_name -O ' +\
-                                  self.path + '/rootimage/var/lib/torque/server_name')
+                                  self.path + '/rootimage/var/spool/torque/server_name')
             
             self.logger.info('Configuring network')
             status = self.runCmd('wget ' + self.http_server + '/conf/ubuntu/netsetup_minicluster.tgz -O ' + self.path + 'netsetup_minicluster.tgz')
@@ -587,9 +587,9 @@ sysfs   /sys     sysfs    defaults       0 0
             self.logger.info('Torque for India')
             
             status = self.runCmd('wget ' + self.http_server + '/torque/torque-2.4.8_india/pbs_environment -O ' +\
-                                  self.path + '/rootimg/var/lib/torque/pbs_environment')
+                                  self.path + '/rootimg/var/spool/torque/pbs_environment')
             status = self.runCmd('wget ' + self.http_server + '/torque/torque-2.4.8_india/server_name -O ' +\
-                                  self.path + '/rootimg/var/lib/torque/server_name')
+                                  self.path + '/rootimg/var/spool/torque/server_name')
             
             self.logger.info('Configuring network')
             status = self.runCmd('wget ' + self.http_server + '/conf/ubuntu/netsetup.sh_india -O ' + self.path + '/rootimg/etc/init.d/netsetup.sh')
@@ -641,11 +641,11 @@ sysfs   /sys     sysfs    defaults       0 0
         f.write("opsys " + self.prefix + self.operatingsystem + "" + self.name + "\n" + "arch " + self.arch)
         f.close()
 
-        self.runCmd('mv ' + self.path + '/temp/config ' + self.path + '/rootimg/var/lib/torque/mom_priv/')
-        self.runCmd('chown root:root ' + self.path + '/rootimg/var/lib/torque/mom_priv/config')
-        self.runCmd('chmod ga+rwxt ' + self.path + '/rootimg/var/lib/torque/undelivered/')
-        self.runCmd('mkdir -p ' + self.path + '/rootimg/var/lib/torque/spool/')
-        self.runCmd('chmod ga+rwxt ' + self.path + '/rootimg/var/lib/torque/spool/')
+        self.runCmd('mv ' + self.path + '/temp/config ' + self.path + '/rootimg/var/spool/torque/mom_priv/')
+        self.runCmd('chown root:root ' + self.path + '/rootimg/var/spool/torque/mom_priv/config')
+        #elf.runCmd('chmod ga+rwxt ' + self.path + '/rootimg/var/spool/torque/undelivered/')
+        #self.runCmd('mkdir -p ' + self.path + '/rootimg/var/spool/torque/spool/')
+        #self.runCmd('chmod ga+rwxt ' + self.path + '/rootimg/var/spool/torque/spool/')
 
         #Setup fstab
         f = open(self.path + '/temp/fstab', 'w')

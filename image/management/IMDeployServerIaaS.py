@@ -40,7 +40,7 @@ class IMDeployServerIaaS(object):
         
         self.path = ""
         
-        self.numparams = 7   #image path
+        self.numparams = 8   #image path
         
         self.name = ""
         self.givenname = ""
@@ -229,6 +229,7 @@ class IMDeployServerIaaS(object):
                     msg = "ERROR: Cannot get access to the image with imgId " + str(imgID)
                     self.errormsg(connstream, msg)
                     self._reposervice.disconnect()
+                    self.runCmd("rm -rf " + localtempdir)
                     return
                 else:
                     self._reposervice.disconnect()

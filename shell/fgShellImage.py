@@ -293,7 +293,7 @@ class fgShellImage(Cmd):
         eval("self.do_imagedeploy(\"-h\")")
 
     def do_imagehpclist(self, args):
-        '''Image Management hpclist command: Get list of images deployed in the specified HPC machine 
+        '''Image Management hpclist command: Get list of images deployed in the specified HPC machine (India for example). 
         '''
         args = self.getArgs(args)
 

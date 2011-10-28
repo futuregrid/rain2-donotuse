@@ -183,14 +183,17 @@ class RainClient(object):
         #read exit file and print it
             
     #2. in the case of euca-run-instance, wait until the vms are booted, execute the job inside, wait until done.
-    def euca(self, imageidonsystem, jobscript, machines):
+    def euca(self, imageidonsystem, jobscript, machines, varfile):
         print "in eucalyptus method.end"
+        
+    def openstack(self, imageidonsystem, jobscript, machines, varfile):
+        print "in openstack method.end"    
+        
     def opennebula(self, imageidonsystem, jobscript, machines):
         print "in opennebula method.end"
     def nimbus(self, imageidonsystem, jobscript, machines):
         print "in nimbus method.end"
-    def openstack(self, imageidonsystem, jobscript, machines):
-        print "in openstack method.end"
+    
         
     """
     def runCmd(self, cmd, std):        
@@ -264,6 +267,9 @@ def main():
         print 'Not script file found. Please specify an script file using the paramiter -j/--jobscript'            
         sys.exit(1)
     
+    varfile = ""
+    if args.varfile != None:
+        varfile = os.path.expandvars(os.path.expanduser(args.varfile))
     
     output = None
     if image_source == "repo":
@@ -278,16 +284,13 @@ def main():
                 output = imgdeploy.xcat_method(args.xcat, args.imgid)
                 time.sleep(3)
         else:
-            ldap = True #we configure ldap to run commands and be able to login from on vm to other
-            varfile = ""
-            if args.varfile != None:
-                varfile = os.path.expanduser(args.varfile)
+            ldap = True #we configure ldap to run commands and be able to login from on vm to other            
             #EUCALYPTUS    
             if ('-e' in used_args or '--euca' in used_args):
                 if not args.getimg:
-                    if args.varfile == None:
+                    if varfile == "":
                         print "ERROR: You need to specify the path of the file with the Eucalyptus environment variables"
-                    elif not os.path.isfile(str(os.path.expanduser(varfile))):
+                    elif not os.path.isfile(varfile):
                         print "ERROR: Variable files not found. You need to specify the path of the file with the Eucalyptus environment variables"
                     else:    
                         output = imgdeploy.iaas_generic(args.euca, image, image_source, "euca", varfile, args.getimg, ldap)        
@@ -302,9 +305,9 @@ def main():
                 print "Nimbus deployment is not implemented yet"
             elif ('-s' in used_args or '--openstack' in used_args):
                 if not args.getimg:
-                    if args.varfile == None:
+                    if varfile == "":
                         print "ERROR: You need to specify the path of the file with the OpenStack environment variables"
-                    elif not os.path.isfile(str(os.path.expanduser(varfile))):
+                    elif not os.path.isfile(varfile):
                         print "ERROR: Variable files not found. You need to specify the path of the file with the OpenStack environment variables"
                     else:    
                         output = imgdeploy.iaas_generic(args.openstack, image, image_source, "openstack", varfile, args.getimg, ldap)
@@ -327,13 +330,23 @@ def main():
                 print output
         else:
             if ('-e' in used_args or '--euca' in used_args):
-                output = rain.euca(output, args.jobscript, args.machines)
+                if varfile == "":
+                    print "ERROR: You need to specify the path of the file with the Eucalyptus environment variables"
+                elif not os.path.isfile(varfile):
+                    print "ERROR: Variable files not found. You need to specify the path of the file with the Eucalyptus environment variables"
+                else:
+                    output = rain.euca(output, args.jobscript, args.machines, varfile)
             elif ('-o' in used_args or '--opennebula' in used_args):
                 output = rain.opennebula(output, args.jobscript, args.machines)
             elif ('-n' in used_args or '--nimbus' in used_args):
                 output = rain.nimbus(output, args.jobscript, args.machines)
             elif ('-s' in used_args or '--openstack' in used_args):
-                output = rain.openstack(output, args.jobscript, args.machines)
+                if varfile == "":
+                    print "ERROR: You need to specify the path of the file with the OpenStack environment variables"
+                elif not os.path.isfile(varfile):
+                    print "ERROR: Variable files not found. You need to specify the path of the file with the OpenStack environment variables"
+                else:  
+                    output = rain.openstack(output, args.jobscript, args.machines, varfile)
             else:
                 print "ERROR: You need to specify a Rain target (xcat, eucalyptus or openstack)"
         

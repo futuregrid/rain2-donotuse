@@ -192,7 +192,7 @@ class fgShellRepo(Cmd):
             status = self._service.userAdd(self.user, self.passwd, self.user, args[0])
             if(status == "True"):
                 print "User created successfully."
-                print "Remember that you still need to activate this user (see setuserstatus command)\n"
+                print "Remember that you still need to activate this user (see user -m command)\n"
             else:
                 print "The user has not been created. \n" + \
                       "Please verify that you are admin and that the username does not exist \n"
@@ -245,7 +245,7 @@ class fgShellRepo(Cmd):
             except:
                 print "Server replied: " + str(userList)
                 print "do_repouserlist: Error:" + str(sys.exc_info()[0]) + "\n"
-                self._log.error("do_repouserlist: Error interpreting the list of users from Image Repository" + str(sys.exc_info()[0]))
+                self._log.error("user -l: Error interpreting the list of users from Image Repository" + str(sys.exc_info()[0]))
         else:
             print "No list of user returned. \n" + \
                   "Please verify that you are admin \n"
