@@ -584,6 +584,13 @@ sysfs   /sys     sysfs    defaults       0 0
 '''
 
         elif(self.machine == "india"):#Later we should be able to chose the cluster where is deployed
+            
+            #only user with running job can login
+            os.system('echo \"account     required      pam_listfile.so file=/etc/authusers item=user sense=allow onerr=fail\" | sudo tee -a  ' +\
+                       self.path + '/rootimg/etc/pam.d/system-auth')
+            self.runCmd('wget ' + self.http_server + '/conf/authusers -O ' +\
+                                  self.path + '/rootimg/etc/authusers')
+            
             self.logger.info('Torque for India')
             
             status = self.runCmd('wget ' + self.http_server + '/torque/torque-2.4.8_india/pbs_environment -O ' +\
@@ -608,6 +615,10 @@ sysfs   /sys     sysfs    defaults       0 0
                       "fI8FpoXtNCai8YEPmpyynqgF9VFSDwTp8use61hBPJn2isZha1JvkuYJX4n3FCHOeDlb2Y7M90DvdYHwhfPDa/jIy8PvFGiFkRLSt1kghY"
                       "xZSleiikl0OxFcjaI8N8EiEZK66HAwOiDHAn2k3oJDBTD69jydJsjExOwlqZoJ4G9ScfY0rpzNnjE9sdxpJMCWcj20y/2T/oeppLmkq7aQtu"
                       "p8JMPptL+kTz5psnjozTNQgLYtYHAcfy66AKELnLuGbOFQdYxnINhX3e0iQCDDI5YQ== jdiaz@india.futuregrid.org" + "\n")
+            f.write("ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA99x6IYp0xXE0zK+BPWZHrOzWHik+fMzJNQ/8/Joy3mGHkDUnFEwFGzP5jPEZa9ut4iFeOj"
+                    "x7rDC820lmHYm+vVkRFYOyuMgSRymeSah30epMX+vPJjpYtRqoN7JdeC4Jyv3FX+sr8CfVMa1wv+Chp2nQZH81rdBVxkRzXTzmZRAq2bKo"
+                    "E4N2OSbiz5DH6xD2B9Z89wYNnLRJH5SuvG9wNu6ey7OM10EUZwgmcHQXf48q3ZE7Fd/4fAJ8SNKP8JuxnrbOQGjlEwsIhXqwK5PQYQWlrm"
+                    "ksUUOxGNkgf+Fm0eYKtez5kyHIqbjJ8aqCb7wOlS9RBDomfv1etEYTa2CmfQ==" + "\n") #root i136
             f.close()
             self.runCmd('mv ' + self.path + '/temp/_authorized_keys ' + self.path + '/rootimg/root/.ssh/authorized_keys')
             self.runCmd('chown root:root ' + self.path + '/rootimg/root/.ssh/authorized_keys')
@@ -750,6 +761,12 @@ sysfs   /sys     sysfs    defaults       0 0
 '''
 
         elif(self.machine == "india"):#Later we should be able to chose the cluster where is deployed
+            
+            #only user with running job can login
+            os.system('echo \"account     required      pam_listfile.so file=/etc/authusers item=user sense=allow onerr=fail\" | sudo tee -a  ' +\
+                       self.path + '/rootimg/etc/pam.d/system-auth')
+            self.runCmd('wget ' + self.http_server + '/conf/authusers -O ' + self.path + '/rootimg/etc/authusers')
+            
             self.logger.info('Torque for India')            
             status = self.runCmd('wget ' + self.http_server + '/torque/torque-2.4.8_india/opt.tgz -O ' + self.path + '/opt.tgz')
             status = self.runCmd('wget ' + self.http_server + '/torque/torque-2.4.8_india/var.tgz -O ' + self.path + '/var.tgz')
@@ -771,6 +788,10 @@ sysfs   /sys     sysfs    defaults       0 0
                       "fI8FpoXtNCai8YEPmpyynqgF9VFSDwTp8use61hBPJn2isZha1JvkuYJX4n3FCHOeDlb2Y7M90DvdYHwhfPDa/jIy8PvFGiFkRLSt1kghY"
                       "xZSleiikl0OxFcjaI8N8EiEZK66HAwOiDHAn2k3oJDBTD69jydJsjExOwlqZoJ4G9ScfY0rpzNnjE9sdxpJMCWcj20y/2T/oeppLmkq7aQtu"
                       "p8JMPptL+kTz5psnjozTNQgLYtYHAcfy66AKELnLuGbOFQdYxnINhX3e0iQCDDI5YQ== jdiaz@india.futuregrid.org" + "\n")
+            f.write("ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA99x6IYp0xXE0zK+BPWZHrOzWHik+fMzJNQ/8/Joy3mGHkDUnFEwFGzP5jPEZa9ut4iFeOj"
+                    "x7rDC820lmHYm+vVkRFYOyuMgSRymeSah30epMX+vPJjpYtRqoN7JdeC4Jyv3FX+sr8CfVMa1wv+Chp2nQZH81rdBVxkRzXTzmZRAq2bKo"
+                    "E4N2OSbiz5DH6xD2B9Z89wYNnLRJH5SuvG9wNu6ey7OM10EUZwgmcHQXf48q3ZE7Fd/4fAJ8SNKP8JuxnrbOQGjlEwsIhXqwK5PQYQWlrm"
+                    "ksUUOxGNkgf+Fm0eYKtez5kyHIqbjJ8aqCb7wOlS9RBDomfv1etEYTa2CmfQ==" + "\n") #root i136
             f.close()
             self.runCmd('mv ' + self.path + '/temp/_authorized_keys ' + self.path + '/rootimg/root/.ssh/authorized_keys')
             self.runCmd('chown root:root ' + self.path + '/rootimg/root/.ssh/authorized_keys')
