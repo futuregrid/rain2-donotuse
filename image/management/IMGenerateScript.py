@@ -398,10 +398,6 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
     runCmd('mkdir ' + tempdir + '' + name)
     runCmd('mount -o loop ' + tempdir + '' + name + '.img ' + tempdir + '' + name)
     #centosLog.info('Mounted image')
-    #Mount proc and pts
-    runCmd('mount -t proc proc ' + tempdir + '' + name + '/proc')
-    runCmd('mount -t devpts devpts ' + tempdir + '' + name + '/dev/pts')
-    ubuntuLog.info('Mounted proc and devpts')
 
     if base_os:
         #to create base_os
@@ -477,6 +473,12 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
         os.system('echo "127.0.0.1 localhost.localdomain localhost" > ' + tempdir + '' + name + '/etc/hosts')
         #base_os done
 
+
+    #Mount proc and pts
+    runCmd('mount -t proc proc '+tempdir+''+name + '/proc')
+    runCmd('mount -t devpts devpts '+tempdir+''+name + '/dev/pts')
+    centosLog.info('Mounted proc and devpts')
+
     centosLog.info('Installing some util packages')
     #if not os.path.isfile(tempdir + '' + name +"/proc/cpuinfo"):
     #    os.system("touch "+ tempdir + '' + name +"/proc/cpuinfo")
@@ -489,12 +491,6 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
 
     runCmd('chroot ' + tempdir + '' + name + ' yum -y install wget nfs-utils gcc make man curl')
    
-
-
-    #Mount proc and pts
-    #runCmd('mount -t proc proc '+tempdir+''+name + '/proc')
-    #runCmd('mount -t devpts devpts '+tempdir+''+name + '/dev/pts')
-    #centosLog.info('Mounted proc and devpts')
 
     #Setup networking
 
