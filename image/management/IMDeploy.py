@@ -694,8 +694,8 @@ class IMDeploy(object):
                     return
                 if self._verbose:
                     print 'Your image has been deployed in xCAT as ' + imagename + '.\n Please allow a few minutes for xCAT to register the image before attempting to use it.'
-                    print 'To boot an machine using your image: qsub -l os=<imagename>'
-                    print 'To check the status of the job you can use checkjob and showq commands'
+                    print 'To run a job in a machine using your image you can execute the next command: qsub -l os=<imagename> <scriptfile>'
+                    print 'To check the status of the job you can use checkjob and showq commands'                    
             #return image deployed or list of images
             return imagename  
         

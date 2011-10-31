@@ -262,8 +262,8 @@ def main():
                                      description="FutureGrid Image Deployment Help")    
     parser.add_argument('-u', '--user', dest='user', required=True, help='FutureGrid User name')
     parser.add_argument('-d', '--debug', dest='debug', action="store_true", help='Print logs in the screen for debug')
-    parser.add_argument("-o", "--os", dest="OS", metavar='OSName', help="specify destination Operating System")
-    parser.add_argument("-v", "--version", dest="version", metavar='OSversion', help="Operating System version")
+    parser.add_argument("-o", "--os", dest="OS", metavar='OSName', help="specify destination Operating System. Currently only Centos and Ubuntu are supported")
+    parser.add_argument("-v", "--version", dest="version", metavar='OSversion', help="Operating System version. In the case of Centos it can be 5 or 6. In the case of Ubuntu karmic(9.10), lucid(10.04), maverick(10.10), natty (11.04)")
     parser.add_argument("-a", "--arch", dest="arch", metavar='arch', help="Destination hardware architecture")
     parser.add_argument("-s", "--software", dest="software", metavar='software', help="Software list to be automatically installed")
     parser.add_argument("-n", "--name", dest="givenname", metavar='givenname', help="Desired recognizable name of the image")
@@ -315,12 +315,12 @@ def main():
         else:
             print "ERROR: Incorrect OS version specified. Supported OS version for " + OS + " are " + str(supported_versions)
             sys.exit(1)
-    elif args.OS == "Debian" or args.OS == "debian":
-        OS = "debian"
-        version = default_debian
-    elif args.OS == "Redhat" or args.OS == "redhat" or args.OS == "rhel":
-        OS = "rhel"
-        version = default_rhel
+    #elif args.OS == "Debian" or args.OS == "debian":
+    #    OS = "debian"
+    #    version = default_debian
+    #elif args.OS == "Redhat" or args.OS == "redhat" or args.OS == "rhel":
+    #    OS = "rhel"
+    #    version = default_rhel
     elif args.OS == "CentOS" or args.OS == "CentOS" or args.OS == "centos":
         OS = "centos"
         supported_versions = ["5", "5.0", "5.1", "5.2", "5.3", "5.4", "5.5", "5.6", "5.7", "6", "6.0"]
@@ -335,11 +335,11 @@ def main():
             print "ERROR: Incorrect OS version specified. Supported OS version for " + OS + " are " + str(supported_versions)
             sys.exit(1)
             
-    elif args.OS == "Fedora" or args.OS == "fedora":
-        OS = "fedora"
-        version = default_fedora
+    #elif args.OS == "Fedora" or args.OS == "fedora":
+    #    OS = "fedora"
+    #    version = default_fedora
     else:
-        print "ERROR: Incorrect OS type specified"
+        print "ERROR: Incorrect OS type specified. Currently only Centos and Ubuntu are supported"
         sys.exit(1)
         
     

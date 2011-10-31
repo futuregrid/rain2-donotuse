@@ -343,6 +343,12 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
     #else:
     #    output = "Error generating bcfg2 group configuration"
 
+
+    #disable password login via ssh
+    os.system('sudo sed -i \'s/PasswordAuthentication yes/PasswordAuthentication no/g\' ' + tempdir + '' + name + '/etc/ssh/sshd_config')
+    os.system('echo \"PasswordAuthentication no\" | sudo tee -a ' + tempdir + '' + name + '/etc/ssh/sshd_config > /dev/null')
+
+
     output = name
 
     os.system('rm -f ' + tempdir + '' + name + '/usr/sbin/policy-rc.d')
@@ -439,7 +445,7 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
         "\n"
         "[updates-released]\n"
         "name=CentOS "+version+" - $basearch - Released Updates\n"
-        #"baseurl=http://vault.centos.org/"+version+"/updates/"+arch+"/\n"            
+        #"baseurl=http://vault.centos.org/"+version+"/updates/"+arch+"/\n"
         "baseurl=http://mirror.centos.org/centos/"+version+"/updates/"+arch+"/\n"
         "enabled=1\n"
         "\n"
@@ -538,8 +544,12 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
     #else:
     #    output = "Error generating bcfg2 group configuration"
 
+    #disable password login via ssh
+    os.system('sudo sed -i \'s/PasswordAuthentication yes/PasswordAuthentication no/g\' ' + tempdir + '' + name + '/etc/ssh/sshd_config')
+    os.system('echo \"PasswordAuthentication no\" | sudo tee -a ' + tempdir + '' + name + '/etc/ssh/sshd_config > /dev/null')
+
     #create /etc/shadow file
-    os.system('pwconv')
+    runCmd('chroot ' + tempdir + '' + name + ' pwconv')
 
     output = name
 
