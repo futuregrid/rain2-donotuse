@@ -345,8 +345,8 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
 
 
     #disable password login via ssh
-    os.system('sudo sed -i \'s/PasswordAuthentication yes/PasswordAuthentication no/g\' ' + tempdir + '' + name + '/etc/ssh/sshd_config')
-    os.system('echo \"PasswordAuthentication no\" | sudo tee -a ' + tempdir + '' + name + '/etc/ssh/sshd_config > /dev/null')
+    os.system('sed -i \'s/PasswordAuthentication yes/PasswordAuthentication no/g\' ' + tempdir + '' + name + '/etc/ssh/sshd_config')
+    os.system('echo \"PasswordAuthentication no\" | tee -a ' + tempdir + '' + name + '/etc/ssh/sshd_config > /dev/null')
 
 
     output = name
@@ -545,11 +545,11 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
     #    output = "Error generating bcfg2 group configuration"
 
     #disable password login via ssh
-    os.system('sudo sed -i \'s/PasswordAuthentication yes/PasswordAuthentication no/g\' ' + tempdir + '' + name + '/etc/ssh/sshd_config')
-    os.system('echo \"PasswordAuthentication no\" | sudo tee -a ' + tempdir + '' + name + '/etc/ssh/sshd_config > /dev/null')
+    os.system('sed -i \'s/PasswordAuthentication yes/PasswordAuthentication no/g\' ' + tempdir + '' + name + '/etc/ssh/sshd_config')
+    os.system('echo \"PasswordAuthentication no\" | tee -a ' + tempdir + '' + name + '/etc/ssh/sshd_config > /dev/null')
 
     #create /etc/shadow file
-    runCmd('chroot ' + tempdir + '' + name + ' pwconv')
+    #runCmd('chroot ' + tempdir + '' + name + ' pwconv')
 
     output = name
 
