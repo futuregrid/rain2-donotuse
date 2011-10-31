@@ -398,7 +398,10 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
     runCmd('mkdir ' + tempdir + '' + name)
     runCmd('mount -o loop ' + tempdir + '' + name + '.img ' + tempdir + '' + name)
     #centosLog.info('Mounted image')
-    
+    #Mount proc and pts
+    runCmd('mount -t proc proc ' + tempdir + '' + name + '/proc')
+    runCmd('mount -t devpts devpts ' + tempdir + '' + name + '/dev/pts')
+    ubuntuLog.info('Mounted proc and devpts')
 
     if base_os:
         #to create base_os
