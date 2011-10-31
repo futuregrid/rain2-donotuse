@@ -585,7 +585,7 @@ def runCmd(cmd):
         cmdLog.error('Command: ' + cmd + ' failed, status: ' + str(p.returncode) + ' --- ' + std[1])        
         cleanup(namedir)        
         cmd = "rm -f " + tempdir + '' + namedir + ".img"
-        cleanupLog.debug('Executing: ' + cmd)
+        cmdLog.debug('Executing: ' + cmd)
         os.system(cmd)
         print "error"
         print str(p.returncode) + '---' + std[1]
