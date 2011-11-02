@@ -9,25 +9,29 @@ cyberaide.org, cogkit.org
 We have also use source code from the python library cmd 
 """
 
+import inspect
+
+from cmd2 import Cmd, make_option, options, Cmd2TestCase
+import unittest, sys
 import os
 import cmd
 import readline
 import sys
+import logging
+import string
+from getpass import getpass
+import hashlib
+#from futuregrid.utils.syscheck import sysCheck
+
+from futuregrid.utils.fgLog import fgLog
 from futuregrid.shell.fgShellUtils import fgShellUtils
 from futuregrid.shell.fgShellRepo import fgShellRepo
 from futuregrid.shell.fgShellHadoop import fgShellHadoop
 from futuregrid.shell.fgShellRain import fgShellRain
 from futuregrid.shell.fgShellConf import fgShellConf
 from futuregrid.shell.fgShellImage import fgShellImage
-import logging
-import string
-#from futuregrid.utils.syscheck import sysCheck
-
-from futuregrid.utils.fgLog import fgLog
-import inspect
-
-from cmd2 import Cmd, make_option, options, Cmd2TestCase
-import unittest, sys
+from futuregrid.utils import FGAuth
+from futuregrid.utils.FGTypes import FGCredential
 
 class fgShell(fgShellUtils,
               Cmd,
@@ -78,7 +82,13 @@ class fgShell(fgShellUtils,
         self._globals = {}
 
         self.user = user
-        self.passwd = passwd
+        self.passwd = ""
+        
+        self.passwdtype = "ldappass"
+        userCred = FGCredential(self.passwdtype,passwd)
+        if not self.check_simpleauth(userCred):
+            sys.exit()
+
 
         #Load Config
         self._conf = fgShellConf()
@@ -135,6 +145,32 @@ class fgShell(fgShellUtils,
             self.stdout.write(arg)
             self.stdout.write('\n')
 
+
+    def check_simpleauth(self, userCred):
+        endloop = False
+        passed = False        
+        max_try=3
+        cur_try=0
+        while not endloop:                        
+            if FGAuth.simpleauth(self.user, userCred):                
+                print "Authentication OK"                
+                endloop = True
+                passed = True
+                m = hashlib.md5()
+                m.update(passwd)
+                passwd = m.hexdigest()                
+                self.passwd = passwd
+            else:
+                if cur_try<max_try:
+                    msg = "Permission denied, please try again. User is " + self.user                    
+                    print msg                    
+                    userCred = FGCredential(self.passwdtype,getpass())
+                    cur_try+=1
+                else:
+                    print "Permission denied."
+                    endloop = True
+                    passed = False
+        return passed
 
     ################################
     # USE

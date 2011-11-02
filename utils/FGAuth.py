@@ -127,6 +127,65 @@ def auth(userId, cred):
     return ret
     #return True
 
+def simpleauth(userId, cred):
+    ret = False
+    
+    # find the config file
+    _localpath = "~/.fg/"
+    _configfile = os.path.expanduser(_localpath) + "/" + configFileName
+    _fgpath = ""
+    try:
+        _fgpath = os.environ['FG_PATH']
+    except KeyError:
+        _fgpath = os.path.dirname(os.path.abspath(__file__)) + "/../"
+    
+    if not os.path.isfile(_configfile):
+        _configfile = os.path.expanduser(_fgpath) + "/etc/" + configFileName
+        if not os.path.isfile(_configfile):
+            _configfile = os.path.expanduser(os.path.dirname(__file__)) + "/" + configFileName
+            if not os.path.isfile(_configfile):   
+                print "ERROR: configuration file " + configFileName + " not found"
+                sys.exit(1)
+                
+    configFile = _configfile
+    config = ConfigParser.ConfigParser()
+    config.read(configFile)
+    logfile = config.get("LDAP", "log")
+    
+    log = fgLog(logfile, logging.INFO, "utils.FGAuth Auth", False)
+
+    authProvider = cred.getProvider()
+    authCred = cred.getCred()
+    # print "'" + userId + "':'" + authProvider + "':'" + authCred + "'"
+    if(authProvider == "ldappass"):
+        if(authCred != ""):
+            host = config.get('LDAP', 'LDAPHOST')            
+            #print adminuser, adminpass
+            userdn = "uid=" + userId + ",ou=People,dc=futuregrid,dc=org"
+            #print userdn
+            ldapconn = ldap.initialize("ldap://" + host)
+            log.info("Initializing the LDAP connection to server: " + host)
+            try:
+                ldapconn.start_tls_s()
+                log.info("tls started...")
+                ldapconn.bind_s(userdn, cred)
+                ret = True                
+            except ldap.INVALID_CREDENTIALS:
+                log.info("Your username or password is incorrect. Cannot bind as admin.")
+                ret = False
+            except ldap.LDAPError:
+                log.info("User '" + userId + "' failed to authenticate due to LDAP error. The user may not exist."+ str(sys.exc_info()))
+                ret = False
+            except:
+                ret = False
+                log.info("User '" + userId + "' failed to authenticate due to possible password encryption error."+str(sys.exc_info()))
+            finally:
+                log.info("Unbinding from the LDAP.")
+                ldapconn.unbind()
+    
+    print ret
+    return ret
+
 if __name__ == "__main__":
     m = hashlib.md5()
     m.update(getpass())

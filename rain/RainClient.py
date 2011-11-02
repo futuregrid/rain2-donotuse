@@ -92,7 +92,7 @@ class RainClient(object):
         
         #execute qsub
         cmd = "qsub "
-        if machines > 1:
+        if machines >= 1:
             cmd += "-l nodes=" + str(machines)
         if imageidonsystem != "default":
             cmd += " -l os=" + imageidonsystem
