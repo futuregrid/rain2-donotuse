@@ -18,6 +18,7 @@ from getpass import getpass
 
 
 configFileName = "fg-server.conf"
+configFileNameClient = "fg-client.conf"
 ############################################################
 # auth
 ############################################################
@@ -132,7 +133,7 @@ def simpleauth(userId, cred):
     
     # find the config file
     _localpath = "~/.fg/"
-    _configfile = os.path.expanduser(_localpath) + "/" + configFileName
+    _configfile = os.path.expanduser(_localpath) + "/" + configFileNameClient
     _fgpath = ""
     try:
         _fgpath = os.environ['FG_PATH']
@@ -140,17 +141,17 @@ def simpleauth(userId, cred):
         _fgpath = os.path.dirname(os.path.abspath(__file__)) + "/../"
     
     if not os.path.isfile(_configfile):
-        _configfile = os.path.expanduser(_fgpath) + "/etc/" + configFileName
+        _configfile = os.path.expanduser(_fgpath) + "/etc/" + configFileNameClient
         if not os.path.isfile(_configfile):
-            _configfile = os.path.expanduser(os.path.dirname(__file__)) + "/" + configFileName
+            _configfile = os.path.expanduser(os.path.dirname(__file__)) + "/" + configFileNameClient
             if not os.path.isfile(_configfile):   
-                print "ERROR: configuration file " + configFileName + " not found"
+                print "ERROR: configuration file " + configFileNameClient + " not found"
                 sys.exit(1)
                 
     configFile = _configfile
     config = ConfigParser.ConfigParser()
     config.read(configFile)
-    logfile = config.get("LDAP", "log")
+    logfile = os.path.expanduser(os.path.expandvars(config.get("LDAP", "log")))
     
     log = fgLog(logfile, logging.INFO, "utils.FGAuth Auth", False)
 
@@ -184,6 +185,7 @@ def simpleauth(userId, cred):
                 ldapconn.unbind()
     
     return ret
+    #return True
 
 if __name__ == "__main__":
     m = hashlib.md5()
