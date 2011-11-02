@@ -60,9 +60,8 @@ def main():
     args = parser.parse_args()
     
     print "Please insert the password for the user "+args.user+""
-    m = hashlib.md5()
-    m.update(getpass())
-    passwd = m.hexdigest()
+    
+    passwd = getpass()
     
     #remove options from command line to avoid problems with cmd2
     sys.argv = sys.argv[:1]
