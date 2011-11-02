@@ -171,7 +171,7 @@ def simpleauth(userId, cred):
                 ldapconn.bind_s(userdn, authCred)
                 ret = True                
             except ldap.INVALID_CREDENTIALS:
-                log.info("Your username or password is incorrect. Cannot bind as admin.")
+                log.info("Your username or password is incorrect. Cannot bind.")
                 ret = False
             except ldap.LDAPError:
                 log.info("User '" + userId + "' failed to authenticate due to LDAP error. The user may not exist."+ str(sys.exc_info()))
