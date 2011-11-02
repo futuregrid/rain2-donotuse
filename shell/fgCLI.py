@@ -157,14 +157,14 @@ class fgShell(fgShellUtils,
                 dashstr += "-"
             print dashstr
 
-            if (arg == "repo"):
+            if (arg == "repo"):                
                 self._requirements = ["Repo"]
             elif (arg == "hadoop"):
                 self._requirements = ["Hadoop"]
             elif (arg == "rain"):
                 self._requirements = ["Rain", "Repo", "Image"]#,"Gene","Rain"] #rain context requires initialize repo and generation
             elif (arg == "image"):
-                self._requirements = ["Repo","Image"]             
+                self._requirements = ["Repo","Image"]
 
             allspec = {}
             for i in self._requirements:    
@@ -191,6 +191,9 @@ class fgShell(fgShellUtils,
             if not (arg == ""):
                 temp = "-"
             self.prompt = "fg" + temp + "" + arg + ">"
+        else:            
+            print "ERROR: Incorrect Context. Available contexts are: "+str(self.env) + " For more information about the contexts execute the contexts command."           
+
 
     def help_use(self):
         msg = "Change the Shell CONTEXT to use a specific FG component. To see " + \
