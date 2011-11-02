@@ -168,7 +168,7 @@ def simpleauth(userId, cred):
             try:
                 ldapconn.start_tls_s()
                 log.info("tls started...")
-                ldapconn.bind_s(userdn, cred)
+                ldapconn.bind_s(userdn, authCred)
                 ret = True                
             except ldap.INVALID_CREDENTIALS:
                 log.info("Your username or password is incorrect. Cannot bind as admin.")
