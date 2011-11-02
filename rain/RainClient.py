@@ -135,9 +135,9 @@ class RainClient(object):
             return "ERROR in qsub. " + std_qsub[1]
         
         if stdoutfound == False:
-            stdout = "jobscript.o" + jobid
+            stdout = jobscript + ".o" + jobid
         if stderrfound == False:
-            stderr = "jobscript.e" + jobid
+            stderr = jobscript + ".e" + jobid
         
         time.sleep(2)          
         #execute checkjob checking Status until complete or fail
