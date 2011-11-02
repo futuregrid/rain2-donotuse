@@ -157,7 +157,7 @@ class fgShell(fgShellUtils,
                 endloop = True
                 passed = True
                 m = hashlib.md5()
-                m.update(passwd)
+                m.update(userCred.getCred())
                 passwd = m.hexdigest()                
                 self.passwd = passwd
             else:
