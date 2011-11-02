@@ -46,9 +46,9 @@ class fgShellImage(Cmd):
         default_centos = "5.6"
         default_fedora = "13"
         #kernel = "2.6.27.21-0.1-xen"
-        
-        argslist = args.split("-")[1:]        
-        
+        args = " " + args
+        argslist = args.split(" -")[1:]      
+                
         prefix = ''
         sys.argv=['']
         for i in range(len(argslist)):
@@ -67,7 +67,7 @@ class fgShellImage(Cmd):
                 #sys.argv += [prefix+'-'+argslist[i]]
                 prefix = ''
         #print sys.argv
-    
+        
         parser = argparse.ArgumentParser(prog="imagegenerate", formatter_class=argparse.RawDescriptionHelpFormatter,
                                          description="FutureGrid Image Generation Help")
         parser.add_argument('-d', '--debug', dest='debug', action="store_true", help='Print logs in the screen for debug')
@@ -180,7 +180,8 @@ class fgShellImage(Cmd):
 
     def do_imagedeploy(self, args):
 
-        argslist = args.split("-")[1:]        
+        args = " " + args
+        argslist = args.split(" -")[1:]        
         
         prefix = ''
         sys.argv=['']

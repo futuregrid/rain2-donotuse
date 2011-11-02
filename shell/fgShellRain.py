@@ -31,7 +31,8 @@ class fgShellRain(Cmd):
         self.rain = RainClient(verbose, debug)
 
     def do_rainlaunch(self, args):
-        argslist = args.split("-")[1:]        
+        args = " " + args
+        argslist = args.split(" -")[1:]        
         
         prefix = ''
         sys.argv=['']
