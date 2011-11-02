@@ -263,7 +263,8 @@ def main():
         image_source = "default"
         image = "default"
         
-    if not os.path.isfile(args.jobscript):
+    jobscript = os.path.expanduser(os.path.expandvars(args.jobscript))
+    if not os.path.isfile(jobscript):
         print 'Not script file found. Please specify an script file using the paramiter -j/--jobscript'            
         sys.exit(1)
     
@@ -325,7 +326,7 @@ def main():
         rain = RainClient(verbose, args.debug)
         target = ""
         if args.xcat != None:            
-            output = rain.baremetal(output, args.jobscript, args.machines)
+            output = rain.baremetal(output, jobscript, args.machines)
             if output != None:
                 print output
         else:
@@ -335,18 +336,18 @@ def main():
                 elif not os.path.isfile(varfile):
                     print "ERROR: Variable files not found. You need to specify the path of the file with the Eucalyptus environment variables"
                 else:
-                    output = rain.euca(output, args.jobscript, args.machines, varfile)
+                    output = rain.euca(output, jobscript, args.machines, varfile)
             elif ('-o' in used_args or '--opennebula' in used_args):
-                output = rain.opennebula(output, args.jobscript, args.machines)
+                output = rain.opennebula(output, jobscript, args.machines)
             elif ('-n' in used_args or '--nimbus' in used_args):
-                output = rain.nimbus(output, args.jobscript, args.machines)
+                output = rain.nimbus(output, jobscript, args.machines)
             elif ('-s' in used_args or '--openstack' in used_args):
                 if varfile == "":
                     print "ERROR: You need to specify the path of the file with the OpenStack environment variables"
                 elif not os.path.isfile(varfile):
                     print "ERROR: Variable files not found. You need to specify the path of the file with the OpenStack environment variables"
                 else:  
-                    output = rain.openstack(output, args.jobscript, args.machines, varfile)
+                    output = rain.openstack(output, jobscript, args.machines, varfile)
             else:
                 print "ERROR: You need to specify a Rain target (xcat, eucalyptus or openstack)"
         

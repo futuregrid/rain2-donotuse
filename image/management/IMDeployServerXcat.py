@@ -597,6 +597,11 @@ sysfs   /sys     sysfs    defaults       0 0
                                   self.path + '/rootimg/var/spool/torque/pbs_environment')
             status = self.runCmd('wget ' + self.http_server + '/torque/torque-2.4.8_india/server_name -O ' +\
                                   self.path + '/rootimg/var/spool/torque/server_name')
+            status = self.runCmd('wget ' + self.http_server + '/torque/torque-2.4.8_india/prologue -O ' +\
+                                  self.path + '/rootimg/var/spool/torque/mom_priv/prologue')
+            status = self.runCmd('wget ' + self.http_server + '/torque/torque-2.4.8_india/epilogue -O ' +\
+                                  self.path + '/rootimg/var/spool/torque/mom_priv/epilogue')
+            self.runCmd('chmod +x ' + self.path + '/rootimg/var/spool/torque/mom_priv/epilogue '+ self.path + '/rootimg/var/spool/torque/mom_priv/prologue')            
             
             self.logger.info('Configuring network')
             status = self.runCmd('wget ' + self.http_server + '/conf/ubuntu/netsetup.sh_india -O ' + self.path + '/rootimg/etc/init.d/netsetup.sh')
@@ -774,6 +779,12 @@ sysfs   /sys     sysfs    defaults       0 0
             self.runCmd('tar xfz ' + self.path + '/var.tgz -C ' + self.path + '/rootimg/')
             status = self.runCmd('wget ' + self.http_server + '/torque/torque-2.4.8_india/pbs_mom -O ' + self.path + '/rootimg/etc/init.d/pbs_mom')
             self.runCmd('rm -f ' + self.path + '/opt.tgz ' + self.path + '/var.tgz')
+            status = self.runCmd('wget ' + self.http_server + '/torque/torque-2.4.8_india/prologue -O ' +\
+                                  self.path + '/rootimg/var/spool/torque/mom_priv/prologue')
+            status = self.runCmd('wget ' + self.http_server + '/torque/torque-2.4.8_india/epilogue -O ' +\
+                                  self.path + '/rootimg/var/spool/torque/mom_priv/epilogue')
+            self.runCmd('chmod +x ' + self.path + '/rootimg/var/spool/torque/mom_priv/epilogue '+ self.path + '/rootimg/var/spool/torque/mom_priv/prologue')
+            
             
             self.logger.info('Configuring network')
             status = self.runCmd('wget ' + self.http_server + '/conf/centos/netsetup.sh_india -O ' + self.path + '/rootimg/etc/init.d/netsetup.sh')

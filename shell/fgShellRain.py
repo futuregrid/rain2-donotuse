@@ -52,8 +52,8 @@ class fgShellRain(Cmd):
                 #sys.argv += [prefix+'-'+argslist[i]]
                 prefix = ''
 
-        parser = argparse.ArgumentParser(prog="RainClient", formatter_class=argparse.RawDescriptionHelpFormatter,
-                                     description="FutureGrid Image Deployment Help ")    
+        parser = argparse.ArgumentParser(prog="rainlaunch", formatter_class=argparse.RawDescriptionHelpFormatter,
+                                     description="FutureGrid Rain Help ")    
         #parser.add_argument('-d', '--debug', dest='debug', action="store_true", help='Print logs in the screen for debug')
         parser.add_argument('-k', '--kernel', dest="kernel", metavar='Kernel version', help="Specify the desired kernel" 
                             "(must be exact version and approved for use within FG). Not yet supported")
@@ -85,7 +85,8 @@ class fgShellRain(Cmd):
             image_source = "default"
             image = "default"
         
-        if not os.path.isfile(args.jobscript):
+        jobscript = os.path.expanduser(os.path.expandvars(args.jobscript))
+        if not os.path.isfile(jobscript):
             print 'Not script file found. Please specify an script file using the paramiter -j/--jobscript'            
             sys.exit(1)
         
@@ -145,17 +146,18 @@ class fgShellRain(Cmd):
         if output != None:            
             target = ""
             if args.xcat != None:            
-                output = self.rain.baremetal(output, args.jobscript, args.machines)
-                print output
+                output = self.rain.baremetal(output, jobscript, args.machines)
+                if output != None:
+                    print output
             else:
                 if ('-e' in used_args or '--euca' in used_args):
-                    output = self.rain.euca(output, args.jobscript, args.machines)
+                    output = self.rain.euca(output, jobscript, args.machines)
                 elif ('-o' in used_args or '--opennebula' in used_args):
-                    output = self.rain.opennebula(output, args.jobscript, args.machines)
+                    output = self.rain.opennebula(output, jobscript, args.machines)
                 elif ('-n' in used_args or '--nimbus' in used_args):
-                    output = self.rain.nimbus(output, args.jobscript, args.machines)
+                    output = self.rain.nimbus(output, jobscript, args.machines)
                 elif ('-s' in used_args or '--openstack' in used_args):
-                    output = self.rain.openstack(output, args.jobscript, args.machines)
+                    output = self.rain.openstack(output, jobscript, args.machines)
                 else:
                     print "ERROR: You need to specify a Rain target (xcat, eucalyptus or openstack)"
             
