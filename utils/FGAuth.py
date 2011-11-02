@@ -183,7 +183,6 @@ def simpleauth(userId, cred):
                 log.info("Unbinding from the LDAP.")
                 ldapconn.unbind()
     
-    print ret
     return ret
 
 if __name__ == "__main__":
