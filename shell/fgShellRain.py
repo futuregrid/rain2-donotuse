@@ -91,6 +91,10 @@ class fgShellRain(Cmd):
             print 'Not script file found. Please specify an script file using the paramiter -j/--jobscript'            
             sys.exit(1)
         
+        varfile = ""
+        if args.varfile != None:
+            varfile = os.path.expandvars(os.path.expanduser(args.varfile))
+        
         sshkeyfile = ""
         if args.sshkeyfile != None:
             sshkeyfile = os.path.expandvars(os.path.expanduser(args.sshkeyfile))
@@ -110,10 +114,7 @@ class fgShellRain(Cmd):
                     output = self.imgdeploy.xcat_method(args.xcat, args.imgid)
                     time.sleep(3)
             else:
-                ldap = True #we configure ldap to run commands and be able to login from on vm to other
-                varfile = ""
-                if args.varfile != None:
-                    varfile = os.path.expanduser(args.varfile)
+                ldap = True #we configure ldap to run commands and be able to login from on vm to other                                
                 #EUCALYPTUS    
                 if ('-e' in used_args or '--euca' in used_args):
                     if not args.getimg:
