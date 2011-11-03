@@ -161,13 +161,27 @@ class fgShellRain(Cmd):
                     print output
             else:
                 if ('-e' in used_args or '--euca' in used_args):
-                    output = self.rain.euca(output, jobscript, args.machines, varfile, sshkeyfile)
+                    if varfile == "":
+                        print "ERROR: You need to specify the path of the file with the Eucalyptus environment variables"
+                    elif not os.path.isfile(varfile):
+                        print "ERROR: Variable files not found. You need to specify the path of the file with the Eucalyptus environment variables"
+                    elif not os.path.isfile(sshkeyfile):
+                        print 'The sshkey file provided with he parameter -f/--sshkey does not exists'   
+                    else:
+                        output = self.rain.euca(output, jobscript, args.machines, varfile, sshkeyfile)
                 elif ('-o' in used_args or '--opennebula' in used_args):
                     output = self.rain.opennebula(output, jobscript, args.machines)
                 elif ('-n' in used_args or '--nimbus' in used_args):
                     output = self.rain.nimbus(output, jobscript, args.machines)
                 elif ('-s' in used_args or '--openstack' in used_args):
-                    output = self.rain.openstack(output, jobscript, args.machines)
+                    if varfile == "":
+                        print "ERROR: You need to specify the path of the file with the OpenStack environment variables"
+                    elif not os.path.isfile(varfile):
+                        print "ERROR: Variable files not found. You need to specify the path of the file with the OpenStack environment variables"
+                    elif not os.path.isfile(sshkeyfile):
+                        print 'The sshkey file provided with he parameter -f/--sshkey does not exists'  
+                    else:  
+                        output = self.rain.openstack(output, jobscript, args.machines, varfile, sshkeyfile)
                 else:
                     print "ERROR: You need to specify a Rain target (xcat, eucalyptus or openstack)"
             
