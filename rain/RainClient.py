@@ -188,7 +188,7 @@ class RainClient(object):
     def euca(self, imageidonsystem, jobscript, machines, varfile):
         print "in eucalyptus method.end"
         
-    def openstack(self, imageidonsystem, jobscript, machines, varfile, key_pair, ninstances):
+    def openstack(self, imageidonsystem, jobscript, ninstances, varfile, key_pair):
         """
         imageidonsystem = id of the image
         jobscript = path of the script to execute machines
@@ -198,7 +198,11 @@ class RainClient(object):
         """        
         
         
-        os.environ["NOVA_KEY_DIR"] = os.path.dirname(varfile)        
+        nova_key_dir = os.path.dirname(varfile)            
+        if nova_key_dir.strip() == "":
+            nova_key_dir = "."
+        os.environ["NOVA_KEY_DIR"] = nova_key_dir
+                    
         #read variables
         f = open(varfile, 'r')
         for line in f:
@@ -233,8 +237,7 @@ class RainClient(object):
         
         #Check that key_pair without .pem and path is in openstack
         #check that key_pairis exists. this may be done outside in argparse
-        
-        
+                
         image = connection.get_image(imageidonsystem)        
         print image.location
         
@@ -357,6 +360,7 @@ def main():
     parser.add_argument('-v', '--varfile', dest='varfile', help='Path of the environment variable files. Currently this is used by Eucalyptus and OpenStack')
     parser.add_argument('-m', '--numberofmachines', dest='machines', metavar='#instances', default=1, help='Number of machines needed.')
     parser.add_argument('-j', '--jobscript', dest='jobscript', required=True, help='Script to execute on the provisioned images.')
+    parser.add_argument('-f', '--sshkeyfile', dest='sshkeyfile', required=True, help='File path of the SSH key registered on OpenStack or Eucalyptus.')
     
     
     args = parser.parse_args()
@@ -394,6 +398,13 @@ def main():
     varfile = ""
     if args.varfile != None:
         varfile = os.path.expandvars(os.path.expanduser(args.varfile))
+    
+    sshkeyfile = ""
+    if args.sshkeyfile != None:
+        sshkeyfile = os.path.expandvars(os.path.expanduser(args.sshkeyfile))
+        if not os.path.isfile(sshkeyfile):
+            print 'The sshkey file provided with he parameter -f/--sshkey does not exists'            
+            sys.exit(1)
     
     output = None
     if image_source == "repo":
@@ -459,7 +470,7 @@ def main():
                 elif not os.path.isfile(varfile):
                     print "ERROR: Variable files not found. You need to specify the path of the file with the Eucalyptus environment variables"
                 else:
-                    output = rain.euca(output, jobscript, args.machines, varfile)
+                    output = rain.euca(output, jobscript, args.machines, varfile, sshkeyfile)
             elif ('-o' in used_args or '--opennebula' in used_args):
                 output = rain.opennebula(output, jobscript, args.machines)
             elif ('-n' in used_args or '--nimbus' in used_args):
@@ -470,16 +481,13 @@ def main():
                 elif not os.path.isfile(varfile):
                     print "ERROR: Variable files not found. You need to specify the path of the file with the OpenStack environment variables"
                 else:  
-                    output = rain.openstack(output, jobscript, args.machines, varfile)
+                    output = rain.openstack(output, jobscript, args.machines, varfile, sshkeyfile)
             else:
-                print "ERROR: You need to specify a Rain target (xcat, eucalyptus or openstack)"
-        
-        
+                print "ERROR: You need to specify a Rain target (xcat, eucalyptus or openstack)"                
     else:
         print "ERROR: invalid image id."
     #call rain with the command
     
-
 if __name__ == "__main__":
     main()
 #END
