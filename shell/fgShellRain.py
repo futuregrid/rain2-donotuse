@@ -161,7 +161,7 @@ class fgShellRain(Cmd):
                     print output
             else:
                 if ('-e' in used_args or '--euca' in used_args):
-                    output = self.rain.euca(output, jobscript, args.machines)
+                    output = self.rain.euca(output, jobscript, args.machines, varfile, sshkeyfile)
                 elif ('-o' in used_args or '--opennebula' in used_args):
                     output = self.rain.opennebula(output, jobscript, args.machines)
                 elif ('-n' in used_args or '--nimbus' in used_args):
