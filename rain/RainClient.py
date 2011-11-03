@@ -19,6 +19,8 @@ from subprocess import *
 from getpass import getpass
 import hashlib
 import time
+import boto.ec2
+import boto
 
 from RainClientConf import RainClientConf
 sys.path.append(os.getcwd())
@@ -186,8 +188,64 @@ class RainClient(object):
     def euca(self, imageidonsystem, jobscript, machines, varfile):
         print "in eucalyptus method.end"
         
-    def openstack(self, imageidonsystem, jobscript, machines, varfile):
-        print "in openstack method.end"    
+    def openstack(self, imageidonsystem, jobscript, machines, varfile, key_pair, ninstances):
+        """
+        imageidonsystem = id of the image
+        jobscript = path of the script to execute machines
+        varfile = openstack variable files(novarc typically)
+        key_pair = ssh key name. this must be registered on openstack.
+        ninstances = number of instances
+        """        
+        
+        os.environ["NOVA_KEY_DIR"] = os.path.dirname(varfile)        
+        #read variables
+        f = open(varfile, 'r')
+        for line in f:
+            if re.search("^export ", line):
+                line = line.split()[1]                    
+                parts = line.split("=")
+                #parts[0] is the variable name
+                #parts[1] is the value
+                parts[0] = parts[0].strip()
+                value = ""
+                for i in range(1, len(parts)):
+                    parts[i] = parts[i].strip()
+                    parts[i] = os.path.expanduser(os.path.expandvars(parts[i]))                    
+                    value += parts[i] + "="
+                value = value.rstrip("=")
+                value = value.strip('"')
+                value = value.strip("'") 
+                os.environ[parts[0]] = value
+        f.close()
+        
+        if iaas_address != "None":
+            ec2_url = "http://" + iaas_address + "/services/Cloud"
+            s3_url = "http://" + iaas_address + ":3333"
+        else:
+            ec2_url = os.getenv("EC2_URL")
+            s3_url = os.getenv("S3_URL")
+             
+        #OpenStack Connection
+        endpoint = ec2_url.lstrip("http://").split(":")[0]        
+        region = boto.ec2.regioninfo.RegionInfo(name="nova",endpoint=endpoint)
+        connection = boto.connect_ec2(str(os.getenv("EC2_ACCESS_KEY")), str(os.getenv("EC2_SECRET_KEY")), is_secure=False, region = region,port=8773,path="/services/Cloud")
+        
+        
+        image = connection.get_image("ami-00000058")        
+        print image.location
+        
+        re = image.run(ninstances,ninstances,key_pair) #key_pair is the sshkey name that is the same that the file without .pem
+                
+        #do a for to control status of all instances
+        
+        #re is a list of intances
+        ins=re.instances[0]
+        
+        while not ins.update() == 'running':
+            time.sleep(5)        
+        #to update status instance       
+        
+        ins.stop()
         
     def opennebula(self, imageidonsystem, jobscript, machines):
         print "in opennebula method.end"

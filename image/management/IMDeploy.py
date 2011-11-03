@@ -203,8 +203,11 @@ class IMDeploy(object):
         imageId = None
         if not eval(getimg):
             
-            os.environ["EUCA_KEY_DIR"] = os.path.dirname(varfile)
-            
+            euca_key_dir = os.path.dirname(varfile)            
+            if euca_key_dir.strip() == "":
+                euca_key_dir = "."
+            os.environ["EUCA_KEY_DIR"] = euca_key_dir
+                        
             #read variables
             f = open(varfile, 'r')
             for line in f:
@@ -224,8 +227,7 @@ class IMDeploy(object):
                     value = value.strip("'") 
                     os.environ[parts[0]] = value
             f.close()
-            
-            #CONTACT IMDeployServerIaaS to customize image ...    
+                
             if iaas_address != "None":
                 ec2_url = "http://" + iaas_address + "/services/Eucalyptus"
                 s3_url = "http://" + iaas_address + "/services/Walrus"
@@ -308,7 +310,10 @@ class IMDeploy(object):
         imageId = None
         if not eval(getimg):
             
-            os.environ["NOVA_KEY_DIR"] = os.path.dirname(varfile)
+            nova_key_dir = os.path.dirname(varfile)            
+            if nova_key_dir.strip() == "":
+                nova_key_dir = "."
+            os.environ["NOVA_KEY_DIR"] = nova_key_dir
             
             #read variables
             f = open(varfile, 'r')
@@ -329,8 +334,7 @@ class IMDeploy(object):
                     value = value.strip("'") 
                     os.environ[parts[0]] = value
             f.close()
-            #CONTACT IMDeployServerIaaS to customize image ...
-    
+                
             if iaas_address != "None":
                 ec2_url = "http://" + iaas_address + "/services/Cloud"
                 s3_url = "http://" + iaas_address + ":3333"
@@ -344,7 +348,7 @@ class IMDeploy(object):
     
             #Bundle Image
             #cmd = 'euca-bundle-image --image ' + imagebackpath + ' --kernel ' + eki + ' --ramdisk ' + eri
-            cmd = "euca-bundle-image --cert " + str(os.getenv("EC2_CERT")) + " --privatekey " + str(os.getenv("EC2_PRIVATE_KEY")) + \
+            cmd = "euca-bundle-image --cert " + os.path.expanduser(os.path.expandvars(os.getenv("EC2_CERT"))) + " --privatekey " + os.path.expanduser(os.path.expandvars(os.getenv("EC2_PRIVATE_KEY"))) + \
                   " --user " + str(os.getenv("EC2_USER_ID")) + " --ec2cert " + str(os.getenv("EUCALYPTUS_CERT")) + " --url " + str(ec2_url) + \
                   " -a " + str(os.getenv("EC2_ACCESS_KEY")) + " -s " + str(os.getenv("EC2_SECRET_KEY")) + \
                   " --image " + str(imagebackpath) + " --kernel " + str(eki) + " --ramdisk " + str(eri)
@@ -364,9 +368,9 @@ class IMDeploy(object):
             #Register image
             #cmd = 'euca-register ' + self.user + '/' + filename + '.manifest.xml'
             cmd = "euca-register -a " + os.getenv("EC2_ACCESS_KEY") + " -s " + os.getenv("EC2_SECRET_KEY") + \
-                " --url " + ec2_url + " " + self.user + '/' + filename + '.manifest.xml'        
+                " --url " + ec2_url + " " + self.user + '/' + filename + '.manifest.xml'    
             print cmd
-            self._log.debug(cmd)            
+            self._log.debug(cmd)
             #stat = os.system(cmd) #execute this with Popen to get the output
             p = Popen(cmd.split(' '), stdout=PIPE, stderr=PIPE)
             std = p.communicate()

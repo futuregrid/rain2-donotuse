@@ -390,8 +390,10 @@ class IMDeployServerIaaS(object):
  proc            /proc         proc     defaults                   0 0
  devpts          /dev/pts      devpts   gid=5,mode=620             0 0
  '''
-        if ldap: #this is for india
-            fstab+="149.165.146.145:/users /N/u      nfs     rw,rsize=1048576,wsize=1048576,intr,nosuid"
+
+        #install sshfs
+        #we need to mount only home directory of user using sshfs. The mount an directory creation can be done before executing the job. we need to inject ssh pub/priv keys
+
         f = open(localtempdir + '/fstab', 'w')
         f.write(fstab)
         f.close()
@@ -423,9 +425,10 @@ class IMDeployServerIaaS(object):
  proc            /proc         proc     defaults                   0 0
  devpts          /dev/pts      devpts   gid=5,mode=620             0 0
  '''
-        if ldap: #this is for india
-            fstab+="149.165.146.145:/users /N/u      nfs     rw,rsize=1048576,wsize=1048576,intr,nosuid"
-            
+        
+        #install sshfs
+        #we need to mount only home directory of user using sshfs. The mount an directory creation can be done before executing the job. we need to inject ssh pub/priv keys
+           
         f = open(localtempdir + '/fstab', 'w')
         f.write(fstab)
         f.close()
