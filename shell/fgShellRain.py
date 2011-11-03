@@ -159,18 +159,18 @@ class fgShellRain(Cmd):
                     elif not os.path.isfile(varfile):
                         print "ERROR: Variable files not found. You need to specify the path of the file with the Eucalyptus environment variables" 
                     else:
-                        output = self.rain.euca(output, jobscript, args.machines, varfile)
+                        output = self.rain.euca(args.euca,output, jobscript, args.machines, varfile)
                 elif ('-o' in used_args or '--opennebula' in used_args):
-                    output = self.rain.opennebula(output, jobscript, args.machines)
+                    output = self.rain.opennebula(args.opennebula,output, jobscript, args.machines)
                 elif ('-n' in used_args or '--nimbus' in used_args):
-                    output = self.rain.nimbus(output, jobscript, args.machines)
+                    output = self.rain.nimbus(args.nimbus,output, jobscript, args.machines)
                 elif ('-s' in used_args or '--openstack' in used_args):
                     if varfile == "":
                         print "ERROR: You need to specify the path of the file with the OpenStack environment variables"
                     elif not os.path.isfile(varfile):
                         print "ERROR: Variable files not found. You need to specify the path of the file with the OpenStack environment variables"
                     else:  
-                        output = self.rain.openstack(output, jobscript, args.machines, varfile)
+                        output = self.rain.openstack(args.openstack, output, jobscript, args.machines, varfile)
                 else:
                     print "ERROR: You need to specify a Rain target (xcat, eucalyptus or openstack)"
             
