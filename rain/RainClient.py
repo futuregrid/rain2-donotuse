@@ -253,11 +253,22 @@ class RainClient(object):
             
         #Check that key_pair without .pem and path is in openstack
         #check that key_pairis exists. this may be done outside in argparse
-                
-        image = connection.get_image(imageidonsystem)        
-        print image.location
+        try:
+            image = connection.get_image(imageidonsystem)        
+            print image.location
+        except:
+            print "ERROR: getting the image " + str(sys.exc_info())
+            connection.delete_key_pair(sshkeypair_name)
+            os.system("rm -rf ~/"+sshkeypair_name+".pem")
+            return
         
-        reservation = image.run(ninstances,ninstances,sshkeypair_name)
+        try:
+            reservation = image.run(ninstances,ninstances,sshkeypair_name)
+        except:
+            print "ERROR: launching the VM " + str(sys.exc_info())
+            connection.delete_key_pair(sshkeypair_name)
+            os.system("rm -rf ~/"+sshkeypair_name+".pem")
+            return
                 
         #do a for to control status of all instances
         allrunning=False
@@ -270,9 +281,8 @@ class RainClient(object):
                     running+=1
                 elif status == 'shutting-down' or status == 'terminate':
                     allrunning = True
-                    failed = True
-                    
-            if (running == len(reservation.instances) - 1):
+                    failed = True                    
+            if (running == len(reservation.instances)):
                 allrunning = True
             else:
                 time.sleep(5)
@@ -323,7 +333,7 @@ class RainClient(object):
                     allaccessible = False
                     break
                 
-                if naccessible == len(reservation.instances)-1:
+                if naccessible == len(reservation.instances):
                     allaccessible = True                
         
             print allaccessible
