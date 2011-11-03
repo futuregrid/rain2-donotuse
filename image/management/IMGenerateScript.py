@@ -288,7 +288,7 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
 
 
     ubuntuLog.info('Installing some util packages')
-    runCmd('chroot ' + tempdir + '' + name + ' apt-get -y install wget nfs-common gcc make libcrypto++8 man curl')
+    runCmd('chroot ' + tempdir + '' + name + ' apt-get -y install wget nfs-common gcc make libcrypto++8 man curl time')
         
 
 
@@ -489,7 +489,7 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
         runCmd('chroot ' + tempdir + '' + name + ' rpm -ivh http://download.fedora.redhat.com/pub/epel/6/'+arch+'/epel-release-6-5.noarch.rpm')
         runCmd('chroot ' + tempdir + '' + name + ' yum -y install plymouth') 
 
-    runCmd('chroot ' + tempdir + '' + name + ' yum -y install wget nfs-utils gcc make man curl')
+    runCmd('chroot ' + tempdir + '' + name + ' yum -y install wget nfs-utils gcc make man curl time')
    
 
     #Setup networking

@@ -193,9 +193,10 @@ class RainClient(object):
         imageidonsystem = id of the image
         jobscript = path of the script to execute machines
         varfile = openstack variable files(novarc typically)
-        key_pair = ssh key name. this must be registered on openstack.
+        key_pair = ssh key file. this must be registered on openstack. The name in openstack is os.path.basename(key_pair).strip('.')[0]
         ninstances = number of instances
         """        
+        
         
         os.environ["NOVA_KEY_DIR"] = os.path.dirname(varfile)        
         #read variables
@@ -230,22 +231,86 @@ class RainClient(object):
         region = boto.ec2.regioninfo.RegionInfo(name="nova",endpoint=endpoint)
         connection = boto.connect_ec2(str(os.getenv("EC2_ACCESS_KEY")), str(os.getenv("EC2_SECRET_KEY")), is_secure=False, region = region,port=8773,path="/services/Cloud")
         
+        #Check that key_pair without .pem and path is in openstack
+        #check that key_pairis exists. this may be done outside in argparse
         
-        image = connection.get_image("ami-00000058")        
+        
+        image = connection.get_image(imageidonsystem)        
         print image.location
         
-        re = image.run(ninstances,ninstances,key_pair) #key_pair is the sshkey name that is the same that the file without .pem
+        reservation = image.run(ninstances,ninstances,os.path.basename(key_pair).strip('.')[0]) #key_pair is the sshkey file name that is the same that the file without .pem
                 
         #do a for to control status of all instances
+        allrunning=False
+        while allrunning:
+            running=0        
+            for i in reservation.instances:
+                status = i.update()
+                if status == 'running':
+                    running+=1
+                elif status == 'shutting-down' or status == 'terminate':
+                    allrunning = True
+                    failed = True
+                    
+            if (running == len(reservation.instances) - 1):
+                allrunning = True
+            else:
+                time.sleep(5)
+                         
+        if not failed:            
+            #asignar ips. this should be skipped once the new openstack is deployed
+            #I do not do any verification because this has to disappear. Openstack has to assign the IP automatically       
+            for i in reservation.instances:
+                cmd = "euca-describe-addresses -a " + os.getenv("EC2_ACCESS_KEY") + " -s " + os.getenv("EC2_SECRET_KEY") + " --url " + ec2_url  
+                p = Popen(cmd.split(' '), stdout=PIPE, stderr=PIPE)
+                cmd = "awk /None/ {print $2}"
+                p1 = Popen(cmd.split(' ',1), stdin = p.stdout, stdout=PIPE, stderr=PIPE)
+                cmd = "sort"
+                p2 = Popen(cmd.split(' '), stdin = p1.stdout, stdout=PIPE, stderr=PIPE) 
+                cmd = "head -n1"
+                p3 = Popen(cmd.split(' '), stdin = p2.stdout, stdout=PIPE, stderr=PIPE)
+                std = p3.communicate()
+                                
+                if (p2.returncode==0):                    
+                    connection.associate_address(str(i.id), std[0].strip('\n'))
+                
+            #boto.ec2.instance.Instance.dns_name to get the public IP.
+            #boto.ec2.instance.Instance..private_dns_name private IP.
+                                                            
+            self._log.debug("Waiting to have access to VMs")
+            allaccessible = False
+            for i in reservation.instances:
+                naccessible = 0
+                access = False
+                maxretry = 240  #this says that we wait 20 minutes maximum to allow the VM get online. 
+                #this also prevent to get here forever if the ssh key was not injected propertly.
+                retry=0
+                while not access and retry < maxretry:                
+                    cmd = "ssh -i " + key_pair + " -q -oBatchMode=yes root@" + str(i.dns_name) + " uname"
+                    p = Popen(cmd, shell=True, stdout=PIPE)
+                    status = os.waitpid(p.pid, 0)[1]
+                    #print status
+                    if status == 0:
+                        access = True
+                        naccessible+=1
+                        self._log.debug("The instance " + str(str(i.id)) + " with public ip " + str(i.dns_name) + " and private ip " + str(i.private_dns_name) + " is accessible")
+                    else:
+                        retry+=1
+                        time.sleep(5)
+                        
+                if retry >= maxretry:
+                    self._log.error("Could not get access to the instance " + str(str(i.id)) + " with public ip " + str(i.dns_name) + " and private ip " + str(i.private_dns_name) + "\n")                                      
+                    allaccessible = False
+                    break
+                
+                if naccessible == len(reservation.instances)-1:
+                    allaccessible = True                
         
-        #re is a list of intances
-        ins=re.instances[0]
-        
-        while not ins.update() == 'running':
-            time.sleep(5)        
-        #to update status instance       
-        
-        ins.stop()
+            print allaccessible
+            
+        #terminate instances  
+        for i in reservation.instances:
+            i.stop()
         
     def opennebula(self, imageidonsystem, jobscript, machines):
         print "in opennebula method.end"

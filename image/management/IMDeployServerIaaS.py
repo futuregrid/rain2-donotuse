@@ -333,7 +333,9 @@ class IMDeployServerIaaS(object):
             os.system('echo "UseLPK yes" | sudo tee -a ' + localtempdir + '/temp/etc/ssh/sshd_config > /dev/null')
             os.system('echo "LpkLdapConf /etc/ldap.conf" | sudo tee -a ' + localtempdir + '/temp/etc/ssh/sshd_config > /dev/null')
             
-        else:
+            self.runCmd('sudo chroot ' + localtempdir + '/temp/ yum -y install fuse-sshfs')
+            
+        elif self.operatingsystem == "ubuntu":
             #services will install, but not start
             f = open(localtempdir + '/_policy-rc.d', 'w')
             f.write("#!/bin/sh" + '\n' + "exit 101" + '\n')
@@ -358,14 +360,13 @@ class IMDeployServerIaaS(object):
             self.logger.info('Installing LDAP packages')
             ldapexec = "/tmp/ldap.install"
             os.system('echo "#!/bin/bash \nexport DEBIAN_FRONTEND=noninteractive \napt-get ' + \
-                      '-y install ldap-utils libnss-ldapd nss-updatedb libnss-db" >' + localtempdir + '/temp/' + ldapexec)
+                      '-y install ldap-utils libnss-ldapd nss-updatedb libnss-db sshfs" >' + localtempdir + '/temp/' + ldapexec)
             os.system('chmod +x ' + localtempdir + '/temp/' + ldapexec)
             self.runCmd('chroot ' + localtempdir + '/temp/ ' + ldapexec)    
             #I think this is not needed
             #self.runCmd('wget '+ self.http_server +'/ldap/sshd_ubuntu -O ' + localtempdir + '/temp/usr/sbin/sshd')
             #os.system('echo "UseLPK yes" | sudo tee -a ' + localtempdir + '/temp/etc/ssh/sshd_config > /dev/null')
-            #os.system('echo "LpkLdapConf /etc/ldap.conf" | sudo tee -a ' + localtempdir + '/temp/etc/ssh/sshd_config > /dev/null')
-    
+            #os.system('echo "LpkLdapConf /etc/ldap.conf" | sudo tee -a ' + localtempdir + '/temp/etc/ssh/sshd_config > /dev/null')            
             self.runCmd('rm -f ' + localtempdir + '/temp/usr/sbin/policy-rc.d')
 
     def euca_method(self, localtempdir, ldap): 
@@ -391,15 +392,18 @@ class IMDeployServerIaaS(object):
  devpts          /dev/pts      devpts   gid=5,mode=620             0 0
  '''
 
-        #install sshfs
-        #we need to mount only home directory of user using sshfs. The mount an directory creation can be done before executing the job. we need to inject ssh pub/priv keys
-
         f = open(localtempdir + '/fstab', 'w')
         f.write(fstab)
         f.close()
         self.runCmd('sudo mv -f ' + localtempdir + '/fstab ' + localtempdir + '/temp/etc/fstab')
         self.runCmd('sudo chown root:root ' + localtempdir + '/temp/etc/fstab')
         self.logger.info('fstab Injected')
+
+        if ldap:
+            self.configure_ldap(localtempdir)
+            
+        #install sshfs
+        #we need to mount only home directory of user using sshfs. The mount an directory creation can be done before executing the job. we need to inject ssh pub/priv keys
 
         
 
@@ -489,7 +493,10 @@ echo "************************"
             os.system(cmd)
 
             self.runCmd('sudo chroot ' + localtempdir + '/temp/ yum -y install curl')
-
+            
+            if ldap:
+                self.configure_ldap(localtempdir)
+            
 
     def opennebula_method(self, localtempdir, ldap): 
 
