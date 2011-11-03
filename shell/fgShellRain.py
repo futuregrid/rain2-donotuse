@@ -70,7 +70,7 @@ class fgShellRain(Cmd):
         parser.add_argument('-v', '--varfile', dest='varfile', help='Path of the environment variable files. Currently this is used by Eucalyptus and OpenStack')
         parser.add_argument('-m', '--numberofmachines', dest='machines', metavar='#instances', default=1, help='Number of machines needed.')
         parser.add_argument('-j', '--jobscript', dest='jobscript', required=True, help='Script to execute on the provisioned images.')
-        parser.add_argument('-f', '--sshkeyfile', dest='sshkeyfile', required=True, help='File path of the SSH key registered on OpenStack or Eucalyptus.')
+        parser.add_argument('-f', '--sshkeyfile', dest='sshkeyfile', help='File path of the SSH key registered on OpenStack or Eucalyptus.')
         
         args = parser.parse_args()
         
@@ -94,9 +94,7 @@ class fgShellRain(Cmd):
         sshkeyfile = ""
         if args.sshkeyfile != None:
             sshkeyfile = os.path.expandvars(os.path.expanduser(args.sshkeyfile))
-            if not os.path.isfile(sshkeyfile):
-                print 'The sshkey file provided with he parameter -f/--sshkey does not exists'            
-                sys.exit(1)
+
         
         output = None
         if image_source == "repo":
@@ -123,6 +121,8 @@ class fgShellRain(Cmd):
                             print "ERROR: You need to specify the path of the file with the Eucalyptus environment variables"
                         elif not os.path.isfile(str(os.path.expanduser(varfile))):
                             print "ERROR: Variable files not found. You need to specify the path of the file with the Eucalyptus environment variables"
+                        elif not os.path.isfile(sshkeyfile):
+                            print 'The sshkey file provided with he parameter -f/--sshkey does not exists'
                         else:    
                             output = self.imgdeploy.iaas_generic(args.euca, image, image_source, "euca", varfile, args.getimg, ldap)        
                     else:    
@@ -140,6 +140,8 @@ class fgShellRain(Cmd):
                             print "ERROR: You need to specify the path of the file with the OpenStack environment variables"
                         elif not os.path.isfile(str(os.path.expanduser(varfile))):
                             print "ERROR: Variable files not found. You need to specify the path of the file with the OpenStack environment variables"
+                        elif not os.path.isfile(sshkeyfile):
+                            print 'The sshkey file provided with he parameter -f/--sshkey does not exists'  
                         else:    
                             output = self.imgdeploy.iaas_generic(args.openstack, image, image_source, "openstack", varfile, args.getimg, ldap)
                     else:    
