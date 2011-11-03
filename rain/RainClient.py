@@ -261,6 +261,7 @@ class RainClient(object):
                 
         #do a for to control status of all instances
         allrunning=False
+        failed = False
         while allrunning:
             running=0        
             for i in reservation.instances:
@@ -276,7 +277,7 @@ class RainClient(object):
             else:
                 time.sleep(5)
                          
-        if not failed:            
+        if not failed and allrunning:            
             #asignar ips. this should be skipped once the new openstack is deployed
             #I do not do any verification because this has to disappear. Openstack has to assign the IP automatically       
             for i in reservation.instances:
