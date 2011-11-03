@@ -223,7 +223,7 @@ class RainClient(object):
                 os.environ[parts[0]] = value
         f.close()
         
-        if iaas_address != "None":
+        if iaas_address != None:
             ec2_url = "http://" + iaas_address + "/services/Cloud"
             s3_url = "http://" + iaas_address + ":3333"
         else:
