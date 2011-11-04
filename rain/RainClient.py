@@ -265,8 +265,7 @@ class RainClient(object):
         except:
             msg = "ERROR: getting the image " + str(sys.exc_info())
             self._log.error(msg)
-            connection.delete_key_pair(sshkeypair_name)
-            os.system("rm -rf ~/"+sshkeypair_name+".pem")
+            self.removeEC2sshkey(connection, sshkeypair_path)
             return msg
 
         reservation = None
@@ -275,17 +274,18 @@ class RainClient(object):
         except:
             msg = "ERROR: launching the VM " + str(sys.exc_info())
             self._log.error(msg)
-            connection.delete_key_pair(sshkeypair_name)
-            os.system("rm -rf ~/"+sshkeypair_name+".pem")
+            self.removeEC2sshkey(connection, sshkeypair_path)
             return msg
                 
         #do a for to control status of all instances
+        
         allrunning=False
         failed = False
         while not allrunning:
             running=0        
             for i in reservation.instances:
                 status = i.update()
+                print status
                 if status == 'running':
                     running+=1                    
                 elif status == 'shutting-down' or status == 'terminate':
@@ -295,12 +295,15 @@ class RainClient(object):
                 allrunning = True
             else:
                 time.sleep(5)
-                         
+        
+        print "len instances" + len(reservation.instances)
+                  
         if not failed and allrunning:            
             #asignar ips. this should be skipped once the new openstack is deployed
             #I do not do any verification because this has to disappear. Openstack has to assign the IP automatically       
             for i in reservation.instances:
-                cmd = "euca-describe-addresses -a " + os.getenv("EC2_ACCESS_KEY") + " -s " + os.getenv("EC2_SECRET_KEY") + " --url " + ec2_url  
+                cmd = "euca-describe-addresses -a " + os.getenv("EC2_ACCESS_KEY") + " -s " + os.getenv("EC2_SECRET_KEY") + " --url " + ec2_url
+                print cmd
                 p = Popen(cmd.split(' '), stdout=PIPE, stderr=PIPE)
                 cmd = "awk /None/ {print $2}"
                 p1 = Popen(cmd.split(' ',1), stdin = p.stdout, stdout=PIPE, stderr=PIPE)
@@ -312,6 +315,12 @@ class RainClient(object):
                                 
                 if (p2.returncode==0):                    
                     connection.associate_address(str(i.id), std[0].strip('\n'))
+                else:
+                    msg = "ERROR: associating address to instance " + str(i.id)
+                    self._log.error(msg)
+                    self.removeEC2sshkey(connection, sshkeypair_path)
+                    self.stopEC2instances(reservation)
+                    return msg
                 
             #boto.ec2.instance.Instance.dns_name to get the public IP.
             #boto.ec2.instance.Instance..private_dns_name private IP.
@@ -347,12 +356,17 @@ class RainClient(object):
         
             print allaccessible
         
+        self.removeEC2sshkey(connection, sshkeypair_path)
+        self.stopEC2instances(reservation)
+    
+    def removeEC2sshkey(self, connection, sshkeypair_path, reservation):
         connection.delete_key_pair(sshkeypair_name)
-        os.system("rm -rf ~/"+sshkeypair_name+".pem")
-        #terminate instances  
+        os.system("rm -rf " +sshkeypair_path)
+        
+    def stopEC2instances(self, reservation):        
         for i in reservation.instances:
             i.stop()
-        
+    
     def opennebula(self, imageidonsystem, jobscript, machines):
         print "in opennebula method.end"
     def nimbus(self, imageidonsystem, jobscript, machines):
