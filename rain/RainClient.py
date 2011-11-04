@@ -316,7 +316,7 @@ class RainClient(object):
                 if (p3.returncode==0):                    
                     connection.associate_address(str(i.id), std[0].strip('\n'))
                 else:                    
-                    msg = "ERROR: associating address to instance " + str(i.id) + ". failed, status: " + str(p.returncode) + " --- " + std[1]
+                    msg = "ERROR: associating address to instance " + str(i.id) + ". failed, status: " + str(p3.returncode) + " --- " + std[1]
                     self._log.error(msg)
                     self.removeEC2sshkey(connection, sshkeypair_path)
                     self.stopEC2instances(reservation)
