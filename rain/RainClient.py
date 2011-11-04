@@ -489,7 +489,7 @@ class RainClient(object):
             self._log.debug(cmd)                    
             p = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
             std = p.communicate()
-            if p.returncode() != 0:
+            if p.returncode != 0:
                 msg = "ERROR: sending ssh-keys and script to VM " + str(i.id) + ". failed, status: " + str(p.returncode) + " --- " + std[1]
                 self._log.error(msg)
                 self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)
@@ -500,7 +500,7 @@ class RainClient(object):
             self._log.debug(cmd) 
             p = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
             std = p.communicate()
-            if p.returncode() != 0:
+            if p.returncode != 0:
                 msg = "ERROR: adding user to the fuse group. " + str(i.id) + ". failed, status: " + str(p.returncode) + " --- " + std[1]
                 self._log.error(msg)
                 self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)
