@@ -237,8 +237,8 @@ class RainClient(object):
         connection = boto.connect_ec2(str(os.getenv("EC2_ACCESS_KEY")), str(os.getenv("EC2_SECRET_KEY")), is_secure=False, region = region,port=8773,path="/services/Cloud")
         sshkeypair_name = str(randrange(999999999))
         
-#CHANGE prints with logs and return content
-        
+#CHANGE prints with logs and return content    
+        ssh_key_pair = None
         try:
             ssh_key_pair = connection.create_key_pair(sshkeypair_name)
         except:
