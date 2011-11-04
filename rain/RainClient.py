@@ -304,12 +304,15 @@ class RainClient(object):
             running=0        
             for i in reservation.instances:
                 status = i.update()
-                print status
+                if self.verbose:
+                    print status
                 if status == 'running':
                     running+=1                    
                 elif status == 'shutting-down' or status == 'terminate':
                     allrunning = True
-                    failed = True                    
+                    failed = True
+            if self.verbose:
+                print "-----------"                    
             if (running == len(reservation.instances)):
                 allrunning = True
             else:
@@ -359,9 +362,9 @@ class RainClient(object):
                 #this also prevent to get here forever if the ssh key was not injected propertly.
                 retry=0
                 
-                print "Instance properties"
-                pprint (vars(i))
-                print "end instance properties"
+                #print "Instance properties"
+                #pprint (vars(i))
+                #print "end instance properties"
                 if self.verbose:
                     msg = "Waiting to have access to Instance " + str(i.id) + " associated with address " + str(i.public_dns_name)
                     print msg
