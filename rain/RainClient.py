@@ -463,10 +463,8 @@ class RainClient(object):
         
         #create script
         f = open(sshkeypair + ".sh", "w")
-        f.write("#!/bin/bash")
-        f.write("import os")
-        f.write("mkdir -p /N/u/ /tmp/" + self.user)
-        f.write("chown " + self.user + ":users /tmp/" + self.user + " /tmp/" + sshkeypair + " /tmp/" + sshkeypair + ".pub")
+        f.write("#!/bin/bash \n import os \n mkdir -p /N/u/ /tmp/" + self.user +"\n chown " + self.user + ":users /tmp/" + self.user +\
+                 " /tmp/" + sshkeypair + " /tmp/" + sshkeypair + ".pub")
         f.write("""
         if [ -f /usr/bin/yum ]; 
         then 
@@ -477,12 +475,9 @@ class RainClient(object):
             exit 1
         fi
         """)
-        f.write("usermod -a -G fuse " + self.user)        
-        f.write("su - " + self.user)
-        f.write("sshfs 149.165.146.136:/N/u/" + self.user + " /tmp/" + self.user + " -o nonempty -o ssh_command=\"ssh -i /tmp/" + sshkeypair + " -oStrictHostKeyChecking=no\"")
-        f.write("exit")
-        f.write("ln -s /tmp/" + self.user + "/N/u/" + self.user)
-        
+        f.write("usermod -a -G fuse " + self.user + "\n su - " + self.user + "\n sshfs 149.165.146.136:/N/u/" + self.user +\
+                 " /tmp/" + self.user + " -o nonempty -o ssh_command=\"ssh -i /tmp/" + sshkeypair + " -oStrictHostKeyChecking=no\" \n exit \n ln -s /tmp/" +\
+                  self.user + "/N/u/" + self.user)        
         f.close()
         os.system("chmod +x " + sshkeypair + ".sh")
         
@@ -492,7 +487,7 @@ class RainClient(object):
             cmd = "scp -i " + sshkeypair_path + " -q -oBatchMode=yes -oStrictHostKeyChecking=no " + sshkeypair + " " + sshkeypair + ".pub " + \
                  sshkeypair + ".sh root@" + str(i.public_dns_name) + " /tmp/" 
             self._log.debug(cmd)                    
-            p = Popen(cmd, shell=True, stdout=PIPE)
+            p = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
             std = p.communicate()
             if p.returncode() != 0:
                 msg = "ERROR: sending ssh-keys and script to VM " + str(i.id) + ". failed, status: " + str(p.returncode) + " --- " + std[1]
@@ -502,7 +497,8 @@ class RainClient(object):
                 return msg
             
             cmd = "ssh -i " + sshkeypair_path + " -q -oBatchMode=yes -oStrictHostKeyChecking=no root@" + str(i.public_dns_name) + " /tmp/" + sshkeypair + ".sh"
-            p = Popen(cmd, shell=True, stdout=PIPE)
+            self._log.debug(cmd) 
+            p = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
             std = p.communicate()
             if p.returncode() != 0:
                 msg = "ERROR: adding user to the fuse group. " + str(i.id) + ". failed, status: " + str(p.returncode) + " --- " + std[1]
