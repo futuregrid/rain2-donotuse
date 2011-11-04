@@ -237,41 +237,49 @@ class RainClient(object):
         connection = boto.connect_ec2(str(os.getenv("EC2_ACCESS_KEY")), str(os.getenv("EC2_SECRET_KEY")), is_secure=False, region = region,port=8773,path="/services/Cloud")
         sshkeypair_name = str(randrange(999999999))
         
-#CHANGE prints with logs and return content    
+        print sshkeypair_name
+        
         ssh_key_pair = None
         try:
             ssh_key_pair = connection.create_key_pair(sshkeypair_name)
         except:
-            print "ERROR: creating key_pair " + str(sys.exc_info())
-            return
+            msg = "ERROR: creating key_pair " + str(sys.exc_info())
+            self._log.error(msg)
+            return msg
         sshkeypair_path = os.path.expanduser("~/") + sshkeypair_name + ".pem"
         try:
             if not ssh_key_pair.save(os.path.expanduser("~/")):
-                print "ERROR: saving key_pair to a file"
-                return
+                msg = "ERROR: saving key_pair to a file"
+                self._log.error(msg)
+                return msg
         except:
-            print "ERROR: saving key_pair " + str(sys.exc_info())
-            connection.delete_key_pair(sshkeypair_name)
-            return
+            msg = "ERROR: saving key_pair " + str(sys.exc_info())
+            self._log.error(msg)
+            connection.delete_key_pair(sshkeypair_name)            
+            return msg
             
         #Check that key_pair without .pem and path is in openstack
         #check that key_pairis exists. this may be done outside in argparse
+        image = None
         try:
             image = connection.get_image(imageidonsystem)        
             print image.location
         except:
-            print "ERROR: getting the image " + str(sys.exc_info())
+            msg = "ERROR: getting the image " + str(sys.exc_info())
+            self._log.error(msg)
             connection.delete_key_pair(sshkeypair_name)
             os.system("rm -rf ~/"+sshkeypair_name+".pem")
-            return
-        
+            return msg
+
+        reservation = None
         try:
             reservation = image.run(ninstances,ninstances,sshkeypair_name)
         except:
-            print "ERROR: launching the VM " + str(sys.exc_info())
+            msg = "ERROR: launching the VM " + str(sys.exc_info())
+            self._log.error(msg)
             connection.delete_key_pair(sshkeypair_name)
             os.system("rm -rf ~/"+sshkeypair_name+".pem")
-            return
+            return msg
                 
         #do a for to control status of all instances
         allrunning=False
@@ -506,6 +514,8 @@ def main():
                     print "ERROR: Variable files not found. You need to specify the path of the file with the OpenStack environment variables"
                 else:  
                     output = rain.openstack(args.openstack, output, jobscript, args.machines, varfile)
+                    if output != None:
+                        print output
             else:
                 print "ERROR: You need to specify a Rain target (xcat, eucalyptus or openstack)"
         
