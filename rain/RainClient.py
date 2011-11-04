@@ -240,6 +240,10 @@ class RainClient(object):
         sshkeypair_name = str(randrange(999999999))
                 
         ssh_key_pair = None
+        msg = "Creating temportal sshkey pair"
+        self._log.debug(msg)
+        if self.verbose:
+             print msg
         try:
             ssh_key_pair = connection.create_key_pair(sshkeypair_name)
         except:
@@ -247,6 +251,10 @@ class RainClient(object):
             self._log.error(msg)
             return msg
         sshkeypair_path = os.path.expanduser("~/") + sshkeypair_name + ".pem"
+        msg = "Save private sshkey into a file"
+        self._log.debug(msg)
+        if self.verbose:
+             print msg
         try:
             if not ssh_key_pair.save(os.path.expanduser("~/")):
                 msg = "ERROR: saving key_pair to a file"
@@ -265,7 +273,7 @@ class RainClient(object):
         image = None
         try:
             image = connection.get_image(imageidonsystem)        
-            print image.location
+            #print image.location
         except:
             msg = "ERROR: getting the image " + str(sys.exc_info())
             self._log.error(msg)
@@ -273,6 +281,10 @@ class RainClient(object):
             return msg
 
         reservation = None
+        msg = "Launching image"
+        self._log.debug(msg)
+        if self.verbose:
+             print msg
         try:
             reservation = image.run(ninstances,ninstances,sshkeypair_name)
         except:
@@ -282,7 +294,10 @@ class RainClient(object):
             return msg
                 
         #do a for to control status of all instances
-        
+        msg = "Waitting for running state"
+        self._log.debug(msg)
+        if self.verbose:
+             print msg
         allrunning=False
         failed = False
         while not allrunning:
@@ -373,7 +388,8 @@ class RainClient(object):
             print "All VMs are accessible: " + str(allaccessible)
         
         self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)
-        self.stopEC2instances(reservation)
+        reservation.instances[0].stop()
+        #self.stopEC2instances(reservation)
     
     def removeEC2sshkey(self, connection, sshkeypair_name, sshkeypair_path):
         connection.delete_key_pair(sshkeypair_name)
