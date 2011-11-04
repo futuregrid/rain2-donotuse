@@ -298,7 +298,7 @@ class RainClient(object):
             else:
                 time.sleep(5)
         
-        print "len instances" + str(len(reservation.instances))
+        print "len instances " + str(len(reservation.instances))
                   
         if not failed and allrunning:            
             #asignar ips. this should be skipped once the new openstack is deployed
@@ -317,6 +317,11 @@ class RainClient(object):
                                 
                 if (p3.returncode==0):                    
                     connection.associate_address(str(i.id), std[0].strip('\n'))
+                    msg = "Instance " + str(i.id) + " associated with address " + std[0].strip('\n')
+                    self._log.debug("Instance " + str(i.id) + " associated with address " + std[0].strip('\n'))
+                    if self.verbose:
+                        print msg
+                        
                 else:                    
                     msg = "ERROR: associating address to instance " + str(i.id) + ". failed, status: " + str(p3.returncode) + " --- " + std[1]
                     self._log.error(msg)
@@ -335,11 +340,17 @@ class RainClient(object):
                 maxretry = 240  #this says that we wait 20 minutes maximum to allow the VM get online. 
                 #this also prevent to get here forever if the ssh key was not injected propertly.
                 retry=0
+                
+                if self.verbose:
+                    msg = "Waiting to have access to Instance " + str(i.id) + " associated with address " + str(i.dns_name)
+                    print msg
+                
                 while not access and retry < maxretry:                
                     cmd = "ssh -i " + sshkeypair_path + " -q -oBatchMode=yes root@" + str(i.dns_name) + " uname"
+                    print cmd
                     p = Popen(cmd, shell=True, stdout=PIPE)
                     status = os.waitpid(p.pid, 0)[1]
-                    #print status
+                    print "Status " + status
                     if status == 0:
                         access = True
                         naccessible+=1
@@ -356,7 +367,7 @@ class RainClient(object):
                 if naccessible == len(reservation.instances):
                     allaccessible = True                
         
-            print allaccessible
+            print "All VMs are accessible: " + allaccessible
         
         self.removeEC2sshkey(connection, sshkeypair_path)
         self.stopEC2instances(reservation)
