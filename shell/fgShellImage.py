@@ -218,6 +218,7 @@ class fgShellImage(Cmd):
         group1.add_argument('-s', '--openstack', dest='openstack', nargs='?', metavar='Address', help='Deploy the image to OpenStack, which is in the specified addr')
         parser.add_argument('-v', '--varfile', dest='varfile', help='Path of the environment variable files. Currently this is used by Eucalyptus and OpenStack')
         parser.add_argument('-g', '--getimg', dest='getimg', action="store_true", help='Customize the image for a particular cloud framework but does not register it. So the user gets the image file.')
+        parser.add_argument('-p', '--ldap', dest='ldap', action="store_true", help='Configure ldap in the VM. This is needed if you plan to use you VM with the rain commands')
         
         args = parser.parse_args()
     
@@ -254,7 +255,7 @@ class fgShellImage(Cmd):
                 self.imgdeploy.xcat_method(args.xcat, args.imgid)
                 print 'qsub, checkjob and showq are Moab/torque commands. So you need to execute them from outside of this shell or type the ! character before the command'
         else:    
-            ldap = False
+            ldap = args.ldap #configure ldap in the VM
             varfile=""
             if args.varfile != None:
                 varfile=os.path.expanduser(args.varfile)

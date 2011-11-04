@@ -515,10 +515,13 @@ class RainClient(object):
                 self.stopEC2instances(connection, reservation)
                 return msg
         
-        #self.removeTempsshkey(sshkeypair, sshkey_name) 
+        
                
         #self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)                
         #self.stopEC2instances(connection, reservation)
+        #self.removeTempsshkey(sshkeypair, sshkey_name)
+    
+    def install_sshfs_home(self, ):
     
     def removeTempsshkey(self, sshkeypair, sshkey_name):
         cmd = "rm -f " + sshkeypair + " " + sshkeypair + ".pub" + sshkeypair + ".sh"
