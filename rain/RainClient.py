@@ -384,8 +384,8 @@ class RainClient(object):
                     allaccessible = False
                     break
                 
-                if naccessible == len(reservation.instances):
-                    allaccessible = True                
+            if naccessible == len(reservation.instances):
+                allaccessible = True                
         
             print "All VMs are accessible: " + str(allaccessible)
         
