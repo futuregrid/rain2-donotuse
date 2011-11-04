@@ -333,12 +333,12 @@ class RainClient(object):
                 std = p3.communicate()
                                 
                 if (p3.returncode==0):                    
-                    connection.associate_address(str(i.id), std[0].strip('\n'))
-                    i.update()
+                    connection.associate_address(str(i.id), std[0].strip('\n'))                    
                     msg = "Instance " + str(i.id) + " associated with address " + std[0].strip('\n')
                     self._log.debug("Instance " + str(i.id) + " associated with address " + std[0].strip('\n'))
                     if self.verbose:
                         print msg
+                    i.update()
                 else:                    
                     msg = "ERROR: associating address to instance " + str(i.id) + ". failed, status: " + str(p3.returncode) + " --- " + std[1]
                     self._log.error(msg)
@@ -358,9 +358,9 @@ class RainClient(object):
                 #this also prevent to get here forever if the ssh key was not injected propertly.
                 retry=0
                 
-                #print "Instance properties"
-                #pprint (vars(i))
-                #print "end instance properties"
+                print "Instance properties"
+                pprint (vars(i))
+                print "end instance properties"
                 if self.verbose:
                     msg = "Waiting to have access to Instance " + str(i.id) + " associated with address " + str(i.public_dns_name)
                     print msg
@@ -395,9 +395,16 @@ class RainClient(object):
         connection.delete_key_pair(sshkeypair_name)
         os.system("rm -rf " +sshkeypair_path)
         
-    def stopEC2instances(self, reservation):        
+    def stopEC2instances(self, reservation):
+               
         for i in reservation.instances:
-            i.stop()
+            try:
+                i.stop()
+            except:
+                msg = "ERROR: stoping VM. " + str(sys.exc_info())
+                self._log.error(msg)
+            
+            
     
     def opennebula(self, imageidonsystem, jobscript, machines):
         print "in opennebula method.end"
