@@ -372,35 +372,37 @@ class RainClient(object):
         
         print "len instances " + str(len(reservation.instances))
                   
-        if not failed and allrunning:            
-            #asignar ips. this should be skipped once the new openstack is deployed
-            #I do not do any verification because this has to disappear. Openstack has to assign the IP automatically       
-            for i in reservation.instances:
-                cmd = "euca-describe-addresses -a " + os.getenv("EC2_ACCESS_KEY") + " -s " + os.getenv("EC2_SECRET_KEY") + " --url " + ec2_url
-                print cmd
-                p = Popen(cmd.split(' '), stdout=PIPE, stderr=PIPE)
-                cmd = "awk /None/ {print $2}"
-                p1 = Popen(cmd.split(' ',1), stdin = p.stdout, stdout=PIPE, stderr=PIPE)
-                cmd = "sort"
-                p2 = Popen(cmd.split(' '), stdin = p1.stdout, stdout=PIPE, stderr=PIPE) 
-                cmd = "head -n1"
-                p3 = Popen(cmd.split(' '), stdin = p2.stdout, stdout=PIPE, stderr=PIPE)
-                std = p3.communicate()
-                                
-                if (p3.returncode==0):                    
-                    connection.associate_address(str(i.id), std[0].strip('\n'))                    
-                    msg = "Instance " + str(i.id) + " associated with address " + std[0].strip('\n')
-                    self._log.debug("Instance " + str(i.id) + " associated with address " + std[0].strip('\n'))
-                    if self.verbose:
-                        print msg
-                    time.sleep(1)
-                    i.update()
-                else:                    
-                    msg = "ERROR: associating address to instance " + str(i.id) + ". failed, status: " + str(p3.returncode) + " --- " + std[1]
-                    self._log.error(msg)
-                    self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)
-                    self.stopEC2instances(connection, reservation)
-                    return msg
+        if not failed and allrunning:
+            
+            if iaas_name == "openstack":  
+                #asignar ips. this should be skipped once the new openstack is deployed
+                #I do not do any verification because this has to disappear. Openstack has to assign the IP automatically       
+                for i in reservation.instances:
+                    cmd = "euca-describe-addresses -a " + os.getenv("EC2_ACCESS_KEY") + " -s " + os.getenv("EC2_SECRET_KEY") + " --url " + ec2_url
+                    print cmd
+                    p = Popen(cmd.split(' '), stdout=PIPE, stderr=PIPE)
+                    cmd = "awk /None/ {print $2}"
+                    p1 = Popen(cmd.split(' ',1), stdin = p.stdout, stdout=PIPE, stderr=PIPE)
+                    cmd = "sort"
+                    p2 = Popen(cmd.split(' '), stdin = p1.stdout, stdout=PIPE, stderr=PIPE) 
+                    cmd = "head -n1"
+                    p3 = Popen(cmd.split(' '), stdin = p2.stdout, stdout=PIPE, stderr=PIPE)
+                    std = p3.communicate()
+                                    
+                    if (p3.returncode==0):                    
+                        connection.associate_address(str(i.id), std[0].strip('\n'))                    
+                        msg = "Instance " + str(i.id) + " associated with address " + std[0].strip('\n')
+                        self._log.debug("Instance " + str(i.id) + " associated with address " + std[0].strip('\n'))
+                        if self.verbose:
+                            print msg
+                        time.sleep(1)
+                        i.update()
+                    else:                    
+                        msg = "ERROR: associating address to instance " + str(i.id) + ". failed, status: " + str(p3.returncode) + " --- " + std[1]
+                        self._log.error(msg)
+                        self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)
+                        self.stopEC2instances(connection, reservation)
+                        return msg
                 
             #boto.ec2.instance.Instance.dns_name to get the public IP.
             #boto.ec2.instance.Instance.private_dns_name private IP.
