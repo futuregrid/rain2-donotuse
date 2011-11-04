@@ -319,11 +319,11 @@ class RainClient(object):
                                 
                 if (p3.returncode==0):                    
                     connection.associate_address(str(i.id), std[0].strip('\n'))
+                    i.update()
                     msg = "Instance " + str(i.id) + " associated with address " + std[0].strip('\n')
                     self._log.debug("Instance " + str(i.id) + " associated with address " + std[0].strip('\n'))
                     if self.verbose:
                         print msg
-                    i.update()
                 else:                    
                     msg = "ERROR: associating address to instance " + str(i.id) + ". failed, status: " + str(p3.returncode) + " --- " + std[1]
                     self._log.error(msg)
@@ -343,19 +343,17 @@ class RainClient(object):
                 #this also prevent to get here forever if the ssh key was not injected propertly.
                 retry=0
                 
-                print "Instance properties"
-                pprint (vars(i))
-                print "end instance properties"
+                #print "Instance properties"
+                #pprint (vars(i))
+                #print "end instance properties"
                 if self.verbose:
                     msg = "Waiting to have access to Instance " + str(i.id) + " associated with address " + str(i.public_dns_name)
                     print msg
                 
                 while not access and retry < maxretry:                
-                    cmd = "ssh -i " + sshkeypair_path + " -q -oBatchMode=yes root@" + str(i.public_dns_name) + " uname"
-                    print cmd
+                    cmd = "ssh -i " + sshkeypair_path + " -q -oBatchMode=yes root@" + str(i.public_dns_name) + " uname"                    
                     p = Popen(cmd, shell=True, stdout=PIPE)
-                    status = os.waitpid(p.pid, 0)[1]
-                    print "Status " + status
+                    status = os.waitpid(p.pid, 0)[1]                    
                     if status == 0:
                         access = True
                         naccessible+=1
@@ -372,7 +370,7 @@ class RainClient(object):
                 if naccessible == len(reservation.instances):
                     allaccessible = True                
         
-            print "All VMs are accessible: " + allaccessible
+            print "All VMs are accessible: " + str(allaccessible)
         
         self.removeEC2sshkey(connection, sshkeypair_path)
         self.stopEC2instances(reservation)
