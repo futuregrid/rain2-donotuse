@@ -23,6 +23,8 @@ import time
 import boto.ec2
 import boto
 
+from pprint import pprint
+
 from RainClientConf import RainClientConf
 sys.path.append(os.getcwd())
 try:
@@ -341,12 +343,15 @@ class RainClient(object):
                 #this also prevent to get here forever if the ssh key was not injected propertly.
                 retry=0
                 
+                print "Instance properties"
+                pprint (vars(i))
+                print "end instance properties"
                 if self.verbose:
-                    msg = "Waiting to have access to Instance " + str(i.id) + " associated with address " + str(i.dns_name)
+                    msg = "Waiting to have access to Instance " + str(i.id) + " associated with address " + str(i.public_dns_name)
                     print msg
                 
                 while not access and retry < maxretry:                
-                    cmd = "ssh -i " + sshkeypair_path + " -q -oBatchMode=yes root@" + str(i.dns_name) + " uname"
+                    cmd = "ssh -i " + sshkeypair_path + " -q -oBatchMode=yes root@" + str(i.public_dns_name) + " uname"
                     print cmd
                     p = Popen(cmd, shell=True, stdout=PIPE)
                     status = os.waitpid(p.pid, 0)[1]
@@ -354,13 +359,13 @@ class RainClient(object):
                     if status == 0:
                         access = True
                         naccessible+=1
-                        self._log.debug("The instance " + str(str(i.id)) + " with public ip " + str(i.dns_name) + " and private ip " + str(i.private_dns_name) + " is accessible")
+                        self._log.debug("The instance " + str(str(i.id)) + " with public ip " + str(i.public_dns_name) + " and private ip " + str(i.private_dns_name) + " is accessible")
                     else:
                         retry+=1
                         time.sleep(5)
                         
                 if retry >= maxretry:
-                    self._log.error("Could not get access to the instance " + str(str(i.id)) + " with public ip " + str(i.dns_name) + " and private ip " + str(i.private_dns_name) + "\n")                                      
+                    self._log.error("Could not get access to the instance " + str(str(i.id)) + " with public ip " + str(i.public_dns_name) + " and private ip " + str(i.private_dns_name) + "\n")                                      
                     allaccessible = False
                     break
                 
