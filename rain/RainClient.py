@@ -296,7 +296,7 @@ class RainClient(object):
             else:
                 time.sleep(5)
         
-        print "len instances" + len(reservation.instances)
+        print "len instances" + str(len(reservation.instances))
                   
         if not failed and allrunning:            
             #asignar ips. this should be skipped once the new openstack is deployed
