@@ -313,7 +313,7 @@ class RainClient(object):
                 p3 = Popen(cmd.split(' '), stdin = p2.stdout, stdout=PIPE, stderr=PIPE)
                 std = p3.communicate()
                                 
-                if (p2.returncode==0):                    
+                if (p3.returncode==0):                    
                     connection.associate_address(str(i.id), std[0].strip('\n'))
                 else:                    
                     msg = "ERROR: associating address to instance " + str(i.id) + ". failed, status: " + str(p.returncode) + " --- " + std[1]
