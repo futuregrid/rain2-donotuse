@@ -370,7 +370,7 @@ class RainClient(object):
                     cmd = "ssh -i " + sshkeypair_path + " -q -oBatchMode=yes root@" + str(i.public_dns_name) + " uname"                    
                     p = Popen(cmd, shell=True, stdout=PIPE)
                     status = os.waitpid(p.pid, 0)[1]
-                    print status                  
+                    #print status                  
                     if status == 0:
                         access = True
                         naccessible+=1
