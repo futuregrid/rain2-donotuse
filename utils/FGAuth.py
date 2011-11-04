@@ -125,8 +125,8 @@ def auth(userId, cred):
             else:
                 ret = False
                 log.info("User " + userId + " failed to authenticate")
-    #return ret
-    return True
+    return ret
+    #return True
 
 def simpleauth(userId, cred):
     ret = False
