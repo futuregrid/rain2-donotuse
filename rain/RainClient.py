@@ -189,7 +189,43 @@ class RainClient(object):
             
     #2. in the case of euca-run-instance, wait until the vms are booted, execute the job inside, wait until done.
     def euca(self, iaas_address, imageidonsystem, jobscript, ninstances, varfile):
-        print "in eucalyptus method.end"
+        euca_key_dir = os.path.dirname(varfile)            
+        if euca_key_dir.strip() == "":
+            euca_key_dir = "."
+        os.environ["EUCA_KEY_DIR"] = euca_key_dir
+                    
+        #read variables
+        f = open(varfile, 'r')
+        for line in f:
+            if re.search("^export ", line):
+                line = line.split()[1]                    
+                parts = line.split("=")
+                #parts[0] is the variable name
+                #parts[1] is the value
+                parts[0] = parts[0].strip()
+                value = ""
+                for i in range(1, len(parts)):
+                    parts[i] = parts[i].strip()
+                    parts[i] = os.path.expanduser(os.path.expandvars(parts[i]))                    
+                    value += parts[i] + "="
+                value = value.rstrip("=")
+                value = value.strip('"')
+                value = value.strip("'") 
+                os.environ[parts[0]] = value
+        f.close()
+            
+        if iaas_address != None:
+            ec2_url = "http://" + iaas_address + "/services/Eucalyptus"
+            s3_url = "http://" + iaas_address + "/services/Walrus"
+        else:
+            ec2_url = os.getenv("EC2_URL")
+            s3_url = os.getenv("S3_URL")
+        
+        path = "/services/Eucalyptus"
+        region = "eucalyptus"
+        
+        output = self.ec2_common("euca", path, region, ec2_url, imageidonsystem, jobscript, ninstances, varfile)
+        return output
         
     def openstack(self, iaas_address, imageidonsystem, jobscript, ninstances, varfile):
         """
@@ -199,7 +235,6 @@ class RainClient(object):
         key_pair = ssh key file. this must be registered on openstack. The name in openstack is os.path.basename(key_pair).strip('.')[0]
         ninstances = number of instances
         """        
-        
         
         nova_key_dir = os.path.dirname(varfile)            
         if nova_key_dir.strip() == "":
@@ -232,11 +267,28 @@ class RainClient(object):
         else:
             ec2_url = os.getenv("EC2_URL")
             s3_url = os.getenv("S3_URL")
-             
-        #OpenStack Connection
-        endpoint = ec2_url.lstrip("http://").split(":")[0]        
-        region = boto.ec2.regioninfo.RegionInfo(name="nova",endpoint=endpoint)
-        connection = boto.connect_ec2(str(os.getenv("EC2_ACCESS_KEY")), str(os.getenv("EC2_SECRET_KEY")), is_secure=False, region = region,port=8773,path="/services/Cloud")
+        
+        path = "/services/Cloud"
+        region = "nova"
+        
+        output = self.ec2_common("openstack", path, region, ec2_url, imageidonsystem, jobscript, ninstances, varfile)
+        return output
+        
+    def ec2_common(self, iaas_name, path, region, ec2_url, imageidonsystem, jobscript, ninstances, varfile):
+        
+        endpoint = ec2_url.lstrip("http://").split(":")[0]
+        try:  
+            region = boto.ec2.regioninfo.RegionInfo(name=region,endpoint=endpoint)
+        except:
+            msg = "ERROR: getting region information " + str(sys.exc_info())
+            self._log.error(msg)                        
+            return msg
+        try:
+            connection = boto.connect_ec2(str(os.getenv("EC2_ACCESS_KEY")), str(os.getenv("EC2_SECRET_KEY")), is_secure=False, region = region,port=8773,path=path)
+        except:
+            msg = "ERROR:connecting to EC2 interface. " + str(sys.exc_info())
+            self._log.error(msg)                        
+            return msg
         sshkeypair_name = str(randrange(999999999))
                 
         ssh_key_pair = None
@@ -351,7 +403,7 @@ class RainClient(object):
                     return msg
                 
             #boto.ec2.instance.Instance.dns_name to get the public IP.
-            #boto.ec2.instance.Instance..private_dns_name private IP.
+            #boto.ec2.instance.Instance.private_dns_name private IP.
                                                             
             self._log.debug("Waiting to have access to VMs")
             allaccessible = False
