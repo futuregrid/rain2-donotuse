@@ -236,9 +236,7 @@ class RainClient(object):
         region = boto.ec2.regioninfo.RegionInfo(name="nova",endpoint=endpoint)
         connection = boto.connect_ec2(str(os.getenv("EC2_ACCESS_KEY")), str(os.getenv("EC2_SECRET_KEY")), is_secure=False, region = region,port=8773,path="/services/Cloud")
         sshkeypair_name = str(randrange(999999999))
-        
-        print sshkeypair_name
-        
+                
         ssh_key_pair = None
         try:
             ssh_key_pair = connection.create_key_pair(sshkeypair_name)
@@ -349,8 +347,8 @@ class RainClient(object):
         
             print allaccessible
         
-        connection.delete_key_pair(sshkeypair_name)
-        os.system("rm -rf ~/"+sshkeypair_name+".pem")
+        #connection.delete_key_pair(sshkeypair_name)
+        #os.system("rm -rf ~/"+sshkeypair_name+".pem")
         #terminate instances  
         for i in reservation.instances:
             i.stop()
