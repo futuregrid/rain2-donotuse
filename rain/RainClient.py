@@ -41,10 +41,10 @@ class RainClient(object):
     ############################################################
     # __init__
     ############################################################
-    def __init__(self, verbose, printLogStdout):
+    def __init__(self, user, verbose, printLogStdout):
         super(RainClient, self).__init__()
         
-        
+        self.user = user
         self.verbose = verbose
         self.printLogStdout = printLogStdout
         
@@ -278,13 +278,13 @@ class RainClient(object):
         
         endpoint = ec2_url.lstrip("http://").split(":")[0]
         try:  
-            region = boto.ec2.regioninfo.RegionInfo(name=region,endpoint=endpoint)
+            region = boto.ec2.regioninfo.RegionInfo(name=region, endpoint=endpoint)
         except:
             msg = "ERROR: getting region information " + str(sys.exc_info())
             self._log.error(msg)                        
             return msg
         try:
-            connection = boto.connect_ec2(str(os.getenv("EC2_ACCESS_KEY")), str(os.getenv("EC2_SECRET_KEY")), is_secure=False, region = region,port=8773,path=path)
+            connection = boto.connect_ec2(str(os.getenv("EC2_ACCESS_KEY")), str(os.getenv("EC2_SECRET_KEY")), is_secure=False, region=region, port=8773, path=path)
         except:
             msg = "ERROR:connecting to EC2 interface. " + str(sys.exc_info())
             self._log.error(msg)                        
@@ -292,7 +292,7 @@ class RainClient(object):
         sshkeypair_name = str(randrange(999999999))
                 
         ssh_key_pair = None
-        msg = "Creating temportal sshkey pair"
+        msg = "Creating temportal sshkey pair for EC2"
         self._log.debug(msg)
         if self.verbose:
              print msg
@@ -313,7 +313,7 @@ class RainClient(object):
                 self._log.error(msg)
                 return msg
             else:
-                os.system("chmod 600 "+sshkeypair_path)
+                os.system("chmod 600 " + sshkeypair_path)
         except:
             msg = "ERROR: saving key_pair " + str(sys.exc_info())
             self._log.error(msg)
@@ -338,7 +338,7 @@ class RainClient(object):
         if self.verbose:
              print msg
         try:
-            reservation = image.run(ninstances,ninstances,sshkeypair_name)
+            reservation = image.run(ninstances, ninstances, sshkeypair_name)
         except:
             msg = "ERROR: launching the VM " + str(sys.exc_info())
             self._log.error(msg)
@@ -350,16 +350,16 @@ class RainClient(object):
         self._log.debug(msg)
         if self.verbose:
              print msg
-        allrunning=False
+        allrunning = False
         failed = False
         while not allrunning:
-            running=0        
+            running = 0        
             for i in reservation.instances:
                 status = i.update()
                 if self.verbose:
                     print status
                 if status == 'running':
-                    running+=1                    
+                    running += 1                    
                 elif status == 'shutting-down' or status == 'terminate':
                     allrunning = True
                     failed = True
@@ -379,17 +379,17 @@ class RainClient(object):
                 #I do not do any verification because this has to disappear. Openstack has to assign the IP automatically       
                 for i in reservation.instances:
                     cmd = "euca-describe-addresses -a " + os.getenv("EC2_ACCESS_KEY") + " -s " + os.getenv("EC2_SECRET_KEY") + " --url " + ec2_url
-                    print cmd
+                    #print cmd
                     p = Popen(cmd.split(' '), stdout=PIPE, stderr=PIPE)
                     cmd = "awk /None/ {print $2}"
-                    p1 = Popen(cmd.split(' ',1), stdin = p.stdout, stdout=PIPE, stderr=PIPE)
+                    p1 = Popen(cmd.split(' ', 1), stdin=p.stdout, stdout=PIPE, stderr=PIPE)
                     cmd = "sort"
-                    p2 = Popen(cmd.split(' '), stdin = p1.stdout, stdout=PIPE, stderr=PIPE) 
+                    p2 = Popen(cmd.split(' '), stdin=p1.stdout, stdout=PIPE, stderr=PIPE) 
                     cmd = "head -n1"
-                    p3 = Popen(cmd.split(' '), stdin = p2.stdout, stdout=PIPE, stderr=PIPE)
+                    p3 = Popen(cmd.split(' '), stdin=p2.stdout, stdout=PIPE, stderr=PIPE)
                     std = p3.communicate()
                                     
-                    if (p3.returncode==0):                    
+                    if (p3.returncode == 0):                    
                         connection.associate_address(str(i.id), std[0].strip('\n'))                    
                         msg = "Instance " + str(i.id) + " associated with address " + std[0].strip('\n')
                         self._log.debug("Instance " + str(i.id) + " associated with address " + std[0].strip('\n'))
@@ -403,7 +403,7 @@ class RainClient(object):
                         self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)
                         self.stopEC2instances(connection, reservation)
                         return msg
-                
+            
             #boto.ec2.instance.Instance.dns_name to get the public IP.
             #boto.ec2.instance.Instance.private_dns_name private IP.
                                                             
@@ -414,7 +414,7 @@ class RainClient(object):
                 access = False
                 maxretry = 240  #this says that we wait 20 minutes maximum to allow the VM get online. 
                 #this also prevent to get here forever if the ssh key was not injected propertly.
-                retry=0
+                retry = 0
                 
                 #print "Instance properties"
                 #pprint (vars(i))
@@ -430,10 +430,10 @@ class RainClient(object):
                     #print status                  
                     if status == 0:
                         access = True
-                        naccessible+=1
+                        naccessible += 1
                         self._log.debug("The instance " + str(str(i.id)) + " with public ip " + str(i.public_dns_name) + " and private ip " + str(i.private_dns_name) + " is accessible")
                     else:
-                        retry+=1
+                        retry += 1
                         time.sleep(5)
                         
                 if retry >= maxretry:
@@ -446,13 +446,86 @@ class RainClient(object):
         
             print "All VMs are accessible: " + str(allaccessible)
         
-        self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)                
-        self.stopEC2instances(connection, reservation)
+        
+        msg = "Creating temporal sshkey files"
+        self._log.debug(msg)
+        if self.verbose:
+             print msg      
+        sshkey_name = str(randrange(999999999))        
+        sshkeypair = os.path.expanduser("~/") + sshkey_name                
+        cmd = "ssh-keygen -N \"\" -f " + sshkeypair + " -C " + sshkey_name + " >/dev/null"
+        status = os.system(cmd)
+        
+        msg = "Copying temporal private and public ssh-key files to VMs"
+        self._log.debug(msg)
+        if self.verbose:
+             print msg  
+        
+        #create script
+        f = open(sshkeypair + ".sh", "w")
+        f.write("#!/bin/bash")
+        f.write("import os")
+        f.write("mkdir -p /N/u/ /tmp/" + self.user)
+        f.write("chown " + self.user + ":users /tmp/" + self.user + " /tmp/" + sshkeypair + " /tmp/" + sshkeypair + ".pub")
+        f.write("""
+        if [ -f /usr/bin/yum ]; 
+        then 
+            yum -y install fuse-sshfs
+        elif [ -f /usr/bin/apt-get ]
+            apt-get -y install sshfs
+        else
+            exit 1
+        fi
+        """)
+        f.write("usermod -a -G fuse " + self.user)        
+        f.write("su - " + self.user)
+        f.write("sshfs 149.165.146.136:/N/u/" + self.user + " /tmp/" + self.user + " -o nonempty -o ssh_command=\"ssh -i /tmp/" + sshkeypair + " -oStrictHostKeyChecking=no\"")
+        f.write("exit")
+        f.write("ln -s /tmp/" + self.user + "/N/u/" + self.user)
+        
+        f.close()
+        os.system("chmod +x " + sshkeypair + ".sh")
+        
+        
+        for i in reservation.instances:
+            
+            cmd = "scp -i " + sshkeypair_path + " -q -oBatchMode=yes -oStrictHostKeyChecking=no " + sshkeypair + " " + sshkeypair + ".pub " + \
+                 sshkeypair + ".sh root@" + str(i.public_dns_name) + " /tmp/" 
+            self._log.debug(cmd)                    
+            p = Popen(cmd, shell=True, stdout=PIPE)
+            std = p.communicate()
+            if p.returncode() != 0:
+                msg = "ERROR: sending ssh-keys and script to VM " + str(i.id) + ". failed, status: " + str(p.returncode) + " --- " + std[1]
+                self._log.error(msg)
+                self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)
+                self.stopEC2instances(connection, reservation)
+                return msg
+            
+            cmd = "ssh -i " + sshkeypair_path + " -q -oBatchMode=yes -oStrictHostKeyChecking=no root@" + str(i.public_dns_name) + " /tmp/" + sshkeypair + ".sh"
+            p = Popen(cmd, shell=True, stdout=PIPE)
+            std = p.communicate()
+            if p.returncode() != 0:
+                msg = "ERROR: adding user to the fuse group. " + str(i.id) + ". failed, status: " + str(p.returncode) + " --- " + std[1]
+                self._log.error(msg)
+                self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)
+                self.stopEC2instances(connection, reservation)
+                return msg
+        
+        #self.removeTempsshkey(sshkeypair, sshkey_name) 
+               
+        #self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)                
+        #self.stopEC2instances(connection, reservation)
+    
+    def removeTempsshkey(self, sshkeypair, sshkey_name):
+        cmd = "rm -f " + sshkeypair + " " + sshkeypair + ".pub" + sshkeypair + ".sh"
+        status = os.system(cmd)
+        cmd = ('sed -i /\' ' + sshkey_name + '$\'/d ~/.ssh/authorized_keys')
+        status = os.system(cmd)
     
     def removeEC2sshkey(self, connection, sshkeypair_name, sshkeypair_path):
         try:
             connection.delete_key_pair(sshkeypair_name)
-            os.system("rm -rf " +sshkeypair_path)
+            os.system("rm -rf " + sshkeypair_path)
         except:
             msg = "ERROR: deleting temporal sshkey. " + str(sys.exc_info())
             self._log.error(msg)
@@ -565,16 +638,16 @@ def main():
         else:
             ldap = True #we configure ldap to run commands and be able to login from on vm to other            
             #EUCALYPTUS    
-            if ('-e' in used_args or '--euca' in used_args):
-                if not args.getimg:
-                    if varfile == "":
-                        print "ERROR: You need to specify the path of the file with the Eucalyptus environment variables"
-                    elif not os.path.isfile(varfile):
-                        print "ERROR: Variable files not found. You need to specify the path of the file with the Eucalyptus environment variables"
-                    else:    
-                        output = imgdeploy.iaas_generic(args.euca, image, image_source, "euca", varfile, args.getimg, ldap)        
+            if ('-e' in used_args or '--euca' in used_args):                
+                if varfile == "":
+                    print "ERROR: You need to specify the path of the file with the Eucalyptus environment variables"
+                elif not os.path.isfile(varfile):
+                    print "ERROR: Variable files not found. You need to specify the path of the file with the Eucalyptus environment variables"
                 else:    
-                    output = imgdeploy.iaas_generic(args.euca, image, image_source, "euca", varfile, args.getimg, ldap)
+                    output = imgdeploy.iaas_generic(args.euca, image, image_source, "euca", varfile, False, ldap)        
+                    if output != None:
+                        if re.search("^ERROR", output):
+                            print output
             #OpenNebula
             elif ('-o' in used_args or '--opennebula' in used_args):
                 output = imgdeploy.iaas_generic(args.opennebula, image, image_source, "opennebula", varfile, args.getimg, ldap)
@@ -582,16 +655,16 @@ def main():
             elif ('-n' in used_args or '--nimbus' in used_args):
                 #TODO        
                 print "Nimbus deployment is not implemented yet"
-            elif ('-s' in used_args or '--openstack' in used_args):
-                if not args.getimg:
-                    if varfile == "":
-                        print "ERROR: You need to specify the path of the file with the OpenStack environment variables"
-                    elif not os.path.isfile(varfile):
-                        print "ERROR: Variable files not found. You need to specify the path of the file with the OpenStack environment variables"
-                    else:    
-                        output = imgdeploy.iaas_generic(args.openstack, image, image_source, "openstack", varfile, args.getimg, ldap)
+            elif ('-s' in used_args or '--openstack' in used_args):                
+                if varfile == "":
+                    print "ERROR: You need to specify the path of the file with the OpenStack environment variables"
+                elif not os.path.isfile(varfile):
+                    print "ERROR: Variable files not found. You need to specify the path of the file with the OpenStack environment variables"
                 else:    
-                    output = imgdeploy.iaas_generic(args.openstack, image, image_source, "openstack", varfile, args.getimg, ldap)
+                    output = imgdeploy.iaas_generic(args.openstack, image, image_source, "openstack", varfile, False, ldap)
+                    if output != None:
+                        if re.search("^ERROR", output):
+                            print output         
             else:
                 print "ERROR: You need to specify a deployment target"
             
@@ -601,35 +674,36 @@ def main():
         output = image
         
     if output != None:
-        rain = RainClient(verbose, args.debug)
-        target = ""
-        if args.xcat != None:            
-            output = rain.baremetal(output, jobscript, args.machines)
-            if output != None:
-                print output
-        else:
-            if ('-e' in used_args or '--euca' in used_args):
-                if varfile == "":
-                    print "ERROR: You need to specify the path of the file with the Eucalyptus environment variables"
-                elif not os.path.isfile(varfile):
-                    print "ERROR: Variable files not found. You need to specify the path of the file with the Eucalyptus environment variables"
-                else:
-                    output = rain.euca(args.euca, output, jobscript, args.machines, varfile)
-            elif ('-o' in used_args or '--opennebula' in used_args):
-                output = rain.opennebula(args.opennebula, output, jobscript, args.machines)
-            elif ('-n' in used_args or '--nimbus' in used_args):
-                output = rain.nimbus(args.nimbus, output, jobscript, args.machines)
-            elif ('-s' in used_args or '--openstack' in used_args):
-                if varfile == "":
-                    print "ERROR: You need to specify the path of the file with the OpenStack environment variables"
-                elif not os.path.isfile(varfile):
-                    print "ERROR: Variable files not found. You need to specify the path of the file with the OpenStack environment variables"
-                else:  
-                    output = rain.openstack(args.openstack, output, jobscript, args.machines, varfile)
-                    if output != None:
-                        print output
+        if not re.search("^ERROR", output):
+            rain = RainClient(args.user, verbose, args.debug)
+            target = ""
+            if args.xcat != None:            
+                output = rain.baremetal(output, jobscript, args.machines)
+                if output != None:
+                    print output
             else:
-                print "ERROR: You need to specify a Rain target (xcat, eucalyptus or openstack)"
+                if ('-e' in used_args or '--euca' in used_args):
+                    if varfile == "":
+                        print "ERROR: You need to specify the path of the file with the Eucalyptus environment variables"
+                    elif not os.path.isfile(varfile):
+                        print "ERROR: Variable files not found. You need to specify the path of the file with the Eucalyptus environment variables"
+                    else:
+                        output = rain.euca(args.euca, output, jobscript, args.machines, varfile)
+                elif ('-o' in used_args or '--opennebula' in used_args):
+                    output = rain.opennebula(args.opennebula, output, jobscript, args.machines)
+                elif ('-n' in used_args or '--nimbus' in used_args):
+                    output = rain.nimbus(args.nimbus, output, jobscript, args.machines)
+                elif ('-s' in used_args or '--openstack' in used_args):
+                    if varfile == "":
+                        print "ERROR: You need to specify the path of the file with the OpenStack environment variables"
+                    elif not os.path.isfile(varfile):
+                        print "ERROR: Variable files not found. You need to specify the path of the file with the OpenStack environment variables"
+                    else:  
+                        output = rain.openstack(args.openstack, output, jobscript, args.machines, varfile)
+                        if output != None:
+                            print output
+                else:
+                    print "ERROR: You need to specify a Rain target (xcat, eucalyptus or openstack)"
         
         
     else:

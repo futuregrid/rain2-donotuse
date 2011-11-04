@@ -587,7 +587,7 @@ sysfs   /sys     sysfs    defaults       0 0
             
             #only user with running job can login
             os.system('echo \"account     required      pam_listfile.so file=/etc/authusers item=user sense=allow onerr=fail\" | sudo tee -a  ' +\
-                       self.path + '/rootimg/etc/pam.d/system-auth')
+                       self.path + '/rootimg/etc/pam.d/system-auth > /dev/null')
             self.runCmd('wget ' + self.http_server + '/conf/authusers -O ' +\
                                   self.path + '/rootimg/etc/authusers')
             
@@ -769,7 +769,7 @@ sysfs   /sys     sysfs    defaults       0 0
             
             #only user with running job can login
             os.system('echo \"account     required      pam_listfile.so file=/etc/authusers item=user sense=allow onerr=fail\" | sudo tee -a  ' +\
-                       self.path + '/rootimg/etc/pam.d/system-auth')
+                       self.path + '/rootimg/etc/pam.d/system-auth > /dev/null')
             self.runCmd('wget ' + self.http_server + '/conf/authusers -O ' + self.path + '/rootimg/etc/authusers')
             
             self.logger.info('Torque for India')            

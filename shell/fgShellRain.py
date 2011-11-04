@@ -28,7 +28,7 @@ class fgShellRain(Cmd):
         print "Init Rain"
         verbose = True
         debug = False
-        self.rain = RainClient(verbose, debug)
+        self.rain = RainClient(self.user, verbose, debug)
 
     def do_rainlaunch(self, args):
         args = " " + args
@@ -113,15 +113,15 @@ class fgShellRain(Cmd):
                 ldap = True #we configure ldap to run commands and be able to login from on vm to other                                
                 #EUCALYPTUS    
                 if ('-e' in used_args or '--euca' in used_args):
-                    if not args.getimg:
-                        if args.varfile == None:
-                            print "ERROR: You need to specify the path of the file with the Eucalyptus environment variables"
-                        elif not os.path.isfile(str(os.path.expanduser(varfile))):
-                            print "ERROR: Variable files not found. You need to specify the path of the file with the Eucalyptus environment variables"
-                        else:    
-                            output = self.imgdeploy.iaas_generic(args.euca, image, image_source, "euca", varfile, args.getimg, ldap)        
+                    if args.varfile == None:
+                        print "ERROR: You need to specify the path of the file with the Eucalyptus environment variables"
+                    elif not os.path.isfile(str(os.path.expanduser(varfile))):
+                        print "ERROR: Variable files not found. You need to specify the path of the file with the Eucalyptus environment variables"
                     else:    
-                        output = self.imgdeploy.iaas_generic(args.euca, image, image_source, "euca", varfile, args.getimg, ldap)
+                        output = self.imgdeploy.iaas_generic(args.euca, image, image_source, "euca", varfile, args.getimg, ldap)        
+                        if output != None:
+                            if re.search("^ERROR", output):
+                                print output
                 #OpenNebula
                 elif ('-o' in used_args or '--opennebula' in used_args):
                     output = self.imgdeploy.iaas_generic(args.opennebula, image, image_source, "opennebula", varfile, args.getimg, ldap)
@@ -129,16 +129,16 @@ class fgShellRain(Cmd):
                 elif ('-n' in used_args or '--nimbus' in used_args):
                     #TODO        
                     print "Nimbus deployment is not implemented yet"
-                elif ('-s' in used_args or '--openstack' in used_args):
-                    if not args.getimg:
-                        if args.varfile == None:
-                            print "ERROR: You need to specify the path of the file with the OpenStack environment variables"
-                        elif not os.path.isfile(str(os.path.expanduser(varfile))):
-                            print "ERROR: Variable files not found. You need to specify the path of the file with the OpenStack environment variables"
-                        else:    
-                            output = self.imgdeploy.iaas_generic(args.openstack, image, image_source, "openstack", varfile, args.getimg, ldap)
+                elif ('-s' in used_args or '--openstack' in used_args):                    
+                    if args.varfile == None:
+                        print "ERROR: You need to specify the path of the file with the OpenStack environment variables"
+                    elif not os.path.isfile(str(os.path.expanduser(varfile))):
+                        print "ERROR: Variable files not found. You need to specify the path of the file with the OpenStack environment variables"
                     else:    
                         output = self.imgdeploy.iaas_generic(args.openstack, image, image_source, "openstack", varfile, args.getimg, ldap)
+                        if output != None:
+                            if re.search("^ERROR", output):
+                                print output
                 else:
                     print "ERROR: You need to specify a deployment target"
         elif image_source == "deployed":
@@ -146,34 +146,35 @@ class fgShellRain(Cmd):
         else:
             output = image
             
-        if output != None:            
-            target = ""
-            if args.xcat != None:            
-                output = self.rain.baremetal(output, jobscript, args.machines)
-                if output != None:
-                    print output
-            else:
-                if ('-e' in used_args or '--euca' in used_args):
-                    if varfile == "":
-                        print "ERROR: You need to specify the path of the file with the Eucalyptus environment variables"
-                    elif not os.path.isfile(varfile):
-                        print "ERROR: Variable files not found. You need to specify the path of the file with the Eucalyptus environment variables" 
-                    else:
-                        output = self.rain.euca(args.euca,output, jobscript, args.machines, varfile)
-                elif ('-o' in used_args or '--opennebula' in used_args):
-                    output = self.rain.opennebula(args.opennebula,output, jobscript, args.machines)
-                elif ('-n' in used_args or '--nimbus' in used_args):
-                    output = self.rain.nimbus(args.nimbus,output, jobscript, args.machines)
-                elif ('-s' in used_args or '--openstack' in used_args):
-                    if varfile == "":
-                        print "ERROR: You need to specify the path of the file with the OpenStack environment variables"
-                    elif not os.path.isfile(varfile):
-                        print "ERROR: Variable files not found. You need to specify the path of the file with the OpenStack environment variables"
-                    else:  
-                        output = self.rain.openstack(args.openstack, output, jobscript, args.machines, varfile)
+        if output != None:   
+            if not re.search("^ERROR", output):         
+                target = ""
+                if args.xcat != None:            
+                    output = self.rain.baremetal(output, jobscript, args.machines)
+                    if output != None:
+                        print output
                 else:
-                    print "ERROR: You need to specify a Rain target (xcat, eucalyptus or openstack)"
-            
+                    if ('-e' in used_args or '--euca' in used_args):
+                        if varfile == "":
+                            print "ERROR: You need to specify the path of the file with the Eucalyptus environment variables"
+                        elif not os.path.isfile(varfile):
+                            print "ERROR: Variable files not found. You need to specify the path of the file with the Eucalyptus environment variables" 
+                        else:
+                            output = self.rain.euca(args.euca,output, jobscript, args.machines, varfile)
+                    elif ('-o' in used_args or '--opennebula' in used_args):
+                        output = self.rain.opennebula(args.opennebula,output, jobscript, args.machines)
+                    elif ('-n' in used_args or '--nimbus' in used_args):
+                        output = self.rain.nimbus(args.nimbus,output, jobscript, args.machines)
+                    elif ('-s' in used_args or '--openstack' in used_args):
+                        if varfile == "":
+                            print "ERROR: You need to specify the path of the file with the OpenStack environment variables"
+                        elif not os.path.isfile(varfile):
+                            print "ERROR: Variable files not found. You need to specify the path of the file with the OpenStack environment variables"
+                        else:  
+                            output = self.rain.openstack(args.openstack, output, jobscript, args.machines, varfile)
+                    else:
+                        print "ERROR: You need to specify a Rain target (xcat, eucalyptus or openstack)"
+                
             
         else:
             print "ERROR: invalid image id."

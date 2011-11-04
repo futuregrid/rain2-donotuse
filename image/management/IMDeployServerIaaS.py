@@ -309,31 +309,29 @@ class IMDeployServerIaaS(object):
         if self.operatingsystem == "centos":
             self.logger.info('Installing LDAP packages')
             if (self.version == "5"):
-                self.runCmd('chroot ' + localtempdir + '/temp/ yum -y install openldap-clients nss_ldap')
-                self.runCmd('wget ' + self.http_server + '/ldap/nsswitch.conf -O ' + localtempdir + '/temp/etc/nsswitch.conf')
+                self.runCmd('sudo chroot ' + localtempdir + '/temp/ yum -y install openldap-clients nss_ldap')
+                self.runCmd('sudo wget ' + self.http_server + '/ldap/nsswitch.conf -O ' + localtempdir + '/temp/etc/nsswitch.conf')
             elif (self.version == "6"):
-                self.runCmd('chroot ' + localtempdir + '/temp/ yum -y install openldap-clients nss-pam-ldapd sssd')                       
-                self.runCmd('wget ' + self.http_server + '/ldap/nsswitch.conf_centos6 -O ' + localtempdir + '/temp/etc/nsswitch.conf')
-                self.runCmd('wget ' + self.http_server + '/ldap/sssd.conf_centos6 -O ' + localtempdir + '/temp/etc/sssd/sssd.conf')
-                self.runCmd('chmod 600 ' + localtempdir + '/temp/etc/sssd/sssd.conf')
-                self.runCmd('chroot ' + localtempdir + '/temp/ chkconfig sssd on')
+                self.runCmd('sudo chroot ' + localtempdir + '/temp/ yum -y install openldap-clients nss-pam-ldapd sssd')                       
+                self.runCmd('sudo wget ' + self.http_server + '/ldap/nsswitch.conf_centos6 -O ' + localtempdir + '/temp/etc/nsswitch.conf')
+                self.runCmd('sudo wget ' + self.http_server + '/ldap/sssd.conf_centos6 -O ' + localtempdir + '/temp/etc/sssd/sssd.conf')
+                self.runCmd('sudo chmod 600 ' + localtempdir + '/temp/etc/sssd/sssd.conf')
+                self.runCmd('sudo chroot ' + localtempdir + '/temp/ chkconfig sssd on')
                 
             self.logger.info('Configuring LDAP access')
             
-            self.runCmd('mkdir -p ' + localtempdir + '/temp/etc/openldap/cacerts ' + localtempdir + '/temp/N/u')
-            self.runCmd('wget ' + self.http_server + '/ldap/cacerts/12d3b66a.0 -O ' + localtempdir + '/temp/etc/openldap/cacerts/12d3b66a.0')
-            self.runCmd('wget ' + self.http_server + '/ldap/cacerts/cacert.pem -O ' + localtempdir + '/temp/etc/openldap/cacerts/cacert.pem')
-            self.runCmd('wget ' + self.http_server + '/ldap/ldap.conf -O ' + localtempdir + '/temp/etc/ldap.conf')
-            self.runCmd('wget ' + self.http_server + '/ldap/openldap/ldap.conf -O ' + localtempdir + '/temp/etc/openldap/ldap.conf')
+            self.runCmd('sudo mkdir -p ' + localtempdir + '/temp/etc/openldap/cacerts ' + localtempdir + '/temp/N/u')
+            self.runCmd('sudo wget ' + self.http_server + '/ldap/cacerts/12d3b66a.0 -O ' + localtempdir + '/temp/etc/openldap/cacerts/12d3b66a.0')
+            self.runCmd('sudo wget ' + self.http_server + '/ldap/cacerts/cacert.pem -O ' + localtempdir + '/temp/etc/openldap/cacerts/cacert.pem')
+            self.runCmd('sudo wget ' + self.http_server + '/ldap/ldap.conf -O ' + localtempdir + '/temp/etc/ldap.conf')
+            self.runCmd('sudo wget ' + self.http_server + '/ldap/openldap/ldap.conf -O ' + localtempdir + '/temp/etc/openldap/ldap.conf')
             os.system('sudo sed -i \'s/enforcing/disabled/g\' ' + localtempdir + '/temp/etc/selinux/config')
-            os.system('sudo sed -i \'s/PermitRootLogin yes/PermitRootLogin no/g\' ' + localtempdir + '/temp/etc/ssh/sshd_config')
-            os.system('echo \"PermitRootLogin no\" | sudo tee -a ' + localtempdir + '/temp/etc/ssh/sshd_config > /dev/null')
+                        
+            #self.runCmd('sudo wget ' + self.http_server + '/ldap/sshd_centos' + self.version + ' -O ' + localtempdir + '/temp/usr/sbin/sshd')
+            #os.system('echo "UseLPK yes" | sudo tee -a ' + localtempdir + '/temp/etc/ssh/sshd_config > /dev/null')
+            #os.system('echo "LpkLdapConf /etc/ldap.conf" | sudo tee -a ' + localtempdir + '/temp/etc/ssh/sshd_config > /dev/null')
             
-            self.runCmd('wget ' + self.http_server + '/ldap/sshd_centos' + self.version + ' -O ' + localtempdir + '/temp/usr/sbin/sshd')
-            os.system('echo "UseLPK yes" | sudo tee -a ' + localtempdir + '/temp/etc/ssh/sshd_config > /dev/null')
-            os.system('echo "LpkLdapConf /etc/ldap.conf" | sudo tee -a ' + localtempdir + '/temp/etc/ssh/sshd_config > /dev/null')
-            
-            self.runCmd('sudo chroot ' + localtempdir + '/temp/ yum -y install fuse-sshfs')
+            #self.runCmd('sudo chroot ' + localtempdir + '/temp/ yum -y install fuse-sshfs')
             
         elif self.operatingsystem == "ubuntu":
             #services will install, but not start
@@ -346,23 +344,21 @@ class IMDeployServerIaaS(object):
             #chroot maverick-vm /bin/bash -c 'DEBIAN_FRONTEND=noninteractive apt-get -y --force-yes install linux-image-server'
             #env DEBIAN_FRONTEND="noninteractive" chroot /tmp/javi3789716749 /bin/bash -c 'apt-get --force-yes -y install ldap-utils libpam-ldap libpam-ldap libnss-ldap nss-updatedb libnss-db'
             self.logger.info('Configuring LDAP access')
-            self.runCmd('wget ' + self.http_server + '/ldap/nsswitch.conf -O ' + localtempdir + '/temp/etc/nsswitch.conf')
-            self.runCmd('mkdir -p ' + localtempdir + '/temp/etc/ldap/cacerts ' + localtempdir + '/temp/N/u')
-            self.runCmd('wget ' + self.http_server + '/ldap/cacerts/12d3b66a.0 -O ' + localtempdir + '/temp/etc/ldap/cacerts/12d3b66a.0')
-            self.runCmd('wget ' + self.http_server + '/ldap/cacerts/cacert.pem -O ' + localtempdir + '/temp/etc/ldap/cacerts/cacert.pem')
-            self.runCmd('wget ' + self.http_server + '/ldap/ldap.conf -O ' + localtempdir + '/temp/etc/ldap.conf')
-            self.runCmd('wget ' + self.http_server + '/ldap/openldap/ldap.conf -O ' + localtempdir + '/temp/etc/ldap/ldap.conf')
+            self.runCmd('sudo wget ' + self.http_server + '/ldap/nsswitch.conf -O ' + localtempdir + '/temp/etc/nsswitch.conf')
+            self.runCmd('sudo mkdir -p ' + localtempdir + '/temp/etc/ldap/cacerts ' + localtempdir + '/temp/N/u')
+            self.runCmd('sudo wget ' + self.http_server + '/ldap/cacerts/12d3b66a.0 -O ' + localtempdir + '/temp/etc/ldap/cacerts/12d3b66a.0')
+            self.runCmd('sudo wget ' + self.http_server + '/ldap/cacerts/cacert.pem -O ' + localtempdir + '/temp/etc/ldap/cacerts/cacert.pem')
+            self.runCmd('sudo wget ' + self.http_server + '/ldap/ldap.conf -O ' + localtempdir + '/temp/etc/ldap.conf')
+            self.runCmd('sudo wget ' + self.http_server + '/ldap/openldap/ldap.conf -O ' + localtempdir + '/temp/etc/ldap/ldap.conf')
             os.system('sudo sed -i \'s/openldap/ldap/g\' ' + localtempdir + '/temp/etc/ldap/ldap.conf')
             os.system('sudo sed -i \'s/openldap/ldap/g\' ' + localtempdir + '/temp/etc/ldap.conf')
-            os.system('sudo sed -i \'s/PermitRootLogin yes/PermitRootLogin no/g\' ' + localtempdir + '/temp/etc/ssh/sshd_config')
-            os.system('echo \"PermitRootLogin no\" | sudo tee -a ' + localtempdir + '/temp/etc/ssh/sshd_config > /dev/null')
-    
+                
             self.logger.info('Installing LDAP packages')
             ldapexec = "/tmp/ldap.install"
             os.system('echo "#!/bin/bash \nexport DEBIAN_FRONTEND=noninteractive \napt-get ' + \
-                      '-y install ldap-utils libnss-ldapd nss-updatedb libnss-db sshfs" >' + localtempdir + '/temp/' + ldapexec)
-            os.system('chmod +x ' + localtempdir + '/temp/' + ldapexec)
-            self.runCmd('chroot ' + localtempdir + '/temp/ ' + ldapexec)    
+                      '-y install ldap-utils libnss-ldapd nss-updatedb libnss-db" >' + localtempdir + '/temp/' + ldapexec)
+            os.system('sudo chmod +x ' + localtempdir + '/temp/' + ldapexec)
+            self.runCmd('sudo chroot ' + localtempdir + '/temp/ ' + ldapexec)    
             #I think this is not needed
             #self.runCmd('wget '+ self.http_server +'/ldap/sshd_ubuntu -O ' + localtempdir + '/temp/usr/sbin/sshd')
             #os.system('echo "UseLPK yes" | sudo tee -a ' + localtempdir + '/temp/etc/ssh/sshd_config > /dev/null')
@@ -494,8 +490,8 @@ echo "************************"
 
             self.runCmd('sudo chroot ' + localtempdir + '/temp/ yum -y install curl')
             
-            if ldap:
-                self.configure_ldap(localtempdir)
+        if ldap:
+            self.configure_ldap(localtempdir)
             
 
     def opennebula_method(self, localtempdir, ldap): 
@@ -673,6 +669,11 @@ echo "************************"
             msg = "ERROR: mounting image"
             self.errormsg(connstream, msg)
             return False
+        
+        #Mount proc and pts
+        #runCmd('mount -t proc proc '+localtempdir + '/temp/proc')
+        #runCmd('mount -t devpts devpts '+localtempdir + '/temp/dev/pts')
+        
         
         return True
 

@@ -248,7 +248,11 @@ class IMDeploy(object):
             print cmd
             self._log.debug(cmd)
             stat = os.system(cmd)
-    
+            if stat != 0:
+                msg = "ERROR: in euca-bundle-image. " + str(sys.exc_info())
+                self._log.error(msg)
+                return msg
+            
             #Upload bundled image
             #cmd = 'euca-upload-bundle --bucket ' + self.user + ' --manifest ' + '/tmp/' + filename + '.manifest.xml'
             cmd = "euca-upload-bundle -a " + os.getenv("EC2_ACCESS_KEY") + " -s " + os.getenv("EC2_SECRET_KEY") + \
@@ -257,6 +261,10 @@ class IMDeploy(object):
             print cmd      
             self._log.debug(cmd)  
             stat = os.system(cmd)
+            if stat != 0:
+                msg = "ERROR: in euca-bundle-image. " + str(sys.exc_info())
+                self._log.error(msg)
+                return msg
     
             #Register image
             #cmd = 'euca-register ' + self.user + '/' + filename + '.manifest.xml'
@@ -355,7 +363,10 @@ class IMDeploy(object):
             print cmd
             self._log.debug(cmd)
             stat = os.system(cmd)
-    
+            if stat != 0:
+                msg = "ERROR: in euca-bundle-image. " + str(sys.exc_info())
+                self._log.error(msg)
+                return msg
             #Upload bundled image
             #cmd = 'euca-upload-bundle --bucket ' + self.user + ' --manifest ' + '/tmp/' + filename + '.manifest.xml'
             cmd = "euca-upload-bundle -a " + os.getenv("EC2_ACCESS_KEY") + " -s " + os.getenv("EC2_SECRET_KEY") + \
@@ -364,7 +375,11 @@ class IMDeploy(object):
             print cmd      
             self._log.debug(cmd)  
             stat = os.system(cmd)
-    
+            if stat != 0:
+                msg = "ERROR: in euca-upload-image. " + str(sys.exc_info())
+                self._log.error(msg)
+                return msg
+            
             #Register image
             #cmd = 'euca-register ' + self.user + '/' + filename + '.manifest.xml'
             cmd = "euca-register -a " + os.getenv("EC2_ACCESS_KEY") + " -s " + os.getenv("EC2_SECRET_KEY") + \
@@ -372,6 +387,7 @@ class IMDeploy(object):
             print cmd
             self._log.debug(cmd)
             #stat = os.system(cmd) #execute this with Popen to get the output
+            
             p = Popen(cmd.split(' '), stdout=PIPE, stderr=PIPE)
             std = p.communicate()
             stat = 0
@@ -849,14 +865,19 @@ def main():
                     print "ERROR: You need to specify the path of the file with the Eucalyptus environment variables"
                 elif not os.path.isfile(varfile):
                     print "ERROR: Variable files not found. You need to specify the path of the file with the Eucalyptus environment variables"
-                else:    
-                    
-                    imgdeploy.iaas_generic(args.euca, image, image_source, "euca", varfile, args.getimg, ldap)        
+                else:
+                    output = imgdeploy.iaas_generic(args.euca, image, image_source, "euca", varfile, args.getimg, ldap)
+                    if output != None:
+                        if re.search("^ERROR", output):
+                            print output       
             else:    
-                imgdeploy.iaas_generic(args.euca, image, image_source, "euca", varfile, args.getimg, ldap)
+                output = imgdeploy.iaas_generic(args.euca, image, image_source, "euca", varfile, args.getimg, ldap)
+                if output != None:
+                    if re.search("^ERROR", output):
+                        print output
         #OpenNebula
         elif ('-o' in used_args or '--opennebula' in used_args):
-            imgdeploy.iaas_generic(args.opennebula, image, image_source, "opennebula", varfile, args.getimg, ldap)
+            output = imgdeploy.iaas_generic(args.opennebula, image, image_source, "opennebula", varfile, args.getimg, ldap)
         #NIMBUS
         elif ('-n' in used_args or '--nimbus' in used_args):
             #TODO        
@@ -868,9 +889,15 @@ def main():
                 elif not os.path.isfile(varfile):
                     print "ERROR: Variable files not found. You need to specify the path of the file with the OpenStack environment variables"
                 else:    
-                    imgdeploy.iaas_generic(args.openstack, image, image_source, "openstack", varfile, args.getimg, ldap)
+                    output = imgdeploy.iaas_generic(args.openstack, image, image_source, "openstack", varfile, args.getimg, ldap)
+                    if output != None:
+                        if re.search("^ERROR", output):
+                            print output
             else:    
-                imgdeploy.iaas_generic(args.openstack, image, image_source, "openstack", varfile, args.getimg, ldap)
+                output = imgdeploy.iaas_generic(args.openstack, image, image_source, "openstack", varfile, args.getimg, ldap)
+                if output != None:
+                    if re.search("^ERROR", output):
+                        print output
         else:
             print "ERROR: You need to specify a deployment target"
     
