@@ -388,7 +388,7 @@ class RainClient(object):
             print "All VMs are accessible: " + str(allaccessible)
         
         self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)
-        reservation.instances[0].stop()
+        connection.stop_instances(reservation.instances, force=True)
         #self.stopEC2instances(reservation)
     
     def removeEC2sshkey(self, connection, sshkeypair_name, sshkeypair_path):
