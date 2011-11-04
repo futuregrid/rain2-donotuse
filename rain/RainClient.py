@@ -347,7 +347,7 @@ class RainClient(object):
                     msg = "ERROR: associating address to instance " + str(i.id) + ". failed, status: " + str(p3.returncode) + " --- " + std[1]
                     self._log.error(msg)
                     self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)
-                    self.stopEC2instances(reservation)
+                    self.stopEC2instances(connection, reservation)
                     return msg
                 
             #boto.ec2.instance.Instance.dns_name to get the public IP.
@@ -392,22 +392,24 @@ class RainClient(object):
         
             print "All VMs are accessible: " + str(allaccessible)
         
-        self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)
-        connection.terminate_instances(reservation.instances)        
-        #self.stopEC2instances(reservation)
+        self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)                
+        self.stopEC2instances(connection, reservation)
     
     def removeEC2sshkey(self, connection, sshkeypair_name, sshkeypair_path):
-        connection.delete_key_pair(sshkeypair_name)
-        os.system("rm -rf " +sshkeypair_path)
+        try:
+            connection.delete_key_pair(sshkeypair_name)
+            os.system("rm -rf " +sshkeypair_path)
+        except:
+            msg = "ERROR: deleting temporal sshkey. " + str(sys.exc_info())
+            self._log.error(msg)
         
-    def stopEC2instances(self, reservation):
-               
-        for i in reservation.instances:
-            try:
-                i.stop()
-            except:
-                msg = "ERROR: stoping VM. " + str(sys.exc_info())
-                self._log.error(msg)
+        
+    def stopEC2instances(self, connection, reservation):        
+        try:
+            connection.terminate_instances(reservation.instances)
+        except:
+            msg = "ERROR: terminating VM. " + str(sys.exc_info())
+            self._log.error(msg)
             
             
     
