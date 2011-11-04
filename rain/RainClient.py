@@ -475,7 +475,7 @@ class RainClient(object):
         """)
         f.write("usermod -a -G fuse " + self.user + "\n")
         f.write("su - " + self.user + " -c \"sshfs " + self.user + "@149.165.146.136:/N/u/" + self.user +\
-                 " /tmp/" + self.user + " -o nonempty -o ssh_command=\"ssh -i /tmp/" + sshkey_name + ".sh -oStrictHostKeyChecking=no\"\" \n")
+                 " /tmp/" + self.user + " -o nonempty -o ssh_command=\'ssh -i /tmp/" + sshkey_name + " -oStrictHostKeyChecking=no\'\" \n")
         f.write("ln -s /tmp/" + self.user + " /N/u/" + self.user)        
         f.close()
         os.system("chmod +x " + sshkeypair + ".sh")
