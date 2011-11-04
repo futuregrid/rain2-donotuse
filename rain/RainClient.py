@@ -294,7 +294,7 @@ class RainClient(object):
             return msg
                 
         #do a for to control status of all instances
-        msg = "Waitting for running state"
+        msg = "Waitting for running state in all the VMs"
         self._log.debug(msg)
         if self.verbose:
              print msg
@@ -352,8 +352,8 @@ class RainClient(object):
                                                             
             self._log.debug("Waiting to have access to VMs")
             allaccessible = False
-            for i in reservation.instances:
-                naccessible = 0
+            naccessible = 0
+            for i in reservation.instances:                
                 access = False
                 maxretry = 240  #this says that we wait 20 minutes maximum to allow the VM get online. 
                 #this also prevent to get here forever if the ssh key was not injected propertly.
