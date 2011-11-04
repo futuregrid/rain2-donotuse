@@ -338,6 +338,7 @@ class RainClient(object):
                     self._log.debug("Instance " + str(i.id) + " associated with address " + std[0].strip('\n'))
                     if self.verbose:
                         print msg
+                    time.sleep(1)
                     i.update()
                 else:                    
                     msg = "ERROR: associating address to instance " + str(i.id) + ". failed, status: " + str(p3.returncode) + " --- " + std[1]
