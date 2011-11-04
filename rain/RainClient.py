@@ -269,7 +269,7 @@ class RainClient(object):
         except:
             msg = "ERROR: getting the image " + str(sys.exc_info())
             self._log.error(msg)
-            self.removeEC2sshkey(connection, sshkeypair_path)
+            self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)
             return msg
 
         reservation = None
@@ -278,7 +278,7 @@ class RainClient(object):
         except:
             msg = "ERROR: launching the VM " + str(sys.exc_info())
             self._log.error(msg)
-            self.removeEC2sshkey(connection, sshkeypair_path)
+            self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)
             return msg
                 
         #do a for to control status of all instances
@@ -327,7 +327,7 @@ class RainClient(object):
                 else:                    
                     msg = "ERROR: associating address to instance " + str(i.id) + ". failed, status: " + str(p3.returncode) + " --- " + std[1]
                     self._log.error(msg)
-                    self.removeEC2sshkey(connection, sshkeypair_path)
+                    self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)
                     self.stopEC2instances(reservation)
                     return msg
                 
@@ -372,10 +372,10 @@ class RainClient(object):
         
             print "All VMs are accessible: " + str(allaccessible)
         
-        self.removeEC2sshkey(connection, sshkeypair_path)
+        self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)
         self.stopEC2instances(reservation)
     
-    def removeEC2sshkey(self, connection, sshkeypair_path):
+    def removeEC2sshkey(self, connection, sshkeypair_name, sshkeypair_path):
         connection.delete_key_pair(sshkeypair_name)
         os.system("rm -rf " +sshkeypair_path)
         
