@@ -480,13 +480,13 @@ class RainClient(object):
         f.close()
         os.system("chmod +x " + sshkeypair + ".sh")
         
-        msg = "Copying temporal private and public ssh-key files to VMs"
-        self._log.debug(msg)
-        if self.verbose:
-             print msg 
+        
         
         for i in reservation.instances:
-            
+            msg = "Copying temporal private and public ssh-key files to VMs"
+            self._log.debug(msg)
+            if self.verbose:
+                 print msg 
             cmd = "scp -i " + sshkeypair_path + " -q -oBatchMode=yes -oStrictHostKeyChecking=no " + sshkeypair + " " + sshkeypair + ".pub " + \
                  sshkeypair + ".sh root@" + str(i.public_dns_name) + ":/tmp/" 
             self._log.debug(cmd)                    
@@ -498,6 +498,11 @@ class RainClient(object):
                 self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)
                 self.stopEC2instances(connection, reservation)
                 return msg
+            
+            msg = "Installing sshfs and mounting home directory"
+            self._log.debug(msg)
+            if self.verbose:
+                 print msg 
             
             cmd = "ssh -i " + sshkeypair_path + " -q -oBatchMode=yes -oStrictHostKeyChecking=no root@" + str(i.public_dns_name) + " /tmp/" + sshkey_name + ".sh"
             self._log.debug(cmd) 
