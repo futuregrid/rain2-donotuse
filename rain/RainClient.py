@@ -456,36 +456,39 @@ class RainClient(object):
         cmd = "ssh-keygen -N \"\" -f " + sshkeypair + " -C " + sshkey_name + " >/dev/null"
         status = os.system(cmd)
         
-        msg = "Copying temporal private and public ssh-key files to VMs"
-        self._log.debug(msg)
-        if self.verbose:
-             print msg  
+        os.system("cat " + sshkeypair + ".pub >> ~/.ssh/authorized_keys") 
         
         #create script
         f = open(sshkeypair + ".sh", "w")
-        f.write("#!/bin/bash \n import os \n mkdir -p /N/u/ /tmp/" + self.user +"\n chown " + self.user + ":users /tmp/" + self.user +\
-                 " /tmp/" + sshkeypair + " /tmp/" + sshkeypair + ".pub")
+        f.write("#!/bin/bash \n mkdir -p /N/u/ /tmp/" + self.user +"\n chown " + self.user + ":users /tmp/" + self.user +\
+                 " /tmp/" + sshkey_name + " /tmp/" + sshkey_name + ".pub")
         f.write("""
         if [ -f /usr/bin/yum ]; 
         then 
             yum -y install fuse-sshfs
-        elif [ -f /usr/bin/apt-get ]
+        elif [ -f /usr/bin/apt-get ];
+        then
             apt-get -y install sshfs
         else
             exit 1
         fi
         """)
-        f.write("usermod -a -G fuse " + self.user + "\n su - " + self.user + "\n sshfs 149.165.146.136:/N/u/" + self.user +\
-                 " /tmp/" + self.user + " -o nonempty -o ssh_command=\"ssh -i /tmp/" + sshkeypair + " -oStrictHostKeyChecking=no\" \n exit \n ln -s /tmp/" +\
-                  self.user + "/N/u/" + self.user)        
+        f.write("usermod -a -G fuse " + self.user + "\n")
+        f.write("su - " + self.user + " -c \"sshfs " + self.user + "@149.165.146.136:/N/u/" + self.user +\
+                 " /tmp/" + self.user + " -o nonempty -o ssh_command=\"ssh -i /tmp/" + sshkey_name + ".sh -oStrictHostKeyChecking=no\"\" \n")
+        f.write("ln -s /tmp/" + self.user + " /N/u/" + self.user)        
         f.close()
         os.system("chmod +x " + sshkeypair + ".sh")
         
+        msg = "Copying temporal private and public ssh-key files to VMs"
+        self._log.debug(msg)
+        if self.verbose:
+             print msg 
         
         for i in reservation.instances:
             
             cmd = "scp -i " + sshkeypair_path + " -q -oBatchMode=yes -oStrictHostKeyChecking=no " + sshkeypair + " " + sshkeypair + ".pub " + \
-                 sshkeypair + ".sh root@" + str(i.public_dns_name) + " /tmp/" 
+                 sshkeypair + ".sh root@" + str(i.public_dns_name) + ":/tmp/" 
             self._log.debug(cmd)                    
             p = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
             std = p.communicate()
@@ -496,7 +499,7 @@ class RainClient(object):
                 self.stopEC2instances(connection, reservation)
                 return msg
             
-            cmd = "ssh -i " + sshkeypair_path + " -q -oBatchMode=yes -oStrictHostKeyChecking=no root@" + str(i.public_dns_name) + " /tmp/" + sshkeypair + ".sh"
+            cmd = "ssh -i " + sshkeypair_path + " -q -oBatchMode=yes -oStrictHostKeyChecking=no root@" + str(i.public_dns_name) + " /tmp/" + sshkey_name + ".sh"
             self._log.debug(cmd) 
             p = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
             std = p.communicate()
