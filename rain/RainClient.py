@@ -282,12 +282,12 @@ class RainClient(object):
         #do a for to control status of all instances
         allrunning=False
         failed = False
-        while allrunning:
+        while not allrunning:
             running=0        
             for i in reservation.instances:
                 status = i.update()
                 if status == 'running':
-                    running+=1
+                    running+=1                    
                 elif status == 'shutting-down' or status == 'terminate':
                     allrunning = True
                     failed = True                    
@@ -347,8 +347,8 @@ class RainClient(object):
         
             print allaccessible
         
-        #connection.delete_key_pair(sshkeypair_name)
-        #os.system("rm -rf ~/"+sshkeypair_name+".pem")
+        connection.delete_key_pair(sshkeypair_name)
+        os.system("rm -rf ~/"+sshkeypair_name+".pem")
         #terminate instances  
         for i in reservation.instances:
             i.stop()
