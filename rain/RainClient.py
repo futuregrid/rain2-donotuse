@@ -250,6 +250,8 @@ class RainClient(object):
                 msg = "ERROR: saving key_pair to a file"
                 self._log.error(msg)
                 return msg
+            else:
+                os.system("chmod 600 "+sshkeypair_path)
         except:
             msg = "ERROR: saving key_pair " + str(sys.exc_info())
             self._log.error(msg)
