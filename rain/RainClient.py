@@ -465,7 +465,7 @@ class RainClient(object):
                 if self.verbose:
                      print msg
                 
-                self.install_sshfs_home()
+                self.install_sshfs_home(sshkey_name,sshkeypair,reservation, connection)
         
                
         #self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)                
