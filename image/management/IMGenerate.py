@@ -18,7 +18,7 @@ import socket, ssl
 from subprocess import *
 #from xml.dom.ext import *
 #from xml.dom.minidom import Document, parse
-from time import time
+import time
 from getpass import getpass
 import hashlib
 
@@ -78,6 +78,7 @@ class IMGenerate(object):
         self.printLogStdout = printLogStdout
 
     def generate(self):
+        start_all = time.time()
         #generate string with options separated by | character
         output = None
         
@@ -168,7 +169,11 @@ class IMGenerate(object):
                             print "ERROR: The image has not been generated properly. Exit error:" + ret
                     else:
                         output = str(ret)
-                
+        
+        
+        end_all = time.time()
+        self._log.info('TIME walltime image generate client: ' + str(end_all - start_all))
+        
         #server return addr of the img and metafile compressed in a tgz, imgId or None if error
         return output
     """

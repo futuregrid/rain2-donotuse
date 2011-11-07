@@ -490,9 +490,9 @@ class RainClient(object):
                     self.install_sshfs_home(sshkeypair_path, sshkey_name,sshkeypair,reservation, connection, i)
         
                
-        #self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)                
-        #self.stopEC2instances(connection, reservation)
-        #self.removeTempsshkey(sshkeypair, sshkey_name)
+        self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)                
+        self.stopEC2instances(connection, reservation)
+        self.removeTempsshkey(sshkeypair, sshkey_name)
     
     def install_sshfs_home(self,sshkeypair_path, sshkey_name,sshkeypair,reservation, connection, i): 
         
@@ -537,7 +537,7 @@ class RainClient(object):
     def removeEC2sshkey(self, connection, sshkeypair_name, sshkeypair_path):
         try:
             connection.delete_key_pair(sshkeypair_name)
-            os.system("rm -rf " + sshkeypair_path)
+            os.system("rm -f " + sshkeypair_path)
         except:
             msg = "ERROR: deleting temporal sshkey. " + str(sys.exc_info())
             self._log.error(msg)

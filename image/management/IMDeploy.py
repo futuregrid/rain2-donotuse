@@ -17,6 +17,7 @@ from xml.dom.minidom import Document, parse
 import re
 from getpass import getpass
 import hashlib
+import time
 
 from IMClientConf import IMClientConf
 
@@ -101,6 +102,7 @@ class IMDeploy(object):
 
     #This need to be redo
     def iaas_generic(self, iaas_address, image, image_source, iaas_type, varfile, getimg, ldap):
+        start_all = time.time()
         checkauthstat = []     
         
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -119,7 +121,7 @@ class IMDeploy(object):
             iaasServer.write(msg)
             
             if self.check_auth(iaasServer, checkauthstat):
-                
+                start = time.time()
                 if self._verbose:
                     print "Customizing image for the selected cloud framework: " + iaas_type
                 
@@ -151,6 +153,10 @@ class IMDeploy(object):
                                          
                 #print msg
                 ret = iaasServer.read(1024)
+                
+                end = time.time()
+                self._log.info('TIME customize image in server side for an iaas: ' + str(end - start))
+                
                 if (re.search('^ERROR', ret)):
                     self._log.error('The image has not been generated properly. Exit error:' + ret)
                     if self._verbose:
@@ -163,14 +169,30 @@ class IMDeploy(object):
                         operatingsystem = results[2].strip()
                         #imagebackpath = retrieve   
                         localpath = "./"
+                        
+                        start = time.time()
+                                                
                         imagebackpath = self._retrieveImg(imgURIinServer, localpath)
+                        
+                        end = time.time()
+                        self._log.info('TIME retrieve image from server side: ' + str(end - start))
                         #if we want to introduce retries we need to put next line after checking that the image is actually here
                         iaasServer.write('OK')                        
                         if imagebackpath != None:        
                             #print "self." + iaas_type + "_method(\""+ str(imagebackpath) + "\",\"" + str(kernel) + "\",\"" +\
                             #      str(operatingsystem) + "\",\"" + str(iaas_address) + "\")"   
+                            
+                            start = time.time()
+                            
                             output = eval("self." + iaas_type + "_method(\"" + str(imagebackpath) + "\",\"" + str(kernel) + "\",\"" + 
                                   str(operatingsystem) + "\",\"" + str(iaas_address) + "\",\"" + str(varfile) + "\",\"" + str(getimg) + "\")")
+                            
+                            end = time.time()
+                            self._log.info('TIME uploading image to cloud framework: ' + str(end - start))
+                            
+                            end_all = time.time()
+                            self._log.info('TIME walltime image deploy cloud client: ' + str(end_all - start_all))
+                            
                             return output
                         else:
                             self._log.error("CANNOT retrieve the image from server. EXIT.")
@@ -180,8 +202,7 @@ class IMDeploy(object):
                         self._log.error("Incorrect reply from server. EXIT.")
                         if self._verbose:
                             print "ERROR: Incorrect reply from server. EXIT."
-                    
-                
+                                    
             else:       
                 self._log.error(str(checkauthstat[0]))
                 if self._verbose:
@@ -549,6 +570,7 @@ class IMDeploy(object):
    
 
     def xcat_method(self, xcat, image):
+        start_all = time.time()
         checkauthstat = []
         #Load Machines configuration
         xcat = xcat.lower()
@@ -717,6 +739,8 @@ class IMDeploy(object):
                     print 'To run a job in a machine using your image you can execute the next command: qsub -l os=<imagename> <scriptfile>'
                     print 'To check the status of the job you can use checkjob and showq commands'                    
             #return image deployed or list of images
+            end_all = time.time()
+            self._log.info('TIME walltime image deploy xcat/moab: ' + str(end_all - start_all))
             return imagename  
         
         except ssl.SSLError:
