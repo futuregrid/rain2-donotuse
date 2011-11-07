@@ -360,7 +360,7 @@ class IMDeployServerXcat(object):
                 status = os.system(cmd) #No sudo needed if the user that run IMDeployServerXcat has been configured to execute tabch
 
         end = time.time()
-        self.logger.info('TIME retrieve kernels and update xcat tables: ' + str(end - start))
+        self.logger.info('TIME customize image, retrieve kernels and update xcat tables: ' + str(end - start))
 
         #Pack image
         start = time.time()
