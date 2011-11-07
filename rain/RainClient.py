@@ -59,7 +59,7 @@ class RainClient(object):
         self.printLogStdout = printLogStdout
       
     def baremetal(self, imageidonsystem, jobscript, machines):
-        start = time.time()
+        start_all = time.time()
         if imageidonsystem != "default":
             #verify that the image requested is in Moab
             imagefoundinfile = False
