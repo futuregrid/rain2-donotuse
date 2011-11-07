@@ -347,7 +347,8 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
     #disable password login via ssh
     os.system('sed -i \'s/PasswordAuthentication yes/PasswordAuthentication no/g\' ' + tempdir + '' + name + '/etc/ssh/sshd_config')
     os.system('echo \"PasswordAuthentication no\" | tee -a ' + tempdir + '' + name + '/etc/ssh/sshd_config > /dev/null')
-
+    os.system('sed -i \'s/StrictHostKeyChecking ask/StrictHostKeyChecking no/g\' ' + tempdir + '' + name + '/etc/ssh/ssh_config')
+    os.system('echo \"StrictHostKeyChecking no\" | tee -a ' + tempdir + '' + name + '/etc/ssh/ssh_config > /dev/null')
 
     output = name
 
@@ -546,7 +547,9 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
     #disable password login via ssh
     os.system('sed -i \'s/PasswordAuthentication yes/PasswordAuthentication no/g\' ' + tempdir + '' + name + '/etc/ssh/sshd_config')
     os.system('echo \"PasswordAuthentication no\" | tee -a ' + tempdir + '' + name + '/etc/ssh/sshd_config > /dev/null')
-
+    os.system('sed -i \'s/StrictHostKeyChecking ask/StrictHostKeyChecking no/g\' ' + tempdir + '' + name + '/etc/ssh/ssh_config')
+    os.system('echo \"StrictHostKeyChecking no\" | tee -a ' + tempdir + '' + name + '/etc/ssh/ssh_config > /dev/null')
+    
     #create /etc/shadow file
     #runCmd('chroot ' + tempdir + '' + name + ' pwconv')
 
