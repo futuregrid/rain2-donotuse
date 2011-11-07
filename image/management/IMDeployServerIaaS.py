@@ -150,6 +150,7 @@ class IMDeployServerIaaS(object):
         return FGAuth.auth(self.user, userCred)             
                 
     def process_client(self, connstream):
+        start_all = time.time()
         self.logger = self.setup_logger("." + str(os.getpid()))        
         self.logger.info('Accepted new connection')
         
@@ -216,6 +217,7 @@ class IMDeployServerIaaS(object):
         self.runCmd(cmd)
         self.runCmd("chmod 777 " + localtempdir)
         
+        start =  time.time()
         if imgSource == "repo":
             #GET IMAGE from repo
             if not self._reposervice.connection():
@@ -232,7 +234,7 @@ class IMDeployServerIaaS(object):
                     self.runCmd("rm -rf " + localtempdir)
                     return
                 else:
-                    self._reposervice.disconnect()
+                    self._reposervice.disconnect()        
         else:
             connstream.write(localtempdir)
             status = connstream.read(1024)
@@ -249,17 +251,23 @@ class IMDeployServerIaaS(object):
                 msg = "ERROR: Message received from client is incorrect: " + str(status)
                 self.errormsg(connstream, msg)
                 return
-
+        end = time.time()
+        self.logger.info('TIME retrieve image from repo or client: ' + str(end - start))
         if not os.path.isfile(image):
             msg = "ERROR: file " + image + " not found"
             self.errormsg(connstream, msg)
             return
         
+        start = time.time()
         #extracts image/manifest, read manifest
         if not self.handle_image(image, localtempdir, connstream):
             return            
 
+        end = time.time()
+        self.logger.info('TIME untar image: ' + str(end - start))
         #self.preprocess()
+        
+        start = time.time()
         
         if (self.iaas == "euca"):
             self.euca_method(localtempdir, ldap)
@@ -269,6 +277,9 @@ class IMDeployServerIaaS(object):
             self.opennebula_method(localtempdir, ldap)
         elif (self.iaas == "openstack"):
             self.openstack_method(localtempdir, ldap)  
+        
+        end = time.time()
+        self.logger.info('TIME customize image for specific IaaS framework: ' + str(end - start))
         
         #umount the image
         max_retry = 5
@@ -290,9 +301,12 @@ class IMDeployServerIaaS(object):
         
         connstream.write(localtempdir + '/' + self.operatingsystem + self.version + self.name + '.img,' + self.kernel + "," + self.operatingsystem)
 
+        start = time.time()
         #wait until client retrieve img
         self.logger.info("Wait until client get the image")
         connstream.read()
+        end = time.time()
+        self.logger.info('TIME wait until client get image: ' + str(end - start))
         #remove image
         cmd = 'rm -rf ' + localtempdir
         status = self.runCmd(cmd)
@@ -302,10 +316,13 @@ class IMDeployServerIaaS(object):
             connstream.close()
         except:
             self.logger.error("ERROR: " + str(sys.exc_info()))
+            
+        end_all = time.time()
+        self.logger.info('TIME walltime image deploy IaaS: ' + str(end_all - start_all))
         self.logger.info("Image Deploy Request DONE")
 
     def configure_ldap(self, localtempdir):
-        
+        start = time.time()
         if self.operatingsystem == "centos":
             self.logger.info('Installing LDAP packages')
             if (self.version == "5"):
@@ -364,6 +381,9 @@ class IMDeployServerIaaS(object):
             #os.system('echo "UseLPK yes" | sudo tee -a ' + localtempdir + '/temp/etc/ssh/sshd_config > /dev/null')
             #os.system('echo "LpkLdapConf /etc/ldap.conf" | sudo tee -a ' + localtempdir + '/temp/etc/ssh/sshd_config > /dev/null')            
             self.runCmd('rm -f ' + localtempdir + '/temp/usr/sbin/policy-rc.d')
+
+        end = time.time()
+        self.logger.info('TIME configure LDAP (this is included in the TIME customize image for specific IaaS framework): ' + str(end - start))
 
     def euca_method(self, localtempdir, ldap): 
 

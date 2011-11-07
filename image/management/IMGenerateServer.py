@@ -172,6 +172,8 @@ class IMGenerateServer(object):
     def generate(self, channel):
         #this runs in a different proccess
         
+        start_all = time.time()
+        
         self.logger = logging.getLogger("GenerateServer." + str(os.getpid()))
         
         self.logger.info('Processing an image generation request')
@@ -256,7 +258,13 @@ class IMGenerateServer(object):
         ###########
         #BOOT VM##
         ##########
+        start = time.time()
+        
         output = self.boot_VM(server, vmfile)
+        
+        end = time.time()
+        self.logger.info('TIME boot VM: ' + str(end - start))
+        
         vmaddr = output[0]
         vmID = output[1]
         #####
@@ -294,7 +302,12 @@ class IMGenerateServer(object):
             
                     self.logger.info(cmdexec)
             
+                    start = time.time()
+                    
                     uid = self._rExec(self.rootId, cmdexec, vmaddr)
+                    
+                    end = time.time()
+                    self.logger.info('TIME generate image: ' + str(end - start))
                     
                     self.logger.info("copying fg-image-generate.log to scrach partition " + self.tempdirserver + "/" + str(vmID) + "_gen.log")
                     cmdscp = "scp -q -oBatchMode=yes " + self.rootId + "@" + vmaddr + ":/root/fg-image-generate.log " + self.tempdirserver + "/" + str(vmID) + "_gen.log"
@@ -339,8 +352,15 @@ class IMGenerateServer(object):
                         self.logger.debug("Generating tgz with image and manifest files")
                         self.logger.debug("tar cfz " + self.tempdirserver + "/" + status + ".tgz -C " + self.tempdirserver + \
                                         " " + status + ".manifest.xml " + status + ".img")
+                        
+                        start = time.time()
+                        
                         out = os.system("tar cfz " + self.tempdirserver + "/" + status + ".tgz -C " + self.tempdirserver + \
                                         " " + status + ".manifest.xml " + status + ".img")
+                        
+                        end = time.time()
+                        self.logger.info('TIME tgz image: ' + str(end - start))
+                        
                         if out == 0:
                             os.system("rm -f " + self.tempdirserver + "" + status + ".manifest.xml " + self.tempdirserver + \
                                       "" + status + ".img")
@@ -368,10 +388,15 @@ class IMGenerateServer(object):
                                     msg = "ERROR: Connection with the Image Repository failed"
                                     self.errormsg(channel, msg)
                                 else:
-                                    self.logger.info("Storing image " + self.tempdirserver + "/" + status + ".tgz" + " in the repository")                            
+                                    self.logger.info("Storing image " + self.tempdirserver + "/" + status + ".tgz" + " in the repository")
+                                    start = time.time()                            
                                     status_repo = self._reposervice.put(self.user, passwd, self.user, self.tempdirserver + "" + status + ".tgz", "os=" + \
                                                                  self.os + "_" + self.version + "&arch=" + self.arch + "&description=" + \
                                                                  self.desc + "&tag=" + status)
+                                    
+                                    end = time.time()
+                                    self.logger.info('TIME upload image to the repo: ' + str(end - start))
+                                    
                                     if (re.search('^ERROR', status_repo)):
                                         self.errormsg(channel, status_repo) 
                                     else: 
@@ -392,6 +417,8 @@ class IMGenerateServer(object):
             self.logger.info("Destroy VM")
             server.one.vm.action(self.oneauth, "finalize", vmID)
         
+        end_all = time.time()
+        self.logger.info('TIME walltime image generate: ' + str(end_all - start_all))
         self.logger.info("Image Generation DONE")
     
     def errormsg(self, channel, msg):
@@ -437,8 +464,8 @@ class IMGenerateServer(object):
     
             #monitor VM
             booted = False
-            maxretry = self.wait_max/5 #time that the VM has to change from penn to runn 
-            retry=0
+            maxretry = self.wait_max / 5 #time that the VM has to change from penn to runn 
+            retry = 0
             while not booted and retry < maxretry:  #eventually the VM has to boot or fail
                 try:
                     #-------Get Info about VM -------------------------------
@@ -466,7 +493,7 @@ class IMGenerateServer(object):
                         fail = True
                         vmaddr = "fail"
                     else:
-                        retry+=1
+                        retry += 1
                         time.sleep(5)
                 except:
                     pass
@@ -488,7 +515,7 @@ class IMGenerateServer(object):
                     access = False
                     maxretry = 240  #this says that we wait 20 minutes maximum to allow the VM get online. 
                     #this also prevent to get here forever if the ssh key was not injected propertly.
-                    retry=0
+                    retry = 0
                     self.logger.debug("Waiting to have access to VM")
                     while not access and retry < maxretry:
                         cmd = "ssh -q -oBatchMode=yes root@" + vmaddr + " uname"
@@ -499,7 +526,7 @@ class IMGenerateServer(object):
                             access = True
                             self.logger.debug("The VM " + str(vm[1]) + " with ip " + str(vmaddr) + "is accessible")
                         else:
-                            retry+=1
+                            retry += 1
                             time.sleep(5)
                     if retry >= maxretry:
                         self.logger.error("Could not get access to the VM " + str(vm[1]) + " with ip " + str(vmaddr) + "\n" 

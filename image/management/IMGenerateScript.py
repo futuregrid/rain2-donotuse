@@ -25,7 +25,7 @@ from xml.dom.minidom import Document, parse
 #it will be removed as soon as we code the ubuntu part in deployserverxcat
 TEST_MODE = True
 
-logger=None
+logger = None
 def main():
     global tempdir
     global namedir #this == name is to clean up when something fails
@@ -76,18 +76,18 @@ def main():
         sys.exit(1)
 
     #help is auto-generated
-    parser.add_option("-o", "--os", dest = "os", help = "specify destination Operating System")
-    parser.add_option("-v", "--version", dest = "version", help = "Operating System version")
-    parser.add_option("-a", "--arch", dest = "arch", help = "Destination hardware architecture")
-    parser.add_option("-s", "--software", dest = "software", help = "Software stack to be automatically installed")
-    parser.add_option("-d", "--debug", action = "store_true", dest = "debug", help = "Enable debugging")
-    parser.add_option("-u", "--user", dest = "user", help = "FutureGrid username")
-    parser.add_option("-n", "--name", dest = "givenname", help = "Desired recognizable name of the image")
-    parser.add_option("-e", "--description", dest = "desc", help = "Short description of the image and its purpose")
-    parser.add_option("-t", "--tempdir", dest = "tempdir", help = "directory to be use in to generate the image")
-    parser.add_option("-c", "--httpserver", dest = "httpserver", help = "httpserver to download config files")
-    parser.add_option("-b", "--bcfg2url", dest = "bcfg2url", help = "address where our IMBcfg2GroupManagerServer is listening")
-    parser.add_option("-p", "--bcfg2port", dest = "bcfg2port", help = "port where our IMBcfg2GroupManagerServer is listening")
+    parser.add_option("-o", "--os", dest="os", help="specify destination Operating System")
+    parser.add_option("-v", "--version", dest="version", help="Operating System version")
+    parser.add_option("-a", "--arch", dest="arch", help="Destination hardware architecture")
+    parser.add_option("-s", "--software", dest="software", help="Software stack to be automatically installed")
+    parser.add_option("-d", "--debug", action="store_true", dest="debug", help="Enable debugging")
+    parser.add_option("-u", "--user", dest="user", help="FutureGrid username")
+    parser.add_option("-n", "--name", dest="givenname", help="Desired recognizable name of the image")
+    parser.add_option("-e", "--description", dest="desc", help="Short description of the image and its purpose")
+    parser.add_option("-t", "--tempdir", dest="tempdir", help="directory to be use in to generate the image")
+    parser.add_option("-c", "--httpserver", dest="httpserver", help="httpserver to download config files")
+    parser.add_option("-b", "--bcfg2url", dest="bcfg2url", help="address where our IMBcfg2GroupManagerServer is listening")
+    parser.add_option("-p", "--bcfg2port", dest="bcfg2port", help="port where our IMBcfg2GroupManagerServer is listening")
     
 
     (ops, args) = parser.parse_args()
@@ -99,17 +99,17 @@ def main():
         #ch.setLevel(logging.INFO)
 
     if type(ops.httpserver) is not NoneType:
-        http_server=ops.httpserver
+        http_server = ops.httpserver
     else:
         logger.error("You need to provide the http server that contains files needed to create images")
         sys.exit(1)
     if type(ops.bcfg2url) is not NoneType:
-        bcfg2_url=ops.bcfg2url
+        bcfg2_url = ops.bcfg2url
     else:
         logger.error("You need to provide the address of the machine where IMBcfg2GroupManagerServer.py is listening")
         sys.exit(1)
     if type(ops.bcfg2port) is not NoneType:
-        bcfg2_port=int(ops.bcfg2port)
+        bcfg2_port = int(ops.bcfg2port)
     else:
         logger.error("You need to provide the port of the machine where IMBcfg2GroupManagerServer.py is listening")
         sys.exit(1)
@@ -237,9 +237,12 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
         #to create base_os
         #centosLog.info('Modifying repositories to match the version requested')
         ubuntuLog.info('Installing base OS')
+        start = time.time()
         #runCmd('yum --installroot='+tempdir+''+name+' -y groupinstall Core')
         runCmd('debootstrap --include=grub,language-pack-en,openssh-server --components=main,universe,multiverse ' + version + ' ' + tempdir + '' + name)
-
+        end = time.time()
+        ubuntuLog.info('TIME base OS: ' + str(end - start))
+        
         ubuntuLog.info('Copying configuration files')
 
 #Move next 3 to deploy        
@@ -286,11 +289,13 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
     os.system('echo "exit 101" >>' + tempdir + '' + name + '/usr/sbin/policy-rc.d')
     os.system('chmod +x ' + tempdir + '' + name + '/usr/sbin/policy-rc.d')
 
-
+    start = time.time()
+    
     ubuntuLog.info('Installing some util packages')
     runCmd('chroot ' + tempdir + '' + name + ' apt-get -y install wget nfs-common gcc make libcrypto++8 man curl time')
         
-
+    end = time.time()
+    ubuntuLog.info('TIME util packages: ' + str(end - start))
 
     #Setup networking
     os.system('echo "localhost" > ' + tempdir + '' + name + '/etc/hostname')
@@ -327,12 +332,15 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
     
     ubuntuLog.info('Configured BCFG2 client settings')
     """
+    start = time.time()
     #Install packages
     if pkgs != None:
         ubuntuLog.info('Installing user-defined packages')
         runCmd('chroot ' + tempdir + '' + name + ' apt-get -y install ' + pkgs)  #NON_INTERACTIVE
         ubuntuLog.info('Installed user-defined packages')
 
+    end = time.time()
+    ubuntuLog.info('TIME user packages: ' + str(end - start))
     #Setup BCFG2 server groups
     #success = push_bcfg2_group(name, pkgs, 'ubuntu', version)
     #if success:
@@ -459,9 +467,12 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
         """
         #to create base_os        
         centosLog.info('Installing base OS')
+        start = time.time()
         runCmd('yum --installroot=' + tempdir + '' + name + ' -y groupinstall Core')
         #runCmd('yum -c ./yum.conf --installroot=' + tempdir + '' + name + ' -y groupinstall Core')
-
+        end = time.time()
+        centosLog.info('TIME base OS: ' + str(end - start))
+        
         centosLog.info('Copying configuration files')
 
 #Move next 3 to deploy        
@@ -476,22 +487,25 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
 
 
     #Mount proc and pts
-    runCmd('mount -t proc proc '+tempdir+''+name + '/proc')
-    runCmd('mount -t devpts devpts '+tempdir+''+name + '/dev/pts')
+    runCmd('mount -t proc proc ' + tempdir + '' + name + '/proc')
+    runCmd('mount -t devpts devpts ' + tempdir + '' + name + '/dev/pts')
     centosLog.info('Mounted proc and devpts')
 
     centosLog.info('Installing some util packages')
     #if not os.path.isfile(tempdir + '' + name +"/proc/cpuinfo"):
     #    os.system("touch "+ tempdir + '' + name +"/proc/cpuinfo")
     #runCmd('chroot ' + tempdir + '' + name + ' yum clean all')
-    if (re.search("^5",version)):
-        runCmd('chroot ' + tempdir + '' + name + ' rpm -ivh http://download.fedora.redhat.com/pub/epel/5/'+arch+'/epel-release-5-4.noarch.rpm')        
-    elif (re.search("^6",version)):
-        runCmd('chroot ' + tempdir + '' + name + ' rpm -ivh http://download.fedora.redhat.com/pub/epel/6/'+arch+'/epel-release-6-5.noarch.rpm')
+    start = time.time()
+    if (re.search("^5", version)):
+        runCmd('chroot ' + tempdir + '' + name + ' rpm -ivh http://download.fedora.redhat.com/pub/epel/5/' + arch + '/epel-release-5-4.noarch.rpm')        
+    elif (re.search("^6", version)):
+        runCmd('chroot ' + tempdir + '' + name + ' rpm -ivh http://download.fedora.redhat.com/pub/epel/6/' + arch + '/epel-release-6-5.noarch.rpm')
         runCmd('chroot ' + tempdir + '' + name + ' yum -y install plymouth') 
 
     runCmd('chroot ' + tempdir + '' + name + ' yum -y install wget nfs-utils gcc make man curl time')
    
+    end = time.time()
+    centosLog.info('TIME util packages: ' + str(end - start))
 
     #Setup networking
 
@@ -528,11 +542,15 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
     
     centosLog.info('Configured BCFG2 client settings')
     """
+    start = time.time()
     #Install packages
     if pkgs != None:
         centosLog.info('Installing user-defined packages')
         runCmd('chroot ' + tempdir + '' + name + ' yum -y install ' + pkgs)
         centosLog.info('Installed user-defined packages')
+
+    end = time.time()
+    centosLog.info('TIME user packages: ' + str(end - start))
 
     #Setup BCFG2 server groups
     #success = push_bcfg2_group(name, pkgs, 'centos', version)
@@ -573,7 +591,7 @@ def runCmd(cmd):
     #os.system(cmd)
     #Use subprocess to properly direct output to log
     #p = subprocess.Popen(cmd, shell=True)
-    p = Popen(cmd.split(' '), stdout = PIPE, stderr = PIPE)
+    p = Popen(cmd.split(' '), stdout=PIPE, stderr=PIPE)
     std = p.communicate()
     if len(std[0]) > 0:
         cmdLog.debug('stdout: ' + std[0])

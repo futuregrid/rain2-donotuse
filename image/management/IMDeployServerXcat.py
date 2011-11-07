@@ -120,6 +120,7 @@ class IMDeployServerXcat(object):
         return FGAuth.auth(self.user, userCred)                 
                 
     def process_client(self, connstream):
+        start_all = time.time()
         self.logger.info('Accepted new connection')        
         #receive the message
         data = connstream.read(2048)
@@ -209,7 +210,14 @@ class IMDeployServerXcat(object):
             return
         else:
             self.logger.info("Retrieving image from repository")
-            image = self._reposervice.get(self.user, passwd, self.user, "img", imgID, self.tempdir)                  
+            
+            start = time.time()
+            
+            image = self._reposervice.get(self.user, passwd, self.user, "img", imgID, self.tempdir)
+            
+            end = time.time()
+            self.logger.info('TIME retrieve image from repo: ' + str(end - start))
+                              
             if image == None:
                 msg = "ERROR: Cannot get access to the image with imgId " + str(imgID)
                 self.errormsg(connstream, msg)
@@ -224,10 +232,16 @@ class IMDeployServerXcat(object):
             self.errormsg(connstream, msg)
             return
 
+        
+        start = time.time()
+        
         #extracts image/manifest, read manifest and copy image right directory
         if not self.handle_image(image, connstream):
             return            
-
+        
+        end = time.time()
+        self.logger.info('TIME untar image and copy to the right place: ' + str(end - start))
+        
         #Select kernel version
         #This is not yet supported as we get always the same kernel
         self.logger.debug("kernel: " + self.kernel)
@@ -245,6 +259,8 @@ class IMDeployServerXcat(object):
             msg = "ERROR: creating tftpboot directories"
             self.errormsg(connstream, msg)
             return
+        
+        start = time.time()
         
         if (self.operatingsystem == "ubuntu"):
             
@@ -343,7 +359,11 @@ class IMDeployServerXcat(object):
                 #status = os.system("sudo " + cmd)
                 status = os.system(cmd) #No sudo needed if the user that run IMDeployServerXcat has been configured to execute tabch
 
+        end = time.time()
+        self.logger.info('TIME retrieve kernels and update xcat tables: ' + str(end - start))
+
         #Pack image
+        start = time.time()
         cmd = 'packimage -o ' + self.prefix + self.operatingsystem + '' + self.name + ' -p compute -a ' + self.arch + ' > /dev/null'
         self.logger.debug(cmd)        
         if not self.test_mode:
@@ -355,6 +375,9 @@ class IMDeployServerXcat(object):
         else:            
             status = 0            
         #    
+        end = time.time()
+        self.logger.info('TIME xcat packimage: ' + str(end - start))
+        
         if status != 0:
             msg = "ERROR: packimage command"
             self.errormsg(connstream, msg)
@@ -384,6 +407,9 @@ class IMDeployServerXcat(object):
         connstream.shutdown(socket.SHUT_RDWR)
         connstream.close()
         
+        
+        end_all = time.time()
+        self.logger.info('TIME walltime image deploy xcat: ' + str(end_all - start_all))
         self.logger.info("Image Deploy Request DONE")
             
 
@@ -602,6 +628,8 @@ sysfs   /sys     sysfs    defaults       0 0
             status = self.runCmd('wget ' + self.http_server + '/torque/torque-2.4.8_india/epilogue -O ' +\
                                   self.path + '/rootimg/var/spool/torque/mom_priv/epilogue')
             self.runCmd('chmod +x ' + self.path + '/rootimg/var/spool/torque/mom_priv/epilogue '+ self.path + '/rootimg/var/spool/torque/mom_priv/prologue')            
+            self.runCmd('cp -f ' + self.path + '/rootimg/var/spool/torque/mom_priv/epilogue '+ self.path + '/rootimg/var/spool/torque/mom_priv/epilogue.parallel')
+            self.runCmd('cp -f ' + self.path + '/rootimg/var/spool/torque/mom_priv/prologue '+ self.path + '/rootimg/var/spool/torque/mom_priv/prologue.parallel')
             
             self.logger.info('Configuring network')
             status = self.runCmd('wget ' + self.http_server + '/conf/ubuntu/netsetup.sh_india -O ' + self.path + '/rootimg/etc/init.d/netsetup.sh')
@@ -784,6 +812,8 @@ sysfs   /sys     sysfs    defaults       0 0
             status = self.runCmd('wget ' + self.http_server + '/torque/torque-2.4.8_india/epilogue -O ' +\
                                   self.path + '/rootimg/var/spool/torque/mom_priv/epilogue')
             self.runCmd('chmod +x ' + self.path + '/rootimg/var/spool/torque/mom_priv/epilogue '+ self.path + '/rootimg/var/spool/torque/mom_priv/prologue')
+            self.runCmd('cp -f ' + self.path + '/rootimg/var/spool/torque/mom_priv/epilogue '+ self.path + '/rootimg/var/spool/torque/mom_priv/epilogue.parallel')
+            self.runCmd('cp -f ' + self.path + '/rootimg/var/spool/torque/mom_priv/prologue '+ self.path + '/rootimg/var/spool/torque/mom_priv/prologue.parallel')
             
             
             self.logger.info('Configuring network')
