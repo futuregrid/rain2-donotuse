@@ -187,9 +187,8 @@ class RainClient(object):
             print "The Error output is in the file: " + stderr                
         
         end_all = time.time()
-        self._log.info('TIME walltime rain client:' + str(end_all - start_all))
+        self._log.info('TIME walltime rain client:' + str(end_all - start_all))        
         
-        #read exit file and print it
             
     #2. in the case of euca-run-instance, wait until the vms are booted, execute the job inside, wait until done.
     def euca(self, iaas_address, imageidonsystem, jobscript, ninstances, varfile):
