@@ -22,6 +22,7 @@ import hashlib
 import time
 import boto.ec2
 import boto
+from multiprocessing import Process
 
 from pprint import pprint
 
@@ -275,8 +276,9 @@ class RainClient(object):
         return output
         
     def ec2_common(self, iaas_name, path, region, ec2_url, imageidonsystem, jobscript, ninstances, varfile):
-        
+        india_loginnode = "149.165.146.136" #to mount the home using sshfs
         endpoint = ec2_url.lstrip("http://").split(":")[0]
+        
         try:  
             region = boto.ec2.regioninfo.RegionInfo(name=region, endpoint=endpoint)
         except:
@@ -460,74 +462,69 @@ class RainClient(object):
                 status = os.system(cmd)                
                 os.system("cat " + sshkeypair + ".pub >> ~/.ssh/authorized_keys")
                 
-                msg = "Creating temporal sshkey files"
-                self._log.debug(msg)
-                if self.verbose:
-                     print msg
+                #create script
+                f = open(sshkeypair + ".sh", "w")
+                f.write("#!/bin/bash \n mkdir -p /N/u/ /tmp/" + self.user + "\n chown " + self.user + ":users /tmp/" + self.user + \
+                         " /tmp/" + sshkey_name + " /tmp/" + sshkey_name + ".pub")
+                f.write("""
+                if [ -f /usr/bin/yum ]; 
+                then 
+                    yum -y install fuse-sshfs
+                elif [ -f /usr/bin/apt-get ];
+                then
+                    apt-get -y install sshfs
+                else
+                    exit 1
+                fi
+                """)
+                f.write("usermod -a -G fuse " + self.user + "\n")
+                f.write("su - " + self.user + " -c \"cd /tmp; sshfs " + self.user + "@" + india_loginnode + ":/N/u/" + self.user + \
+                         " /tmp/" + self.user + " -o nonempty -o ssh_command=\'ssh -i /tmp/" + sshkey_name + " -oStrictHostKeyChecking=no\'\" \n")
+                f.write("ln -s /tmp/" + self.user + " /N/u/" + self.user)        
+                f.close()
+                os.system("chmod +x " + sshkeypair + ".sh")
                 
-                self.install_sshfs_home(sshkeypair_path, sshkey_name,sshkeypair,reservation, connection)
+                for i in reservation.instances:
+                    self.install_sshfs_home(sshkeypair_path, sshkey_name,sshkeypair,reservation, connection, i)
         
                
         #self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)                
         #self.stopEC2instances(connection, reservation)
         #self.removeTempsshkey(sshkeypair, sshkey_name)
     
-    def install_sshfs_home(self,sshkeypair_path, sshkey_name,sshkeypair,reservation, connection): 
-        india_loginnode = "149.165.146.136"
-        #create script
-        f = open(sshkeypair + ".sh", "w")
-        f.write("#!/bin/bash \n mkdir -p /N/u/ /tmp/" + self.user + "\n chown " + self.user + ":users /tmp/" + self.user + \
-                 " /tmp/" + sshkey_name + " /tmp/" + sshkey_name + ".pub")
-        f.write("""
-        if [ -f /usr/bin/yum ]; 
-        then 
-            yum -y install fuse-sshfs
-        elif [ -f /usr/bin/apt-get ];
-        then
-            apt-get -y install sshfs
-        else
-            exit 1
-        fi
-        """)
-        f.write("usermod -a -G fuse " + self.user + "\n")
-        f.write("su - " + self.user + " -c \"cd /tmp; sshfs " + self.user + "@" + india_loginnode + ":/N/u/" + self.user + \
-                 " /tmp/" + self.user + " -o nonempty -o ssh_command=\'ssh -i /tmp/" + sshkey_name + " -oStrictHostKeyChecking=no\'\" \n")
-        f.write("ln -s /tmp/" + self.user + " /N/u/" + self.user)        
-        f.close()
-        os.system("chmod +x " + sshkeypair + ".sh")
+    def install_sshfs_home(self,sshkeypair_path, sshkey_name,sshkeypair,reservation, connection, i): 
         
-        for i in reservation.instances:
-            msg = "Copying temporal private and public ssh-key files to VMs"
-            self._log.debug(msg)
-            if self.verbose:
-                 print msg 
-            cmd = "scp -i " + sshkeypair_path + " -q -oBatchMode=yes -oStrictHostKeyChecking=no " + sshkeypair + " " + sshkeypair + ".pub " + \
-                 sshkeypair + ".sh root@" + str(i.public_dns_name) + ":/tmp/" 
-            self._log.debug(cmd)                    
-            p = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
-            std = p.communicate()
-            if p.returncode != 0:
-                msg = "ERROR: sending ssh-keys and script to VM " + str(i.id) + ". failed, status: " + str(p.returncode) + " --- " + std[1]
-                self._log.error(msg)
-                self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)
-                self.stopEC2instances(connection, reservation)
-                return msg
-            
-            msg = "Installing sshfs and mounting home directory"
-            self._log.debug(msg)
-            if self.verbose:
-                 print msg 
-            
-            cmd = "ssh -i " + sshkeypair_path + " -q -oBatchMode=yes -oStrictHostKeyChecking=no root@" + str(i.public_dns_name) + " /tmp/" + sshkey_name + ".sh"
-            self._log.debug(cmd) 
-            p = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
-            std = p.communicate()
-            if p.returncode != 0:
-                msg = "ERROR: Installing sshfs and mounting home directory. " + str(i.id) + ". failed, status: " + str(p.returncode) + " --- " + std[1]
-                self._log.error(msg)
-                self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)
-                self.stopEC2instances(connection, reservation)
-                return msg
+        msg = "Copying temporal private and public ssh-key files to VMs"
+        self._log.debug(msg)
+        if self.verbose:
+             print msg 
+        cmd = "scp -i " + sshkeypair_path + " -q -oBatchMode=yes -oStrictHostKeyChecking=no " + sshkeypair + " " + sshkeypair + ".pub " + \
+             sshkeypair + ".sh root@" + str(i.public_dns_name) + ":/tmp/" 
+        self._log.debug(cmd)                    
+        p = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
+        std = p.communicate()
+        if p.returncode != 0:
+            msg = "ERROR: sending ssh-keys and script to VM " + str(i.id) + ". failed, status: " + str(p.returncode) + " --- " + std[1]
+            self._log.error(msg)
+            self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)
+            self.stopEC2instances(connection, reservation)
+            return msg
+        
+        msg = "Installing sshfs and mounting home directory"
+        self._log.debug(msg)
+        if self.verbose:
+             print msg 
+        
+        cmd = "ssh -i " + sshkeypair_path + " -q -oBatchMode=yes -oStrictHostKeyChecking=no root@" + str(i.public_dns_name) + " /tmp/" + sshkey_name + ".sh"
+        self._log.debug(cmd) 
+        p = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
+        std = p.communicate()
+        if p.returncode != 0:
+            msg = "ERROR: Installing sshfs and mounting home directory. " + str(i.id) + ". failed, status: " + str(p.returncode) + " --- " + std[1]
+            self._log.error(msg)
+            self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)
+            self.stopEC2instances(connection, reservation)
+            return msg
             
     def removeTempsshkey(self, sshkeypair, sshkey_name):
         cmd = "rm -f " + sshkeypair + " " + sshkeypair + ".pub" + sshkeypair + ".sh"
