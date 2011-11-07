@@ -155,7 +155,7 @@ class IMDeploy(object):
                 ret = iaasServer.read(1024)
                 
                 end = time.time()
-                self._log.info('TIME customize image in server side for an iaas: ' + str(end - start))
+                self._log.info('TIME customize image in server side for an iaas:' + str(end - start))
                 
                 if (re.search('^ERROR', ret)):
                     self._log.error('The image has not been generated properly. Exit error:' + ret)
@@ -175,7 +175,7 @@ class IMDeploy(object):
                         imagebackpath = self._retrieveImg(imgURIinServer, localpath)
                         
                         end = time.time()
-                        self._log.info('TIME retrieve image from server side: ' + str(end - start))
+                        self._log.info('TIME retrieve image from server side:' + str(end - start))
                         #if we want to introduce retries we need to put next line after checking that the image is actually here
                         iaasServer.write('OK')                        
                         if imagebackpath != None:        
@@ -188,10 +188,9 @@ class IMDeploy(object):
                                   str(operatingsystem) + "\",\"" + str(iaas_address) + "\",\"" + str(varfile) + "\",\"" + str(getimg) + "\")")
                             
                             end = time.time()
-                            self._log.info('TIME uploading image to cloud framework: ' + str(end - start))
+                            self._log.info('TIME uploading image to cloud framework:' + str(end - start))
                             
                             end_all = time.time()
-                            self._log.info('TIME walltime image deploy cloud client: ' + str(end_all - start_all))
                             
                             return output
                         else:

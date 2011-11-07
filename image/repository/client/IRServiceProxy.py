@@ -155,7 +155,7 @@ class IRServiceProxy(object):
                 print checkauthstat[0]
         
         end = time.time()
-        self._log.info('TIME query: ' + str(end - start))
+        self._log.info('TIME query:' + str(end - start))
         
         return output
             
@@ -195,7 +195,7 @@ class IRServiceProxy(object):
                 print checkauthstat[0]
         
         end = time.time()
-        self._log.info('TIME get: ' + str(end - start))
+        self._log.info('TIME get:' + str(end - start))
                
         return output
     
@@ -274,7 +274,7 @@ class IRServiceProxy(object):
             status = "ERROR: uploading image to the repository. File does not exists or metadata string is invalid"
         
         end = time.time()
-        self._log.info('TIME put: ' + str(end - start))
+        self._log.info('TIME put:' + str(end - start))
         return status
         
     ############################################################
@@ -305,7 +305,7 @@ class IRServiceProxy(object):
                 if self.verbose:
                     print checkauthstat[0]
         end = time.time()
-        self._log.info('TIME modify: ' + str(end - start))  
+        self._log.info('TIME modify:' + str(end - start))  
         return output
     
     ############################################################
@@ -335,7 +335,7 @@ class IRServiceProxy(object):
                 print checkauthstat[0]
                 
         end = time.time()
-        self._log.info('TIME remove: ' + str(end - start))
+        self._log.info('TIME remove:' + str(end - start))
         
         return output
     
@@ -369,7 +369,7 @@ class IRServiceProxy(object):
         else:
             output = "Available options: " + str(ImgMeta.Permission)
         end = time.time()
-        self._log.info('TIME setpermission: ' + str(end - start))
+        self._log.info('TIME setpermission:' + str(end - start))
         return output
     
     ############################################################
@@ -398,7 +398,7 @@ class IRServiceProxy(object):
             if self.verbose:
                 print checkauthstat[0]
         end = time.time()
-        self._log.info('TIME adduser: ' + str(end - start)) 
+        self._log.info('TIME adduser:' + str(end - start)) 
         return output
         
     ############################################################
@@ -427,7 +427,7 @@ class IRServiceProxy(object):
             if self.verbose:
                 print checkauthstat[0]
         end = time.time()
-        self._log.info('TIME deluser: ' + str(end - start))
+        self._log.info('TIME deluser:' + str(end - start))
         return output
 
     ############################################################
@@ -456,7 +456,7 @@ class IRServiceProxy(object):
             if self.verbose:
                 print checkauthstat[0]
         end = time.time()
-        self._log.info('TIME userlist: ' + str(end - start))
+        self._log.info('TIME userlist:' + str(end - start))
         return output
 
     ############################################################
@@ -490,7 +490,7 @@ class IRServiceProxy(object):
             if self.verbose:
                 print "ERROR: evaluating the quota. It must be a number or a mathematical operation enclosed in \"\" characters"        
         end = time.time()
-        self._log.info('TIME userquota: ' + str(end - start))
+        self._log.info('TIME userquota:' + str(end - start))
         return output
 
 
@@ -524,7 +524,7 @@ class IRServiceProxy(object):
             output = "Available options: " + str(IRUser.Role)
              
         end = time.time()
-        self._log.info('TIME userrole: ' + str(end - start))   
+        self._log.info('TIME userrole:' + str(end - start))   
         return output
         
         
@@ -557,7 +557,7 @@ class IRServiceProxy(object):
         else:
             output = "Available options: " + str(IRUser.Status)
         end = time.time()
-        self._log.info('TIME userstatus: ' + str(end - start))       
+        self._log.info('TIME userstatus:' + str(end - start))       
         return output
         
 
@@ -587,7 +587,7 @@ class IRServiceProxy(object):
             if self.verbose:
                 print checkauthstat[0]
         end = time.time()
-        self._log.info('TIME histimg: ' + str(end - start))    
+        self._log.info('TIME histimg:' + str(end - start))    
         return output
 
     ############################################################
@@ -616,7 +616,7 @@ class IRServiceProxy(object):
             if self.verbose:
                 print checkauthstat[0]
         end = time.time()
-        self._log.info('TIME histuser: ' + str(end - start)) 
+        self._log.info('TIME histuser:' + str(end - start)) 
         return output
     
     ############################################################

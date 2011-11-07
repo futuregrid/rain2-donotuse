@@ -216,7 +216,7 @@ class IMDeployServerXcat(object):
             image = self._reposervice.get(self.user, passwd, self.user, "img", imgID, self.tempdir)
             
             end = time.time()
-            self.logger.info('TIME retrieve image from repo: ' + str(end - start))
+            self.logger.info('TIME retrieve image from repo:' + str(end - start))
                               
             if image == None:
                 msg = "ERROR: Cannot get access to the image with imgId " + str(imgID)
@@ -240,7 +240,7 @@ class IMDeployServerXcat(object):
             return            
         
         end = time.time()
-        self.logger.info('TIME untar image and copy to the right place: ' + str(end - start))
+        self.logger.info('TIME untar image and copy to the right place:' + str(end - start))
         
         #Select kernel version
         #This is not yet supported as we get always the same kernel
@@ -360,7 +360,7 @@ class IMDeployServerXcat(object):
                 status = os.system(cmd) #No sudo needed if the user that run IMDeployServerXcat has been configured to execute tabch
 
         end = time.time()
-        self.logger.info('TIME customize image, retrieve kernels and update xcat tables: ' + str(end - start))
+        self.logger.info('TIME customize image, retrieve kernels and update xcat tables:' + str(end - start))
 
         #Pack image
         start = time.time()
@@ -376,7 +376,7 @@ class IMDeployServerXcat(object):
             status = 0            
         #    
         end = time.time()
-        self.logger.info('TIME xcat packimage: ' + str(end - start))
+        self.logger.info('TIME xcat packimage:' + str(end - start))
         
         if status != 0:
             msg = "ERROR: packimage command"
@@ -409,7 +409,7 @@ class IMDeployServerXcat(object):
         
         
         end_all = time.time()
-        self.logger.info('TIME walltime image deploy xcat: ' + str(end_all - start_all))
+        self.logger.info('TIME walltime image deploy xcat:' + str(end_all - start_all))
         self.logger.info("Image Deploy Request DONE")
             
 

@@ -172,7 +172,7 @@ class IMGenerate(object):
         
         
         end_all = time.time()
-        self._log.info('TIME walltime image generate client: ' + str(end_all - start_all))
+        self._log.info('TIME walltime image generate client:' + str(end_all - start_all))
         
         #server return addr of the img and metafile compressed in a tgz, imgId or None if error
         return output

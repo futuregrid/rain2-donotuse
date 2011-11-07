@@ -263,7 +263,7 @@ class IMGenerateServer(object):
         output = self.boot_VM(server, vmfile)
         
         end = time.time()
-        self.logger.info('TIME boot VM: ' + str(end - start))
+        self.logger.info('TIME boot VM:' + str(end - start))
         
         vmaddr = output[0]
         vmID = output[1]
@@ -307,7 +307,7 @@ class IMGenerateServer(object):
                     uid = self._rExec(self.rootId, cmdexec, vmaddr)
                     
                     end = time.time()
-                    self.logger.info('TIME generate image: ' + str(end - start))
+                    self.logger.info('TIME generate image:' + str(end - start))
                     
                     self.logger.info("copying fg-image-generate.log to scrach partition " + self.tempdirserver + "/" + str(vmID) + "_gen.log")
                     cmdscp = "scp -q -oBatchMode=yes " + self.rootId + "@" + vmaddr + ":/root/fg-image-generate.log " + self.tempdirserver + "/" + str(vmID) + "_gen.log"
@@ -359,7 +359,7 @@ class IMGenerateServer(object):
                                         " " + status + ".manifest.xml " + status + ".img")
                         
                         end = time.time()
-                        self.logger.info('TIME tgz image: ' + str(end - start))
+                        self.logger.info('TIME tgz image:' + str(end - start))
                         
                         if out == 0:
                             os.system("rm -f " + self.tempdirserver + "" + status + ".manifest.xml " + self.tempdirserver + \
@@ -395,7 +395,7 @@ class IMGenerateServer(object):
                                                                  self.desc + "&tag=" + status)
                                     
                                     end = time.time()
-                                    self.logger.info('TIME upload image to the repo: ' + str(end - start))
+                                    self.logger.info('TIME upload image to the repo:' + str(end - start))
                                     
                                     if (re.search('^ERROR', status_repo)):
                                         self.errormsg(channel, status_repo) 
@@ -418,7 +418,7 @@ class IMGenerateServer(object):
             server.one.vm.action(self.oneauth, "finalize", vmID)
         
         end_all = time.time()
-        self.logger.info('TIME walltime image generate: ' + str(end_all - start_all))
+        self.logger.info('TIME walltime image generate:' + str(end_all - start_all))
         self.logger.info("Image Generation DONE")
     
     def errormsg(self, channel, msg):

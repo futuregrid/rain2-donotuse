@@ -252,7 +252,7 @@ class IMDeployServerIaaS(object):
                 self.errormsg(connstream, msg)
                 return
         end = time.time()
-        self.logger.info('TIME retrieve image from repo or client: ' + str(end - start))
+        self.logger.info('TIME retrieve image from repo or client:' + str(end - start))
         if not os.path.isfile(image):
             msg = "ERROR: file " + image + " not found"
             self.errormsg(connstream, msg)
@@ -279,7 +279,7 @@ class IMDeployServerIaaS(object):
             self.openstack_method(localtempdir, ldap)  
         
         end = time.time()
-        self.logger.info('TIME customize image for specific IaaS framework: ' + str(end - start))
+        self.logger.info('TIME customize image for specific IaaS framework:' + str(end - start))
         
         #umount the image
         max_retry = 5
@@ -306,7 +306,7 @@ class IMDeployServerIaaS(object):
         self.logger.info("Wait until client get the image")
         connstream.read()
         end = time.time()
-        self.logger.info('TIME wait until client get image: ' + str(end - start))
+        self.logger.info('TIME wait until client get image:' + str(end - start))
         #remove image
         cmd = 'rm -rf ' + localtempdir
         status = self.runCmd(cmd)
@@ -318,7 +318,7 @@ class IMDeployServerIaaS(object):
             self.logger.error("ERROR: " + str(sys.exc_info()))
             
         end_all = time.time()
-        self.logger.info('TIME walltime image deploy IaaS: ' + str(end_all - start_all))
+        self.logger.info('TIME walltime image deploy IaaS:' + str(end_all - start_all))
         self.logger.info("Image Deploy Request DONE")
 
     def configure_ldap(self, localtempdir):
@@ -383,7 +383,7 @@ class IMDeployServerIaaS(object):
             self.runCmd('rm -f ' + localtempdir + '/temp/usr/sbin/policy-rc.d')
 
         end = time.time()
-        self.logger.info('TIME configure LDAP (this is included in the TIME customize image for specific IaaS framework): ' + str(end - start))
+        self.logger.info('TIME configure LDAP (this is included in the TIME customize image for specific IaaS framework):' + str(end - start))
 
     def euca_method(self, localtempdir, ldap): 
 
