@@ -465,14 +465,14 @@ class RainClient(object):
                 if self.verbose:
                      print msg
                 
-                self.install_sshfs_home(sshkey_name,sshkeypair,reservation, connection)
+                self.install_sshfs_home(sshkeypair_path, sshkey_name,sshkeypair,reservation, connection)
         
                
         #self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)                
         #self.stopEC2instances(connection, reservation)
         #self.removeTempsshkey(sshkeypair, sshkey_name)
     
-    def install_sshfs_home(self,sshkey_name,sshkeypair,reservation, connection): 
+    def install_sshfs_home(self,sshkeypair_path, sshkey_name,sshkeypair,reservation, connection): 
         india_loginnode = "149.165.146.136"
         #create script
         f = open(sshkeypair + ".sh", "w")
