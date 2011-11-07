@@ -443,24 +443,40 @@ class RainClient(object):
                 
             if naccessible == len(reservation.instances):
                 allaccessible = True                
+            
+            msg = "All VMs are accessible: " + str(allaccessible)
+            self._log.debug(msg)
+            if self.verbose:
+                 print msg 
+            
+            if allaccessible:
+                msg = "Creating temporal sshkey files"
+                self._log.debug(msg)
+                if self.verbose:
+                     print msg      
+                sshkey_name = str(randrange(999999999))        
+                sshkeypair = os.path.expanduser("~/") + sshkey_name                
+                cmd = "ssh-keygen -N \"\" -f " + sshkeypair + " -C " + sshkey_name + " >/dev/null"
+                status = os.system(cmd)                
+                os.system("cat " + sshkeypair + ".pub >> ~/.ssh/authorized_keys")
+                
+                msg = "Creating temporal sshkey files"
+                self._log.debug(msg)
+                if self.verbose:
+                     print msg
+                
+                self.install_sshfs_home()
         
-            print "All VMs are accessible: " + str(allaccessible)
-        
-        
-        msg = "Creating temporal sshkey files"
-        self._log.debug(msg)
-        if self.verbose:
-             print msg      
-        sshkey_name = str(randrange(999999999))        
-        sshkeypair = os.path.expanduser("~/") + sshkey_name                
-        cmd = "ssh-keygen -N \"\" -f " + sshkeypair + " -C " + sshkey_name + " >/dev/null"
-        status = os.system(cmd)
-        
-        os.system("cat " + sshkeypair + ".pub >> ~/.ssh/authorized_keys") 
-        
+               
+        #self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)                
+        #self.stopEC2instances(connection, reservation)
+        #self.removeTempsshkey(sshkeypair, sshkey_name)
+    
+    def install_sshfs_home(self,sshkey_name,sshkeypair,reservation, connection): 
+        india_loginnode = "149.165.146.136"
         #create script
         f = open(sshkeypair + ".sh", "w")
-        f.write("#!/bin/bash \n mkdir -p /N/u/ /tmp/" + self.user +"\n chown " + self.user + ":users /tmp/" + self.user +\
+        f.write("#!/bin/bash \n mkdir -p /N/u/ /tmp/" + self.user + "\n chown " + self.user + ":users /tmp/" + self.user + \
                  " /tmp/" + sshkey_name + " /tmp/" + sshkey_name + ".pub")
         f.write("""
         if [ -f /usr/bin/yum ]; 
@@ -474,13 +490,11 @@ class RainClient(object):
         fi
         """)
         f.write("usermod -a -G fuse " + self.user + "\n")
-        f.write("su - " + self.user + " -c \"cd /tmp; sshfs " + self.user + "@149.165.146.136:/N/u/" + self.user +\
+        f.write("su - " + self.user + " -c \"cd /tmp; sshfs " + self.user + "@" + india_loginnode + ":/N/u/" + self.user + \
                  " /tmp/" + self.user + " -o nonempty -o ssh_command=\'ssh -i /tmp/" + sshkey_name + " -oStrictHostKeyChecking=no\'\" \n")
         f.write("ln -s /tmp/" + self.user + " /N/u/" + self.user)        
         f.close()
         os.system("chmod +x " + sshkeypair + ".sh")
-        
-        
         
         for i in reservation.instances:
             msg = "Copying temporal private and public ssh-key files to VMs"
@@ -509,20 +523,12 @@ class RainClient(object):
             p = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
             std = p.communicate()
             if p.returncode != 0:
-                msg = "ERROR: adding user to the fuse group. " + str(i.id) + ". failed, status: " + str(p.returncode) + " --- " + std[1]
+                msg = "ERROR: Installing sshfs and mounting home directory. " + str(i.id) + ". failed, status: " + str(p.returncode) + " --- " + std[1]
                 self._log.error(msg)
                 self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)
                 self.stopEC2instances(connection, reservation)
                 return msg
-        
-        
-               
-        #self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)                
-        #self.stopEC2instances(connection, reservation)
-        #self.removeTempsshkey(sshkeypair, sshkey_name)
-    
-    def install_sshfs_home(self, ):
-    
+            
     def removeTempsshkey(self, sshkeypair, sshkey_name):
         cmd = "rm -f " + sshkeypair + " " + sshkeypair + ".pub" + sshkeypair + ".sh"
         status = os.system(cmd)
