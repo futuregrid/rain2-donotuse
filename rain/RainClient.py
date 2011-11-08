@@ -406,7 +406,8 @@ class RainClient(object):
             
             if iaas_name == "openstack":  
                 #asignar ips. this should be skipped once the new openstack is deployed
-                #I do not do any verification because this has to disappear. Openstack has to assign the IP automatically       
+                #I do not do any verification because this has to disappear. Openstack has to assign the IP automatically
+                start = time.time()       
                 for i in reservation.instances:
                     cmd = "euca-describe-addresses -a " + os.getenv("EC2_ACCESS_KEY") + " -s " + os.getenv("EC2_SECRET_KEY") + " --url " + ec2_url
                     #print cmd
@@ -442,6 +443,9 @@ class RainClient(object):
                         self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)
                         self.stopEC2instances(connection, reservation)
                         return msg
+            
+                end = time.time()
+                self._log.info('TIME to associate all addresses:' + str(end - start))
             
             #boto.ec2.instance.Instance.dns_name to get the public IP.
             #boto.ec2.instance.Instance.private_dns_name private IP.
