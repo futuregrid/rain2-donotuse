@@ -363,7 +363,7 @@ class RainClient(object):
             return msg
                 
         #do a for to control status of all instances
-        msg = "Waitting for running state in all the VMs"
+        msg = "Waiting for running state in all the VMs"
         self._log.debug(msg)
         if self.verbose:
              print msg
@@ -388,7 +388,7 @@ class RainClient(object):
                 time.sleep(5)
         
         end = time.time()
-        self.logger.info('TIME Boot all Images:' + str(end - start))
+        self._log.info('TIME Boot all Images:' + str(end - start))
         
         print "Number of instances booted " + str(len(reservation.instances))
                   
@@ -470,7 +470,7 @@ class RainClient(object):
                  print msg 
             
             end = time.time()
-            self.logger.info('TIME all VM are accessible via ssh:' + str(end - start))
+            self._log.info('TIME all VM are accessible via ssh:' + str(end - start))
             
             if allaccessible:
                 start = time.time()
@@ -517,7 +517,7 @@ class RainClient(object):
                     self.install_sshfs_home(sshkeypair_path, sshkey_name,sshkeypair,reservation, connection, i)
                        
                 end = time.time()
-                self.logger.info('TIME install sshfs, mount home directory in /tmp:' + str(end - start))
+                self._log.info('TIME install sshfs, mount home directory in /tmp:' + str(end - start))
         
         #self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)                
         #self.stopEC2instances(connection, reservation)
