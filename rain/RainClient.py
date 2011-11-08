@@ -296,6 +296,12 @@ class RainClient(object):
         india_loginnode = "149.165.146.136" #to mount the home using sshfs
         endpoint = ec2_url.lstrip("http://").split(":")[0]
         private_ips_for_hostlist = ""
+        
+        #Home from login node will be in /tmp/N/u/username
+        
+        if re.search("^/N/u/", jobscript):
+            jobscript = "/tmp" + jobscript        
+        
         try:  
             region = boto.ec2.regioninfo.RegionInfo(name=region, endpoint=endpoint)
         except:
@@ -497,7 +503,7 @@ class RainClient(object):
                 
                 #create script
                 f = open(sshkeytemp + ".sh", "w")
-                f.write("#!/bin/bash \n mkdir -p /N/u/" + self.user + "/.ssh /tmp/" + self.user +                                                
+                f.write("#!/bin/bash \n mkdir -p /N/u/" + self.user + "/.ssh /tmp/N/u/" + self.user +                                                
                         "\n cp -f /tmp/" + sshkey_name + " /N/u/"+ self.user +"/.ssh/id_rsa" +
                         "\n cp -f /tmp/" + sshkey_name + ".pub /N/u/"+ self.user +"/.ssh/id_rsa.pub" +
                         "\n cp -f /tmp/authorized_keys /N/u/"+ self.user +"/.ssh/" +
@@ -505,8 +511,8 @@ class RainClient(object):
                         "\n cp -f /tmp/" + sshkey_name + ".machines /N/u/"+ self.user +"/machines" +
                         "\n touch /N/u/"+ self.user +"/your_home_is_in_tmp" +
                         "\n echo \"Host *\" | tee -a /N/u/"+ self.user +"/.ssh/config > /dev/null" +
-                        "\n echo \"    StrictHostKeyChecking no\" | tee -a /N/u/"+ self.user +".ssh/config > /dev/null" +
-                        "\n chown -R " + self.user + ":users /tmp/" + self.user + " /N/u/" + self.user)
+                        "\n echo \"    StrictHostKeyChecking no\" | tee -a /N/u/"+ self.user +"/.ssh/config > /dev/null" +
+                        "\n chown -R " + self.user + ":users /tmp/N/u/" + self.user + " /N/u/" + self.user)
                 f.write("""
                 if [ -f /usr/bin/yum ]; 
                 then 
@@ -520,7 +526,7 @@ class RainClient(object):
                 """)
                 f.write("usermod -a -G fuse " + self.user + "\n")
                 f.write("su - " + self.user + " -c \"cd /tmp; sshfs " + self.user + "@" + india_loginnode + ":/N/u/" + self.user + \
-                         " /tmp/" + self.user + " -o nonempty -o ssh_command=\'ssh -oStrictHostKeyChecking=no\'\" \n")                
+                         " /tmp/N/u/" + self.user + " -o nonempty -o ssh_command=\'ssh -oStrictHostKeyChecking=no\'\" \n")                
                 #f.write("ln -s /tmp/" + self.user + " /N/u/" + self.user)        
                 f.close()
                 os.system("chmod +x " + sshkeytemp + ".sh")
@@ -550,7 +556,29 @@ class RainClient(object):
                    
                 end = time.time()
                 self._log.info('TIME install sshfs, mount home directory in /tmp in all VMs:' + str(end - start))
-        
+                
+                if alldone:
+                    msg = "Running Job"
+                    self._log.debug(msg)
+                    if self.verbose:
+                         print msg 
+                    #runjob
+                    cmd = "ssh -oBatchMode=yes -oStrictHostKeyChecking=no " + str(reservation.instances[0].public_dns_name) + " \"cd /tmp/N/u/" + self.user + "; " + jobscript + "\" "
+                    self._log.debug(cmd) 
+                    p = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
+                    std = p.communicate()
+                    if p.returncode != 0:
+                        msg = "ERROR: Installing sshfs and mounting home directory. " + str(i.id) + ". failed, status: " + str(p.returncode) + " --- " + std[1]
+                        self._log.error(msg)
+                        if self.verbose:
+                            print msg
+                        self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)
+                        self.stopEC2instances(connection, reservation)
+                        return msg
+                    
+                    
+                    
+                    
         #self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)                
         #self.stopEC2instances(connection, reservation)
         #self.removeTempsshkey(sshkeytemp, sshkey_name)
@@ -663,7 +691,9 @@ def main():
     group1.add_argument('-s', '--openstack', dest='openstack', nargs='?', metavar='Address', help='Deploy the image to OpenStack, which is in the specified addr')
     parser.add_argument('-v', '--varfile', dest='varfile', help='Path of the environment variable files. Currently this is used by Eucalyptus and OpenStack')
     parser.add_argument('-m', '--numberofmachines', dest='machines', metavar='#instances', default=1, help='Number of machines needed.')
-    parser.add_argument('-j', '--jobscript', dest='jobscript', required=True, help='Script to execute on the provisioned images.')
+    parser.add_argument('-j', '--jobscript', dest='jobscript', required=True, help='Script to execute on the provisioned images. In the case of Cloud environments, '
+                        ' the user home directory is mounted in /tmp/N/u/username. The /N/u/username is only used for ssh between VM and store the ips of the parallel '
+                        ' job in a file called /N/u/username/machines')
     
     
     args = parser.parse_args()
@@ -695,8 +725,9 @@ def main():
         
     jobscript = os.path.expanduser(os.path.expandvars(args.jobscript))
     if not os.path.isfile(jobscript):
-        print 'Not script file found. Please specify an script file using the paramiter -j/--jobscript'            
-        sys.exit(1)
+        if not os.path.isfile("/" + jobscript.lstrip("/tmp")): #just in case the user indicates the path inside the VM
+            print 'Not script file found. Please specify an script file using the paramiter -j/--jobscript'            
+            sys.exit(1)
     
     varfile = ""
     if args.varfile != None:

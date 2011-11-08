@@ -69,7 +69,9 @@ class fgShellRain(Cmd):
         group1.add_argument('-s', '--openstack', dest='openstack', nargs='?', metavar='Address', help='Deploy the image to OpenStack, which is in the specified addr')
         parser.add_argument('-v', '--varfile', dest='varfile', help='Path of the environment variable files. Currently this is used by Eucalyptus and OpenStack')
         parser.add_argument('-m', '--numberofmachines', dest='machines', metavar='#instances', default=1, help='Number of machines needed.')
-        parser.add_argument('-j', '--jobscript', dest='jobscript', required=True, help='Script to execute on the provisioned images.')
+        parser.add_argument('-j', '--jobscript', dest='jobscript', required=True, help='Script to execute on the provisioned images. In the case of Cloud environments, '
+                        ' the user home directory is mounted in /tmp/N/u/username. The /N/u/username is only used for ssh between VM and store the ips of the parallel '
+                        ' job in a file called /N/u/username/machines')
         
         args = parser.parse_args()
         
@@ -85,10 +87,11 @@ class fgShellRain(Cmd):
             image_source = "default"
             image = "default"
         
-        jobscript = os.path.expanduser(os.path.expandvars(args.jobscript))
+        jobscript = os.path.expanduser(os.path.expandvars(args.jobscript))        
         if not os.path.isfile(jobscript):
-            print 'Not script file found. Please specify an script file using the paramiter -j/--jobscript'            
-            sys.exit(1)
+            if not os.path.isfile("/" + jobscript.lstrip("/tmp")): #just in case the user indicates the path inside the VM
+                print 'Not script file found. Please specify an script file using the paramiter -j/--jobscript'            
+                sys.exit(1)
         
         varfile = ""
         if args.varfile != None:
