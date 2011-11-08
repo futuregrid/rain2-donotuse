@@ -295,7 +295,7 @@ class RainClient(object):
         
         india_loginnode = "149.165.146.136" #to mount the home using sshfs
         endpoint = ec2_url.lstrip("http://").split(":")[0]
-        
+        private_ips_for_hostlist = ""
         try:  
             region = boto.ec2.regioninfo.RegionInfo(name=region, endpoint=endpoint)
         except:
@@ -456,6 +456,8 @@ class RainClient(object):
                         access = True
                         naccessible += 1
                         self._log.debug("The instance " + str(str(i.id)) + " with public ip " + str(i.public_dns_name) + " and private ip " + str(i.private_dns_name) + " is accessible")
+                        private_ips_for_hostlist += str(i.private_dns_name) + "\n"
+                        #Later add parameter for number of process per machines. So, we duplicate this entry x times
                     else:
                         retry += 1
                         time.sleep(5)
@@ -488,6 +490,11 @@ class RainClient(object):
                 status = os.system(cmd)                
                 os.system("cat " + sshkeytemp + ".pub >> ~/.ssh/authorized_keys")
                 
+                machines_file = os.path.expanduser("~/") + sshkey_name + ".machines"
+                f = open(machines_file,"w")
+                f.write(private_ips_for_hostlist)
+                f.close()
+                
                 #create script
                 f = open(sshkeytemp + ".sh", "w")
                 f.write("#!/bin/bash \n mkdir -p /N/u/" + self.user + "/.ssh /tmp/" + self.user +                                                
@@ -495,6 +502,7 @@ class RainClient(object):
                         "\n cp -f /tmp/" + sshkey_name + ".pub /N/u/"+ self.user +"/.ssh/id_rsa.pub" +
                         "\n cp -f /tmp/authorized_keys /N/u/"+ self.user +"/.ssh/" +
                         "\n chmod 600 /N/u/"+ self.user +"/.ssh/authorized_keys" +
+                        "\n cp -f /tmp/" + machines_file + " /N/u/"+ self.user +"/machines" +
                         "\n touch /N/u/"+ self.user +"/your_home_is_in_tmp" +
                         "\n echo \"Host *\" | tee -a /N/u/"+ self.user +".ssh/config > /dev/null" +
                         "\n echo \"    StrictHostKeyChecking no\" | tee -a /N/u/"+ self.user +".ssh/config > /dev/null" +
@@ -522,7 +530,7 @@ class RainClient(object):
                 ndone=0
                 alldone = False
                 for i in reservation.instances:                    
-                    proc_list.append(Process(target=self.install_sshfs_home, args=(sshkeypair_path, sshkeypair_name, sshkey_name, sshkeytemp,reservation, connection, i,)))                                
+                    proc_list.append(Process(target=self.install_sshfs_home, args=(sshkeypair_path, sshkeypair_name, sshkey_name, sshkeytemp, machines_file, reservation, connection, i,)))                                
                     proc_list[len(proc_list) - 1].start()
                                         
                 #if some process fails inside install_sshfs_home, all will die because the VM are terminated
@@ -547,14 +555,14 @@ class RainClient(object):
         #self.stopEC2instances(connection, reservation)
         #self.removeTempsshkey(sshkeytemp, sshkey_name)
     
-    def install_sshfs_home(self,sshkeypair_path,sshkeypair_name, sshkey_name, sshkeytemp,reservation, connection, i): 
+    def install_sshfs_home(self,sshkeypair_path,sshkeypair_name, sshkey_name, sshkeytemp, machines_file, reservation, connection, i): 
         
         msg = "Copying temporal private and public ssh-key files to VMs"
         self._log.debug(msg)
         if self.verbose:
              print msg 
         cmd = "scp -i " + sshkeypair_path + " -q -oBatchMode=yes -oStrictHostKeyChecking=no " + sshkeytemp + " " + sshkeytemp + ".pub " + \
-             sshkeytemp + ".sh /N/u/" + self.user + "/.ssh/authorized_keys root@" + str(i.public_dns_name) + ":/tmp/" 
+             sshkeytemp + ".sh /N/u/" + self.user + "/.ssh/authorized_keys " + machines_file + " root@" + str(i.public_dns_name) + ":/tmp/" 
         self._log.debug(cmd)                    
         p = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
         std = p.communicate()
