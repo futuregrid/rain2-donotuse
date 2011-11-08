@@ -512,6 +512,7 @@ class RainClient(object):
                         "\n touch /N/u/"+ self.user +"/your_home_is_in_tmp" +
                         "\n echo \"Host *\" | tee -a /N/u/"+ self.user +"/.ssh/config > /dev/null" +
                         "\n echo \"    StrictHostKeyChecking no\" | tee -a /N/u/"+ self.user +"/.ssh/config > /dev/null" +
+                        "\n echo \"cd /tmp/N/u/"+self.user+"\" | tee -a /N/u/"+ self.user +"/.bash_profile > /dev/null" +
                         "\n chown -R " + self.user + ":users /tmp/N/u/" + self.user + " /N/u/" + self.user)
                 f.write("""
                 if [ -f /usr/bin/yum ]; 
@@ -568,7 +569,7 @@ class RainClient(object):
                     p = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
                     std = p.communicate()
                     if p.returncode != 0:
-                        msg = "ERROR: Installing sshfs and mounting home directory. " + str(i.id) + ". failed, status: " + str(p.returncode) + " --- " + std[1]
+                        msg = "ERROR: Installing sshfs and mounting home directory. " + str(reservation.instances[0].id) + ". failed, status: " + str(p.returncode) + " --- " + std[1]
                         self._log.error(msg)
                         if self.verbose:
                             print msg
