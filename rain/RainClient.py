@@ -504,7 +504,7 @@ class RainClient(object):
                         "\n chmod 600 /N/u/"+ self.user +"/.ssh/authorized_keys" +
                         "\n cp -f /tmp/" + sshkey_name + ".machines /N/u/"+ self.user +"/machines" +
                         "\n touch /N/u/"+ self.user +"/your_home_is_in_tmp" +
-                        "\n echo \"Host *\" | tee -a /N/u/"+ self.user +".ssh/config > /dev/null" +
+                        "\n echo \"Host *\" | tee -a /N/u/"+ self.user +"/.ssh/config > /dev/null" +
                         "\n echo \"    StrictHostKeyChecking no\" | tee -a /N/u/"+ self.user +".ssh/config > /dev/null" +
                         "\n chown -R " + self.user + ":users /tmp/" + self.user + " /N/u/" + self.user)
                 f.write("""
