@@ -187,11 +187,13 @@ class RainClient(object):
             print "The Error output is in the file: " + stderr                
         
         end_all = time.time()
-        self._log.info('TIME walltime rain client:' + str(end_all - start_all))        
+        self._log.info('TIME walltime rain client baremetal(xCAT):' + str(end_all - start_all))        
         
             
     #2. in the case of euca-run-instance, wait until the vms are booted, execute the job inside, wait until done.
     def euca(self, iaas_address, imageidonsystem, jobscript, ninstances, varfile):
+        start_all = time.time()
+        
         euca_key_dir = os.path.dirname(varfile)            
         if euca_key_dir.strip() == "":
             euca_key_dir = "."
@@ -228,6 +230,9 @@ class RainClient(object):
         region = "eucalyptus"
         
         output = self.ec2_common("euca", path, region, ec2_url, imageidonsystem, jobscript, ninstances, varfile)
+        
+        end_all = time.time()
+        self._log.info('TIME walltime rain client Eucalyptus:' + str(end_all - start_all))
         return output
         
     def openstack(self, iaas_address, imageidonsystem, jobscript, ninstances, varfile):
@@ -238,7 +243,7 @@ class RainClient(object):
         key_pair = ssh key file. this must be registered on openstack. The name in openstack is os.path.basename(key_pair).strip('.')[0]
         ninstances = number of instances
         """        
-        
+        start_all = time.time()
         nova_key_dir = os.path.dirname(varfile)            
         if nova_key_dir.strip() == "":
             nova_key_dir = "."
@@ -275,6 +280,10 @@ class RainClient(object):
         region = "nova"
         
         output = self.ec2_common("openstack", path, region, ec2_url, imageidonsystem, jobscript, ninstances, varfile)
+        
+        end_all = time.time()
+        self._log.info('TIME walltime rain client OpenStack:' + str(end_all - start_all))   
+        
         return output
         
         
@@ -338,6 +347,8 @@ class RainClient(object):
             self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)
             return msg
 
+        start = time.time()
+
         reservation = None
         msg = "Launching image"
         self._log.debug(msg)
@@ -376,7 +387,10 @@ class RainClient(object):
             else:
                 time.sleep(5)
         
-        print "len instances " + str(len(reservation.instances))
+        end = time.time()
+        self.logger.info('TIME Boot all Images:' + str(end - start))
+        
+        print "Number of instances booted " + str(len(reservation.instances))
                   
         if not failed and allrunning:
             
@@ -412,7 +426,7 @@ class RainClient(object):
             
             #boto.ec2.instance.Instance.dns_name to get the public IP.
             #boto.ec2.instance.Instance.private_dns_name private IP.
-                                                            
+            start = time.time()                                          
             self._log.debug("Waiting to have access to VMs")
             allaccessible = False
             naccessible = 0
@@ -455,7 +469,11 @@ class RainClient(object):
             if self.verbose:
                  print msg 
             
+            end = time.time()
+            self.logger.info('TIME all VM are accessible via ssh:' + str(end - start))
+            
             if allaccessible:
+                start = time.time()
                 msg = "Creating temporal sshkey files"
                 self._log.debug(msg)
                 if self.verbose:
@@ -468,8 +486,13 @@ class RainClient(object):
                 
                 #create script
                 f = open(sshkeypair + ".sh", "w")
-                f.write("#!/bin/bash \n mkdir -p /N/u/ /tmp/" + self.user + "\n chown " + self.user + ":users /tmp/" + self.user + \
-                         " /tmp/" + sshkey_name + " /tmp/" + sshkey_name + ".pub")
+                f.write("#!/bin/bash \n mkdir -p /N/u/ " + self.user + "/.ssh /tmp/" + self.user +                                                
+                        "\n cp -f /tmp/" + sshkey_name + " /N/u/"+ self.user +"/.ssh/id_rsa" +
+                        "\n cp -f /tmp/" + sshkey_name + ".pub /N/u/"+ self.user +"/.ssh/id_rsa.pub" +
+                        "\n cp -f /tmp/authorized_keys /N/u/"+ self.user +"/.ssh/" +
+                        "\n chmod 600 /N/u/"+ self.user +"/.ssh/authorized_keys" +
+                        "\n touch /N/u/"+ self.user +"/.ssh/" +
+                        "\n chown -R " + self.user + ":users /tmp/" + self.user + " /N/u/" + self.user )
                 f.write("""
                 if [ -f /usr/bin/yum ]; 
                 then 
@@ -484,17 +507,21 @@ class RainClient(object):
                 f.write("usermod -a -G fuse " + self.user + "\n")
                 f.write("su - " + self.user + " -c \"cd /tmp; sshfs " + self.user + "@" + india_loginnode + ":/N/u/" + self.user + \
                          " /tmp/" + self.user + " -o nonempty -o ssh_command=\'ssh -i /tmp/" + sshkey_name + " -oStrictHostKeyChecking=no\'\" \n")
-                f.write("ln -s /tmp/" + self.user + " /N/u/" + self.user)        
+                f.write()
+                #f.write("ln -s /tmp/" + self.user + " /N/u/" + self.user)        
                 f.close()
                 os.system("chmod +x " + sshkeypair + ".sh")
                 
+                #Make this parallel
                 for i in reservation.instances:
                     self.install_sshfs_home(sshkeypair_path, sshkey_name,sshkeypair,reservation, connection, i)
+                       
+                end = time.time()
+                self.logger.info('TIME install sshfs, mount home directory in /tmp:' + str(end - start))
         
-               
-        self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)                
-        self.stopEC2instances(connection, reservation)
-        self.removeTempsshkey(sshkeypair, sshkey_name)
+        #self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)                
+        #self.stopEC2instances(connection, reservation)
+        #self.removeTempsshkey(sshkeypair, sshkey_name)
     
     def install_sshfs_home(self,sshkeypair_path, sshkey_name,sshkeypair,reservation, connection, i): 
         
@@ -503,7 +530,7 @@ class RainClient(object):
         if self.verbose:
              print msg 
         cmd = "scp -i " + sshkeypair_path + " -q -oBatchMode=yes -oStrictHostKeyChecking=no " + sshkeypair + " " + sshkeypair + ".pub " + \
-             sshkeypair + ".sh root@" + str(i.public_dns_name) + ":/tmp/" 
+             sshkeypair + ".sh /N/u/" + self.user + "/.ssh/authorized_keys root@" + str(i.public_dns_name) + ":/tmp/" 
         self._log.debug(cmd)                    
         p = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
         std = p.communicate()
