@@ -328,6 +328,8 @@ class IMDeployServerIaaS(object):
     def configure_ldap(self, localtempdir):
         start = time.time()
         if self.operatingsystem == "centos":
+            self.runCmd('sudo chroot ' + localtempdir + '/temp/ yum -y install fuse-sshfs')
+            
             self.logger.info('Installing LDAP packages')
             if (self.version == "5"):
                 self.runCmd('sudo chroot ' + localtempdir + '/temp/ yum -y install openldap-clients nss_ldap')
@@ -360,7 +362,8 @@ class IMDeployServerIaaS(object):
             f.write("#!/bin/sh" + '\n' + "exit 101" + '\n')
             f.close()        
             self.runCmd('sudo mv -f ' + localtempdir + '/_policy-rc.d ' + localtempdir + '/temp/usr/sbin/policy-rc.d')        
-            self.runCmd('sudo chmod +x ' + localtempdir + '/temp/usr/sbin/policy-rc.d')            
+            self.runCmd('sudo chmod +x ' + localtempdir + '/temp/usr/sbin/policy-rc.d')
+            self.runCmd('sudo chroot ' + localtempdir + '/temp/ apt-get -y install sshfs')
             #try this other way
             #chroot maverick-vm /bin/bash -c 'DEBIAN_FRONTEND=noninteractive apt-get -y --force-yes install linux-image-server'
             #env DEBIAN_FRONTEND="noninteractive" chroot /tmp/javi3789716749 /bin/bash -c 'apt-get --force-yes -y install ldap-utils libpam-ldap libpam-ldap libnss-ldap nss-updatedb libnss-db'
