@@ -59,6 +59,7 @@ class RainClient(object):
         self.printLogStdout = printLogStdout
       
     def baremetal(self, imageidonsystem, jobscript, machines):
+        self._log.info('Starting Rain Client Baremetal')
         start_all = time.time()
         if imageidonsystem != "default":
             #verify that the image requested is in Moab
@@ -188,10 +189,11 @@ class RainClient(object):
         
         end_all = time.time()
         self._log.info('TIME walltime rain client baremetal(xCAT):' + str(end_all - start_all))        
-        
+        self._log.info('Rain Client Baremetal DONE')
             
     #2. in the case of euca-run-instance, wait until the vms are booted, execute the job inside, wait until done.
     def euca(self, iaas_address, imageidonsystem, jobscript, ninstances, varfile):
+        self._log.info('Starting Rain Client Eucalyptus')  
         start_all = time.time()
         
         euca_key_dir = os.path.dirname(varfile)            
@@ -233,6 +235,7 @@ class RainClient(object):
         
         end_all = time.time()
         self._log.info('TIME walltime rain client Eucalyptus:' + str(end_all - start_all))
+        self._log.info('Rain Client Eucalyptus DONE')
         return output
         
     def openstack(self, iaas_address, imageidonsystem, jobscript, ninstances, varfile):
@@ -242,7 +245,8 @@ class RainClient(object):
         varfile = openstack variable files(novarc typically)
         key_pair = ssh key file. this must be registered on openstack. The name in openstack is os.path.basename(key_pair).strip('.')[0]
         ninstances = number of instances
-        """        
+        """
+        self._log.info('Starting Rain Client OpenStack')     
         start_all = time.time()
         nova_key_dir = os.path.dirname(varfile)            
         if nova_key_dir.strip() == "":
@@ -283,7 +287,7 @@ class RainClient(object):
         
         end_all = time.time()
         self._log.info('TIME walltime rain client OpenStack:' + str(end_all - start_all))   
-        
+        self._log.info('Rain Client OpenStack DONE')
         return output
         
         
