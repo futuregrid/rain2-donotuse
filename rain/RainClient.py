@@ -632,9 +632,9 @@ class RainClient(object):
             self._log.error(msg)
             if self.verbose:
                 print msg
-            self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)
-            self.stopEC2instances(connection, reservation)
-            self.removeTempsshkey(sshkeytemp, sshkey_name)
+            #self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)
+            #self.stopEC2instances(connection, reservation)
+            #self.removeTempsshkey(sshkeytemp, sshkey_name)
             return msg
         
         
