@@ -622,7 +622,7 @@ class RainClient(object):
         
         
     def removeTempsshkey(self, sshkeytemp, sshkey_name):
-        cmd = "rm -f " + sshkeytemp + " " + sshkeytemp + ".pub" + sshkeytemp + ".sh"
+        cmd = "rm -f " + sshkeytemp + " " + sshkeytemp + ".pub " + sshkeytemp + ".sh " + sshkeytemp + ".machines"
         status = os.system(cmd)
         cmd = ('sed -i /\' ' + sshkey_name + '$\'/d ~/.ssh/authorized_keys')
         status = os.system(cmd)
