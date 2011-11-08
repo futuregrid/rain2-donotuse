@@ -492,7 +492,7 @@ class RainClient(object):
                         "\n cp -f /tmp/authorized_keys /N/u/"+ self.user +"/.ssh/" +
                         "\n chmod 600 /N/u/"+ self.user +"/.ssh/authorized_keys" +
                         "\n touch /N/u/"+ self.user +"/.ssh/" +
-                        "\n chown -R " + self.user + ":users /tmp/" + self.user + " /N/u/" + self.user )
+                        "\n chown -R " + self.user + ":users /tmp/" + self.user + " /N/u/" + self.user)
                 f.write("""
                 if [ -f /usr/bin/yum ]; 
                 then 
@@ -506,8 +506,7 @@ class RainClient(object):
                 """)
                 f.write("usermod -a -G fuse " + self.user + "\n")
                 f.write("su - " + self.user + " -c \"cd /tmp; sshfs " + self.user + "@" + india_loginnode + ":/N/u/" + self.user + \
-                         " /tmp/" + self.user + " -o nonempty -o ssh_command=\'ssh -i /tmp/" + sshkey_name + " -oStrictHostKeyChecking=no\'\" \n")
-                f.write()
+                         " /tmp/" + self.user + " -o nonempty -o ssh_command=\'ssh -i /tmp/" + sshkey_name + " -oStrictHostKeyChecking=no\'\" \n")                
                 #f.write("ln -s /tmp/" + self.user + " /N/u/" + self.user)        
                 f.close()
                 os.system("chmod +x " + sshkeypair + ".sh")
