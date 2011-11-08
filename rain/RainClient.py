@@ -618,7 +618,7 @@ class RainClient(object):
             self.removeTempsshkey(sshkeytemp, sshkey_name)
             return msg
         
-        msg = "Installing sshfs and mounting home directory"
+        msg = "Configuring ssh in VM and mounting home directory (assumes that sshfs and ldap is installed)"
         self._log.debug(msg)
         if self.verbose:
              print msg 
