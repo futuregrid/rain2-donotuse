@@ -526,7 +526,7 @@ class RainClient(object):
         #self.stopEC2instances(connection, reservation)
         #self.removeTempsshkey(sshkeytemp, sshkey_name)
     
-    def install_sshfs_home(self,sshkeypair_path, sshkey_name, sshkeytemp,reservation, connection, i): 
+    def install_sshfs_home(self,sshkeypair_path,sshkeypair_name, sshkey_name, sshkeytemp,reservation, connection, i): 
         
         msg = "Copying temporal private and public ssh-key files to VMs"
         self._log.debug(msg)
