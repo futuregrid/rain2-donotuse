@@ -556,10 +556,17 @@ class RainClient(object):
                                         
                 #if some process fails inside install_sshfs_home, all will die because the VM are terminated
                 #wait to finish processes
+                teminate = False
                 for i in range(len(proc_list)):
-                    proc_list[i].join()                    
+                    if not terminate:
+                        proc_list[i].join()
+                    else:
+                        proc_list[i].terminate() 
                     if proc_list[i].exitcode == 0:
                         ndone += 1
+                    else:
+                        terminate = True                        
+                    
                 
                 if ndone == len(reservation.instances):
                     alldone = True                
