@@ -564,12 +564,12 @@ class RainClient(object):
                     if self.verbose:
                          print msg 
                     #runjob
-                    cmd = "ssh -oBatchMode=yes -oStrictHostKeyChecking=no " + str(reservation.instances[0].public_dns_name) + " \"cd /tmp/N/u/" + self.user + "; " + jobscript + "\" "
+                    cmd = "ssh -oBatchMode=yes -oStrictHostKeyChecking=no " + str(reservation.instances[0].public_dns_name) + " " + jobscript 
                     self._log.debug(cmd) 
                     p = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
                     std = p.communicate()
                     if p.returncode != 0:
-                        msg = "ERROR: Installing sshfs and mounting home directory. " + str(reservation.instances[0].id) + ". failed, status: " + str(p.returncode) + " --- " + std[1]
+                        msg = "ERROR: Running job. " + str(reservation.instances[0].id) + ". failed, status: " + str(p.returncode) + " --- " + std[1]
                         self._log.error(msg)
                         if self.verbose:
                             print msg
