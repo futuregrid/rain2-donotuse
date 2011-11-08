@@ -559,6 +559,7 @@ class RainClient(object):
                 self._log.info('TIME install sshfs, mount home directory in /tmp in all VMs:' + str(end - start))
                 
                 if alldone:
+                    start = time.time()
                     msg = "Running Job"
                     self._log.debug(msg)
                     if self.verbose:
@@ -575,6 +576,8 @@ class RainClient(object):
                         self.stopEC2instances(connection, reservation)
                         self.removeTempsshkey(sshkeytemp, sshkey_name)
                         return msg
+                    end = time.time()
+                    self._log.info('TIME run job:' + str(end - start))
                     
         self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)                
         self.stopEC2instances(connection, reservation)
