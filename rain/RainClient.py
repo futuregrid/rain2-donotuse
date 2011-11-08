@@ -544,6 +544,7 @@ class RainClient(object):
                 #f.write("ln -s /tmp/" + self.user + " /N/u/" + self.user)        
                 f.close()
                 os.system("chmod +x " + sshkeytemp + ".sh")
+         
                 
                 #Make this parallel
                 proc_list = []
@@ -570,7 +571,7 @@ class RainClient(object):
                    
                 end = time.time()
                 self._log.info('TIME install sshfs, mount home directory in /tmp in all VMs:' + str(end - start))
-                
+        """     
                 if alldone:
                     start = time.time()
                     msg = "Running Job"
@@ -595,7 +596,7 @@ class RainClient(object):
         self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)                
         self.stopEC2instances(connection, reservation)
         self.removeTempsshkey(sshkeytemp, sshkey_name)
-    
+        """
     def install_sshfs_home(self, sshkeypair_path, sshkeypair_name, sshkey_name, sshkeytemp, reservation, connection, i): 
         
         msg = "Copying temporal private and public ssh-key files to VMs"
