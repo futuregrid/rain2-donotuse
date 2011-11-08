@@ -281,6 +281,7 @@ class IMDeployServerIaaS(object):
         end = time.time()
         self.logger.info('TIME customize image for specific IaaS framework:' + str(end - start))
         
+        start = time.time()
         #umount the image
         max_retry = 5
         retry_done = 0
@@ -295,6 +296,9 @@ class IMDeployServerIaaS(object):
                 self.logger.error("Problems to umount the image")
             else:
                 time.sleep(2)
+        
+        end = time.time()
+        self.logger.info('TIME umount image:' + str(end - start))
         
         status = self.runCmd("mv -f " + localtempdir + '/' + self.name + '.img ' + localtempdir + '/' + self.operatingsystem + self.version + self.name + '.img')
         

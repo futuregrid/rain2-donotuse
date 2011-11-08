@@ -516,14 +516,30 @@ class RainClient(object):
                 os.system("chmod +x " + sshkeytemp + ".sh")
                 
                 #Make this parallel
-                for i in reservation.instances:
-                    status = self.install_sshfs_home(sshkeypair_path, sshkeypair_name, sshkey_name, sshkeytemp,reservation, connection, i)
-                    if status != "OK":
-                        if self.verbose:
-                            print status
-                        break
+                proc_list=[]
+                ndone=0
+                alldone = False
+                for i in reservation.instances:                    
+                    proc_list.append(Process(target=self.install_sshfs_home, args=(sshkeypair_path, sshkeypair_name, sshkey_name, sshkeytemp,reservation, connection, i,)))                                
+                    proc_list[len(proc_list) - 1].start()
+                                        
+                #if some process fails inside install_sshfs_home, all will die because the VM are terminated
+                #wait to finish processes
+                for i in range(len(proc_list)):
+                    proc_list[i].join()                    
+                    if proc_list[i].exitcode == 0:
+                        ndone+=1
+                
+                if ndone == len(reservation.instances):
+                    alldone = True                
+            
+                msg = "All VMs done: " + str(alldone)
+                self._log.debug(msg)
+                if self.verbose:
+                     print msg 
+                   
                 end = time.time()
-                self._log.info('TIME install sshfs, mount home directory in /tmp:' + str(end - start))
+                self._log.info('TIME install sshfs, mount home directory in /tmp in all VMs:' + str(end - start))
         
         #self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)                
         #self.stopEC2instances(connection, reservation)
@@ -543,6 +559,8 @@ class RainClient(object):
         if p.returncode != 0:
             msg = "ERROR: sending ssh-keys and script to VM " + str(i.id) + ". failed, status: " + str(p.returncode) + " --- " + std[1]
             self._log.error(msg)
+            if self.verbose:
+                print msg
             self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)
             self.stopEC2instances(connection, reservation)
             return msg
@@ -559,6 +577,8 @@ class RainClient(object):
         if p.returncode != 0:
             msg = "ERROR: Installing sshfs and mounting home directory. " + str(i.id) + ". failed, status: " + str(p.returncode) + " --- " + std[1]
             self._log.error(msg)
+            if self.verbose:
+                print msg
             self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)
             self.stopEC2instances(connection, reservation)
             return msg
