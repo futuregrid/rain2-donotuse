@@ -527,17 +527,17 @@ class RainClient(object):
                         "\n echo \"    StrictHostKeyChecking no\" | tee -a /N/u/" + self.user + "/.ssh/config > /dev/null" + 
                         "\n echo \"cd /tmp/N/u/" + self.user + "\" | tee -a /N/u/" + self.user + "/.bash_profile > /dev/null" + 
                         "\n chown -R " + self.user + ":users /tmp/N/u/" + self.user + " /N/u/" + self.user)
-                f.write("""
-                if [ -f /usr/bin/yum ]; 
-                then 
-                    yum -y install fuse-sshfs
-                elif [ -f /usr/bin/apt-get ];
-                then
-                    apt-get -y install sshfs
-                else
-                    exit 1
-                fi
-                """)
+                #f.write("""
+                #if [ -f /usr/bin/yum ]; 
+                #then 
+                #    yum -y install fuse-sshfs
+                #elif [ -f /usr/bin/apt-get ];
+                #then
+                #    apt-get -y install sshfs
+                #else
+                #    exit 1
+                #fi
+                #""")
                 f.write("usermod -a -G fuse " + self.user + "\n")
                 f.write("su - " + self.user + " -c \"cd /tmp; sshfs " + self.user + "@" + india_loginnode + ":/N/u/" + self.user + \
                          " /tmp/N/u/" + self.user + " -o nonempty -o ssh_command=\'ssh -oStrictHostKeyChecking=no\'\" \n")                
