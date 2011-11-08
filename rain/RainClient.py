@@ -479,14 +479,14 @@ class RainClient(object):
                 if self.verbose:
                      print msg      
                 sshkey_name = str(randrange(999999999))        
-                sshkeypair = os.path.expanduser("~/") + sshkey_name                
-                cmd = "ssh-keygen -N \"\" -f " + sshkeypair + " -C " + sshkey_name + " >/dev/null"
+                sshkeytemp = os.path.expanduser("~/") + sshkey_name                
+                cmd = "ssh-keygen -N \"\" -f " + sshkeytemp + " -C " + sshkey_name + " >/dev/null"
                 status = os.system(cmd)                
-                os.system("cat " + sshkeypair + ".pub >> ~/.ssh/authorized_keys")
+                os.system("cat " + sshkeytemp + ".pub >> ~/.ssh/authorized_keys")
                 
                 #create script
-                f = open(sshkeypair + ".sh", "w")
-                f.write("#!/bin/bash \n mkdir -p /N/u/ " + self.user + "/.ssh /tmp/" + self.user +                                                
+                f = open(sshkeytemp + ".sh", "w")
+                f.write("#!/bin/bash \n mkdir -p /N/u/" + self.user + "/.ssh /tmp/" + self.user +                                                
                         "\n cp -f /tmp/" + sshkey_name + " /N/u/"+ self.user +"/.ssh/id_rsa" +
                         "\n cp -f /tmp/" + sshkey_name + ".pub /N/u/"+ self.user +"/.ssh/id_rsa.pub" +
                         "\n cp -f /tmp/authorized_keys /N/u/"+ self.user +"/.ssh/" +
@@ -509,27 +509,27 @@ class RainClient(object):
                          " /tmp/" + self.user + " -o nonempty -o ssh_command=\'ssh -i /tmp/" + sshkey_name + " -oStrictHostKeyChecking=no\'\" \n")                
                 #f.write("ln -s /tmp/" + self.user + " /N/u/" + self.user)        
                 f.close()
-                os.system("chmod +x " + sshkeypair + ".sh")
+                os.system("chmod +x " + sshkeytemp + ".sh")
                 
                 #Make this parallel
                 for i in reservation.instances:
-                    self.install_sshfs_home(sshkeypair_path, sshkey_name,sshkeypair,reservation, connection, i)
+                    self.install_sshfs_home(sshkeypair_path, sshkeypair_name, sshkey_name, sshkeytemp,reservation, connection, i)
                        
                 end = time.time()
                 self._log.info('TIME install sshfs, mount home directory in /tmp:' + str(end - start))
         
         #self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)                
         #self.stopEC2instances(connection, reservation)
-        #self.removeTempsshkey(sshkeypair, sshkey_name)
+        #self.removeTempsshkey(sshkeytemp, sshkey_name)
     
-    def install_sshfs_home(self,sshkeypair_path, sshkey_name,sshkeypair,reservation, connection, i): 
+    def install_sshfs_home(self,sshkeypair_path, sshkey_name, sshkeytemp,reservation, connection, i): 
         
         msg = "Copying temporal private and public ssh-key files to VMs"
         self._log.debug(msg)
         if self.verbose:
              print msg 
-        cmd = "scp -i " + sshkeypair_path + " -q -oBatchMode=yes -oStrictHostKeyChecking=no " + sshkeypair + " " + sshkeypair + ".pub " + \
-             sshkeypair + ".sh /N/u/" + self.user + "/.ssh/authorized_keys root@" + str(i.public_dns_name) + ":/tmp/" 
+        cmd = "scp -i " + sshkeypair_path + " -q -oBatchMode=yes -oStrictHostKeyChecking=no " + sshkeytemp + " " + sshkeytemp + ".pub " + \
+             sshkeytemp + ".sh /N/u/" + self.user + "/.ssh/authorized_keys root@" + str(i.public_dns_name) + ":/tmp/" 
         self._log.debug(cmd)                    
         p = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
         std = p.communicate()
@@ -556,8 +556,8 @@ class RainClient(object):
             self.stopEC2instances(connection, reservation)
             return msg
             
-    def removeTempsshkey(self, sshkeypair, sshkey_name):
-        cmd = "rm -f " + sshkeypair + " " + sshkeypair + ".pub" + sshkeypair + ".sh"
+    def removeTempsshkey(self, sshkeytemp, sshkey_name):
+        cmd = "rm -f " + sshkeytemp + " " + sshkeytemp + ".pub" + sshkeytemp + ".sh"
         status = os.system(cmd)
         cmd = ('sed -i /\' ' + sshkey_name + '$\'/d ~/.ssh/authorized_keys')
         status = os.system(cmd)
