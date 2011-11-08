@@ -592,6 +592,11 @@ class RainClient(object):
                         return msg
                     end = time.time()
                     self._log.info('TIME run job:' + str(end - start))
+                                        
+                    msg = "Job Done"
+                    self._log.debug(msg)
+                    if self.verbose:
+                         print msg 
                     
         self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)                
         self.stopEC2instances(connection, reservation)
