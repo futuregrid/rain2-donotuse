@@ -411,7 +411,8 @@ class RainClient(object):
                     cmd = "euca-describe-addresses -a " + os.getenv("EC2_ACCESS_KEY") + " -s " + os.getenv("EC2_SECRET_KEY") + " --url " + ec2_url
                     #print cmd
                     p = Popen(cmd.split(' '), stdout=PIPE, stderr=PIPE)
-                    cmd = "awk /None/ {print $2}"
+                    
+                    cmd = "awk /None/ && /" + os.getenv("EC2_ACCESS_KEY").split(":")[1].strip("\"") + "/ {print $2}"
                     p1 = Popen(cmd.split(' ', 1), stdin=p.stdout, stdout=PIPE, stderr=PIPE)
                     cmd = "sort"
                     p2 = Popen(cmd.split(' '), stdin=p1.stdout, stdout=PIPE, stderr=PIPE) 
@@ -419,14 +420,21 @@ class RainClient(object):
                     p3 = Popen(cmd.split(' '), stdin=p2.stdout, stdout=PIPE, stderr=PIPE)
                     std = p3.communicate()
                                     
-                    if (p3.returncode == 0):                    
-                        connection.associate_address(str(i.id), std[0].strip('\n'))                    
-                        msg = "Instance " + str(i.id) + " associated with address " + std[0].strip('\n')
-                        self._log.debug("Instance " + str(i.id) + " associated with address " + std[0].strip('\n'))
-                        if self.verbose:
-                            print msg
-                        time.sleep(1)
-                        i.update()
+                    if (p3.returncode == 0):
+                        try:                  
+                            connection.associate_address(str(i.id), std[0].strip('\n'))                    
+                            msg = "Instance " + str(i.id) + " associated with address " + std[0].strip('\n')
+                            self._log.debug("Instance " + str(i.id) + " associated with address " + std[0].strip('\n'))
+                            if self.verbose:
+                                print msg
+                            time.sleep(1)
+                            i.update()
+                        except:
+                            msg = "ERROR: associating address to instance " + str(i.id) + ". failed, status: " + str(p3.returncode) + " --- " + std[1]
+                            self._log.error(msg)
+                            self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)
+                            self.stopEC2instances(connection, reservation)
+                            return msg
                     else:                    
                         msg = "ERROR: associating address to instance " + str(i.id) + ". failed, status: " + str(p3.returncode) + " --- " + std[1]
                         self._log.error(msg)
@@ -497,22 +505,22 @@ class RainClient(object):
                 os.system("cat " + sshkeytemp + ".pub >> ~/.ssh/authorized_keys")
                 
                 
-                f = open(sshkeytemp + ".machines","w")
+                f = open(sshkeytemp + ".machines", "w")
                 f.write(private_ips_for_hostlist)
                 f.close()
                 
                 #create script
                 f = open(sshkeytemp + ".sh", "w")
-                f.write("#!/bin/bash \n mkdir -p /N/u/" + self.user + "/.ssh /tmp/N/u/" + self.user +                                                
-                        "\n cp -f /tmp/" + sshkey_name + " /N/u/"+ self.user +"/.ssh/id_rsa" +
-                        "\n cp -f /tmp/" + sshkey_name + ".pub /N/u/"+ self.user +"/.ssh/id_rsa.pub" +
-                        "\n cp -f /tmp/authorized_keys /N/u/"+ self.user +"/.ssh/" +
-                        "\n chmod 600 /N/u/"+ self.user +"/.ssh/authorized_keys" +
-                        "\n cp -f /tmp/" + sshkey_name + ".machines /N/u/"+ self.user +"/machines" +
-                        "\n touch /N/u/"+ self.user +"/your_home_is_in_tmp" +
-                        "\n echo \"Host *\" | tee -a /N/u/"+ self.user +"/.ssh/config > /dev/null" +
-                        "\n echo \"    StrictHostKeyChecking no\" | tee -a /N/u/"+ self.user +"/.ssh/config > /dev/null" +
-                        "\n echo \"cd /tmp/N/u/"+self.user+"\" | tee -a /N/u/"+ self.user +"/.bash_profile > /dev/null" +
+                f.write("#!/bin/bash \n mkdir -p /N/u/" + self.user + "/.ssh /tmp/N/u/" + self.user + 
+                        "\n cp -f /tmp/" + sshkey_name + " /N/u/" + self.user + "/.ssh/id_rsa" + 
+                        "\n cp -f /tmp/" + sshkey_name + ".pub /N/u/" + self.user + "/.ssh/id_rsa.pub" + 
+                        "\n cp -f /tmp/authorized_keys /N/u/" + self.user + "/.ssh/" + 
+                        "\n chmod 600 /N/u/" + self.user + "/.ssh/authorized_keys" + 
+                        "\n cp -f /tmp/" + sshkey_name + ".machines /N/u/" + self.user + "/machines" + 
+                        "\n touch /N/u/" + self.user + "/your_home_is_in_tmp" + 
+                        "\n echo \"Host *\" | tee -a /N/u/" + self.user + "/.ssh/config > /dev/null" + 
+                        "\n echo \"    StrictHostKeyChecking no\" | tee -a /N/u/" + self.user + "/.ssh/config > /dev/null" + 
+                        "\n echo \"cd /tmp/N/u/" + self.user + "\" | tee -a /N/u/" + self.user + "/.bash_profile > /dev/null" + 
                         "\n chown -R " + self.user + ":users /tmp/N/u/" + self.user + " /N/u/" + self.user)
                 f.write("""
                 if [ -f /usr/bin/yum ]; 
@@ -533,8 +541,8 @@ class RainClient(object):
                 os.system("chmod +x " + sshkeytemp + ".sh")
                 
                 #Make this parallel
-                proc_list=[]
-                ndone=0
+                proc_list = []
+                ndone = 0
                 alldone = False
                 for i in reservation.instances:                    
                     proc_list.append(Process(target=self.install_sshfs_home, args=(sshkeypair_path, sshkeypair_name, sshkey_name, sshkeytemp, reservation, connection, i,)))                                
@@ -545,7 +553,7 @@ class RainClient(object):
                 for i in range(len(proc_list)):
                     proc_list[i].join()                    
                     if proc_list[i].exitcode == 0:
-                        ndone+=1
+                        ndone += 1
                 
                 if ndone == len(reservation.instances):
                     alldone = True                
@@ -583,7 +591,7 @@ class RainClient(object):
         self.stopEC2instances(connection, reservation)
         self.removeTempsshkey(sshkeytemp, sshkey_name)
     
-    def install_sshfs_home(self,sshkeypair_path,sshkeypair_name, sshkey_name, sshkeytemp, reservation, connection, i): 
+    def install_sshfs_home(self, sshkeypair_path, sshkeypair_name, sshkey_name, sshkeytemp, reservation, connection, i): 
         
         msg = "Copying temporal private and public ssh-key files to VMs"
         self._log.debug(msg)
