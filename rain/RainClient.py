@@ -429,9 +429,7 @@ class RainClient(object):
                                 print msg
                             time.sleep(1)
                             i.update()
-                            if i.public_dns_name != std[0].strip('\n'):
-                                time.sleep(1)
-                                i.update()
+                            
                         except:
                             msg = "ERROR: associating address to instance " + str(i.id) + ". failed, status: " + str(p3.returncode) + " --- " + std[1]
                             self._log.error(msg)
