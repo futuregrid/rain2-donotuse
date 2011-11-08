@@ -571,8 +571,6 @@ class RainClient(object):
                     if p.returncode != 0:
                         msg = "ERROR: Running job. " + str(reservation.instances[0].id) + ". failed, status: " + str(p.returncode) + " --- " + std[1]
                         self._log.error(msg)
-                        if self.verbose:
-                            print msg
                         self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)
                         self.stopEC2instances(connection, reservation)
                         return msg
@@ -622,7 +620,6 @@ class RainClient(object):
             self.stopEC2instances(connection, reservation)
             return msg
         
-        return "OK"
         
     def removeTempsshkey(self, sshkeytemp, sshkey_name):
         cmd = "rm -f " + sshkeytemp + " " + sshkeytemp + ".pub" + sshkeytemp + ".sh"
