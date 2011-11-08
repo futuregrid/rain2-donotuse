@@ -538,7 +538,7 @@ class RainClient(object):
                 #    exit 1
                 #fi
                 #""")
-                f.write("usermod -a -G fuse " + self.user + "\n")
+                f.write("\n usermod -a -G fuse " + self.user + "\n")
                 f.write("su - " + self.user + " -c \"cd /tmp; sshfs " + self.user + "@" + india_loginnode + ":/N/u/" + self.user + \
                          " /tmp/N/u/" + self.user + " -o nonempty -o ssh_command=\'ssh -oStrictHostKeyChecking=no\'\" \n")                
                 #f.write("ln -s /tmp/" + self.user + " /N/u/" + self.user)        
@@ -571,7 +571,7 @@ class RainClient(object):
                    
                 end = time.time()
                 self._log.info('TIME install sshfs, mount home directory in /tmp in all VMs:' + str(end - start))
-        """     
+             
                 if alldone:
                     start = time.time()
                     msg = "Running Job"
@@ -596,7 +596,7 @@ class RainClient(object):
         self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)                
         self.stopEC2instances(connection, reservation)
         self.removeTempsshkey(sshkeytemp, sshkey_name)
-        """
+        
     def install_sshfs_home(self, sshkeypair_path, sshkeypair_name, sshkey_name, sshkeytemp, reservation, connection, i): 
         
         msg = "Copying temporal private and public ssh-key files to VMs"
@@ -632,9 +632,9 @@ class RainClient(object):
             self._log.error(msg)
             if self.verbose:
                 print msg
-            #self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)
-            #self.stopEC2instances(connection, reservation)
-            #self.removeTempsshkey(sshkeytemp, sshkey_name)
+            self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)
+            self.stopEC2instances(connection, reservation)
+            self.removeTempsshkey(sshkeytemp, sshkey_name)
             return msg
         
         
