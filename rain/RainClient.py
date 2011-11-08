@@ -517,8 +517,11 @@ class RainClient(object):
                 
                 #Make this parallel
                 for i in reservation.instances:
-                    self.install_sshfs_home(sshkeypair_path, sshkeypair_name, sshkey_name, sshkeytemp,reservation, connection, i)
-                       
+                    status = self.install_sshfs_home(sshkeypair_path, sshkeypair_name, sshkey_name, sshkeytemp,reservation, connection, i)
+                    if status != "OK":
+                        if self.verbose:
+                            print status
+                        break
                 end = time.time()
                 self._log.info('TIME install sshfs, mount home directory in /tmp:' + str(end - start))
         
@@ -556,10 +559,12 @@ class RainClient(object):
         if p.returncode != 0:
             msg = "ERROR: Installing sshfs and mounting home directory. " + str(i.id) + ". failed, status: " + str(p.returncode) + " --- " + std[1]
             self._log.error(msg)
-            self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)
-            self.stopEC2instances(connection, reservation)
+            #self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)
+            #self.stopEC2instances(connection, reservation)
             return msg
-            
+        
+        return "OK"
+        
     def removeTempsshkey(self, sshkeytemp, sshkey_name):
         cmd = "rm -f " + sshkeytemp + " " + sshkeytemp + ".pub" + sshkeytemp + ".sh"
         status = os.system(cmd)
