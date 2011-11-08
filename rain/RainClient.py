@@ -510,7 +510,7 @@ class RainClient(object):
                 """)
                 f.write("usermod -a -G fuse " + self.user + "\n")
                 f.write("su - " + self.user + " -c \"cd /tmp; sshfs " + self.user + "@" + india_loginnode + ":/N/u/" + self.user + \
-                         " /tmp/" + self.user + " -o nonempty -o ssh_command=\'ssh -i /tmp/" + sshkey_name + " -oStrictHostKeyChecking=no\'\" \n")                
+                         " /tmp/" + self.user + " -o nonempty -o ssh_command=\'ssh -oStrictHostKeyChecking=no\'\" \n")                
                 #f.write("ln -s /tmp/" + self.user + " /N/u/" + self.user)        
                 f.close()
                 os.system("chmod +x " + sshkeytemp + ".sh")
@@ -559,8 +559,8 @@ class RainClient(object):
         if p.returncode != 0:
             msg = "ERROR: Installing sshfs and mounting home directory. " + str(i.id) + ". failed, status: " + str(p.returncode) + " --- " + std[1]
             self._log.error(msg)
-            #self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)
-            #self.stopEC2instances(connection, reservation)
+            self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)
+            self.stopEC2instances(connection, reservation)
             return msg
         
         return "OK"
