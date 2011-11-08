@@ -491,7 +491,7 @@ class RainClient(object):
                         "\n cp -f /tmp/" + sshkey_name + ".pub /N/u/"+ self.user +"/.ssh/id_rsa.pub" +
                         "\n cp -f /tmp/authorized_keys /N/u/"+ self.user +"/.ssh/" +
                         "\n chmod 600 /N/u/"+ self.user +"/.ssh/authorized_keys" +
-                        "\n touch /N/u/"+ self.user +"/.ssh/" +
+                        "\n touch /N/u/"+ self.user +"/your_home_is_in_tmp" +
                         "\n chown -R " + self.user + ":users /tmp/" + self.user + " /N/u/" + self.user)
                 f.write("""
                 if [ -f /usr/bin/yum ]; 
