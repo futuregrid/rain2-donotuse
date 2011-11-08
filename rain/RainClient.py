@@ -573,14 +573,12 @@ class RainClient(object):
                         self._log.error(msg)
                         self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)
                         self.stopEC2instances(connection, reservation)
+                        self.removeTempsshkey(sshkeytemp, sshkey_name)
                         return msg
                     
-                    
-                    
-                    
-        #self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)                
-        #self.stopEC2instances(connection, reservation)
-        #self.removeTempsshkey(sshkeytemp, sshkey_name)
+        self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)                
+        self.stopEC2instances(connection, reservation)
+        self.removeTempsshkey(sshkeytemp, sshkey_name)
     
     def install_sshfs_home(self,sshkeypair_path,sshkeypair_name, sshkey_name, sshkeytemp, reservation, connection, i): 
         
@@ -600,6 +598,7 @@ class RainClient(object):
                 print msg
             self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)
             self.stopEC2instances(connection, reservation)
+            self.removeTempsshkey(sshkeytemp, sshkey_name)
             return msg
         
         msg = "Installing sshfs and mounting home directory"
@@ -618,6 +617,7 @@ class RainClient(object):
                 print msg
             self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)
             self.stopEC2instances(connection, reservation)
+            self.removeTempsshkey(sshkeytemp, sshkey_name)
             return msg
         
         
