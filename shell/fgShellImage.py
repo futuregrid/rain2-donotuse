@@ -379,9 +379,16 @@ class fgShellImage(Cmd):
                 print "ERROR: Variable files not found. You need to specify the path of the file with the Eucalyptus environment variables"
             else:    
                 output = self.imgdeploy.cloudlist(str(args.euca),"euca", varfile)
-                if output != None:                        
-                    for i in output:                       
-                        print i           
+                if output != None:   
+                    if re.search("^ERROR", output):
+                        print output
+                    else: 
+                        print "The list of available images on OpenStack is:"                    
+                        for i in output:                       
+                            print i   
+                        print "You can get more details by querying the image repository using IRClient.py -q command and the query string: \"* where tag=imagename\". \n" +\
+                    "NOTE: To query the repository you need to remove the OS from the image name (centos,ubuntu,debian,rhel...). " + \
+                      "The real name starts with the username and ends before .img.manifest.xml"        
       
         #OpenNebula
         elif ('-o' in used_args or '--opennebula' in used_args):            
@@ -397,9 +404,16 @@ class fgShellImage(Cmd):
                 print "ERROR: Variable files not found. You need to specify the path of the file with the OpenStack environment variables"
             else:    
                 output = self.imgdeploy.cloudlist(str(args.openstack),"openstack", varfile)
-                if output != None:                        
-                    for i in output:                       
-                        print i
+                if output != None:   
+                    if re.search("^ERROR", output):
+                        print output
+                    else:  
+                        print "The list of available images on OpenStack is:"                  
+                        for i in output:                       
+                            print i
+                        print "You can get more details by querying the image repository using IRClient.py -q command and the query string: \"* where tag=imagename\". \n" +\
+                    "NOTE: To query the repository you need to remove the OS from the image name (centos,ubuntu,debian,rhel...). " + \
+                      "The real name starts with the username and ends before .img.manifest.xml"
         
         
     def help_imagecloudlist(self):
