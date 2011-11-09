@@ -1000,7 +1000,7 @@ def main():
                 elif args.list:
                     output = imgdeploy.cloudlist(str(args.openstack),"openstack", varfile)                    
                     if output != None:
-                        if not isinstance(output, args.list):
+                        if not isinstance(output, list):
                             print output
                         else:
                             print "The list of available images on OpenStack is:"
