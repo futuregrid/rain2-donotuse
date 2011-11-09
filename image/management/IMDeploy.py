@@ -320,13 +320,12 @@ class IMDeploy(object):
             msg = "ERROR:connecting to EC2 interface. " + str(sys.exc_info())
             self._log.error(msg)                        
             return msg
-        print str(os.getenv("EC2_ACCESS_KEY"))
-        print str(os.getenv("EC2_SECRET_KEY"))
+        
         self._log.debug("Getting Image List")
         images = None
         try:
             images = connection.get_all_images()     
-            print images
+            #print images
         except:
             msg = "ERROR: getting image list " + str(sys.exc_info())
             self._log.error(msg)            
