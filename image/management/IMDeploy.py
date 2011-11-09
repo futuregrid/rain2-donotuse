@@ -303,24 +303,29 @@ class IMDeploy(object):
             
         endpoint = ec2_url.lstrip("http://").split(":")[0]
         
-        region = None
+        self._log.debug("Getting Region")
+        region = None        
         try:  
             region = boto.ec2.regioninfo.RegionInfo(name=region, endpoint=endpoint)
         except:
             msg = "ERROR: getting region information " + str(sys.exc_info())
             self._log.error(msg)                        
             return msg
-        connection = None
+        
+        self._log.debug("Connecting EC2")
+        connection = None        
         try:
             connection = boto.connect_ec2(str(os.getenv("EC2_ACCESS_KEY")), str(os.getenv("EC2_SECRET_KEY")), is_secure=False, region=region, port=8773, path=path)
         except:
             msg = "ERROR:connecting to EC2 interface. " + str(sys.exc_info())
             self._log.error(msg)                        
             return msg
+        
+        self._log.debug("Getting Image List")
         images = None
         try:
             images = connection.get_all_images()     
-            #print image.location
+            print images
         except:
             msg = "ERROR: getting image list " + str(sys.exc_info())
             self._log.error(msg)            
