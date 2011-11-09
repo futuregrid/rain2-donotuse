@@ -247,8 +247,11 @@ class IMDeploy(object):
         else:
             ec2_url = os.getenv("EC2_URL")
             ec2_url = os.getenv("S3_URL")
-            
-        return ec2_url, ec2_url
+        
+        path = "/services/Cloud"
+        region = "nova"
+          
+        return ec2_url, ec2_url, path, region
         
     def euca_environ(self, varfile, iaas_address):
         euca_key_dir = os.path.dirname(varfile)            
@@ -282,16 +285,21 @@ class IMDeploy(object):
         else:
             ec2_url = os.getenv("EC2_URL")
             s3_url = os.getenv("S3_URL")
-            
-        return ec2_url, s3_url
+        
+        path = "/services/Eucalyptus"
+        region = "eucalyptus"
+        
+        return ec2_url, s3_url, path, region
       
     def cloudlist(self, iaas_type, varfile, iaas_address):
         ec2_url = ""
-        s3_url = ""        
+        s3_url = ""   
+        path = ""
+        region = ""     
         if iaas_type == "openstack":
-            ec2_url, s3_url = self.openstack_environ(varfile, iaas_address)                    
+            ec2_url, s3_url, path, region = self.openstack_environ(varfile, iaas_address)                    
         elif iaas_type == "euca":
-            ec2_url, s3_url = self.euca_environ(varfile, iaas_address)
+            ec2_url, s3_url, path, region = self.euca_environ(varfile, iaas_address)
             
         endpoint = ec2_url.lstrip("http://").split(":")[0]
         
