@@ -291,7 +291,7 @@ class IMDeploy(object):
         
         return ec2_url, s3_url, path, region
       
-    def cloudlist(self, iaas_type, varfile, iaas_address):
+    def cloudlist(self, iaas_address, iaas_type, varfile):
         ec2_url = ""
         s3_url = ""   
         path = ""
