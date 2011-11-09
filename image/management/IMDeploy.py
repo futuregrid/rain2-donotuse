@@ -251,7 +251,7 @@ class IMDeploy(object):
         path = "/services/Cloud"
         region = "nova"
           
-        return ec2_url, ec2_url, path, region
+        return ec2_url, s3_url, path, region
         
     def euca_environ(self, varfile, iaas_address):
         euca_key_dir = os.path.dirname(varfile)            

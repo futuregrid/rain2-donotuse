@@ -328,7 +328,7 @@ class IMGenerateServer(object):
                             #if stat != 0:
                             #    time.sleep(2)                        
                         #umount the image
-                        max_retry = 5
+                        max_retry = 15
                         retry_done = 0
                         umounted = False
                         #Done making changes to root fs
@@ -342,6 +342,7 @@ class IMGenerateServer(object):
                                 umounted = True
                                 self.logger.error("Problems to umount the image. Exit status " + str(stat))
                             else:
+                                retry_done += 1
                                 time.sleep(5)
                         
                         #destroy VM
