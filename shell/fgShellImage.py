@@ -361,6 +361,8 @@ class fgShellImage(Cmd):
         group1.add_argument('-s', '--openstack', dest='openstack', nargs='?', metavar='Address', help='Deploy the image to OpenStack, which is in the specified addr')
         parser.add_argument('-v', '--varfile', dest='varfile', help='Path of the environment variable files. Currently this is used by Eucalyptus and OpenStack')
         
+        args = parser.parse_args()
+        
         if args.varfile != None:
             varfile=os.path.expanduser(args.varfile)
         #EUCALYPTUS    
