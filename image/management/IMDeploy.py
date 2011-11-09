@@ -246,7 +246,7 @@ class IMDeploy(object):
             s3_url = "http://" + iaas_address + ":3333"
         else:
             ec2_url = os.getenv("EC2_URL")
-            ec2_url = os.getenv("S3_URL")
+            s3_url = os.getenv("S3_URL")
         
         path = "/services/Cloud"
         region = "nova"
