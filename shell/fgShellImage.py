@@ -365,8 +365,9 @@ class fgShellImage(Cmd):
         
         used_args = sys.argv[1:]
         
-        if len(used_args) < 2:
-            parser.usage
+        if len(used_args) == 0:
+            parser.print_help()
+            return
         
         if args.varfile != None:
             varfile=os.path.expanduser(args.varfile)
@@ -377,7 +378,7 @@ class fgShellImage(Cmd):
             elif not os.path.isfile(str(os.path.expanduser(varfile))):
                 print "ERROR: Variable files not found. You need to specify the path of the file with the Eucalyptus environment variables"
             else:    
-                output = imgdeploy.cloudlist(args.euca,"euca", varfile)
+                output = self.imgdeploy.cloudlist(args.euca,"euca", varfile)
                 if output != None:                        
                     print output          
       
@@ -394,7 +395,7 @@ class fgShellImage(Cmd):
             elif not os.path.isfile(str(os.path.expanduser(varfile))):
                 print "ERROR: Variable files not found. You need to specify the path of the file with the OpenStack environment variables"
             else:    
-                output = imgdeploy.cloudlist(args.openstack,"openstack", varfile)
+                output = self.imgdeploy.cloudlist(args.openstack,"openstack", varfile)
                 if output != None:                        
                     print output
         
