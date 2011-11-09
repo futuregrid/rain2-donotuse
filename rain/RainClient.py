@@ -651,7 +651,7 @@ class RainClient(object):
             self.stopEC2instances(connection, reservation)
             self.removeTempsshkey(sshkeytemp, sshkey_name)
             return msg
-        
+        return "OK"
         
     def removeTempsshkey(self, sshkeytemp, sshkey_name):
         cmd = "rm -f " + sshkeytemp + " " + sshkeytemp + ".pub " + sshkeytemp + ".sh " + sshkeytemp + ".machines"
