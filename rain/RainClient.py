@@ -550,64 +550,63 @@ class RainClient(object):
                 proc_list = []
                 ndone = 0
                 alldone = False
-                for i in reservation.instances:
-                    output = self.install_sshfs_home(sshkeypair_path, sshkeypair_name, sshkey_name, sshkeytemp, reservation, connection, i)
-                    if output != "OK":
-                        return output
-                        
-                #PARALLEL version, problems to contact ldap                   
-                    #proc_list.append(Process(target=self.install_sshfs_home, args=(sshkeypair_path, sshkeypair_name, sshkey_name, sshkeytemp, reservation, connection, i,)))                                
-                    #proc_list[len(proc_list) - 1].start()
+                for i in reservation.instances:      
+                    #output = self.install_sshfs_home(sshkeypair_path, sshkeypair_name, sshkey_name, sshkeytemp, reservation, connection, i)
+                    #if output != "OK":
+                    #    return output              
+                    proc_list.append(Process(target=self.install_sshfs_home, args=(sshkeypair_path, sshkeypair_name, sshkey_name, sshkeytemp, reservation, connection, i,)))                                
+                    proc_list[len(proc_list) - 1].start()
                                         
                 #if some process fails inside install_sshfs_home, all will die because the VM are terminated
                 #wait to finish processes
-                #teminate = False
-                #for i in range(len(proc_list)):
-                #    if not terminate:
-                #        proc_list[i].join()
-                #    else:
-                #        proc_list[i].terminate() 
-                #    if proc_list[i].exitcode == 0:
-                #        ndone += 1
-                #    else:
-                #        terminate = True                        
-                                    
-                #if ndone == len(reservation.instances):
-                #    alldone = True                
+                teminate = False
+                for i in range(len(proc_list)):
+                    if not terminate:
+                        proc_list[i].join()
+                    else:
+                        proc_list[i].terminate() 
+                    if proc_list[i].exitcode == 0:
+                        ndone += 1
+                    else:
+                        terminate = True                        
+                    
+                
+                if ndone == len(reservation.instances):
+                    alldone = True                
             
-                #msg = "All VMs done: " + str(alldone)
-                #self._log.debug(msg)
-                #if self.verbose:
-                #     print msg 
+                msg = "All VMs done: " + str(alldone)
+                self._log.debug(msg)
+                if self.verbose:
+                     print msg 
                    
                 end = time.time()
                 self._log.info('TIME install sshfs, mount home directory in /tmp in all VMs:' + str(end - start))
              
-                #if alldone:
-                start = time.time()
-                msg = "Running Job"
-                self._log.debug(msg)
-                if self.verbose:
-                     print msg 
-                #runjob
-                cmd = "ssh -oBatchMode=yes -oStrictHostKeyChecking=no " + str(reservation.instances[0].public_dns_name) + " " + jobscript 
-                self._log.debug(cmd) 
-                p = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
-                std = p.communicate()
-                if p.returncode != 0:
-                    msg = "ERROR: Running job. " + str(reservation.instances[0].id) + ". failed, status: " + str(p.returncode) + " --- " + std[1]
-                    self._log.error(msg)
-                    self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)
-                    self.stopEC2instances(connection, reservation)
-                    self.removeTempsshkey(sshkeytemp, sshkey_name)
-                    return msg
-                end = time.time()
-                self._log.info('TIME run job:' + str(end - start))
-                                    
-                msg = "Job Done"
-                self._log.debug(msg)
-                if self.verbose:
-                     print msg 
+                if alldone:
+                    start = time.time()
+                    msg = "Running Job"
+                    self._log.debug(msg)
+                    if self.verbose:
+                         print msg 
+                    #runjob
+                    cmd = "ssh -oBatchMode=yes -oStrictHostKeyChecking=no " + str(reservation.instances[0].public_dns_name) + " " + jobscript 
+                    self._log.debug(cmd) 
+                    p = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
+                    std = p.communicate()
+                    if p.returncode != 0:
+                        msg = "ERROR: Running job. " + str(reservation.instances[0].id) + ". failed, status: " + str(p.returncode) + " --- " + std[1]
+                        self._log.error(msg)
+                        self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)
+                        self.stopEC2instances(connection, reservation)
+                        self.removeTempsshkey(sshkeytemp, sshkey_name)
+                        return msg
+                    end = time.time()
+                    self._log.info('TIME run job:' + str(end - start))
+                                        
+                    msg = "Job Done"
+                    self._log.debug(msg)
+                    if self.verbose:
+                         print msg 
                     
         self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)                
         self.stopEC2instances(connection, reservation)
@@ -652,7 +651,7 @@ class RainClient(object):
             self.stopEC2instances(connection, reservation)
             self.removeTempsshkey(sshkeytemp, sshkey_name)
             return msg
-        return "OK"
+        
         
     def removeTempsshkey(self, sshkeytemp, sshkey_name):
         cmd = "rm -f " + sshkeytemp + " " + sshkeytemp + ".pub " + sshkeytemp + ".sh " + sshkeytemp + ".machines"
