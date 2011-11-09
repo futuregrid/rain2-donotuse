@@ -319,7 +319,7 @@ class IMDeploy(object):
             return msg
         images = None
         try:
-            images = connection.get_all_image()     
+            images = connection.get_all_images()     
             #print image.location
         except:
             msg = "ERROR: getting image list " + str(sys.exc_info())

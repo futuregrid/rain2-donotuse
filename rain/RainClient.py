@@ -349,7 +349,7 @@ class RainClient(object):
         #check that key_pairis exists. this may be done outside in argparse
         image = None
         try:
-            image = connection.get_image(imageidonsystem)        
+            image = connection.get_images(imageidonsystem)        
             #print image.location
         except:
             msg = "ERROR: getting the image " + str(sys.exc_info())
