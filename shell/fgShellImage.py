@@ -380,7 +380,8 @@ class fgShellImage(Cmd):
             else:    
                 output = self.imgdeploy.cloudlist(str(args.euca),"euca", varfile)
                 if output != None:                        
-                    print output          
+                    for i in output:                       
+                        print i           
       
         #OpenNebula
         elif ('-o' in used_args or '--opennebula' in used_args):            
@@ -397,7 +398,8 @@ class fgShellImage(Cmd):
             else:    
                 output = self.imgdeploy.cloudlist(str(args.openstack),"openstack", varfile)
                 if output != None:                        
-                    print output
+                    for i in output:                       
+                        print i
         
         
     def help_imagecloudlist(self):

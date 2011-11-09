@@ -953,7 +953,8 @@ def main():
                 elif list:
                     output = imgdeploy.cloudlist(str(args.euca),"euca", varfile)
                     if output != None:                        
-                        print output
+                        for i in output:                       
+                            print i 
                 else:
                     output = imgdeploy.iaas_generic(args.euca, image, image_source, "euca", varfile, args.getimg, ldap)
                     if output != None:
@@ -962,7 +963,8 @@ def main():
             elif list:
                 output = imgdeploy.cloudlist(str(args.euca),"euca", varfile)
                 if output != None:                        
-                    print output    
+                    for i in output:                       
+                        print i     
             else:
                 output = imgdeploy.iaas_generic(args.euca, image, image_source, "euca", varfile, args.getimg, ldap)
                 if output != None:
@@ -983,8 +985,9 @@ def main():
                     print "ERROR: Variable files not found. You need to specify the path of the file with the OpenStack environment variables"
                 elif list:
                     output = imgdeploy.cloudlist(str(args.openstack),"openstack", varfile)
-                    if output != None:                        
-                        print output
+                    if output != None:
+                        for i in output:                       
+                            print i 
                 else:    
                     output = imgdeploy.iaas_generic(args.openstack, image, image_source, "openstack", varfile, args.getimg, ldap)
                     if output != None:
@@ -992,8 +995,9 @@ def main():
                             print output
             elif list:
                 output = imgdeploy.cloudlist(str(args.openstack),"openstack", varfile)
-                if output != None:                        
-                    print output  
+                if output != None:
+                    for i in output:                       
+                        print i  
             else:    
                 output = imgdeploy.iaas_generic(args.openstack, image, image_source, "openstack", varfile, args.getimg, ldap)
                 if output != None:
