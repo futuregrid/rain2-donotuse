@@ -365,6 +365,9 @@ class fgShellImage(Cmd):
         
         used_args = sys.argv[1:]
         
+        if len(used_args) < 2:
+            parser.usage
+        
         if args.varfile != None:
             varfile=os.path.expanduser(args.varfile)
         #EUCALYPTUS    
