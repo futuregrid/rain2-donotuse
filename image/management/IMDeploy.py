@@ -926,7 +926,7 @@ def main():
     if args.xcat != None:
         if args.imgid != None:
             imgdeploy.xcat_method(args.xcat, args.imgid)
-        elif list:
+        elif args.list:
             hpcimagelist = imgdeploy.xcat_method(args.xcat, "list")
             print "The list of available images on xCAT/Moab is:"
             for i in hpcimagelist:
@@ -950,7 +950,7 @@ def main():
                     print "ERROR: You need to specify the path of the file with the Eucalyptus environment variables"
                 elif not os.path.isfile(varfile):
                     print "ERROR: Variable files not found. You need to specify the path of the file with the Eucalyptus environment variables"
-                elif list:
+                elif args.list:
                     output = imgdeploy.cloudlist(str(args.euca),"euca", varfile)                    
                     if output != None:
                         if not isinstance(output, list):
@@ -967,7 +967,7 @@ def main():
                     if output != None:
                         if re.search("^ERROR", output):
                             print output       
-            elif list:
+            elif args.list:
                 output = imgdeploy.cloudlist(str(args.euca),"euca", varfile)                
                 if output != None:
                     if not isinstance(output, list):
@@ -997,10 +997,10 @@ def main():
                     print "ERROR: You need to specify the path of the file with the OpenStack environment variables"
                 elif not os.path.isfile(varfile):
                     print "ERROR: Variable files not found. You need to specify the path of the file with the OpenStack environment variables"
-                elif list:
+                elif args.list:
                     output = imgdeploy.cloudlist(str(args.openstack),"openstack", varfile)                    
                     if output != None:
-                        if not isinstance(output, list):
+                        if not isinstance(output, args.list):
                             print output
                         else:
                             print "The list of available images on OpenStack is:"
@@ -1014,7 +1014,7 @@ def main():
                     if output != None:
                         if re.search("^ERROR", output):
                             print output
-            elif list:
+            elif args.list:
                 output = imgdeploy.cloudlist(str(args.openstack),"openstack", varfile)                
                 if output != None:
                     if not isinstance(output, list):
