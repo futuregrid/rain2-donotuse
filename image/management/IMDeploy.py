@@ -241,7 +241,7 @@ class IMDeploy(object):
                 value = value.strip("'") 
                 os.environ[parts[0]] = value
         f.close()
-        if iaas_address != "None":
+        if iaas_address != None:
             ec2_url = "http://" + iaas_address + "/services/Cloud"
             s3_url = "http://" + iaas_address + ":3333"
         else:
@@ -279,7 +279,7 @@ class IMDeploy(object):
                 os.environ[parts[0]] = value
         f.close()
             
-        if iaas_address != "None":
+        if iaas_address != None:
             ec2_url = "http://" + iaas_address + "/services/Eucalyptus"
             s3_url = "http://" + iaas_address + "/services/Walrus"
         else:
