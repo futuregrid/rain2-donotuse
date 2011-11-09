@@ -18,6 +18,8 @@ import re
 from getpass import getpass
 import hashlib
 import time
+import boto.ec2
+import boto
 
 from IMClientConf import IMClientConf
 
@@ -212,8 +214,114 @@ class IMDeploy(object):
             self._log.error("CANNOT establish SSL connection. EXIT")
             if self._verbose:
                 print "ERROR: CANNOT establish SSL connection."
+    
+    
+    def openstack_environ(self, varfile, iaas_address):
+        nova_key_dir = os.path.dirname(varfile)            
+        if nova_key_dir.strip() == "":
+            nova_key_dir = "."
+        os.environ["NOVA_KEY_DIR"] = nova_key_dir
         
-                
+        #read variables
+        f = open(varfile, 'r')
+        for line in f:
+            if re.search("^export ", line):
+                line = line.split()[1]                    
+                parts = line.split("=")
+                #parts[0] is the variable name
+                #parts[1] is the value
+                parts[0] = parts[0].strip()
+                value = ""
+                for i in range(1, len(parts)):
+                    parts[i] = parts[i].strip()
+                    parts[i] = os.path.expanduser(os.path.expandvars(parts[i]))                    
+                    value += parts[i] + "="
+                value = value.rstrip("=")
+                value = value.strip('"')
+                value = value.strip("'") 
+                os.environ[parts[0]] = value
+        f.close()
+        if iaas_address != "None":
+            ec2_url = "http://" + iaas_address + "/services/Cloud"
+            s3_url = "http://" + iaas_address + ":3333"
+        else:
+            ec2_url = os.getenv("EC2_URL")
+            ec2_url = os.getenv("S3_URL")
+            
+        return ec2_url, ec2_url
+        
+    def euca_environ(self, varfile, iaas_address):
+        euca_key_dir = os.path.dirname(varfile)            
+        if euca_key_dir.strip() == "":
+            euca_key_dir = "."
+        os.environ["EUCA_KEY_DIR"] = euca_key_dir
+                    
+        #read variables
+        f = open(varfile, 'r')
+        for line in f:
+            if re.search("^export ", line):
+                line = line.split()[1]                    
+                parts = line.split("=")
+                #parts[0] is the variable name
+                #parts[1] is the value
+                parts[0] = parts[0].strip()
+                value = ""
+                for i in range(1, len(parts)):
+                    parts[i] = parts[i].strip()
+                    parts[i] = os.path.expanduser(os.path.expandvars(parts[i]))                    
+                    value += parts[i] + "="
+                value = value.rstrip("=")
+                value = value.strip('"')
+                value = value.strip("'") 
+                os.environ[parts[0]] = value
+        f.close()
+            
+        if iaas_address != "None":
+            ec2_url = "http://" + iaas_address + "/services/Eucalyptus"
+            s3_url = "http://" + iaas_address + "/services/Walrus"
+        else:
+            ec2_url = os.getenv("EC2_URL")
+            s3_url = os.getenv("S3_URL")
+            
+        return ec2_url, s3_url
+      
+    def cloudlist(self, iaas_type, varfile, iaas_address):
+        ec2_url = ""
+        s3_url = ""        
+        if iaas_type == "openstack":
+            ec2_url, s3_url = self.openstack_environ(varfile, iaas_address)                    
+        elif iaas_type == "euca":
+            ec2_url, s3_url = self.euca_environ(varfile, iaas_address)
+            
+        endpoint = ec2_url.lstrip("http://").split(":")[0]
+        
+        try:  
+            region = boto.ec2.regioninfo.RegionInfo(name=region, endpoint=endpoint)
+        except:
+            msg = "ERROR: getting region information " + str(sys.exc_info())
+            self._log.error(msg)                        
+            return msg
+        try:
+            connection = boto.connect_ec2(str(os.getenv("EC2_ACCESS_KEY")), str(os.getenv("EC2_SECRET_KEY")), is_secure=False, region=region, port=8773, path=path)
+        except:
+            msg = "ERROR:connecting to EC2 interface. " + str(sys.exc_info())
+            self._log.error(msg)                        
+            return msg
+        images = None
+        try:
+            images = connection.get_all_image()     
+            #print image.location
+        except:
+            msg = "ERROR: getting image list " + str(sys.exc_info())
+            self._log.error(msg)            
+            return msg
+        imagelist = []
+        for i in images:
+            imagelist.append(str(i).split(":")[1] + "  -  " + str(i.location))
+        
+        return imagelist
+        
+            
     def euca_method(self, imagebackpath, kernel, operatingsystem, iaas_address, varfile, getimg):
         #TODO: Pick kernel and ramdisk from available eki and eri
 
@@ -221,39 +329,8 @@ class IMDeploy(object):
         eki = 'eki-78EF12D2'
         eri = 'eri-5BB61255'
         imageId = None
-        if not eval(getimg):
-            
-            euca_key_dir = os.path.dirname(varfile)            
-            if euca_key_dir.strip() == "":
-                euca_key_dir = "."
-            os.environ["EUCA_KEY_DIR"] = euca_key_dir
-                        
-            #read variables
-            f = open(varfile, 'r')
-            for line in f:
-                if re.search("^export ", line):
-                    line = line.split()[1]                    
-                    parts = line.split("=")
-                    #parts[0] is the variable name
-                    #parts[1] is the value
-                    parts[0] = parts[0].strip()
-                    value = ""
-                    for i in range(1, len(parts)):
-                        parts[i] = parts[i].strip()
-                        parts[i] = os.path.expanduser(os.path.expandvars(parts[i]))                    
-                        value += parts[i] + "="
-                    value = value.rstrip("=")
-                    value = value.strip('"')
-                    value = value.strip("'") 
-                    os.environ[parts[0]] = value
-            f.close()
-                
-            if iaas_address != "None":
-                ec2_url = "http://" + iaas_address + "/services/Eucalyptus"
-                s3_url = "http://" + iaas_address + "/services/Walrus"
-            else:
-                ec2_url = os.getenv("EC2_URL")
-                s3_url = os.getenv("S3_URL")
+        if not eval(getimg):            
+            ec2_url, s3_url = self.euca_environ(varfile, iaas_address)
             
             filename = os.path.split(imagebackpath)[1].strip()
     
@@ -327,7 +404,7 @@ class IMDeploy(object):
             "The kernel and ramdisk to use are " + eki + " and " + eri + " respectively \n" + \
             "Remember to load you Eucalyptus environment before you run the instance (source eucarc) \n" + \
             "More information is provided in https://portal.futuregrid.org/tutorials/eucalyptus \n"
-                        
+                       
         
     def openstack_method(self, imagebackpath, kernel, operatingsystem, iaas_address, varfile, getimg):
         #TODO: Pick kernel and ramdisk from available eki and eri
@@ -336,40 +413,9 @@ class IMDeploy(object):
         eki = 'aki-00000026'
         eri = 'ari-00000027'
         imageId = None
-        if not eval(getimg):
-            
-            nova_key_dir = os.path.dirname(varfile)            
-            if nova_key_dir.strip() == "":
-                nova_key_dir = "."
-            os.environ["NOVA_KEY_DIR"] = nova_key_dir
-            
-            #read variables
-            f = open(varfile, 'r')
-            for line in f:
-                if re.search("^export ", line):
-                    line = line.split()[1]                    
-                    parts = line.split("=")
-                    #parts[0] is the variable name
-                    #parts[1] is the value
-                    parts[0] = parts[0].strip()
-                    value = ""
-                    for i in range(1, len(parts)):
-                        parts[i] = parts[i].strip()
-                        parts[i] = os.path.expanduser(os.path.expandvars(parts[i]))                    
-                        value += parts[i] + "="
-                    value = value.rstrip("=")
-                    value = value.strip('"')
-                    value = value.strip("'") 
-                    os.environ[parts[0]] = value
-            f.close()
-                
-            if iaas_address != "None":
-                ec2_url = "http://" + iaas_address + "/services/Cloud"
-                s3_url = "http://" + iaas_address + ":3333"
-            else:
-                ec2_url = os.getenv("EC2_URL")
-                s3_url = os.getenv("S3_URL")
-            
+        if not eval(getimg):            
+            ec2_url, s3_url = self.openstack_environ(varfile, iaas_address)
+                        
             filename = os.path.split(imagebackpath)[1].strip()
     
             print filename
@@ -824,7 +870,7 @@ def main():
     group = parser.add_mutually_exclusive_group(required=True)    
     group.add_argument('-i', '--image', dest='image', metavar='ImgFile', help='tgz file that contains manifest and img')
     group.add_argument('-r', '--imgid', dest='imgid', metavar='ImgId', help='Id of the image stored in the repository')
-    group.add_argument('-l', '--list', dest='list', action="store_true", help='List of Id of the images deployed in xCAT/Moab')
+    group.add_argument('-l', '--list', dest='list', action="store_true", help='List of Id of the images deployed in xCAT/Moab or in the Cloud Frameworks')
     group1 = parser.add_mutually_exclusive_group()
     group1.add_argument('-x', '--xcat', dest='xcat', metavar='MachineName', help='Deploy image to xCAT. The argument is the machine name (minicluster, india ...)')
     group1.add_argument('-e', '--euca', dest='euca', nargs='?', metavar='Address:port', help='Deploy the image to Eucalyptus, which is in the specified addr')
@@ -889,12 +935,20 @@ def main():
                     print "ERROR: You need to specify the path of the file with the Eucalyptus environment variables"
                 elif not os.path.isfile(varfile):
                     print "ERROR: Variable files not found. You need to specify the path of the file with the Eucalyptus environment variables"
+                elif list:
+                    output = imgdeploy.cloudlist(args.euca,"euca", varfile)
+                    if output != None:                        
+                        print output
                 else:
                     output = imgdeploy.iaas_generic(args.euca, image, image_source, "euca", varfile, args.getimg, ldap)
                     if output != None:
                         if re.search("^ERROR", output):
                             print output       
-            else:    
+            elif list:
+                output = imgdeploy.cloudlist(args.euca,"euca", varfile)
+                if output != None:                        
+                    print output    
+            else:
                 output = imgdeploy.iaas_generic(args.euca, image, image_source, "euca", varfile, args.getimg, ldap)
                 if output != None:
                     if re.search("^ERROR", output):
@@ -912,11 +966,19 @@ def main():
                     print "ERROR: You need to specify the path of the file with the OpenStack environment variables"
                 elif not os.path.isfile(varfile):
                     print "ERROR: Variable files not found. You need to specify the path of the file with the OpenStack environment variables"
+                elif list:
+                    output = imgdeploy.cloudlist(args.openstack,"openstack", varfile)
+                    if output != None:                        
+                        print output
                 else:    
                     output = imgdeploy.iaas_generic(args.openstack, image, image_source, "openstack", varfile, args.getimg, ldap)
                     if output != None:
                         if re.search("^ERROR", output):
                             print output
+            elif list:
+                output = imgdeploy.cloudlist(args.openstack,"openstack", varfile)
+                if output != None:                        
+                    print output  
             else:    
                 output = imgdeploy.iaas_generic(args.openstack, image, image_source, "openstack", varfile, args.getimg, ldap)
                 if output != None:

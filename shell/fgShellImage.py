@@ -326,5 +326,75 @@ class fgShellImage(Cmd):
     def help_imagehpclist(self):
         '''Help message for the imagehpclist command'''
         self.print_man("hpclist <machine>", self.do_imagehpclist.__doc__)
+    
+    def do_imagecloudlist(self, args):
+        '''Image Management cloudlist command: Get list of images deployed in the specified HPC machine (India for example). 
+        '''
+        args = " " + args
+        argslist = args.split(" -")[1:]        
         
+        prefix = ''
+        sys.argv=['']
+        for i in range(len(argslist)):
+            if argslist[i] == "":
+                prefix = '-'
+            else:
+                newlist = argslist[i].split(" ")
+                sys.argv += [prefix+'-'+newlist[0]]
+                newlist = newlist [1:]
+                rest = ""
+                #print newlist
+                for j in range(len(newlist)):
+                    rest+=" "+newlist[j]
+                if rest.strip() != "":
+                    rest=rest.strip()
+                    sys.argv += [rest]
+                #sys.argv += [prefix+'-'+argslist[i]]
+                prefix = ''
+
+        parser = argparse.ArgumentParser(prog="imagecloudlist", formatter_class=argparse.RawDescriptionHelpFormatter,
+                                     description="FutureGrid Image Cloud List Help ")
+        group1 = parser.add_mutually_exclusive_group()        
+        group1.add_argument('-e', '--euca', dest='euca', nargs='?', metavar='Address:port', help='Deploy the image to Eucalyptus, which is in the specified addr')        
+        #group1.add_argument('-o', '--opennebula', dest='opennebula', nargs='?', metavar='Address', help='Deploy the image to OpenNebula, which is in the specified addr')
+        #group1.add_argument('-n', '--nimbus', dest='nimbus', nargs='?', metavar='Address', help='Deploy the image to Nimbus, which is in the specified addr')
+        group1.add_argument('-s', '--openstack', dest='openstack', nargs='?', metavar='Address', help='Deploy the image to OpenStack, which is in the specified addr')
+        parser.add_argument('-v', '--varfile', dest='varfile', help='Path of the environment variable files. Currently this is used by Eucalyptus and OpenStack')
+        
+        if args.varfile != None:
+            varfile=os.path.expanduser(args.varfile)
+        #EUCALYPTUS    
+        if ('-e' in used_args or '--euca' in used_args):                        
+            if args.varfile == None:
+                print "ERROR: You need to specify the path of the file with the Eucalyptus environment variables"
+            elif not os.path.isfile(str(os.path.expanduser(varfile))):
+                print "ERROR: Variable files not found. You need to specify the path of the file with the Eucalyptus environment variables"
+            else:    
+                output = imgdeploy.cloudlist(args.euca,"euca", varfile)
+                if output != None:                        
+                    print output          
+      
+        #OpenNebula
+        elif ('-o' in used_args or '--opennebula' in used_args):            
+            output = self.imgdeploy.iaas_generic(args.opennebula, image, image_source, "opennebula", varfile, args.getimg, ldap)
+        #NIMBUS
+        elif ('-n' in used_args or '--nimbus' in used_args):
+            #TODO        
+            print "Nimbus deployment is not implemented yet"
+        elif ('-s' in used_args or '--openstack' in used_args):            
+            if args.varfile == None:
+                print "ERROR: You need to specify the path of the file with the OpenStack environment variables"
+            elif not os.path.isfile(str(os.path.expanduser(varfile))):
+                print "ERROR: Variable files not found. You need to specify the path of the file with the OpenStack environment variables"
+            else:    
+                output = imgdeploy.cloudlist(args.openstack,"openstack", varfile)
+                if output != None:                        
+                    print output
+        
+        
+    def help_imagecloudlist(self):
+        msg = "IMAGE cloudlist command: List Images deployed in the specified Cloud Framework \n "
+        self.print_man("cloudlist ", msg)
+        eval("self.do_imagecloudlist(\"-h\")")
+       
         
