@@ -380,7 +380,7 @@ class fgShellImage(Cmd):
             else:    
                 output = self.imgdeploy.cloudlist(str(args.euca),"euca", varfile)
                 if output != None:   
-                    if re.search("^ERROR", output):
+                    if not isinstance(output, list):
                         print output
                     else: 
                         print "The list of available images on OpenStack is:"                    
@@ -405,9 +405,9 @@ class fgShellImage(Cmd):
             else:    
                 output = self.imgdeploy.cloudlist(str(args.openstack),"openstack", varfile)
                 if output != None:   
-                    if re.search("^ERROR", output):
+                    if not isinstance(output, list):
                         print output
-                    else:  
+                    else:
                         print "The list of available images on OpenStack is:"                  
                         for i in output:                       
                             print i

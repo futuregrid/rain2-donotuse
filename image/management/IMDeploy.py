@@ -953,7 +953,7 @@ def main():
                 elif list:
                     output = imgdeploy.cloudlist(str(args.euca),"euca", varfile)                    
                     if output != None:
-                        if re.search("^ERROR", output):
+                        if not isinstance(output, list):
                             print output
                         else:
                             print "The list of available images on Eucalyptus is:"                        
@@ -970,7 +970,7 @@ def main():
             elif list:
                 output = imgdeploy.cloudlist(str(args.euca),"euca", varfile)                
                 if output != None:
-                    if re.search("^ERROR", output):
+                    if not isinstance(output, list):
                         print output
                     else:
                         print "The list of available images on Eucalyptus is:"                        
@@ -1000,7 +1000,7 @@ def main():
                 elif list:
                     output = imgdeploy.cloudlist(str(args.openstack),"openstack", varfile)                    
                     if output != None:
-                        if re.search("^ERROR", output):
+                        if not isinstance(output, list):
                             print output
                         else:
                             print "The list of available images on OpenStack is:"
@@ -1017,7 +1017,7 @@ def main():
             elif list:
                 output = imgdeploy.cloudlist(str(args.openstack),"openstack", varfile)                
                 if output != None:
-                    if re.search("^ERROR", output):
+                    if not isinstance(output, list):
                         print output
                     else:
                         print "The list of available images on OpenStack is:"
