@@ -343,9 +343,11 @@ class IMDeploy(object):
         #hardcoded for now
         eki = 'eki-78EF12D2'
         eri = 'eri-5BB61255'
+        path = ""
+        region = ""
         imageId = None
         if not eval(getimg):            
-            ec2_url, s3_url = self.euca_environ(varfile, iaas_address)
+            ec2_url, s3_url, path, region = self.euca_environ(varfile, iaas_address)
             
             filename = os.path.split(imagebackpath)[1].strip()
     
@@ -428,8 +430,10 @@ class IMDeploy(object):
         eki = 'aki-00000026'
         eri = 'ari-00000027'
         imageId = None
+        path = ""
+        region = ""
         if not eval(getimg):            
-            ec2_url, s3_url = self.openstack_environ(varfile, iaas_address)
+            ec2_url, s3_url, path, region = self.openstack_environ(varfile, iaas_address)
                         
             filename = os.path.split(imagebackpath)[1].strip()
     
