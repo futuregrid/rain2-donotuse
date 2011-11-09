@@ -295,12 +295,14 @@ class IMDeploy(object):
             
         endpoint = ec2_url.lstrip("http://").split(":")[0]
         
+        region = None
         try:  
             region = boto.ec2.regioninfo.RegionInfo(name=region, endpoint=endpoint)
         except:
             msg = "ERROR: getting region information " + str(sys.exc_info())
             self._log.error(msg)                        
             return msg
+        connection = None
         try:
             connection = boto.connect_ec2(str(os.getenv("EC2_ACCESS_KEY")), str(os.getenv("EC2_SECRET_KEY")), is_secure=False, region=region, port=8773, path=path)
         except:
