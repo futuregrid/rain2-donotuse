@@ -326,7 +326,9 @@ class IMGenerateServer(object):
                         #stat = os.system(cmd + cmdmount)
                         #self.logger.debug("exit status " + str(stat))
                             #if stat != 0:
-                            #    time.sleep(2)                        
+                            #    time.sleep(2)  
+                            
+                        start = time.time()                      
                         #umount the image
                         max_retry = 15
                         retry_done = 0
@@ -345,6 +347,8 @@ class IMGenerateServer(object):
                                 retry_done += 1
                                 time.sleep(5)
                         
+                        end = time.time()
+                        self.logger.info('TIME umount image:' + str(end - start))
                         #destroy VM
                         self.logger.info("Destroy VM")
                         server.one.vm.action(self.oneauth, "finalize", vmID)

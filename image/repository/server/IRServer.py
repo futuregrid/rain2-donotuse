@@ -64,6 +64,7 @@ class IRServer(object):
                         if not proc_list[i].is_alive():
                             #print "dead"                        
                             proc_list.pop(i)
+                            #put here terminate?? just in case the process is not done but neither alive?? I have noticed that when IOError the process keep running
                             full = False
                     if full:
                         time.sleep(self.refresh_status)
