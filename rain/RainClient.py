@@ -790,7 +790,7 @@ def main():
                             print output
             #OpenNebula
             elif ('-o' in used_args or '--opennebula' in used_args):
-                output = imgdeploy.iaas_generic(args.opennebula, image, image_source, "opennebula", varfile, args.getimg, ldap)
+                output = imgdeploy.iaas_generic(args.opennebula, image, image_source, "opennebula", varfile, False, ldap)
             #NIMBUS
             elif ('-n' in used_args or '--nimbus' in used_args):
                 #TODO        
