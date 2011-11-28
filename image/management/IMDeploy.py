@@ -192,8 +192,12 @@ class IMDeploy(object):
                             end = time.time()
                             self._log.info('TIME uploading image to cloud framework:' + str(end - start))
                             
+                            #wait until image is in available status
+                            if wait:
+                                self.wait_available(iaas_type, imageId)                            
+                    
                             end_all = time.time()
-                            
+                            self.logger.info('TIME walltime image deploy cloud:' + str(end_all - start_all))
                             return output
                         else:
                             self._log.error("CANNOT retrieve the image from server. EXIT.")
@@ -406,9 +410,6 @@ class IMDeploy(object):
                 self._log.debug(cmd)
                 os.system(cmd)
                 
-                if wait == "True":
-                    self.wait_available("euca", imageId)
-                
                 print "Your image has been registered on Eucalyptus with the id printed in the previous line (IMAGE  id) \n" + \
                   "To launch a VM you can use euca-run-instances -k keyfile -n <#instances> id  \n" + \
                   "Remember to load you Eucalyptus environment before you run the instance (source eucarc) \n " + \
@@ -496,9 +497,6 @@ class IMDeploy(object):
                 print cmd
                 self._log.debug(cmd)
                 os.system(cmd)
-            
-                if wait == "True":
-                    self.wait_available("openstack", imageId)
             
                 print "Your image has been registered on OpenStack with the id " + imageId + " \n" + \
                       "To launch a VM you can use euca-run-instances -k keyfile -n <#instances> id \n" + \
