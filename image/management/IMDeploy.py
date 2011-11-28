@@ -405,7 +405,10 @@ class IMDeploy(object):
                 print cmd
                 self._log.debug(cmd)
                 os.system(cmd)
-            
+                
+                if wait == "True":
+                    self.wait_available("euca", imageId)
+                
                 print "Your image has been registered on Eucalyptus with the id printed in the previous line (IMAGE  id) \n" + \
                   "To launch a VM you can use euca-run-instances -k keyfile -n <#instances> id  \n" + \
                   "Remember to load you Eucalyptus environment before you run the instance (source eucarc) \n " + \
@@ -416,8 +419,7 @@ class IMDeploy(object):
                 "Remember to load you Eucalyptus environment before you run the instance (source eucarc) \n" + \
                 "More information is provided in https://portal.futuregrid.org/tutorials/eucalyptus \n"
                 
-            if wait == "True":
-                self.wait_available("euca", imageId)
+            
               
             return imageId              
         else:            
@@ -495,6 +497,9 @@ class IMDeploy(object):
                 self._log.debug(cmd)
                 os.system(cmd)
             
+                if wait == "True":
+                    self.wait_available("openstack", imageId)
+            
                 print "Your image has been registered on OpenStack with the id " + imageId + " \n" + \
                       "To launch a VM you can use euca-run-instances -k keyfile -n <#instances> id \n" + \
                       "Remember to load you OpenStack environment before you run the instance (source novarc) \n " + \
@@ -506,8 +511,6 @@ class IMDeploy(object):
                 "Remember to load you Eucalyptus environment before you run the instance (source eucarc) \n" + \
                 "More information is provided in https://portal.futuregrid.org/tutorials/oss " + \
                 " and in https://portal.futuregrid.org/tutorials/eucalyptus\n"
-            if wait == "True":
-                self.wait_available("openstack", imageId)
             
             return imageId
         else:
@@ -526,7 +529,8 @@ class IMDeploy(object):
         max_retry = 100 #wait around 15 minutes. plus the time it takes to execute the command, that in openstack can be several seconds 
         max_fails = 5
         stat = 0
-        print "Verify that the requested image is in available status or wait until it is available"
+        if self._verbose:
+            print "Verify that the requested image is in available status or wait until it is available"
         cmd = "euca-describe-images " + imageId 
         cmd1 = ""
         if iaas_name == "euca":
