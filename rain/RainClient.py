@@ -626,7 +626,7 @@ class RainClient(object):
                 #     print msg 
                    
                 end = time.time()
-                self._log.info('TIME install sshfs, mount home directory in /tmp in all VMs:' + str(end - start))
+                self._log.info('TIME configure and mount home directory (using sshfs) in /tmp in all VMs:' + str(end - start))
              
                 #if alldone:
                 start = time.time()
