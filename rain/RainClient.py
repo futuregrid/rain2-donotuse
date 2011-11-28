@@ -297,6 +297,41 @@ class RainClient(object):
         endpoint = ec2_url.lstrip("http://").split(":")[0]
         private_ips_for_hostlist = ""
         
+        
+        #Verify that the image is in available status
+        start = time.time()
+        available = False
+        retry = 0
+        max_retry = 100 #wait around 15 minutes. plus the time it takes to execute the command, that in openstack can be several seconds 
+        
+        print "Checking that the requested image is in available status"
+        cmd = "euca-describe-images " + imageidonsystem 
+        if iaas_name == "euca":
+            cmd += " | awk {'print $5'}"
+        elif iaas_name == "openstack":
+            cmd += " | awk {'print $4'}"
+        while not available and retry < max_retry:
+            p = Popen(cmd.split(' '), stdout=PIPE, stderr=PIPE)
+            std = p.communicate()
+            stat = 0
+            if len(std[0]) > 0:
+                self._log.debug('stdout: ' + std[0])
+                self._log.debug('stderr: ' + std[1])
+            if p.returncode != 0:
+                self._log.error('Command: ' + cmd + ' failed, status: ' + str(p.returncode) + ' --- ' + std[1])
+                stat = 1
+            if std[0].strip() == "available":
+                available = True
+            else:
+                retry +=1
+                time.sleep(10)
+        if not available:
+            msg = "ERROR: Timeout, image is not in available status"
+            self._log.error(msg)            
+            return msg
+        
+        end = time.time()
+        self._log.info('TIME Image available:' + str(end - start))
         #Home from login node will be in /tmp/N/u/username
         
         if re.search("^/N/u/", jobscript):
@@ -349,7 +384,7 @@ class RainClient(object):
         #check that key_pairis exists. this may be done outside in argparse
         image = None
         try:
-            image = connection.get_image(imageidonsystem)        
+            image = connection.get_image(imageidonsystem)
             #print image.location
         except:
             msg = "ERROR: getting the image " + str(sys.exc_info())
@@ -365,7 +400,7 @@ class RainClient(object):
         if self.verbose:
              print msg
         try:
-            reservation = image.run(ninstances, ninstances, sshkeypair_name)
+            reservation = image.run(ninstances, ninstances, sshkeypair_name)            
         except:
             msg = "ERROR: launching the VM " + str(sys.exc_info())
             self._log.error(msg)
