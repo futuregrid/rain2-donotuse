@@ -414,7 +414,10 @@ class IMDeploy(object):
                 print "An error occured when uploading image to Eucalyptus. Your image is located in " + str(imagebackpath) + " so you can upload it manually \n" + \
                 "The kernel and ramdisk to use are " + eki + " and " + eri + " respectively \n" + \
                 "Remember to load you Eucalyptus environment before you run the instance (source eucarc) \n" + \
-                "More information is provided in https://portal.futuregrid.org/tutorials/eucalyptus \n"  
+                "More information is provided in https://portal.futuregrid.org/tutorials/eucalyptus \n"
+            
+            self.wait_available("euca", imageId)
+              
             return imageId              
         else:            
             print "Your Eucalyptus image is located in " + str(imagebackpath) + " \n" + \
@@ -502,6 +505,9 @@ class IMDeploy(object):
                 "Remember to load you Eucalyptus environment before you run the instance (source eucarc) \n" + \
                 "More information is provided in https://portal.futuregrid.org/tutorials/oss " + \
                 " and in https://portal.futuregrid.org/tutorials/eucalyptus\n"
+            
+            self.wait_available("openstack", imageId)
+            
             return imageId
         else:
             print "Your OpenStack image is located in " + str(imagebackpath) + " \n" + \
@@ -509,7 +515,54 @@ class IMDeploy(object):
             "Remember to load you OpenStack environment before you run the instance (source novarc) \n" + \
             "More information is provided in https://portal.futuregrid.org/tutorials/oss " + \
             " and in https://portal.futuregrid.org/tutorials/eucalyptus\n"
+    
+    def wait_available(self, iaas_name, imageId):
+                #Verify that the image is in available status
+        start = time.time()
+        available = False
+        retry = 0
+        fails = 0
+        max_retry = 100 #wait around 15 minutes. plus the time it takes to execute the command, that in openstack can be several seconds 
+        max_fails = 5
+        stat = 0
+        print "Verify that the requested image is in available status or wait until it is available"
+        cmd = "euca-describe-images " + imageId 
+        cmd1 = ""
+        if iaas_name == "euca":
+            cmd1 = "awk {print $5}"
+        elif iaas_name == "openstack":
+            cmd1 = "awk {print $4}"
             
+        self._log.debug(cmd)
+        while not available and retry < max_retry and fails < max_fails:
+            p = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
+            p1 = Popen(cmd1.split(' ', 1), stdin=p.stdout, stdout=PIPE, stderr=PIPE)
+            std = p1.communicate()
+            stat = 0
+            if len(std[0]) > 0:
+                self._log.debug('stdout: ' + std[0])
+            if p1.returncode != 0:
+                self._log.error('Command: ' + cmd + ' failed, status: ' + str(p1.returncode) + ' --- ' + std[1])
+                stat = 1
+            if stat == 1:
+                fails+=1
+            elif std[0].strip() == "available":
+                available = True
+            else:
+                retry +=1
+                time.sleep(10)
+        if stat == 1:
+            msg = "ERROR: checking image status"
+            self._log.error(msg)            
+            return msg
+        elif not available:
+            msg = "ERROR: Timeout, image is not in available status"
+            self._log.error(msg)            
+            return msg
+        
+        end = time.time()
+        self._log.info('TIME Image available:' + str(end - start))
+    
     def opennebula_method(self, imagebackpath, kernel, operatingsystem, iaas_address, varfile, getimg):
         
         filename = os.path.split(imagebackpath)[1].strip()
