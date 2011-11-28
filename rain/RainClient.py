@@ -316,7 +316,7 @@ class RainClient(object):
         self._log.debug(cmd)
         while not available and retry < max_retry and fails < max_fails:
             p = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
-            p1 = Popen(cmd1.split(), stdin=p1.stdout, stdout=PIPE, stderr=PIPE)
+            p1 = Popen(cmd1.split(), stdin=p.stdout, stdout=PIPE, stderr=PIPE)
             std = p1.communicate()
             stat = 0
             if len(std[0]) > 0:
