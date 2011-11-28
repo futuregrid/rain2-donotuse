@@ -219,6 +219,7 @@ class fgShellImage(Cmd):
         parser.add_argument('-v', '--varfile', dest='varfile', help='Path of the environment variable files. Currently this is used by Eucalyptus and OpenStack')
         parser.add_argument('-g', '--getimg', dest='getimg', action="store_true", help='Customize the image for a particular cloud framework but does not register it. So the user gets the image file.')
         parser.add_argument('-p', '--ldap', dest='ldap', action="store_true", help='Configure ldap in the VM. This is needed if you plan to use you VM with the rain commands')
+        parser.add_argument('-w', '--wait', dest='wait', action="store_true", help='Wait until the image is available. Currently this is used by Eucalyptus and OpenStack')
         
         args = parser.parse_args()
     
@@ -267,18 +268,18 @@ class fgShellImage(Cmd):
                     elif not os.path.isfile(str(os.path.expanduser(varfile))):
                         print "ERROR: Variable files not found. You need to specify the path of the file with the Eucalyptus environment variables"
                     else:    
-                        output = self.imgdeploy.iaas_generic(args.euca, image, image_source, "euca", varfile, args.getimg, ldap)
+                        output = self.imgdeploy.iaas_generic(args.euca, image, image_source, "euca", varfile, args.getimg, ldap, args.wait)
                         if output != None:
                             if re.search("^ERROR", output):
                                 print output                
                 else:    
-                    self.imgdeploy.iaas_generic(args.euca, image, image_source, "euca", varfile, args.getimg, ldap)
+                    self.imgdeploy.iaas_generic(args.euca, image, image_source, "euca", varfile, args.getimg, ldap, args.wait)
                     if output != None:
                         if re.search("^ERROR", output):
                             print output        
             #OpenNebula
             elif ('-o' in used_args or '--opennebula' in used_args):            
-                output = self.imgdeploy.iaas_generic(args.opennebula, image, image_source, "opennebula", varfile, args.getimg, ldap)
+                output = self.imgdeploy.iaas_generic(args.opennebula, image, image_source, "opennebula", varfile, args.getimg, ldap, args.wait)
             #NIMBUS
             elif ('-n' in used_args or '--nimbus' in used_args):
                 #TODO        
@@ -290,12 +291,12 @@ class fgShellImage(Cmd):
                     elif not os.path.isfile(str(os.path.expanduser(varfile))):
                         print "ERROR: Variable files not found. You need to specify the path of the file with the OpenStack environment variables"
                     else:    
-                        output = self.imgdeploy.iaas_generic(args.openstack, image, image_source, "openstack", varfile, args.getimg, ldap)
+                        output = self.imgdeploy.iaas_generic(args.openstack, image, image_source, "openstack", varfile, args.getimg, ldap, args.wait)
                         if output != None:
                             if re.search("^ERROR", output):
                                 print output 
                 else:    
-                    output = self.imgdeploy.iaas_generic(args.openstack, image, image_source, "openstack", varfile, args.getimg, ldap)
+                    output = self.imgdeploy.iaas_generic(args.openstack, image, image_source, "openstack", varfile, args.getimg, ldap, args.wait)
                     if output != None:
                         if re.search("^ERROR", output):
                             print output

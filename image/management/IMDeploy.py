@@ -103,7 +103,7 @@ class IMDeploy(object):
         return passed
 
     #This need to be redo
-    def iaas_generic(self, iaas_address, image, image_source, iaas_type, varfile, getimg, ldap):
+    def iaas_generic(self, iaas_address, image, image_source, iaas_type, varfile, getimg, ldap, wait):
         start_all = time.time()
         checkauthstat = []     
         
@@ -187,7 +187,7 @@ class IMDeploy(object):
                             start = time.time()
                             
                             output = eval("self." + iaas_type + "_method(\"" + str(imagebackpath) + "\",\"" + str(kernel) + "\",\"" + 
-                                  str(operatingsystem) + "\",\"" + str(iaas_address) + "\",\"" + str(varfile) + "\",\"" + str(getimg) + "\")")
+                                  str(operatingsystem) + "\",\"" + str(iaas_address) + "\",\"" + str(varfile) + "\",\"" + str(getimg) + "\",\"" + str(wait) + "\")")
                             
                             end = time.time()
                             self._log.info('TIME uploading image to cloud framework:' + str(end - start))
@@ -337,7 +337,7 @@ class IMDeploy(object):
         return imagelist
         
             
-    def euca_method(self, imagebackpath, kernel, operatingsystem, iaas_address, varfile, getimg):
+    def euca_method(self, imagebackpath, kernel, operatingsystem, iaas_address, varfile, getimg, wait):
         #TODO: Pick kernel and ramdisk from available eki and eri
 
         #hardcoded for now
@@ -415,8 +415,9 @@ class IMDeploy(object):
                 "The kernel and ramdisk to use are " + eki + " and " + eri + " respectively \n" + \
                 "Remember to load you Eucalyptus environment before you run the instance (source eucarc) \n" + \
                 "More information is provided in https://portal.futuregrid.org/tutorials/eucalyptus \n"
-            
-            self.wait_available("euca", imageId)
+                
+            if wait == "True":
+                self.wait_available("euca", imageId)
               
             return imageId              
         else:            
@@ -426,7 +427,7 @@ class IMDeploy(object):
             "More information is provided in https://portal.futuregrid.org/tutorials/eucalyptus \n"
                        
         
-    def openstack_method(self, imagebackpath, kernel, operatingsystem, iaas_address, varfile, getimg):
+    def openstack_method(self, imagebackpath, kernel, operatingsystem, iaas_address, varfile, getimg, wait):
         #TODO: Pick kernel and ramdisk from available eki and eri
 
         #hardcoded for now
@@ -505,8 +506,8 @@ class IMDeploy(object):
                 "Remember to load you Eucalyptus environment before you run the instance (source eucarc) \n" + \
                 "More information is provided in https://portal.futuregrid.org/tutorials/oss " + \
                 " and in https://portal.futuregrid.org/tutorials/eucalyptus\n"
-            
-            self.wait_available("openstack", imageId)
+            if wait == "True":
+                self.wait_available("openstack", imageId)
             
             return imageId
         else:
@@ -563,7 +564,7 @@ class IMDeploy(object):
         end = time.time()
         self._log.info('TIME Image available:' + str(end - start))
     
-    def opennebula_method(self, imagebackpath, kernel, operatingsystem, iaas_address, varfile, getimg):
+    def opennebula_method(self, imagebackpath, kernel, operatingsystem, iaas_address, varfile, getimg, wait):
         
         filename = os.path.split(imagebackpath)[1].strip()
 
@@ -952,6 +953,7 @@ def main():
     parser.add_argument('-v', '--varfile', dest='varfile', help='Path of the environment variable files. Currently this is used by Eucalyptus and OpenStack')
     parser.add_argument('-g', '--getimg', dest='getimg', action="store_true", help='Customize the image for a particular cloud framework but does not register it. So the user gets the image file.')
     parser.add_argument('-p', '--ldap', dest='ldap', action="store_true", help='Configure ldap in the VM.')
+    parser.add_argument('-w', '--wait', dest='wait', action="store_true", help='Wait until the image is available. Currently this is used by Eucalyptus and OpenStack')
     
     args = parser.parse_args()
     
@@ -1020,7 +1022,7 @@ def main():
                     "NOTE: To query the repository you need to remove the OS from the image name (centos,ubuntu,debian,rhel...). " + \
                       "The real name starts with the username and ends before .img.manifest.xml" 
                 else:
-                    output = imgdeploy.iaas_generic(args.euca, image, image_source, "euca", varfile, args.getimg, ldap)
+                    output = imgdeploy.iaas_generic(args.euca, image, image_source, "euca", varfile, args.getimg, ldap, args.wait)
                     if output != None:
                         if re.search("^ERROR", output):
                             print output       
@@ -1037,13 +1039,13 @@ def main():
                     "NOTE: To query the repository you need to remove the OS from the image name (centos,ubuntu,debian,rhel...). " + \
                       "The real name starts with the username and ends before .img.manifest.xml" 
             else:
-                output = imgdeploy.iaas_generic(args.euca, image, image_source, "euca", varfile, args.getimg, ldap)
+                output = imgdeploy.iaas_generic(args.euca, image, image_source, "euca", varfile, args.getimg, ldap, args.wait)
                 if output != None:
                     if re.search("^ERROR", output):
                         print output
         #OpenNebula
         elif ('-o' in used_args or '--opennebula' in used_args):
-            output = imgdeploy.iaas_generic(args.opennebula, image, image_source, "opennebula", varfile, args.getimg, ldap)
+            output = imgdeploy.iaas_generic(args.opennebula, image, image_source, "opennebula", varfile, args.getimg, ldap, args.wait)
         #NIMBUS
         elif ('-n' in used_args or '--nimbus' in used_args):
             #TODO        
@@ -1067,7 +1069,7 @@ def main():
                 "NOTE: To query the repository you need to remove the OS from the image name (centos,ubuntu,debian,rhel...). " + \
                   "The real name starts with the username and ends before .img.manifest.xml"
                 else:    
-                    output = imgdeploy.iaas_generic(args.openstack, image, image_source, "openstack", varfile, args.getimg, ldap)
+                    output = imgdeploy.iaas_generic(args.openstack, image, image_source, "openstack", varfile, args.getimg, ldap, args.wait)
                     if output != None:
                         if re.search("^ERROR", output):
                             print output
@@ -1084,7 +1086,7 @@ def main():
                     "NOTE: To query the repository you need to remove the OS from the image name (centos,ubuntu,debian,rhel...). " + \
                       "The real name starts with the username and ends before .img.manifest.xml"
             else:    
-                output = imgdeploy.iaas_generic(args.openstack, image, image_source, "openstack", varfile, args.getimg, ldap)
+                output = imgdeploy.iaas_generic(args.openstack, image, image_source, "openstack", varfile, args.getimg, ldap, args.wait)
                 if output != None:
                     if re.search("^ERROR", output):
                         print output

@@ -121,13 +121,13 @@ class fgShellRain(Cmd):
                     elif not os.path.isfile(str(os.path.expanduser(varfile))):
                         print "ERROR: Variable files not found. You need to specify the path of the file with the Eucalyptus environment variables"
                     else:    
-                        output = self.imgdeploy.iaas_generic(args.euca, image, image_source, "euca", varfile, False, ldap)        
+                        output = self.imgdeploy.iaas_generic(args.euca, image, image_source, "euca", varfile, False, ldap, False)        
                         if output != None:
                             if re.search("^ERROR", output):
                                 print output
                 #OpenNebula
                 elif ('-o' in used_args or '--opennebula' in used_args):
-                    output = self.imgdeploy.iaas_generic(args.opennebula, image, image_source, "opennebula", varfile, False, ldap)
+                    output = self.imgdeploy.iaas_generic(args.opennebula, image, image_source, "opennebula", varfile, False, ldap, False)
                 #NIMBUS
                 elif ('-n' in used_args or '--nimbus' in used_args):
                     #TODO        
@@ -138,7 +138,7 @@ class fgShellRain(Cmd):
                     elif not os.path.isfile(str(os.path.expanduser(varfile))):
                         print "ERROR: Variable files not found. You need to specify the path of the file with the OpenStack environment variables"
                     else:    
-                        output = self.imgdeploy.iaas_generic(args.openstack, image, image_source, "openstack", varfile, False, ldap)
+                        output = self.imgdeploy.iaas_generic(args.openstack, image, image_source, "openstack", varfile, False, ldap, False)
                         if output != None:
                             if re.search("^ERROR", output):
                                 print output
