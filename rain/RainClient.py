@@ -303,24 +303,29 @@ class RainClient(object):
         available = False
         retry = 0
         max_retry = 100 #wait around 15 minutes. plus the time it takes to execute the command, that in openstack can be several seconds 
-        
+        max_fails = 5
         print "Checking that the requested image is in available status"
         cmd = "euca-describe-images " + imageidonsystem 
+        cmd1 = ""
         if iaas_name == "euca":
-            cmd += " | awk {'print $5'}"
+            cmd1 = "awk {'print $5'}"
         elif iaas_name == "openstack":
-            cmd += " | awk {'print $4'}"
-        while not available and retry < max_retry:
-            p = Popen(cmd.split(' '), stdout=PIPE, stderr=PIPE)
-            std = p.communicate()
+            cmd1 = "awk {'print $4'}"
+            
+        self._log.debug(cmd)
+        while not available and retry < max_retry and fails < max_fails:
+            p = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
+            p1 = Popen(cmd1.split(), stdin=p1.stdout, stdout=PIPE, stderr=PIPE)
+            std = p1.communicate()
             stat = 0
             if len(std[0]) > 0:
                 self._log.debug('stdout: ' + std[0])
-                self._log.debug('stderr: ' + std[1])
-            if p.returncode != 0:
-                self._log.error('Command: ' + cmd + ' failed, status: ' + str(p.returncode) + ' --- ' + std[1])
+            if p1.returncode != 0:
+                self._log.error('Command: ' + cmd + ' failed, status: ' + str(p1.returncode) + ' --- ' + std[1])
                 stat = 1
-            if std[0].strip() == "available":
+            if stat == 1:
+                fails+=1
+            elif std[0].strip() == "available":
                 available = True
             else:
                 retry +=1
