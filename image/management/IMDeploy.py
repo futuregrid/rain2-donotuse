@@ -197,7 +197,7 @@ class IMDeploy(object):
                                 self.wait_available(iaas_type, output)                            
                     
                             end_all = time.time()
-                            self.logger.info('TIME walltime image deploy cloud:' + str(end_all - start_all))
+                            self._log.info('TIME walltime image deploy cloud:' + str(end_all - start_all))
                             return output
                         else:
                             self._log.error("CANNOT retrieve the image from server. EXIT.")
