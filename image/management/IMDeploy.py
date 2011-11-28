@@ -194,7 +194,7 @@ class IMDeploy(object):
                             
                             #wait until image is in available status
                             if wait:
-                                self.wait_available(iaas_type, imageId)                            
+                                self.wait_available(iaas_type, output)                            
                     
                             end_all = time.time()
                             self.logger.info('TIME walltime image deploy cloud:' + str(end_all - start_all))
@@ -419,8 +419,7 @@ class IMDeploy(object):
                 "The kernel and ramdisk to use are " + eki + " and " + eri + " respectively \n" + \
                 "Remember to load you Eucalyptus environment before you run the instance (source eucarc) \n" + \
                 "More information is provided in https://portal.futuregrid.org/tutorials/eucalyptus \n"
-                
-            
+                           
               
             return imageId              
         else:            
