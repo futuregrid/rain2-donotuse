@@ -305,13 +305,14 @@ class RainClient(object):
         fails = 0
         max_retry = 100 #wait around 15 minutes. plus the time it takes to execute the command, that in openstack can be several seconds 
         max_fails = 5
-        print "Checking that the requested image is in available status"
+        stat = 0
+        print "Verify that the requested image is in available status or wait until it is available"
         cmd = "euca-describe-images " + imageidonsystem 
         cmd1 = ""
         if iaas_name == "euca":
-            cmd1 = "awk {'print $5'}"
+            cmd1 = "awk {print $5}"
         elif iaas_name == "openstack":
-            cmd1 = "awk {'print $4'}"
+            cmd1 = "awk {print $4}"
             
         self._log.debug(cmd)
         while not available and retry < max_retry and fails < max_fails:
@@ -331,7 +332,11 @@ class RainClient(object):
             else:
                 retry +=1
                 time.sleep(10)
-        if not available:
+        if stat == 1:
+            msg = "ERROR: checking image status"
+            self._log.error(msg)            
+            return msg
+        elif not available:
             msg = "ERROR: Timeout, image is not in available status"
             self._log.error(msg)            
             return msg
