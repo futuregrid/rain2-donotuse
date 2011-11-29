@@ -20,7 +20,7 @@ import hashlib
 import time
 import boto.ec2
 import boto
-import random
+from random import randrange
 
 from IMClientConf import IMClientConf
 
