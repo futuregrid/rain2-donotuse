@@ -369,7 +369,7 @@ class IMDeploy(object):
             cmd = "euca-bundle-image --cert " + str(os.getenv("EC2_CERT")) + " --privatekey " + str(os.getenv("EC2_PRIVATE_KEY")) + \
                   " --user " + str(os.getenv("EC2_USER_ID")) + " --ec2cert " + str(os.getenv("EUCALYPTUS_CERT")) + " --url " + str(ec2_url) + \
                   " -a " + str(os.getenv("EC2_ACCESS_KEY")) + " -s " + str(os.getenv("EC2_SECRET_KEY")) + \
-                  " --image " + str(imagebackpath) + " --kernel " + str(eki) + " --ramdisk " + str(eri) + " -d " + tempdir
+                  " --image " + str(imagebackpath) + " --kernel " + str(eki) + " --ramdisk " + str(eri) + " --destination " + tempdir
             print cmd
             self._log.debug(cmd)
             stat = os.system(cmd)
@@ -461,7 +461,7 @@ class IMDeploy(object):
             cmd = "euca-bundle-image --cert " + os.path.expanduser(os.path.expandvars(os.getenv("EC2_CERT"))) + " --privatekey " + os.path.expanduser(os.path.expandvars(os.getenv("EC2_PRIVATE_KEY"))) + \
                   " --user " + str(os.getenv("EC2_USER_ID")) + " --ec2cert " + str(os.getenv("EUCALYPTUS_CERT")) + " --url " + str(ec2_url) + \
                   " -a " + str(os.getenv("EC2_ACCESS_KEY")) + " -s " + str(os.getenv("EC2_SECRET_KEY")) + \
-                  " --image " + str(imagebackpath) + " --kernel " + str(eki) + " --ramdisk " + str(eri) + " -d " + tempdir
+                  " --image " + str(imagebackpath) + " --kernel " + str(eki) + " --ramdisk " + str(eri) + " --destination " + tempdir
             print cmd
             self._log.debug(cmd)
             stat = os.system(cmd)
