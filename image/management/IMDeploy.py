@@ -199,6 +199,10 @@ class IMDeploy(object):
                     
                             end_all = time.time()
                             self._log.info('TIME walltime image deploy cloud:' + str(end_all - start_all))
+                            
+                            if self._verbose:
+                                print "Image Deployed successfully"
+                            
                             return output
                         else:
                             self._log.error("CANNOT retrieve the image from server. EXIT.")
