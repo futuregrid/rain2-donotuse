@@ -20,6 +20,7 @@ import hashlib
 import time
 import boto.ec2
 import boto
+import random
 
 from IMClientConf import IMClientConf
 
@@ -353,16 +354,22 @@ class IMDeploy(object):
         if not eval(getimg):            
             ec2_url, s3_url, path, region = self.euca_environ(varfile, iaas_address)
             
-            filename = os.path.split(imagebackpath)[1].strip()
-    
+            filename = os.path.split(imagebackpath)[1].strip()    
             print filename
+
+            tempdir = "/tmp/" + str(randrange(999999999999999999999999)) + str(time.time()) + "/"
+            os.system("mkdir -p " + tempdir)
+#GENERATE RANDOM NUMBER
+#CREATE DIRECTORY IN TMP
+#ADD -d PARAMETER TO EUCA_GBUNDLE AND RANDOM NUMBER TO EUCA_UPLOAD_BUNDLE
+#DELETE DIRECTORY
     
             #Bundle Image
             #cmd = 'euca-bundle-image --image ' + imagebackpath + ' --kernel ' + eki + ' --ramdisk ' + eri
             cmd = "euca-bundle-image --cert " + str(os.getenv("EC2_CERT")) + " --privatekey " + str(os.getenv("EC2_PRIVATE_KEY")) + \
                   " --user " + str(os.getenv("EC2_USER_ID")) + " --ec2cert " + str(os.getenv("EUCALYPTUS_CERT")) + " --url " + str(ec2_url) + \
                   " -a " + str(os.getenv("EC2_ACCESS_KEY")) + " -s " + str(os.getenv("EC2_SECRET_KEY")) + \
-                  " --image " + str(imagebackpath) + " --kernel " + str(eki) + " --ramdisk " + str(eri)
+                  " --image " + str(imagebackpath) + " --kernel " + str(eki) + " --ramdisk " + str(eri) + " -d " + tempdir
             print cmd
             self._log.debug(cmd)
             stat = os.system(cmd)
@@ -375,7 +382,7 @@ class IMDeploy(object):
             #cmd = 'euca-upload-bundle --bucket ' + self.user + ' --manifest ' + '/tmp/' + filename + '.manifest.xml'
             cmd = "euca-upload-bundle -a " + os.getenv("EC2_ACCESS_KEY") + " -s " + os.getenv("EC2_SECRET_KEY") + \
                 " --url " + s3_url + " --ec2cert " + os.getenv("EUCALYPTUS_CERT") + " --bucket " + self.user + " --manifest " + \
-                "/tmp/" + filename + ".manifest.xml"
+                tempdir + filename + ".manifest.xml"
             print cmd      
             self._log.debug(cmd)  
             stat = os.system(cmd)
@@ -403,6 +410,7 @@ class IMDeploy(object):
                 self._log.error('Command: ' + cmd + ' failed, status: ' + str(p.returncode) + ' --- ' + std[1])
                 stat = 1
             
+            os.system("rm -rf " + tempdir)
             
             cmd = "rm -f " + imagebackpath
             if stat == 0:
@@ -444,13 +452,16 @@ class IMDeploy(object):
             filename = os.path.split(imagebackpath)[1].strip()
     
             print filename
+            
+            tempdir = "/tmp/" + str(randrange(999999999999999999999999)) + str(time.time()) + "/"
+            os.system("mkdir -p " + tempdir)
     
             #Bundle Image
             #cmd = 'euca-bundle-image --image ' + imagebackpath + ' --kernel ' + eki + ' --ramdisk ' + eri
             cmd = "euca-bundle-image --cert " + os.path.expanduser(os.path.expandvars(os.getenv("EC2_CERT"))) + " --privatekey " + os.path.expanduser(os.path.expandvars(os.getenv("EC2_PRIVATE_KEY"))) + \
                   " --user " + str(os.getenv("EC2_USER_ID")) + " --ec2cert " + str(os.getenv("EUCALYPTUS_CERT")) + " --url " + str(ec2_url) + \
                   " -a " + str(os.getenv("EC2_ACCESS_KEY")) + " -s " + str(os.getenv("EC2_SECRET_KEY")) + \
-                  " --image " + str(imagebackpath) + " --kernel " + str(eki) + " --ramdisk " + str(eri)
+                  " --image " + str(imagebackpath) + " --kernel " + str(eki) + " --ramdisk " + str(eri) + " -d " + tempdir
             print cmd
             self._log.debug(cmd)
             stat = os.system(cmd)
@@ -462,7 +473,7 @@ class IMDeploy(object):
             #cmd = 'euca-upload-bundle --bucket ' + self.user + ' --manifest ' + '/tmp/' + filename + '.manifest.xml'
             cmd = "euca-upload-bundle -a " + os.getenv("EC2_ACCESS_KEY") + " -s " + os.getenv("EC2_SECRET_KEY") + \
                 " --url " + s3_url + " --ec2cert " + os.getenv("EUCALYPTUS_CERT") + " --bucket " + self.user + " --manifest " + \
-                "/tmp/" + filename + ".manifest.xml"
+                tempdir + filename + ".manifest.xml"
             print cmd      
             self._log.debug(cmd)  
             stat = os.system(cmd)
@@ -490,7 +501,9 @@ class IMDeploy(object):
             if p.returncode != 0:
                 self._log.error('Command: ' + cmd + ' failed, status: ' + str(p.returncode) + ' --- ' + std[1])
                 stat = 1
-                        
+            
+            os.system("rm -rf " + tempdir)
+                
             cmd = "rm -f " + imagebackpath            
             if stat == 0:
                 print cmd
