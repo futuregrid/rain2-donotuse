@@ -439,6 +439,7 @@ class IMDeploy(object):
             "The kernel and ramdisk to use are " + eki + " and " + eri + " respectively \n" + \
             "Remember to load you Eucalyptus environment before you run the instance (source eucarc) \n" + \
             "More information is provided in https://portal.futuregrid.org/tutorials/eucalyptus \n"
+            return None
                        
         
     def openstack_method(self, imagebackpath, kernel, operatingsystem, iaas_address, varfile, getimg, wait):
@@ -537,6 +538,7 @@ class IMDeploy(object):
             "Remember to load you OpenStack environment before you run the instance (source novarc) \n" + \
             "More information is provided in https://portal.futuregrid.org/tutorials/oss " + \
             " and in https://portal.futuregrid.org/tutorials/eucalyptus\n"
+            return None
     
     def wait_available(self, iaas_name, imageId):
                 #Verify that the image is in available status
