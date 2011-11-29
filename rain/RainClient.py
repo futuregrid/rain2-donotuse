@@ -307,7 +307,8 @@ class RainClient(object):
         max_fails = 5
         stat = 0
         print "Verify that the requested image is in available status or wait until it is available"
-        cmd = "euca-describe-images " + imageidonsystem 
+        cmd = "euca-describe-images -a " + os.getenv("EC2_ACCESS_KEY") + " -s " + os.getenv("EC2_SECRET_KEY") + \
+                " --url " + ec2_url + " " + imageId 
         cmd1 = ""
         if iaas_name == "euca":
             cmd1 = "awk {print $5}"

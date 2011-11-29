@@ -501,7 +501,11 @@ class IMDeploy(object):
                 self._log.debug('stdout: ' + std[0])
                 self._log.debug('stderr: ' + std[1])
                 print std[0]
-                imageId = std[0].split("IMAGE")[1].strip()
+                try:
+                    imageId = std[0].split("IMAGE")[1].strip()
+                except:
+                    self._log.error("Trying to get imageId. " + str(sys.exc_info()))
+                    stat = 1
             if p.returncode != 0:
                 self._log.error('Command: ' + cmd + ' failed, status: ' + str(p.returncode) + ' --- ' + std[1])
                 stat = 1
@@ -545,7 +549,8 @@ class IMDeploy(object):
         stat = 0
         if self._verbose:
             print "Verify that the requested image is in available status or wait until it is available"
-        cmd = "euca-describe-images " + imageId 
+        cmd = "euca-describe-images -a " + os.getenv("EC2_ACCESS_KEY") + " -s " + os.getenv("EC2_SECRET_KEY") + \
+                " --url " + ec2_url + " " + imageId 
         cmd1 = ""
         if iaas_name == "euca":
             cmd1 = "awk {print $5}"
