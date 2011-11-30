@@ -363,7 +363,7 @@ class RainClient(object):
             self._log.error(msg)                        
             return msg
         
-        self.wait_available(self, connection, imageidonsystem)
+        self.wait_available(connection, imageidonsystem)
         
         sshkeypair_name = str(randrange(999999999))
                 
