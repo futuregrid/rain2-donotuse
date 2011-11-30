@@ -711,7 +711,7 @@ class RainClient(object):
     def stopEC2instances(self, connection, reservation):        
         try:
             regioninfo=str(connection.get_all_regions()[0]).split(":")[1]
-            if regioninfo == "Eucalyptus":
+            if regioninfo == 'Eucalyptus':
                 for i in reservation.instances:
                     connection.terminate_instances([str(i).split(":")[1]])
             else:
