@@ -563,7 +563,8 @@ class RainClient(object):
                 
                 #create script
                 f = open(sshkeytemp + ".sh", "w")
-                f.write("#!/bin/bash \n mkdir -p /N/u/" + self.user + "/.ssh /tmp/N/u/" + self.user + 
+                f.write("#!/bin/bash \n mkdir -p /N/u/" + self.user + "/.ssh /tmp/N/u/" + self.user +
+                        "\n hostname `ifconfig eth0 | grep 'inet addr:' | cut -d\":\" -f2 | cut -d\" \" -f1`" +
                         "\n cp -f /tmp/" + sshkey_name + " /N/u/" + self.user + "/.ssh/id_rsa" + 
                         "\n cp -f /tmp/" + sshkey_name + ".pub /N/u/" + self.user + "/.ssh/id_rsa.pub" + 
                         "\n cp -f /tmp/authorized_keys /N/u/" + self.user + "/.ssh/" + 
