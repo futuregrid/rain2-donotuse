@@ -58,7 +58,8 @@ class IMDeployServerIaaS(object):
         self.port = self._deployConf.getIaasPort()
         self.http_server = self._deployConf.getHttpServerIaas()
         self.proc_max = self._deployConf.getProcMaxIaas()
-                        
+        self.refresh_status = self._deployConf.getRefreshStatusIaas()
+        
         self.tempdir = self._deployConf.getTempDirIaas()
         self.log_filename = self._deployConf.getLogIaas()
         self.logLevel = self._deployConf.getLogLevelIaas()

@@ -96,6 +96,7 @@ class IMServerConf(object):
         self._iaas_port = 0
         self._tempdir_iaas = ""   
         self._proc_max_iaas = "" 
+        self._refresh_status_iaas = 0
         self._http_server_iaas = ""    
         self._log_iaas = ""
         self._logLevel_iaas = ""   
@@ -217,6 +218,8 @@ class IMServerConf(object):
         return self._tempdir_iaas
     def getProcMaxIaas(self):
         return self._proc_max_iaas
+    def getRefreshStatusIaas(self):
+        return self._refresh_status_iaas
     def getHttpServerIaas(self):
         return self._http_server_iaas
     def getLogIaas(self):
@@ -540,6 +543,11 @@ class IMServerConf(object):
             self._proc_max_iaas = int(self._config.get(section, 'proc_max', 0))
         except ConfigParser.NoOptionError:
             print "Error: No proc_max option found in section " + section + " file " + self._configfile
+            sys.exit(1)     
+        try:
+            self._refresh_status_iaas = int(self._config.get(section, 'refresh', 0))
+        except ConfigParser.NoOptionError:
+            print "Error: No refresh option found in section " + section + " file " + self._configfile
             sys.exit(1)     
         try:
             self._tempdir_iaas = os.path.expanduser(self._config.get(section, 'tempdir', 0))
