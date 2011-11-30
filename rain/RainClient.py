@@ -710,12 +710,18 @@ class RainClient(object):
         
     def stopEC2instances(self, connection, reservation):        
         try:
-            connection.terminate_instances(reservation.instances)
+            regioninfo=str(connection.get_all_regions()[0]).split(":")[1]
+            if regioninfo == "Eucalyptus":
+                for i in reservation.instances:
+                    connection.terminate_instances([str(i).split(":")[1]])
+            else:
+                connection.terminate_instances(reservation.instances)
         except:
             msg = "ERROR: terminating VM. " + str(sys.exc_info())
             self._log.error(msg)
             
-            
+    
+     
     
     def opennebula(self, imageidonsystem, jobscript, machines):
         print "in opennebula method.end"
