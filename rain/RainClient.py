@@ -296,55 +296,7 @@ class RainClient(object):
         india_loginnode = "149.165.146.136" #to mount the home using sshfs
         endpoint = ec2_url.lstrip("http://").split(":")[0]
         private_ips_for_hostlist = ""
-        
-        """
-        #Verify that the image is in available status
-        start = time.time()
-        available = False
-        retry = 0
-        fails = 0
-        max_retry = 100 #wait around 15 minutes. plus the time it takes to execute the command, that in openstack can be several seconds 
-        max_fails = 5
-        stat = 0
-        print "Verify that the requested image is in available status or wait until it is available"
-        cmd = "euca-describe-images --access-key " + os.getenv("EC2_ACCESS_KEY") + " --secret-key " + os.getenv("EC2_SECRET_KEY") + \
-                " --url " + os.getenv("EC2_URL") + " " + imageidonsystem 
-        cmd1 = ""
-        if iaas_name == "euca":
-            cmd1 = "awk {print $5}"
-        elif iaas_name == "openstack":
-            cmd1 = "awk {print $4}"
-            
-        self._log.debug(cmd)
-        while not available and retry < max_retry and fails < max_fails:
-            p = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
-            p1 = Popen(cmd1.split(' ', 1), stdin=p.stdout, stdout=PIPE, stderr=PIPE)
-            std = p1.communicate()
-            stat = 0
-            if len(std[0]) > 0:
-                self._log.debug('stdout: ' + std[0])
-            if p1.returncode != 0:
-                self._log.error('Command: ' + cmd + ' failed, status: ' + str(p1.returncode) + ' --- ' + std[1])
-                stat = 1
-            if stat == 1:
-                fails+=1
-            elif std[0].strip() == "available":
-                available = True
-            else:
-                retry +=1
-                time.sleep(10)
-        if stat == 1:
-            msg = "ERROR: checking image status"
-            self._log.error(msg)            
-            return msg
-        elif not available:
-            msg = "ERROR: Timeout, image is not in available status"
-            self._log.error(msg)            
-            return msg
-        
-        end = time.time()
-        self._log.info('TIME Image available:' + str(end - start))
-        """
+
         #Home from login node will be in /tmp/N/u/username
         
         if re.search("^/N/u/", jobscript):
