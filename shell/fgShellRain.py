@@ -186,6 +186,7 @@ class fgShellRain(Cmd):
         msg = "Rain launch command: Run a command in the requested OS. The requested OS can be already deployed or in the Image Repository"              
         self.print_man("launch ", msg)
         eval("self.do_rainlaunch(\"-h\")")
+        
     """
     def do_rainmove(self, args):
 

@@ -870,11 +870,7 @@ class IMDeploy(object):
                     self._log.error('Incorrect reply from the Moab server:' + str(ret))
                     if self._verbose:
                         print 'Incorrect reply from the Moab server:' + str(ret)
-                    return
-                if self._verbose:
-                    print 'Your image has been deployed in xCAT as ' + imagename + '.\n Please allow a few minutes for xCAT to register the image before attempting to use it.'
-                    print 'To run a job in a machine using your image you can execute the next command: qsub -l os=<imagename> <scriptfile>'
-                    print 'To check the status of the job you can use checkjob and showq commands'                    
+                    return                                    
             #return image deployed or list of images
             end_all = time.time()
             self._log.info('TIME walltime image deploy xcat/moab: ' + str(end_all - start_all))
@@ -1003,7 +999,11 @@ def main():
     #XCAT
     if args.xcat != None:
         if args.imgid != None:
-            imgdeploy.xcat_method(args.xcat, args.imgid)
+            imagename = imgdeploy.xcat_method(args.xcat, args.imgid)            
+            print 'Your image has been deployed in xCAT as ' + imagename + '.\n Please allow a few minutes for xCAT to register the image before attempting to use it.'
+            print 'To run a job in a machine using your image you use the fg-rain command'
+            print 'You can also do it by executing the next command: qsub -l os=<imagename> <scriptfile>' 
+            print 'In the second case you can check the status of the job with the checkjob and showq commands'
         elif args.list:
             hpcimagelist = imgdeploy.xcat_method(args.xcat, "list")
             print "The list of available images on xCAT/Moab is:"

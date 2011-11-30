@@ -83,14 +83,17 @@ class RainClient(object):
         stdoutfound = False
         stderrfound = False        
         stdout = ""
-        stderr = ""        
+        stderr = ""
+        jobname = ""
         for i in f:
             if re.search('^#PBS -e', i):
                 stderrfound = True
                 stderr = os.path.expandvars(os.path.expanduser(i.split()[2]))                    
             elif re.search('^#PBS -o', i):
                 stdoutfound = True
-                stdout = os.path.expandvars(os.path.expanduser(i.split()[2]))            
+                stdout = os.path.expandvars(os.path.expanduser(i.split()[2]))
+            elif re.search('^#PBS -N', i):                
+                jobname = os.path.expandvars(os.path.expanduser(i.split()[2]))            
             elif not re.search('^#', i):
                 break                      
             if stderrfound and stdoutfound:
@@ -142,9 +145,15 @@ class RainClient(object):
             return "ERROR in qsub. " + std_qsub[1]
         
         if stdoutfound == False:
-            stdout = jobscript + ".o" + jobid
+            if jobname != "":
+                stdout = jobname + ".o" + jobid
+            else:
+                stdout = jobscript + ".o" + jobid
         if stderrfound == False:
-            stderr = jobscript + ".e" + jobid
+            if jobname != "":
+                stderr = jobname + ".o" + jobid
+            else:
+                stderr = jobscript + ".e" + jobid
         
         time.sleep(2)          
         #execute checkjob checking Status until complete or fail
@@ -390,7 +399,7 @@ class RainClient(object):
                     print status
                 if status == 'running':
                     running += 1                    
-                elif status == 'shutdown' or status == 'terminate':
+                elif status == 'shutdown' or status == 'terminate' or status == 'terminated':
                     allrunning = True
                     failed = True
             if self.verbose:
