@@ -341,7 +341,7 @@ class IMDeploy(object):
             return msg
         imagelist = []
         for i in images:
-            imagelist.append(str(i).split(":")[1] + "  -  " + str(i.location) + " - " + str(i.status))
+            imagelist.append(str(i).split(":")[1] + "  -  " + str(i.location) + " - " + str(i.state))
         
         return imagelist
         
