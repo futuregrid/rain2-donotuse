@@ -296,6 +296,7 @@ class IMDeployServerIaaS(object):
                 umounted = True
                 self.logger.error("Problems to umount the image")
             else:
+                retry_done +=1
                 time.sleep(2)
         
         end = time.time()
