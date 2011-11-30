@@ -195,7 +195,7 @@ class IMDeploy(object):
                             
                             #wait until image is in available status
                             if wait:
-                                self.wait_available(iaas_address, iaas_type, output)                            
+                                self.wait_available(iaas_address, iaas_type, varfile, output)                            
                     
                             end_all = time.time()
                             self._log.info('TIME walltime image deploy cloud:' + str(end_all - start_all))
@@ -350,7 +350,44 @@ class IMDeploy(object):
             imagelist.append(str(i).split(":")[1] + "  -  " + str(i.location))
         
         return imagelist
+    
+    def wait_available(self, iaas_address, iaas_type, varfile, imageId):
+        #Verify that the image is in available status        
+        start = time.time()
+        available = False
+        retry = 0
+        fails = 0
+        max_retry = 100 #wait around 15 minutes. plus the time it takes to execute the command, that in openstack can be several seconds 
+        max_fails = 5
+        stat = 0
+        if self._verbose:
+            print "Verify that the requested image is in available status or wait until it is available"
         
+        connection = self.ec2connection(iaas_address, iaas_type, varfile)
+        
+        while not available and retry < max_retry and fails < max_fails:
+            
+            try:
+                image = connection.get_image(imageId)
+                if str(image.state) == "available":
+                    available = True
+                else:
+                    retry +=1
+                    time.sleep(10)                
+            except:
+                fails+=1
+            
+        if stat == 1:
+            msg = "ERROR: checking image status"
+            self._log.error(msg)            
+            return msg
+        elif not available:
+            msg = "ERROR: Timeout, image is not in available status"
+            self._log.error(msg)            
+            return msg
+
+        end = time.time()
+        self._log.info('TIME Image available:' + str(end - start))    
             
     def euca_method(self, imagebackpath, kernel, operatingsystem, iaas_address, varfile, getimg, wait):
         #TODO: Pick kernel and ramdisk from available eki and eri
@@ -545,43 +582,9 @@ class IMDeploy(object):
             "More information is provided in https://portal.futuregrid.org/tutorials/oss " + \
             " and in https://portal.futuregrid.org/tutorials/eucalyptus\n"
             return None
-    def wait_available(self, iaas_type, imageId):
-        #Verify that the image is in available status        
-        start = time.time()
-        available = False
-        retry = 0
-        fails = 0
-        max_retry = 100 #wait around 15 minutes. plus the time it takes to execute the command, that in openstack can be several seconds 
-        max_fails = 5
-        stat = 0
-        if self._verbose:
-            print "Verify that the requested image is in available status or wait until it is available"
         
-        connection = self.ec2connection(iaas_address, iaas_type, varfile)
+    
         
-        while not available and retry < max_retry and fails < max_fails:
-            
-            try:
-                image = connection.get_image(imageId)
-                if str(image.state) == "available":
-                    available = True
-                else:
-                    retry +=1
-                    time.sleep(10)                
-            except:
-                fails+=1
-            
-        if stat == 1:
-            msg = "ERROR: checking image status"
-            self._log.error(msg)            
-            return msg
-        elif not available:
-            msg = "ERROR: Timeout, image is not in available status"
-            self._log.error(msg)            
-            return msg
-
-        end = time.time()
-        self._log.info('TIME Image available:' + str(end - start))
     """
     def wait_available(self, iaas_name, imageId):
                 #Verify that the image is in available status

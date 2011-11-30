@@ -563,8 +563,7 @@ class RainClient(object):
                 
                 #create script
                 f = open(sshkeytemp + ".sh", "w")
-                f.write("#!/bin/bash \n mkdir -p /N/u/" + self.user + "/.ssh /tmp/N/u/" + self.user +
-                        "\n hostname `ifconfig eth0 | grep 'inet addr:' | cut -d\":\" -f2 | cut -d\" \" -f1`" +
+                f.write("#!/bin/bash \n mkdir -p /N/u/" + self.user + "/.ssh /tmp/N/u/" + self.user +                        
                         "\n cp -f /tmp/" + sshkey_name + " /N/u/" + self.user + "/.ssh/id_rsa" + 
                         "\n cp -f /tmp/" + sshkey_name + ".pub /N/u/" + self.user + "/.ssh/id_rsa.pub" + 
                         "\n cp -f /tmp/authorized_keys /N/u/" + self.user + "/.ssh/" + 
@@ -574,7 +573,8 @@ class RainClient(object):
                         "\n echo \"Host *\" | tee -a /N/u/" + self.user + "/.ssh/config > /dev/null" + 
                         "\n echo \"    StrictHostKeyChecking no\" | tee -a /N/u/" + self.user + "/.ssh/config > /dev/null" + 
                         "\n echo \"cd /tmp/N/u/" + self.user + "\" | tee -a /N/u/" + self.user + "/.bash_profile > /dev/null" + 
-                        "\n chown -R " + self.user + ":users /tmp/N/u/" + self.user + " /N/u/" + self.user)
+                        "\n chown -R " + self.user + ":users /tmp/N/u/" + self.user + " /N/u/" + self.user +
+                        "\n hostname `ifconfig eth0 | grep 'inet addr:' | cut -d\":\" -f2 | cut -d\" \" -f1`")
                 #f.write("""
                 #if [ -f /usr/bin/yum ]; 
                 #then 
