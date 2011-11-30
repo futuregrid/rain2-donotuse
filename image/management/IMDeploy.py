@@ -330,6 +330,8 @@ class IMDeploy(object):
             self._log.error(msg)                        
             return msg
         
+        return connection
+        
     def cloudlist(self, iaas_address, iaas_type, varfile):
         
         connection = self.ec2connection(iaas_address, iaas_type, varfile)
