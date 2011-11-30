@@ -297,7 +297,7 @@ class RainClient(object):
         endpoint = ec2_url.lstrip("http://").split(":")[0]
         private_ips_for_hostlist = ""
         
-        
+        """
         #Verify that the image is in available status
         start = time.time()
         available = False
@@ -344,6 +344,7 @@ class RainClient(object):
         
         end = time.time()
         self._log.info('TIME Image available:' + str(end - start))
+        """
         #Home from login node will be in /tmp/N/u/username
         
         if re.search("^/N/u/", jobscript):
@@ -361,6 +362,9 @@ class RainClient(object):
             msg = "ERROR:connecting to EC2 interface. " + str(sys.exc_info())
             self._log.error(msg)                        
             return msg
+        
+        self.wait_available(self, connection, imageidonsystem)
+        
         sshkeypair_name = str(randrange(999999999))
                 
         ssh_key_pair = None
@@ -659,7 +663,43 @@ class RainClient(object):
         self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)                
         self.stopEC2instances(connection, reservation)
         self.removeTempsshkey(sshkeytemp, sshkey_name)
+    
+    def wait_available(self, connection, imageId):
+        #Verify that the image is in available status        
+        start = time.time()
+        available = False
+        retry = 0
+        fails = 0
+        max_retry = 100 #wait around 15 minutes. plus the time it takes to execute the command, that in openstack can be several seconds 
+        max_fails = 5
+        stat = 0
+        if self._verbose:
+            print "Verify that the requested image is in available status or wait until it is available"
         
+        while not available and retry < max_retry and fails < max_fails:
+            
+            try:
+                image = connection.get_image(imageId)
+                if str(image.state) == "available":
+                    available = True
+                else:
+                    retry +=1
+                    time.sleep(10)                
+            except:
+                fails+=1
+            
+        if stat == 1:
+            msg = "ERROR: checking image status"
+            self._log.error(msg)            
+            return msg
+        elif not available:
+            msg = "ERROR: Timeout, image is not in available status"
+            self._log.error(msg)            
+            return msg
+
+        end = time.time()
+        self._log.info('TIME Image available:' + str(end - start))    
+       
     def install_sshfs_home(self, sshkeypair_path, sshkeypair_name, sshkey_name, sshkeytemp, reservation, connection, i): 
         
         msg = "Copying temporal private and public ssh-key files to VMs"
