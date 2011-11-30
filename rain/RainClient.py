@@ -673,7 +673,7 @@ class RainClient(object):
         max_retry = 100 #wait around 15 minutes. plus the time it takes to execute the command, that in openstack can be several seconds 
         max_fails = 5
         stat = 0
-        if self._verbose:
+        if self.verbose:
             print "Verify that the requested image is in available status or wait until it is available"
         
         while not available and retry < max_retry and fails < max_fails:
