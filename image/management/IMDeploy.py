@@ -195,7 +195,7 @@ class IMDeploy(object):
                             
                             #wait until image is in available status
                             if wait:
-                                self.wait_available(iaas_address, iaas_type, varfile, output)                            
+                                self.wait_available(str(iaas_address), iaas_type, varfile, output)                            
                     
                             end_all = time.time()
                             self._log.info('TIME walltime image deploy cloud:' + str(end_all - start_all))
