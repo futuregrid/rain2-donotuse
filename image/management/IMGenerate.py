@@ -168,6 +168,7 @@ class IMGenerate(object):
                         if self.verbose:
                             print "ERROR: The image has not been generated properly. Exit error:" + ret
                     else:
+                        self._log.debug("The image ID is: " + str(ret))
                         output = str(ret)
         
         
