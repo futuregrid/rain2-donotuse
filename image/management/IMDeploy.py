@@ -406,11 +406,7 @@ class IMDeploy(object):
 
             tempdir = "/tmp/" + str(randrange(999999999999999999999999)) + str(time.time()) + "/"
             os.system("mkdir -p " + tempdir)
-#GENERATE RANDOM NUMBER
-#CREATE DIRECTORY IN TMP
-#ADD -d PARAMETER TO EUCA_GBUNDLE AND RANDOM NUMBER TO EUCA_UPLOAD_BUNDLE
-#DELETE DIRECTORY
-    
+
             #Bundle Image
             #cmd = 'euca-bundle-image --image ' + imagebackpath + ' --kernel ' + eki + ' --ramdisk ' + eri
             cmd = "euca-bundle-image --cert " + str(os.getenv("EC2_CERT")) + " --privatekey " + str(os.getenv("EC2_PRIVATE_KEY")) + \
@@ -447,15 +443,16 @@ class IMDeploy(object):
             #stat = os.system(cmd) #execute this with Popen to get the output
             p = Popen(cmd.split(' '), stdout=PIPE, stderr=PIPE)
             std = p.communicate()
-            stat = 0
-            if len(std[0]) > 0:
-                self._log.debug('stdout: ' + std[0])
-                self._log.debug('stderr: ' + std[1])
-                print std[0]
-                imageId = std[0].split("IMAGE")[1].strip()
+            stat = 0            
             if p.returncode != 0:
                 self._log.error('Command: ' + cmd + ' failed, status: ' + str(p.returncode) + ' --- ' + std[1])
                 stat = 1
+            else:
+                if len(std[0]) > 0:
+                    self._log.debug('stdout: ' + std[0])
+                    self._log.debug('stderr: ' + std[1])
+                    print std[0]
+                    imageId = std[0].split("IMAGE")[1].strip()
             
             os.system("rm -rf " + tempdir)
             
@@ -540,19 +537,20 @@ class IMDeploy(object):
             
             p = Popen(cmd.split(' '), stdout=PIPE, stderr=PIPE)
             std = p.communicate()
-            stat = 0
-            if len(std[0]) > 0:
-                self._log.debug('stdout: ' + std[0])
-                self._log.debug('stderr: ' + std[1])
-                print std[0]
-                try:
-                    imageId = std[0].split("IMAGE")[1].strip()
-                except:
-                    self._log.error("Trying to get imageId. " + str(sys.exc_info()))
-                    stat = 1
+            stat = 0            
             if p.returncode != 0:
                 self._log.error('Command: ' + cmd + ' failed, status: ' + str(p.returncode) + ' --- ' + std[1])
                 stat = 1
+            else:
+                if len(std[0]) > 0:
+                    self._log.debug('stdout: ' + std[0])
+                    self._log.debug('stderr: ' + std[1])
+                    print std[0]
+                    try:
+                        imageId = std[0].split("IMAGE")[1].strip()
+                    except:
+                        self._log.error("Trying to get imageId. " + str(sys.exc_info()))
+                        stat = 1
             
             os.system("rm -rf " + tempdir)
                 
