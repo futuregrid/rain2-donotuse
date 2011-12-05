@@ -1015,7 +1015,7 @@ def main():
             print "The parameter -i/--image cannot be used with this type of deployment"
             sys.exit(1)
     else:
-        ldap = False 
+        ldap = args.ldap 
         varfile = ""
         if args.varfile != None:
             varfile = os.path.expandvars(os.path.expanduser(args.varfile))
