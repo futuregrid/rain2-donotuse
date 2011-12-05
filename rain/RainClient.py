@@ -620,10 +620,11 @@ class RainClient(object):
                 self._log.debug(msg)
                 if self.verbose:
                      print msg 
-                    
+            self.removeTempsshkey(sshkeytemp, sshkey_name)
+            
         self.removeEC2sshkey(connection, sshkeypair_name, sshkeypair_path)                
         self.stopEC2instances(connection, reservation)
-        self.removeTempsshkey(sshkeytemp, sshkey_name)
+        
     
     def wait_available(self, connection, imageId):
         #Verify that the image is in available status        
