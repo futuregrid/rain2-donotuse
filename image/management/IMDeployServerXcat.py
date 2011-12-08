@@ -379,7 +379,12 @@ class IMDeployServerXcat(object):
         self.logger.info('TIME xcat packimage:' + str(end - start))
         
         if status != 0:
-            msg = "ERROR: packimage command"
+            msg = "ERROR: packimage command. " + str(sys.exc_info)
+# TEST REMOVE IN MINICLUSTER FIRST
+            #dir =  + self.xcatNetbootImgPath + self.prefix + self.operatingsystem + '' + self.name
+            #if dir != self.xcatNetbootImgPath:
+            #    cmd = "rm -rf " + dir
+            #    self.runCmd(cmd)
             self.errormsg(connstream, msg)
             return
         
