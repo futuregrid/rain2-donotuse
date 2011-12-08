@@ -847,8 +847,9 @@ devpts  /dev/pts devpts   gid=5,mode=620 0 0
 tmpfs   /dev/shm tmpfs    defaults       0 0
 proc    /proc    proc     defaults       0 0
 sysfs   /sys     sysfs    defaults       0 0
-149.165.146.145:/users /N/u      nfs     rw,rsize=1048576,wsize=1048576,intr,nosuid
+172.29.202.115:/users /N/u      nfs     rw,rsize=1048576,wsize=1048576,intr,nosuid
 '''
+#149.165.146.145
 
 
         #desactivate both interfaces
