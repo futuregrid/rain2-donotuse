@@ -181,7 +181,7 @@ class RainClient(object):
                         if self.verbose:
                             print "State: " + state
                         break
-                if state == "Completed":
+                if state == "Completed" or state == "Removed":
                     alive = False
                 else:
                     time.sleep(self.refresh)
