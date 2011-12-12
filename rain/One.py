@@ -26,7 +26,7 @@ import argparse
 class OpenNebulaTest(object):
 
     def __init__(self):
-        super(IMGenerateServer, self).__init__()
+        super(OpenNebulaTest, self).__init__()
 
         #*********************
         #Static Configuration.
