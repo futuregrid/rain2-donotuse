@@ -410,7 +410,7 @@ class RainClient(object):
                 time.sleep(5)
         
         end = time.time()
-        if allrunning:
+        if not failed and allrunning:
             self._log.info('TIME Boot all Images:' + str(end - start))
         else:
             self._log.info('TIME Not all Images booted:' + str(end - start))
