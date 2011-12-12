@@ -127,7 +127,7 @@ class OpenNebulaTest(object):
         #-----Start VMs-------------------------------------------
         ok=0
         for i in range(n):
-            vm[i] = server.one.vm.allocate(self.oneauth, s)
+            vm.append(server.one.vm.allocate(self.oneauth, s))
             if vm[i][0]:
                 self.logger.debug("VM ID: " + str(vm[i][1]))
                 ok+=1
