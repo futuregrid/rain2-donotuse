@@ -65,9 +65,9 @@ class OpenNebulaTest(object):
         
         start_all = time.time()
         
-        self.logger = logging.getLogger("GenerateServer." + str(os.getpid()))
+        self.logger = logging.getLogger("OpenNebulaTest." + str(os.getpid()))
         
-        self.logger.info('Processing an image generation request')
+        self.logger.info('Starting')
         #it will have the IP of the VM  
 
         
@@ -271,7 +271,7 @@ def main():
     
     imgtest = OpenNebulaTest()
     
-    imgtest.start(args.n)            
+    imgtest.start(int(args.n))            
         
 
 if __name__ == "__main__":
