@@ -410,7 +410,10 @@ class RainClient(object):
                 time.sleep(5)
         
         end = time.time()
-        self._log.info('TIME Boot all Images:' + str(end - start))
+        if allrunning:
+            self._log.info('TIME Boot all Images:' + str(end - start))
+        else:
+            self._log.info('TIME Not all Images booted:' + str(end - start))
         
         print "Number of instances booted " + str(len(reservation.instances))
                   
