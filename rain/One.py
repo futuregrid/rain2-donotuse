@@ -45,11 +45,6 @@ class OpenNebulaTest(object):
         self.logLevel = logging.DEBUG    
         self.logger = self.setup_logger()
 
-        
-        print "\nReading Configuration file from " + self._genConf.getConfigFile() + "\n"
-        
-        #Image repository Object
-        self._reposervice = IRServiceProxy(False, False)
     
     def setup_logger(self):
         #Setup logging
