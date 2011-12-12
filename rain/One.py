@@ -65,7 +65,7 @@ class OpenNebulaTest(object):
         return logger    
    
       
-    def start(self):
+    def start(self, n):
         #this runs in a different proccess
         
         start_all = time.time()
@@ -265,10 +265,18 @@ class OpenNebulaTest(object):
     
 def main():
        
+    parser = argparse.ArgumentParser(prog="One", formatter_class=argparse.RawDescriptionHelpFormatter,
+                                     description="One Help ")    
+    parser.add_argument('-n', '--number', dest='n', required=True, metavar='n', help='Number of Instances')
+    
+    
+    args = parser.parse_args()
+
+    
     
     imgtest = OpenNebulaTest()
     
-    imgtest.start()            
+    imgtest.start(args.n)            
         
 
 if __name__ == "__main__":
