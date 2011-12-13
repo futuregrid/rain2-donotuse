@@ -177,6 +177,7 @@ class OpenNebulaTest(object):
                     print "------------------"
                     if (running == n):
                         allrunning = True
+                        print "All running"
                         retry+=1
                     else:
                         time.sleep(5)
@@ -219,33 +220,21 @@ class OpenNebulaTest(object):
                         fail=True
                         break
                 if fail:
-                    self.logger.error("Some VM failed to get IP")
-                    self.logger.info("Destroy VMs")
-                    for i in range(n):
-                        try:                    
-                            server.one.vm.action(self.oneauth, "finalize", vm[i][1])
-                        except:
-                            self.logger.error("Error destroying VM: "+vm[i][1])
+                    self.logger.error("Some VM failed to get IP")                    
             else:
                 fail=True
-                self.logger.error("Some VM failed")
-                self.logger.info("Destroy VMs")
-                for i in range(n):
-                    try:                    
-                        server.one.vm.action(self.oneauth, "finalize", vm[i][1])
-                    except:
-                        self.logger.error("Error destroying VM: "+vm[i][1])
+                self.logger.error("Some VM failed")              
         else:
             fail=True
             self.logger.error("Error to create VMs")
-            self.logger.info("Destroy VMs")
-            for i in range(n):
-                try:                    
-                    server.one.vm.action(self.oneauth, "finalize", vm[i][1])
-                except:
-                    self.logger.error("Error destroying VM: "+vm[i][1])
-    
-        return fail
+            
+        self.logger.info("Destroy VMs")
+        for i in range(n):
+            try:                    
+                server.one.vm.action(self.oneauth, "finalize", vm[i][1])
+            except:
+                self.logger.error("Error destroying VM: "+vm[i][1])
+        return not fail
     
     def errormsg(self, channel, msg):
         self.logger.error(msg)
