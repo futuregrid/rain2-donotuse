@@ -184,8 +184,7 @@ class OpenNebulaTest(object):
                                           "or increase the wait time in the configuration file (max_wait) \n")                        
                         fail = True
                     
-            if not fail:
-                vmaddr=[]
+            if not fail:                
                 for i in range(n):
                     if vmaddr[i].strip() != "":
                         self.logger.debug("IP of the VM " + str(vm[i][1]) + " is " + str(vmaddr[i]))
