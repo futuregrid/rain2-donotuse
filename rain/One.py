@@ -159,11 +159,12 @@ class OpenNebulaTest(object):
                             manifest = parseString(vminfo[1])                
                             #VM_status (init=0, pend=1, act=3, fail=7)
                             vm_status = manifest.getElementsByTagName('STATE')[0].firstChild.nodeValue.strip()
-                            print vm_status
+                            if vm_status != "3":
+                                print vm_status
                             if vm_status == "3": #running
                                 #LCM_status (prol=1,boot=2,runn=3, fail=14, unk=16)                                
                                 lcm_status = manifest.getElementsByTagName('LCM_STATE')[0].firstChild.nodeValue.strip()
-                
+                                print lcm_status
                                 if lcm_status == "3": #if vm_status is 3, this will be 3 too.
                                     running += 1
                             elif vm_status == "7": #fail
