@@ -126,12 +126,17 @@ class OpenNebulaTest(object):
         
         #-----Start VMs-------------------------------------------
         ok=0
+        vminfo = []
+        manifest = []
         for i in range(n):
             vm.append(server.one.vm.allocate(self.oneauth, s))
             if vm[i][0]:
                 self.logger.debug("VM ID: " + str(vm[i][1]))
                 ok+=1
-                           
+                #-------Get Info about VM -------------------------------
+                vminfo.append(server.one.vm.info(self.oneauth, vm[i][1]))
+                #print  vminfo[1]
+                manifest.append(parseString(vminfo[i][1]))    
         if ok == n:
             self.logger.debug("All is ok")
         
@@ -139,32 +144,24 @@ class OpenNebulaTest(object):
             maxretry = 240 #time that the VM has to change from penn to runn
             retry = 0
             fail = False
-            vminfo = []
-            manifest = []
-            vm_status = []
             allrunning = False
             while not allrunning and retry < maxretry and not fail:  #eventually the VM has to boot or fail
                     running = 0                                        
                     for i in range(n):
-                        try:
-                            #-------Get Info about VM -------------------------------
-                            vminfo.append(server.one.vm.info(self.oneauth, vm[i][1]))
-                            #print  vminfo[1]
-                            manifest.append(parseString(vminfo[i][1]))
-                
+                        try:                
                             #VM_status (init=0, pend=1, act=3, fail=7)
-                            vm_status.append(manifest[i].getElementsByTagName('STATE')[0].firstChild.nodeValue.strip())
-                            print vm_status[i]
-                            if vm_status[i] == "3": #running
+                            vm_status = manifest[i].getElementsByTagName('STATE')[0].firstChild.nodeValue.strip()
+                            print vm_status
+                            if vm_status == "3": #running
                                 #LCM_status (prol=1,boot=2,runn=3, fail=14, unk=16)
                                 lcm_status = manifest[i].getElementsByTagName('LCM_STATE')[0].firstChild.nodeValue.strip()
                 
                                 if lcm_status == "3": #if vm_status is 3, this will be 3 too.
                                     running += 1
-                            elif vm_status[i] == "7": #fail
+                            elif vm_status == "7": #fail
                                 self.logger.error("Fail to deploy VM " + str(vm[1]))                                
                                 fail = True                                
-                            elif vm_status[i] == "6": #done
+                            elif vm_status == "6": #done
                                 self.logger.error("The status of the VM " + str(vm[1]) + " is DONE")                                
                                 fail = True                                
                         except:
