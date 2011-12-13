@@ -142,6 +142,7 @@ class OpenNebulaTest(object):
             vminfo = []
             manifest = []
             vm_status = []
+            allrunning = False
             while not allrunning and retry < maxretry and not fail:  #eventually the VM has to boot or fail
                     running = 0                                        
                     for i in range(n):
