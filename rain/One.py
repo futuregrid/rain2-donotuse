@@ -88,13 +88,14 @@ class OpenNebulaTest(object):
         ##########
         start = time.time()
         
-        output = self.boot_VM(server, vmfile, n)
+        status = self.boot_VM(server, vmfile, n)
+        if status:
+            end = time.time()
+            self.logger.info('TIME walltime boot VM:' + str(end - start))
         
-        end = time.time()
-        self.logger.info('TIME walltime boot VM:' + str(end - start))
-        
-        end_all = time.time()
-        self.logger.info('TIME walltime image generate:' + str(end_all - start_all))
+            end_all = time.time()
+            self.logger.info('TIME walltime image generate:' + str(end_all - start_all))
+
         
     
     
@@ -111,7 +112,7 @@ class OpenNebulaTest(object):
             SAVE_MIGRATE PROLOG_MIGRATE PROLOG_RESUME EPILOG_STOP EPILOG
             SHUTDOWN CANCEL FAILURE CLEANUP UNKNOWN}
         """
-        vmaddr = ""
+        
         fail = False
     
         #print vmfile
@@ -195,18 +196,18 @@ class OpenNebulaTest(object):
                         retry = 0
                         self.logger.debug("Waiting to have access to VM")
                         while not access and retry < maxretry:
-                            cmd = "ssh -q -oBatchMode=yes root@" + vmaddr + " uname"
+                            cmd = "ssh -q -oBatchMode=yes root@" + vmaddr[i] + " uname"
                             p = Popen(cmd, shell=True, stdout=PIPE)
                             status = os.waitpid(p.pid, 0)[1]
                             #print status
                             if status == 0:
                                 access = True
-                                self.logger.debug("The VM " + str(vm[1]) + " with ip " + str(vmaddr) + "is accessible")
+                                self.logger.debug("The VM " + str(vm[1]) + " with ip " + str(vmaddr[i]) + "is accessible")
                             else:
                                 retry += 1
                                 time.sleep(5)
                         if retry >= maxretry:
-                            self.logger.error("Could not get access to the VM " + str(vm[1]) + " with ip " + str(vmaddr) + "\n" 
+                            self.logger.error("Could not get access to the VM " + str(vm[1]) + " with ip " + str(vmaddr[i]) + "\n" 
                                               "Please verify the OpenNebula templates to make sure that the public ssh key to be injected is accessible to the oneadmin user. \n"
                                               "Also verify that the VM has ssh server and is active on boot.")
 
@@ -223,6 +224,7 @@ class OpenNebulaTest(object):
                         except:
                             self.logger.error("Error destroying VM: "+vm[i][1])
             else:
+                fail=True
                 self.logger.error("Some VM failed")
                 self.logger.info("Destroy VMs")
                 for i in range(n):
@@ -231,6 +233,7 @@ class OpenNebulaTest(object):
                     except:
                         self.logger.error("Error destroying VM: "+vm[i][1])
         else:
+            fail=True
             self.logger.error("Error to create VMs")
             self.logger.info("Destroy VMs")
             for i in range(n):
@@ -239,7 +242,7 @@ class OpenNebulaTest(object):
                 except:
                     self.logger.error("Error destroying VM: "+vm[i][1])
     
-        return [vmaddr, vm[1]]
+        return fail
     
     def errormsg(self, channel, msg):
         self.logger.error(msg)
