@@ -204,17 +204,18 @@ class OpenNebulaTest(object):
                             #print status
                             if status == 0:
                                 access = True
-                                self.logger.debug("The VM " + str(vm[1]) + " with ip " + str(vmaddr[i]) + "is accessible")
+                                self.logger.debug("The VM " + str(vm[i][1]) + " with ip " + str(vmaddr[i]) + "is accessible")
+                                print "The VM " + str(vm[i][1]) + " with ip " + str(vmaddr[i]) + "is accessible"
                             else:
                                 retry += 1
                                 time.sleep(5)
                         if retry >= maxretry:
-                            self.logger.error("Could not get access to the VM " + str(vm[1]) + " with ip " + str(vmaddr[i]) + "\n" 
+                            self.logger.error("Could not get access to the VM " + str(vm[i][1]) + " with ip " + str(vmaddr[i]) + "\n" 
                                               "Please verify the OpenNebula templates to make sure that the public ssh key to be injected is accessible to the oneadmin user. \n"
                                               "Also verify that the VM has ssh server and is active on boot.")
 
                     else:
-                        self.logger.error("Could not determine the IP of the VM " + str(vm[1]) + " for the bridge " + self.bridge)
+                        self.logger.error("Could not determine the IP of the VM " + str(vm[i][1]) + " for the bridge " + self.bridge)
                         fail=True
                         break
                 if fail:
