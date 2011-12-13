@@ -71,7 +71,6 @@ class IMDeployServerIaaS(object):
         
         self.default_euca_kernel = '2.6.27.21-0.1-xen'
         self.default_openstack_kernel = '2.6.28-11-generic'
-        self.default_kvm_centos5_kernel = '2.6.18-238.el5'
         self.default_kvm_ubuntu_kernel = '2.6.35-22-generic'
         
         print "\nReading Configuration file from " + self._deployConf.getConfigFile() + "\n"
@@ -558,9 +557,11 @@ echo "************************"
                 rc_local = "mount -t iso9660 /dev/sr0 /mnt \n"  #in centos 6 is sr0            
                 self.runCmd("sudo rm -f " + localtempdir + "/temp/etc/udev/rules.d/70-persistent-net.rules")
             
+            os.system('sudo sed -i \'s/enforcing/disabled/g\' ' + localtempdir + '/temp/etc/selinux/config')
+            
             if self.kernel == "None":
                 self.kernel = self.default_kvm_centos5_kernel
-
+            
         #Inject the kernel
         self.logger.info('Retrieving kernel ' + self.kernel)
         self.runCmd('wget ' + self.http_server + 'kernel/' + self.kernel + '.modules.tar.gz -O ' + localtempdir + '/' + self.kernel + '.modules.tar.gz')
