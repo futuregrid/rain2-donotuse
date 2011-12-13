@@ -126,17 +126,19 @@ class OpenNebulaTest(object):
         
         #-----Start VMs-------------------------------------------
         ok=0
-        vminfo = []
-        manifest = []
+        vmaddr = []
         for i in range(n):
             vm.append(server.one.vm.allocate(self.oneauth, s))
             if vm[i][0]:
-                self.logger.debug("VM ID: " + str(vm[i][1]))
-                ok+=1
-                #-------Get Info about VM -------------------------------
-                vminfo.append(server.one.vm.info(self.oneauth, vm[i][1]))
-                #print  vminfo[1]
-                manifest.append(parseString(vminfo[i][1]))    
+                self.logger.debug("VM ID: " + str(vm[i][1]))      
+                vminfo = server.one.vm.info(self.oneauth, vm[i][1])                
+                manifest = parseString(vminfo[1])
+                nics = manifest.getElementsByTagName('NIC')                
+                for j in range(len(nics)):
+                    if(nics[j].childNodes[0].firstChild.nodeValue.strip() == self.bridge):
+                        vmaddr.append(nics[j].childNodes[1].firstChild.nodeValue.strip())
+                        ok+=1
+                           
         if ok == n:
             self.logger.debug("All is ok")
         
@@ -144,17 +146,22 @@ class OpenNebulaTest(object):
             maxretry = 240 #time that the VM has to change from penn to runn
             retry = 0
             fail = False
+            
             allrunning = False
             while not allrunning and retry < maxretry and not fail:  #eventually the VM has to boot or fail
                     running = 0                                        
                     for i in range(n):
-                        try:                
+                        try:
+                            #-------Get Info about VM -------------------------------
+                            vminfo = server.one.vm.info(self.oneauth, vm[i][1])
+                            #print  vminfo[1]
+                            manifest = parseString(vminfo[1])                
                             #VM_status (init=0, pend=1, act=3, fail=7)
-                            vm_status = manifest[i].getElementsByTagName('STATE')[0].firstChild.nodeValue.strip()
+                            vm_status = manifest.getElementsByTagName('STATE')[0].firstChild.nodeValue.strip()
                             print vm_status
                             if vm_status == "3": #running
-                                #LCM_status (prol=1,boot=2,runn=3, fail=14, unk=16)
-                                lcm_status = manifest[i].getElementsByTagName('LCM_STATE')[0].firstChild.nodeValue.strip()
+                                #LCM_status (prol=1,boot=2,runn=3, fail=14, unk=16)                                
+                                lcm_status = manifest.getElementsByTagName('LCM_STATE')[0].firstChild.nodeValue.strip()
                 
                                 if lcm_status == "3": #if vm_status is 3, this will be 3 too.
                                     running += 1
@@ -180,42 +187,30 @@ class OpenNebulaTest(object):
             if not fail:
                 vmaddr=[]
                 for i in range(n):
-                    #get IP
-                    nics = manifest[i].getElementsByTagName('NIC')
-                    gotip=False
-                    for j in range(len(nics)):
-                        if(nics[j].childNodes[0].firstChild.nodeValue.strip() == self.bridge):
-                            vmaddr.append(nics[j].childNodes[1].firstChild.nodeValue.strip())
-                            gotip=True
-                    if gotip:
-                        if vmaddr[i].strip() != "":
-                            self.logger.debug("IP of the VM " + str(vm[i][1]) + " is " + str(vmaddr[i]))
-                
-                            access = False
-                            maxretry = 240  #this says that we wait 20 minutes maximum to allow the VM get online. 
-                            #this also prevent to get here forever if the ssh key was not injected propertly.
-                            retry = 0
-                            self.logger.debug("Waiting to have access to VM")
-                            while not access and retry < maxretry:
-                                cmd = "ssh -q -oBatchMode=yes root@" + vmaddr + " uname"
-                                p = Popen(cmd, shell=True, stdout=PIPE)
-                                status = os.waitpid(p.pid, 0)[1]
-                                #print status
-                                if status == 0:
-                                    access = True
-                                    self.logger.debug("The VM " + str(vm[1]) + " with ip " + str(vmaddr) + "is accessible")
-                                else:
-                                    retry += 1
-                                    time.sleep(5)
-                            if retry >= maxretry:
-                                self.logger.error("Could not get access to the VM " + str(vm[1]) + " with ip " + str(vmaddr) + "\n" 
-                                                  "Please verify the OpenNebula templates to make sure that the public ssh key to be injected is accessible to the oneadmin user. \n"
-                                                  "Also verify that the VM has ssh server and is active on boot.")
-                                
-                        else:
-                            self.logger.error("Could not determine the IP of the VM " + str(vm[1]) + " for the bridge " + self.bridge)
-                            fail=True
-                            break
+                    if vmaddr[i].strip() != "":
+                        self.logger.debug("IP of the VM " + str(vm[i][1]) + " is " + str(vmaddr[i]))
+            
+                        access = False
+                        maxretry = 240  #this says that we wait 20 minutes maximum to allow the VM get online. 
+                        #this also prevent to get here forever if the ssh key was not injected propertly.
+                        retry = 0
+                        self.logger.debug("Waiting to have access to VM")
+                        while not access and retry < maxretry:
+                            cmd = "ssh -q -oBatchMode=yes root@" + vmaddr + " uname"
+                            p = Popen(cmd, shell=True, stdout=PIPE)
+                            status = os.waitpid(p.pid, 0)[1]
+                            #print status
+                            if status == 0:
+                                access = True
+                                self.logger.debug("The VM " + str(vm[1]) + " with ip " + str(vmaddr) + "is accessible")
+                            else:
+                                retry += 1
+                                time.sleep(5)
+                        if retry >= maxretry:
+                            self.logger.error("Could not get access to the VM " + str(vm[1]) + " with ip " + str(vmaddr) + "\n" 
+                                              "Please verify the OpenNebula templates to make sure that the public ssh key to be injected is accessible to the oneadmin user. \n"
+                                              "Also verify that the VM has ssh server and is active on boot.")
+
                     else:
                         self.logger.error("Could not determine the IP of the VM " + str(vm[1]) + " for the bridge " + self.bridge)
                         fail=True
