@@ -189,12 +189,14 @@ class OpenNebulaTest(object):
                 for i in range(n):
                     if vmaddr[i].strip() != "":
                         self.logger.debug("IP of the VM " + str(vm[i][1]) + " is " + str(vmaddr[i]))
+                        print "IP of the VM " + str(vm[i][1]) + " is " + str(vmaddr[i])
             
                         access = False
                         maxretry = 240  #this says that we wait 20 minutes maximum to allow the VM get online. 
                         #this also prevent to get here forever if the ssh key was not injected propertly.
                         retry = 0
                         self.logger.debug("Waiting to have access to VM")
+                        print "Waiting to have access to VM"
                         while not access and retry < maxretry:
                             cmd = "ssh -q -oBatchMode=yes root@" + vmaddr[i] + " uname"
                             p = Popen(cmd, shell=True, stdout=PIPE)
