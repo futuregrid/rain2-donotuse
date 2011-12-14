@@ -161,16 +161,16 @@ class OpenNebulaTest(object):
                             vm_status = manifest.getElementsByTagName('STATE')[0].firstChild.nodeValue.strip()
                             if vm_status != "3":
                                 print vm_status
-                            if vm_status == "3": #running
+                            if vm_status.strip() == "3": #running
                                 #LCM_status (prol=1,boot=2,runn=3, fail=14, unk=16)                                
                                 lcm_status = manifest.getElementsByTagName('LCM_STATE')[0].firstChild.nodeValue.strip()
                                 print lcm_status
                                 if lcm_status == "3": #if vm_status is 3, this will be 3 too.
                                     running += 1
-                            elif vm_status == "7": #fail
+                            elif vm_status.strip() == "7": #fail
                                 self.logger.error("Fail to deploy VM " + str(vm[1]))                                
                                 fail = True                                
-                            elif vm_status == "6": #done
+                            elif vm_status.strip() == "6": #done
                                 self.logger.error("The status of the VM " + str(vm[1]) + " is DONE")                                
                                 fail = True                                
                         except:
@@ -200,7 +200,7 @@ class OpenNebulaTest(object):
                         self.logger.debug("Waiting to have access to VM")
                         print "Waiting to have access to VM"
                         while not access and retry < maxretry:
-                            cmd = "ssh -q -oBatchMode=yes root@" + vmaddr[i] + " uname"
+                            cmd = "ssh -q -oBatchMode=yes root@" + vmaddr[i] + " /bin/exit"
                             p = Popen(cmd, shell=True, stdout=PIPE)
                             status = os.waitpid(p.pid, 0)[1]
                             #print status

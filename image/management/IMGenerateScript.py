@@ -241,7 +241,7 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
         #runCmd('yum --installroot='+tempdir+''+name+' -y groupinstall Core')
         runCmd('debootstrap --include=grub,language-pack-en,openssh-server --components=main,universe,multiverse ' + version + ' ' + tempdir + '' + name)
         end = time.time()
-        ubuntuLog.info('TIME base OS: ' + str(end - start))
+        ubuntuLog.info('TIME base OS:' + str(end - start))
         
         ubuntuLog.info('Copying configuration files')
 
@@ -295,7 +295,7 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
     runCmd('chroot ' + tempdir + '' + name + ' apt-get -y install wget nfs-common gcc make libcrypto++8 man curl time')
         
     end = time.time()
-    ubuntuLog.info('TIME util packages: ' + str(end - start))
+    ubuntuLog.info('TIME util packages:' + str(end - start))
 
     #Setup networking
     os.system('echo "localhost" > ' + tempdir + '' + name + '/etc/hostname')
@@ -340,7 +340,7 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
         ubuntuLog.info('Installed user-defined packages')
 
     end = time.time()
-    ubuntuLog.info('TIME user packages: ' + str(end - start))
+    ubuntuLog.info('TIME user packages:' + str(end - start))
     #Setup BCFG2 server groups
     #success = push_bcfg2_group(name, pkgs, 'ubuntu', version)
     #if success:
@@ -471,7 +471,7 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
         runCmd('yum --installroot=' + tempdir + '' + name + ' -y groupinstall Core')
         #runCmd('yum -c ./yum.conf --installroot=' + tempdir + '' + name + ' -y groupinstall Core')
         end = time.time()
-        centosLog.info('TIME base OS: ' + str(end - start))
+        centosLog.info('TIME base OS:' + str(end - start))
         
         centosLog.info('Copying configuration files')
 
@@ -505,7 +505,7 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
     runCmd('chroot ' + tempdir + '' + name + ' yum -y install wget nfs-utils gcc make man curl time')
    
     end = time.time()
-    centosLog.info('TIME util packages: ' + str(end - start))
+    centosLog.info('TIME util packages:' + str(end - start))
 
     #Setup networking
 
@@ -550,7 +550,7 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
         centosLog.info('Installed user-defined packages')
 
     end = time.time()
-    centosLog.info('TIME user packages: ' + str(end - start))
+    centosLog.info('TIME user packages:' + str(end - start))
 
     #Setup BCFG2 server groups
     #success = push_bcfg2_group(name, pkgs, 'centos', version)
