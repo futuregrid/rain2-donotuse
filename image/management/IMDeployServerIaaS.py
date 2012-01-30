@@ -423,6 +423,8 @@ class IMDeployServerIaaS(object):
         self.runCmd('sudo chown root:root ' + localtempdir + '/temp/etc/fstab')
         self.logger.info('fstab Injected')
 
+        os.system('sudo sed -i \'s/enforcing/disabled/g\' ' + localtempdir + '/temp/etc/selinux/config')
+
         if ldap:
             self.configure_ldap(localtempdir)
             
