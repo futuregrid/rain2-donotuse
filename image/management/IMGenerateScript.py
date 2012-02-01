@@ -358,6 +358,8 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
     os.system('sed -i \'s/StrictHostKeyChecking ask/StrictHostKeyChecking no/g\' ' + tempdir + '' + name + '/etc/ssh/ssh_config')
     os.system('echo \"StrictHostKeyChecking no\" | tee -a ' + tempdir + '' + name + '/etc/ssh/ssh_config > /dev/null')
 
+    os.system('mkdir -f ' +tempdir + '' + name + "/root/.ssh")
+
     output = name
 
     os.system('rm -f ' + tempdir + '' + name + '/usr/sbin/policy-rc.d')
@@ -567,9 +569,11 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
     os.system('echo \"PasswordAuthentication no\" | tee -a ' + tempdir + '' + name + '/etc/ssh/sshd_config > /dev/null')
     os.system('sed -i \'s/StrictHostKeyChecking ask/StrictHostKeyChecking no/g\' ' + tempdir + '' + name + '/etc/ssh/ssh_config')
     os.system('echo \"StrictHostKeyChecking no\" | tee -a ' + tempdir + '' + name + '/etc/ssh/ssh_config > /dev/null')
-    os.system('sed -i \'s/enforcing/disabled/g\' ' + + tempdir + '' + name + + '/etc/selinux/config')
+    os.system('sed -i \'s/enforcing/disabled/g\' ' + tempdir + '' + name + '/etc/selinux/config')
     #create /etc/shadow file
     #runCmd('chroot ' + tempdir + '' + name + ' pwconv')
+
+    os.system('mkdir -f ' +tempdir + '' + name + "/root/.ssh")
 
     output = name
 

@@ -344,15 +344,15 @@ class IMDeploy(object):
             return msg
         
         if iaas_address != "None":
-            ec2_url = "http://" + iaas_address + "/wsrf/services/ElasticNimbusService"
+            ec2_url = "http://" + iaas_address + "/wsrf/services/WorkspaceFactoryService"
             s3_url = "http://" + iaas_address + ":3333"
         else:
-            ec2_url = "http://" + ec2_address + "/wsrf/services/ElasticNimbusService"
+            ec2_url = "http://" + ec2_address + "/wsrf/services/WorkspaceFactoryService"
             os.environ["EC2_URL"] = ec2_url
             s3_url = "http://" + s3_address + ":" + s3_port
             os.environ["S3_URL"] = s3_url
             
-        path = "/wsrf/services/ElasticNimbusService" #not sure if this works
+        path = "/wsrf/services/WorkspaceFactoryService" #not sure if this works
         region = "nimbus"
         
         os.environ["EC2_ACCESS_KEY"] = s3id
@@ -472,11 +472,11 @@ class IMDeploy(object):
                 return msg
             
             print "Your image has been registered on Nimbus. The image id is the name of the image: "+os.path.basename(imagebackpath)+" \n" + \
-                  "To launch a VM you can cloud-client.sh --run --name <image_name> --hours <# hours> --kernel " + kernel + "  \n" + \
+                  "To launch a VM you can cloud-client.sh --run --name <image_name> --hours <# hours> --kernel vmlinuz-" + kernel + "  \n" + \
                   "More information is provided in https://portal.futuregrid.org/tutorials/nimbus \n" 
         else:            
             print "Your Nimbus image is located in " + str(imagebackpath) + " \n" + \
-            "The kernel to use is " + kernel + " and the ramdisk will be according to that \n" + \
+            "The kernel to use is vmlinuz-" + kernel + " and the ramdisk will be according to that \n" + \
             "More information is provided in https://portal.futuregrid.org/tutorials/nimbus \n"
             return None
         
@@ -1158,8 +1158,28 @@ def main():
             output = imgdeploy.iaas_generic(args.opennebula, image, image_source, "opennebula", varfile, args.getimg, ldap, args.wait)
         #NIMBUS
         elif ('-n' in used_args or '--nimbus' in used_args):
-            #TODO        
-            print "Nimbus deployment is not implemented yet"
+            if not args.getimg:
+                if varfile == "":
+                    print "ERROR: You need to specify the path of the file with the Nimbus environment variables (e.g. hotel.conf)"
+                elif not os.path.isfile(varfile):
+                    print "ERROR: Variable files not found. You need to specify the path of the file with the Nimgus environment variables"
+                elif args.list:
+                    output = imgdeploy.cloudlist(str(args.nimbus),"nimbus", varfile)                    
+                    if output != None:
+                        if not isinstance(output, list):
+                            print output
+                        else:
+                            print "The list of available images on Nimbus is:"
+                            for i in output:                       
+                                print i 
+                            print "You can get more details by querying the image repository using IRClient.py -q command and the query string: \"* where tag=imagename\". \n" +\
+                "NOTE: To query the repository you need to remove the OS from the image name (centos,ubuntu,debian,rhel...). " + \
+                  "The real name starts with the username and ends before .img.manifest.xml"
+            else:    
+                output = imgdeploy.iaas_generic(args.nimbus, image, image_source, "nimbus", varfile, args.getimg, ldap, args.wait)
+                if output != None:
+                    if re.search("^ERROR", output):
+                        print output
         elif ('-s' in used_args or '--openstack' in used_args):
             if not args.getimg:
                 if varfile == "":

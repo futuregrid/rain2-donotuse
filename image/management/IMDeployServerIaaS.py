@@ -269,15 +269,15 @@ class IMDeployServerIaaS(object):
         #self.preprocess()
         
         start = time.time()
-        
+        stat=""
         if (self.iaas == "euca"):
-            self.euca_method(localtempdir, ldap)
+            stat=self.euca_method(localtempdir, ldap)
         elif (self.iaas == "nimbus"):
-            self.nimbus_method(localtempdir, ldap)
+            stat=self.nimbus_method(localtempdir, ldap)
         elif (self.iaas == "opennebula"):
-            self.opennebula_method(localtempdir, ldap)
+            stat=self.opennebula_method(localtempdir, ldap)
         elif (self.iaas == "openstack"):
-            self.openstack_method(localtempdir, ldap)  
+            stat=self.openstack_method(localtempdir, ldap)  
         
         end = time.time()
         self.logger.info('TIME customize image for specific IaaS framework:' + str(end - start))
@@ -404,35 +404,36 @@ class IMDeployServerIaaS(object):
                       
         #Inject the kernel
         self.logger.info('Retrieving kernel ' + self.kernel)
-        self.runCmd('wget ' + self.http_server + 'kernel/' + self.kernel + '.modules.tar.gz -O ' + localtempdir + '/' + self.kernel + '.modules.tar.gz')
-        self.runCmd('sudo tar xfz ' + localtempdir + '/' + self.kernel + '.modules.tar.gz --directory ' + localtempdir + '/temp/lib/modules/')
-        self.logger.info('Injected kernel ' + self.kernel)
-
-        # Setup fstab
-        fstab = '''
+        stat=self.runCmd('wget ' + self.http_server + 'kernel/' + self.kernel + '.modules.tar.gz -O ' + localtempdir + '/' + self.kernel + '.modules.tar.gz')
+        if stat==0:
+            self.runCmd('sudo tar xfz ' + localtempdir + '/' + self.kernel + '.modules.tar.gz --directory ' + localtempdir + '/temp/lib/modules/')
+            self.logger.info('Injected kernel ' + self.kernel)
+    
+            # Setup fstab
+            fstab = '''
 # Default fstab
  /dev/sda1       /             ext3     defaults,errors=remount-ro 0 0
  /dev/sda3    swap          swap     defaults              0 0
  proc            /proc         proc     defaults                   0 0
  devpts          /dev/pts      devpts   gid=5,mode=620             0 0
  '''
-
-        f = open(localtempdir + '/fstab', 'w')
-        f.write(fstab)
-        f.close()
-        self.runCmd('sudo mv -f ' + localtempdir + '/fstab ' + localtempdir + '/temp/etc/fstab')
-        self.runCmd('sudo chown root:root ' + localtempdir + '/temp/etc/fstab')
-        self.logger.info('fstab Injected')
-
-        if self.operatingsystem == "centos":
-            os.system('sudo sed -i \'s/enforcing/disabled/g\' ' + localtempdir + '/temp/etc/selinux/config')
-
-        if ldap:
-            self.configure_ldap(localtempdir)
-            
-        #install sshfs
-        #we need to mount only home directory of user using sshfs. The mount an directory creation can be done before executing the job. we need to inject ssh pub/priv keys
-
+    
+            f = open(localtempdir + '/fstab', 'w')
+            f.write(fstab)
+            f.close()
+            self.runCmd('sudo mv -f ' + localtempdir + '/fstab ' + localtempdir + '/temp/etc/fstab')
+            self.runCmd('sudo chown root:root ' + localtempdir + '/temp/etc/fstab')
+            self.logger.info('fstab Injected')
+    
+            if self.operatingsystem == "centos":
+                os.system('sudo sed -i \'s/enforcing/disabled/g\' ' + localtempdir + '/temp/etc/selinux/config')
+    
+            if ldap:
+                self.configure_ldap(localtempdir)
+            return True
+        else:
+            return False            
+      
     def nimbus_method(self, localtempdir, ldap): 
 
         #Select kernel version
@@ -443,30 +444,37 @@ class IMDeployServerIaaS(object):
                       
         #Inject the kernel
         self.logger.info('Retrieving kernel ' + self.kernel)
-        self.runCmd('wget ' + self.http_server + 'kernel/' + self.kernel + '.modules.tar.gz -O ' + localtempdir + '/' + self.kernel + '.modules.tar.gz')
-        self.runCmd('sudo tar xfz ' + localtempdir + '/' + self.kernel + '.modules.tar.gz --directory ' + localtempdir + '/temp/lib/modules/')
-        self.logger.info('Injected kernel ' + self.kernel)
-
-        # Setup fstab
-        fstab = '''
+        stat=self.runCmd('wget ' + self.http_server + 'kernel/' + self.kernel + '.modules.tar.gz -O ' + localtempdir + '/' + self.kernel + '.modules.tar.gz')
+        if stat==0:
+            self.runCmd('sudo tar xfz ' + localtempdir + '/' + self.kernel + '.modules.tar.gz --directory ' + localtempdir + '/temp/lib/modules/')
+            self.logger.info('Injected kernel ' + self.kernel)
+    
+            # Setup fstab
+            fstab = '''
 # Default fstab
  /dev/sda1       /             ext3     defaults,errors=remount-ro 0 0
  proc            /proc         proc     defaults                   0 0
  devpts          /dev/pts      devpts   gid=5,mode=620             0 0
  '''
-
-        f = open(localtempdir + '/fstab', 'w')
-        f.write(fstab)
-        f.close()
-        self.runCmd('sudo mv -f ' + localtempdir + '/fstab ' + localtempdir + '/temp/etc/fstab')
-        self.runCmd('sudo chown root:root ' + localtempdir + '/temp/etc/fstab')
-        self.logger.info('fstab Injected')
-
-        if self.operatingsystem == "centos":
-            os.system('sudo sed -i \'s/enforcing/disabled/g\' ' + localtempdir + '/temp/etc/selinux/config')
-
-        if ldap:
-            self.configure_ldap(localtempdir)
+    
+            f = open(localtempdir + '/fstab', 'w')
+            f.write(fstab)
+            f.close()
+            self.runCmd('sudo mv -f ' + localtempdir + '/fstab ' + localtempdir + '/temp/etc/fstab')
+            self.runCmd('sudo chown root:root ' + localtempdir + '/temp/etc/fstab')
+            self.logger.info('fstab Injected')
+    
+            if self.operatingsystem == "centos":
+                os.system('sudo sed -i \'s/enforcing/disabled/g\' ' + localtempdir + '/temp/etc/selinux/config')
+            
+            os.system('mkdir -f ' + localtempdir + "/temp/root/.ssh")
+            
+            if ldap:
+                self.configure_ldap(localtempdir)
+                
+            return True
+        else:
+            return False
         
 
     def openstack_method(self, localtempdir, ldap): 
