@@ -70,6 +70,7 @@ class IMDeployServerIaaS(object):
         
         
         self.default_euca_kernel = '2.6.27.21-0.1-xen'
+        self.default_nimbus_kernel = '2.6.18-194.11.3.el5xen'
         self.default_openstack_kernel = '2.6.28-11-generic'
         self.default_kvm_ubuntu_kernel = '2.6.35-22-generic'
         
@@ -272,7 +273,7 @@ class IMDeployServerIaaS(object):
         if (self.iaas == "euca"):
             self.euca_method(localtempdir, ldap)
         elif (self.iaas == "nimbus"):
-            pass
+            self.nimbus_method(localtempdir, ldap)
         elif (self.iaas == "opennebula"):
             self.opennebula_method(localtempdir, ldap)
         elif (self.iaas == "openstack"):
@@ -423,7 +424,8 @@ class IMDeployServerIaaS(object):
         self.runCmd('sudo chown root:root ' + localtempdir + '/temp/etc/fstab')
         self.logger.info('fstab Injected')
 
-        os.system('sudo sed -i \'s/enforcing/disabled/g\' ' + localtempdir + '/temp/etc/selinux/config')
+        if self.operatingsystem == "centos":
+            os.system('sudo sed -i \'s/enforcing/disabled/g\' ' + localtempdir + '/temp/etc/selinux/config')
 
         if ldap:
             self.configure_ldap(localtempdir)
@@ -431,6 +433,40 @@ class IMDeployServerIaaS(object):
         #install sshfs
         #we need to mount only home directory of user using sshfs. The mount an directory creation can be done before executing the job. we need to inject ssh pub/priv keys
 
+    def nimbus_method(self, localtempdir, ldap): 
+
+        #Select kernel version
+        #This is not yet supported as we get always the same kernel
+        self.logger.debug("kernel: " + self.kernel)
+        if self.kernel == "None":
+            self.kernel = self.default_nimbus_kernel
+                      
+        #Inject the kernel
+        self.logger.info('Retrieving kernel ' + self.kernel)
+        self.runCmd('wget ' + self.http_server + 'kernel/' + self.kernel + '.modules.tar.gz -O ' + localtempdir + '/' + self.kernel + '.modules.tar.gz')
+        self.runCmd('sudo tar xfz ' + localtempdir + '/' + self.kernel + '.modules.tar.gz --directory ' + localtempdir + '/temp/lib/modules/')
+        self.logger.info('Injected kernel ' + self.kernel)
+
+        # Setup fstab
+        fstab = '''
+# Default fstab
+ /dev/sda1       /             ext3     defaults,errors=remount-ro 0 0
+ proc            /proc         proc     defaults                   0 0
+ devpts          /dev/pts      devpts   gid=5,mode=620             0 0
+ '''
+
+        f = open(localtempdir + '/fstab', 'w')
+        f.write(fstab)
+        f.close()
+        self.runCmd('sudo mv -f ' + localtempdir + '/fstab ' + localtempdir + '/temp/etc/fstab')
+        self.runCmd('sudo chown root:root ' + localtempdir + '/temp/etc/fstab')
+        self.logger.info('fstab Injected')
+
+        if self.operatingsystem == "centos":
+            os.system('sudo sed -i \'s/enforcing/disabled/g\' ' + localtempdir + '/temp/etc/selinux/config')
+
+        if ldap:
+            self.configure_ldap(localtempdir)
         
 
     def openstack_method(self, localtempdir, ldap): 

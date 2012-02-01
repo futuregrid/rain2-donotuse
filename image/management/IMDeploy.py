@@ -223,7 +223,7 @@ class IMDeploy(object):
             self._log.error("CANNOT establish SSL connection. EXIT")
             if self._verbose:
                 print "ERROR: CANNOT establish SSL connection."
-    
+
     
     def openstack_environ(self, varfile, iaas_address):
         nova_key_dir = os.path.dirname(varfile)            
@@ -260,7 +260,10 @@ class IMDeploy(object):
         path = "/services/Cloud"
         region = "nova"
           
-        return ec2_url, s3_url, path, region
+        ec2_port=8773
+        s3_port=3333
+        
+        return ec2_url, s3_url, path, region, ec2_port, s3_port
         
     def euca_environ(self, varfile, iaas_address):
         euca_key_dir = os.path.dirname(varfile)            
@@ -298,7 +301,64 @@ class IMDeploy(object):
         path = "/services/Eucalyptus"
         region = "eucalyptus"
         
-        return ec2_url, s3_url, path, region
+        ec2_port=8773
+        s3_port=3333
+        
+        return ec2_url, s3_url, path, region, ec2_port, s3_port
+    
+    def nimbus_environ(self, varfile, iaas_address):
+        nimbus_key_dir = os.path.dirname(varfile)            
+        if nimbus_key_dir.strip() == "":
+            nimbus_key_dir = "."
+        
+        ec2_address=s3_address=bucket=base_key=s3id=s3key=cannonicalid=""
+        ec2_port=s3_port=0
+        
+        try:
+            #read variables
+            f = open(varfile, 'r')
+            for line in f:
+                line = line.strip()
+                if re.search("^vws.factory", line):                                    
+                    parts = line.split("=")[1].split(":")               
+                    ec2_address = parts[0].strip()
+                    ec2_port = int(parts[1].strip())
+                elif re.search("^vws.repository=", line):                           
+                    parts = line.split("=")[1].split(":")               
+                    s3_address = parts[0].strip()
+                    s3_port = int(parts[1].strip())
+                elif re.search("^vws.repository.s3bucket=", line):
+                    bucket = line.split("=")[1]
+                elif re.search("^vws.repository.s3basekey=", line):
+                    base_key = line.split("=")[1]
+                elif re.search("^vws.repository.s3id=", line):
+                    s3id = line.split("=")[1]
+                elif re.search("^vws.repository.s3key=", line):
+                    s3key = line.split("=")[1]
+                elif re.search("^vws.repository.canonicalid=", line):
+                    cannonicalid = line.split("=")[1]
+            f.close()
+        except:            
+            msg = "ERROR: Reading Configuration File" + str(sys.exc_info())
+            self._log.error(msg)            
+            return msg
+        
+        if iaas_address != "None":
+            ec2_url = "http://" + iaas_address + "/wsrf/services/ElasticNimbusService"
+            s3_url = "http://" + iaas_address + ":3333"
+        else:
+            ec2_url = "http://" + ec2_address + "/wsrf/services/ElasticNimbusService"
+            os.environ["EC2_URL"] = ec2_url
+            s3_url = "http://" + s3_address + ":" + s3_port
+            os.environ["S3_URL"] = s3_url
+            
+        path = "/wsrf/services/ElasticNimbusService" #not sure if this works
+        region = "nimbus"
+        
+        os.environ["EC2_ACCESS_KEY"] = s3id
+        os.environ["EC2_SECRET_KEY"] = s3key
+        
+        return ec2_url, s3_url, path, region, ec2_port, s3_port, bucket, base_key, s3id, s3key, cannonicalid
       
     def ec2connection(self, iaas_address, iaas_type, varfile):
         ec2_url = ""
@@ -306,9 +366,9 @@ class IMDeploy(object):
         path = ""
         region = ""     
         if iaas_type == "openstack":
-            ec2_url, s3_url, path, region = self.openstack_environ(varfile, iaas_address)                    
+            ec2_url, s3_url, path, region, ec2_port, s3_port = self.openstack_environ(varfile, iaas_address)                    
         elif iaas_type == "euca":
-            ec2_url, s3_url, path, region = self.euca_environ(varfile, iaas_address)
+            ec2_url, s3_url, path, region, ec2_port, s3_port = self.euca_environ(varfile, iaas_address)
             
         endpoint = ec2_url.lstrip("http://").split(":")[0]
         
@@ -324,7 +384,7 @@ class IMDeploy(object):
         self._log.debug("Connecting EC2")
         connection = None        
         try:
-            connection = boto.connect_ec2(str(os.getenv("EC2_ACCESS_KEY")), str(os.getenv("EC2_SECRET_KEY")), is_secure=False, region=region, port=8773, path=path)
+            connection = boto.connect_ec2(str(os.getenv("EC2_ACCESS_KEY")), str(os.getenv("EC2_SECRET_KEY")), is_secure=False, region=region, port=ec2_port, path=path)
         except:
             msg = "ERROR:connecting to EC2 interface. " + str(sys.exc_info())
             self._log.error(msg)                        
@@ -388,7 +448,38 @@ class IMDeploy(object):
 
         end = time.time()
         self._log.info('TIME Image available:' + str(end - start))    
+    
+    def nimbus_method(self, imagebackpath, kernel, operatingsystem, iaas_address, varfile, getimg, wait):
+        if not eval(getimg):            
+            ec2_url, s3_url, path, region, ec2_port, s3_port, bucket, base_key, s3id, s3key, cannonicalid = self.nimbus_environ(varfile, iaas_address)
+            cf = OrdinaryCallingFormat()
+            try:
+                s3conn = S3Connection(s3id, s3key, host=s3_url.lstrip("http://").split(":")[0], port=s3_port, is_secure=False, calling_format=cf)
+            except:
+                msg = "ERROR:connecting to S3 interface. " + str(sys.exc_info())
+                self._log.error(msg)                        
+                return msg
+            try:
+                bucket = s3conn.get_bucket(bucket)
+                k = Key(bucket)
+                k.key = base_key + "/" + cannonicalid + "/" + os.path.basename(imagebackpath)       
+                if self._verbose:
+                    print "Uploading Image..."
+                k.set_contents_from_filename(imagebackpath)
+            except:
+                msg = "ERROR:uploading image. " + str(sys.exc_info())
+                self._log.error(msg)                        
+                return msg
             
+            print "Your image has been registered on Nimbus. The image id is the name of the image: "+os.path.basename(imagebackpath)+" \n" + \
+                  "To launch a VM you can cloud-client.sh --run --name <image_name> --hours <# hours> --kernel " + kernel + "  \n" + \
+                  "More information is provided in https://portal.futuregrid.org/tutorials/nimbus \n" 
+        else:            
+            print "Your Nimbus image is located in " + str(imagebackpath) + " \n" + \
+            "The kernel to use is " + kernel + " and the ramdisk will be according to that \n" + \
+            "More information is provided in https://portal.futuregrid.org/tutorials/nimbus \n"
+            return None
+        
     def euca_method(self, imagebackpath, kernel, operatingsystem, iaas_address, varfile, getimg, wait):
         #TODO: Pick kernel and ramdisk from available eki and eri
 
@@ -399,7 +490,7 @@ class IMDeploy(object):
         region = ""
         imageId = None
         if not eval(getimg):            
-            ec2_url, s3_url, path, region = self.euca_environ(varfile, iaas_address)
+            ec2_url, s3_url, path, region, ec2_port, s3_port = self.euca_environ(varfile, iaas_address)
             
             filename = os.path.split(imagebackpath)[1].strip()    
             print filename
@@ -492,7 +583,7 @@ class IMDeploy(object):
         path = ""
         region = ""
         if not eval(getimg):            
-            ec2_url, s3_url, path, region = self.openstack_environ(varfile, iaas_address)
+            ec2_url, s3_url, path, region, ec2_port, s3_port = self.openstack_environ(varfile, iaas_address)
                         
             filename = os.path.split(imagebackpath)[1].strip()
     
@@ -702,6 +793,7 @@ class IMDeploy(object):
         #create template to upload image to opennebula repository
         
         #create script to boot image and tell user how to use it
+   
    
 
     def xcat_method(self, xcat, image):
