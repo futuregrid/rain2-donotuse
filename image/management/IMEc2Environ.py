@@ -15,8 +15,8 @@ class IMEc2Environ(object):
     def __init__(self):
         super(IMEc2Environ, self).__init__()
 
-        self.ec2_url, self.s3_url, self.path, self.region,  self.bucket, self.base_key, self.s3id, self.s3key, self.cannonicalid = ""
-        self.ec2_port, self.s3_port = 0
+        self.ec2_url = self.s3_url = self.path = self.region = self.bucket = self.base_key = self.s3id = self.s3key = self.cannonicalid = ""
+        self.ec2_port = self.s3_port = 0
         
     def setEc2_url(self, ec2_url):
         self.ec2_url=ec2_url
