@@ -467,7 +467,7 @@ class IMDeployServerIaaS(object):
             if self.operatingsystem == "centos":
                 os.system('sudo sed -i \'s/enforcing/disabled/g\' ' + localtempdir + '/temp/etc/selinux/config')
             
-            os.system('mkdir -p ' + localtempdir + "/temp/root/.ssh")
+            os.system('sudo mkdir -p ' + localtempdir + "/temp/root/.ssh")
             
             if ldap:
                 self.configure_ldap(localtempdir)
