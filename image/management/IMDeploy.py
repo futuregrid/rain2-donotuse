@@ -1174,9 +1174,26 @@ def main():
                                 print i 
                             print "You can get more details by querying the image repository using IRClient.py -q command and the query string: \"* where tag=imagename\". \n" +\
                 "NOTE: To query the repository you need to remove the OS from the image name (centos,ubuntu,debian,rhel...). " + \
-                  "The real name starts with the username and ends before .img.manifest.xml"
+                  "The real name starts with the username and ends before .img"
+                else:    
+                    output = imgdeploy.iaas_generic(args.nimbus, image, image_source, "nimbus", varfile, args.getimg, ldap, args.wait)
+                    if output != None:
+                        if re.search("^ERROR", output):
+                            print output
+            elif args.list:
+                output = imgdeploy.cloudlist(str(args.nimbus),"nimbus", varfile)                
+                if output != None:
+                    if not isinstance(output, list):
+                        print output
+                    else:
+                        print "The list of available images on Nimbus is:"
+                        for i in output:                       
+                            print i  
+                        print "You can get more details by querying the image repository using IRClient.py -q command and the query string: \"* where tag=imagename\". \n" +\
+                    "NOTE: To query the repository you need to remove the OS from the image name (centos,ubuntu,debian,rhel...). " + \
+                      "The real name starts with the username and ends before .img"
             else:    
-                output = imgdeploy.iaas_generic(args.nimbus, image, image_source, "nimbus", varfile, args.getimg, ldap, args.wait)
+                output = imgdeploy.iaas_generic(args.openstack, image, image_source, "openstack", varfile, args.getimg, ldap, args.wait)
                 if output != None:
                     if re.search("^ERROR", output):
                         print output
