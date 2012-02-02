@@ -460,7 +460,8 @@ class IMDeploy(object):
         self._log.info('TIME Image available:' + str(end - start))    
     
     def nimbus_method(self, imagebackpath, kernel, operatingsystem, iaas_address, varfile, getimg, wait):
-        if not eval(getimg):            
+        if not eval(getimg):   
+            nimbusEnv=IMEc2Environ()         
             nimbusEnv = self.nimbus_environ(varfile, iaas_address)
             cf = OrdinaryCallingFormat()
             try:
