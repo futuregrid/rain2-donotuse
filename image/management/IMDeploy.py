@@ -326,11 +326,11 @@ class IMDeploy(object):
             f = open(varfile, 'r')
             for line in f:
                 line = line.strip()
-                if re.search("^vws.factory", line):                                    
+                if re.search("^vws.factory=", line):                        
                     parts = line.split("=")[1].split(":")               
                     ec2_address = parts[0].strip()
                     nimbusEnv.setEc2_port(int(parts[1].strip()))
-                elif re.search("^vws.repository=", line):                           
+                elif re.search("^vws.repository=", line):     
                     parts = line.split("=")[1].split(":")               
                     s3_address = parts[0].strip()
                     nimbusEnv.setS3_port(int(parts[1].strip()))
@@ -460,32 +460,34 @@ class IMDeploy(object):
         self._log.info('TIME Image available:' + str(end - start))    
     
     def nimbus_method(self, imagebackpath, kernel, operatingsystem, iaas_address, varfile, getimg, wait):
-        if not eval(getimg):   
-            nimbusEnv=IMEc2Environ()         
+        if not eval(getimg):
             nimbusEnv = self.nimbus_environ(varfile, iaas_address)
-            cf = OrdinaryCallingFormat()
-            try:
-                s3conn = S3Connection(nimbusEnv.getS3id(), nimbusEnv.getS3key(), host=nimbusEnv.getS3_url().lstrip("http://").split(":")[0], 
-                                      port=nimbusEnv.getS3_port(), is_secure=False, calling_format=cf)
-            except:
-                msg = "ERROR:connecting to S3 interface. " + str(sys.exc_info())
-                self._log.error(msg)                        
-                return msg
-            try:
-                bucket = s3conn.get_bucket(nimbusEnv.getBucket())
-                k = Key(bucket)
-                k.key = nimbusEnv.getBase_key() + "/" + nimbusEnv.getCannonicalid() + "/" + os.path.basename(imagebackpath)       
-                if self._verbose:
-                    print "Uploading Image..."
-                k.set_contents_from_filename(imagebackpath)
-            except:
-                msg = "ERROR:uploading image. " + str(sys.exc_info())
-                self._log.error(msg)                        
-                return msg
-            
-            print "Your image has been registered on Nimbus. The image id is the name of the image: "+os.path.basename(imagebackpath)+" \n" + \
-                  "To launch a VM you can cloud-client.sh --run --name <image_name> --hours <# hours> --kernel vmlinuz-" + kernel + "  \n" + \
-                  "More information is provided in https://portal.futuregrid.org/tutorials/nimbus \n" 
+            if isinstance(nimbusEnv,IMEc2Environ):
+                cf = OrdinaryCallingFormat()
+                try:
+                    s3conn = S3Connection(nimbusEnv.getS3id(), nimbusEnv.getS3key(), host=nimbusEnv.getS3_url().lstrip("http://").split(":")[0], 
+                                          port=nimbusEnv.getS3_port(), is_secure=False, calling_format=cf)
+                except:
+                    msg = "ERROR:connecting to S3 interface. " + str(sys.exc_info())
+                    self._log.error(msg)                        
+                    return msg
+                try:
+                    bucket = s3conn.get_bucket(nimbusEnv.getBucket())
+                    k = Key(bucket)
+                    k.key = nimbusEnv.getBase_key() + "/" + nimbusEnv.getCannonicalid() + "/" + os.path.basename(imagebackpath)       
+                    if self._verbose:
+                        print "Uploading Image..."
+                    k.set_contents_from_filename(imagebackpath)
+                except:
+                    msg = "ERROR:uploading image. " + str(sys.exc_info())
+                    self._log.error(msg)                        
+                    return msg
+                
+                print "Your image has been registered on Nimbus. The image id is the name of the image: "+os.path.basename(imagebackpath)+" \n" + \
+                      "To launch a VM you can cloud-client.sh --run --name <image_name> --hours <# hours> --kernel vmlinuz-" + kernel + "  \n" + \
+                      "More information is provided in https://portal.futuregrid.org/tutorials/nimbus \n" 
+            else:
+                return nimbusEnv  #error message
         else:            
             print "Your Nimbus image is located in " + str(imagebackpath) + " \n" + \
             "The kernel to use is vmlinuz-" + kernel + " and the ramdisk will be according to that \n" + \
