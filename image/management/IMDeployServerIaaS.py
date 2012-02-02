@@ -269,7 +269,7 @@ class IMDeployServerIaaS(object):
         #self.preprocess()
         
         start = time.time()
-        stat=""
+        stat=0
         if (self.iaas == "euca"):
             stat=self.euca_method(localtempdir, ldap)
         elif (self.iaas == "nimbus"):
@@ -396,6 +396,7 @@ class IMDeployServerIaaS(object):
 
     def euca_method(self, localtempdir, ldap): 
 
+        stat = 0
         #Select kernel version
         #This is not yet supported as we get always the same kernel
         self.logger.debug("kernel: " + self.kernel)
@@ -430,14 +431,13 @@ class IMDeployServerIaaS(object):
     
             if ldap:
                 self.configure_ldap(localtempdir)
-            return True
-        else:
-            return False            
+        return stat            
       
     def nimbus_method(self, localtempdir, ldap): 
 
         #Select kernel version
         #This is not yet supported as we get always the same kernel
+        stat=0
         self.logger.debug("kernel: " + self.kernel)
         if self.kernel == "None":
             self.kernel = self.default_nimbus_kernel
@@ -472,9 +472,7 @@ class IMDeployServerIaaS(object):
             if ldap:
                 self.configure_ldap(localtempdir)
                 
-            return True
-        else:
-            return False
+        return stat
         
 
     def openstack_method(self, localtempdir, ldap): 
