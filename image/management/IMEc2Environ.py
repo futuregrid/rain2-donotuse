@@ -41,25 +41,25 @@ class IMEc2Environ(object):
     def setCannonicalId(self, cannonicalid):
         self.cannonicalid=cannonicalid
     
-    def getEc2_url(self, ec2_url):
+    def getEc2_url(self):
         return self.ec2_url
-    def getEc2_port(self, ec2_port):
+    def getEc2_port(self):
         return self.ec2_port
-    def getS3_url(self, s3_url):
+    def getS3_url(self):
         return self.s3_url
-    def getS3_port(self, s3_port):
+    def getS3_port(self):
         return self.s3_port        
-    def getPath(self, path):
+    def getPath(self):
         return self.path
-    def getRegion(self, region):
+    def getRegion(self):
         return self.region
-    def getBucket(self, bucket):
+    def getBucket(self):
         return self.bucket
-    def getBase_key(self, base_key):
+    def getBase_key(self):
         return self.base_key
-    def getS3id(self, s3id):
+    def getS3id(self):
         return self.s3id
-    def getS3key(self, s3key):
+    def getS3key(self):
         return self.s3key
-    def getCannonicalId(self, cannonicalid):
+    def getCannonicalId(self):
         return self.cannonicalid
