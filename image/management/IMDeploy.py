@@ -23,6 +23,7 @@ import boto
 from random import randrange
 
 from IMClientConf import IMClientConf
+from IMEc2Environ import IMEc2Environ
 
 sys.path.append(os.getcwd())
 try:
@@ -307,13 +308,14 @@ class IMDeploy(object):
         return ec2_url, s3_url, path, region, ec2_port, s3_port
     
     def nimbus_environ(self, varfile, iaas_address):
+        
+        nimbusEnv=IMEc2Environ()
+        ec2_address=""
+        s3_address=""
+        
         nimbus_key_dir = os.path.dirname(varfile)            
         if nimbus_key_dir.strip() == "":
             nimbus_key_dir = "."
-        
-        ec2_address=s3_address=bucket=base_key=s3id=s3key=cannonicalid=""
-        ec2_port=s3_port=0
-        
         try:
             #read variables
             f = open(varfile, 'r')
@@ -322,21 +324,21 @@ class IMDeploy(object):
                 if re.search("^vws.factory", line):                                    
                     parts = line.split("=")[1].split(":")               
                     ec2_address = parts[0].strip()
-                    ec2_port = int(parts[1].strip())
+                    nimbusEnv.setEc2_port(int(parts[1].strip()))
                 elif re.search("^vws.repository=", line):                           
                     parts = line.split("=")[1].split(":")               
                     s3_address = parts[0].strip()
-                    s3_port = int(parts[1].strip())
+                    nimbusEnv.setS3_port(int(parts[1].strip()))
                 elif re.search("^vws.repository.s3bucket=", line):
-                    bucket = line.split("=")[1]
+                    nimbusEnv.setBucket(line.split("=")[1])
                 elif re.search("^vws.repository.s3basekey=", line):
-                    base_key = line.split("=")[1]
+                    nimbusEnv.setBase_key(line.split("=")[1])
                 elif re.search("^vws.repository.s3id=", line):
-                    s3id = line.split("=")[1]
+                    nimbusEnv.setS3id(line.split("=")[1])
                 elif re.search("^vws.repository.s3key=", line):
-                    s3key = line.split("=")[1]
+                    nimbusEnv.setS3key(line.split("=")[1])
                 elif re.search("^vws.repository.canonicalid=", line):
-                    cannonicalid = line.split("=")[1]
+                    nimbusEnv.setCannonicalid(line.split("=")[1])
             f.close()
         except:            
             msg = "ERROR: Reading Configuration File" + str(sys.exc_info())
@@ -344,22 +346,24 @@ class IMDeploy(object):
             return msg
         
         if iaas_address != "None":
-            ec2_url = "http://" + iaas_address + "/wsrf/services/WorkspaceFactoryService"
-            s3_url = "http://" + iaas_address + ":3333"
+            nimbusEnv.setEc2_url = "http://" + iaas_address + "/wsrf/services/WorkspaceFactoryService"
+            nimbusEnv.setS3_url = "http://" + iaas_address + ":3333"
         else:
-            ec2_url = "http://" + ec2_address + "/wsrf/services/WorkspaceFactoryService"
+            ec2_url = "http://" + ec2_address + "/wsrf/services/WorkspaceFactoryService"            
             os.environ["EC2_URL"] = ec2_url
             s3_url = "http://" + s3_address + ":" + s3_port
             os.environ["S3_URL"] = s3_url
+            nimbusEnv.setEc2_url(ec2_url)
+            nimbusEnv.setS3_url(s3_url)
             
-        path = "/wsrf/services/WorkspaceFactoryService" #not sure if this works
-        region = "nimbus"
+        nimbusEnv.setPath("/wsrf/services/WorkspaceFactoryService") #not sure if this works
+        nimbusEnv.setRegion("nimbus")
         
-        os.environ["EC2_ACCESS_KEY"] = s3id
-        os.environ["EC2_SECRET_KEY"] = s3key
+        os.environ["EC2_ACCESS_KEY"] = nimbusEnv.getS3id()
+        os.environ["EC2_SECRET_KEY"] = nimbusEnv.getS3key()
         
-        return ec2_url, s3_url, path, region, ec2_port, s3_port, bucket, base_key, s3id, s3key, cannonicalid
-      
+        return nimbusEnv
+  
     def ec2connection(self, iaas_address, iaas_type, varfile):
         ec2_url = ""
         s3_url = ""   
@@ -451,18 +455,19 @@ class IMDeploy(object):
     
     def nimbus_method(self, imagebackpath, kernel, operatingsystem, iaas_address, varfile, getimg, wait):
         if not eval(getimg):            
-            ec2_url, s3_url, path, region, ec2_port, s3_port, bucket, base_key, s3id, s3key, cannonicalid = self.nimbus_environ(varfile, iaas_address)
+            nimbusEnv = self.nimbus_environ(varfile, iaas_address)
             cf = OrdinaryCallingFormat()
             try:
-                s3conn = S3Connection(s3id, s3key, host=s3_url.lstrip("http://").split(":")[0], port=s3_port, is_secure=False, calling_format=cf)
+                s3conn = S3Connection(nimbusEnv.getS3id(), nimbusEnv.getS3key(), host=nimbusEnv.getS3_url().lstrip("http://").split(":")[0], 
+                                      port=nimbusEnv.getS3_port(), is_secure=False, calling_format=cf)
             except:
                 msg = "ERROR:connecting to S3 interface. " + str(sys.exc_info())
                 self._log.error(msg)                        
                 return msg
             try:
-                bucket = s3conn.get_bucket(bucket)
+                bucket = s3conn.get_bucket(nimbusEnv.getBucket())
                 k = Key(bucket)
-                k.key = base_key + "/" + cannonicalid + "/" + os.path.basename(imagebackpath)       
+                k.key = nimbusEnv.getBase_key() + "/" + nimbusEnv.getCannonicalid() + "/" + os.path.basename(imagebackpath)       
                 if self._verbose:
                     print "Uploading Image..."
                 k.set_contents_from_filename(imagebackpath)
