@@ -343,7 +343,7 @@ class IMDeploy(object):
                 elif re.search("^vws.repository.s3key=", line):
                     nimbusEnv.setS3key(line.split("=")[1])
                 elif re.search("^vws.repository.canonicalid=", line):
-                    nimbusEnv.setCannonicalid(line.split("=")[1])
+                    nimbusEnv.setCannonicalId(line.split("=")[1])
             f.close()
         except:            
             msg = "ERROR: Reading Configuration File" + str(sys.exc_info())
