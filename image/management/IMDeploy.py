@@ -227,6 +227,7 @@ class IMDeploy(object):
 
     
     def openstack_environ(self, varfile, iaas_address):
+        ##NEED TO BE CHANGED TO USE THE IMEc2Environ OBJECT
         nova_key_dir = os.path.dirname(varfile)            
         if nova_key_dir.strip() == "":
             nova_key_dir = "."
@@ -267,6 +268,7 @@ class IMDeploy(object):
         return ec2_url, s3_url, path, region, ec2_port, s3_port
         
     def euca_environ(self, varfile, iaas_address):
+        ##NEED TO BE CHANGED TO USE THE IMEc2Environ OBJECT
         euca_key_dir = os.path.dirname(varfile)            
         if euca_key_dir.strip() == "":
             euca_key_dir = "."
@@ -369,6 +371,7 @@ class IMDeploy(object):
         s3_url = ""   
         path = ""
         region = ""     
+        ##NEED TO BE CHANGED TO USE THE IMEc2Environ OBJECT
         if iaas_type == "openstack":
             ec2_url, s3_url, path, region, ec2_port, s3_port = self.openstack_environ(varfile, iaas_address)                    
         elif iaas_type == "euca":
@@ -488,6 +491,8 @@ class IMDeploy(object):
     def euca_method(self, imagebackpath, kernel, operatingsystem, iaas_address, varfile, getimg, wait):
         #TODO: Pick kernel and ramdisk from available eki and eri
 
+        ##NEED TO BE CHANGED TO USE THE IMEc2Environ OBJECT
+
         #hardcoded for now
         eki = 'eki-78EF12D2'
         eri = 'eri-5BB61255'
@@ -580,6 +585,8 @@ class IMDeploy(object):
         
     def openstack_method(self, imagebackpath, kernel, operatingsystem, iaas_address, varfile, getimg, wait):
         #TODO: Pick kernel and ramdisk from available eki and eri
+
+        ##NEED TO BE CHANGED TO USE THE IMEc2Environ OBJECT
 
         #hardcoded for now
         eki = 'aki-00000026'
