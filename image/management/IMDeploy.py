@@ -356,7 +356,7 @@ class IMDeploy(object):
         else:
             ec2_url = "http://" + ec2_address + "/wsrf/services/WorkspaceFactoryService"            
             os.environ["EC2_URL"] = ec2_url
-            s3_url = "http://" + s3_address + ":" + nimbusEnv.getS3_port()
+            s3_url = "http://" + s3_address + ":" + str(nimbusEnv.getS3_port())
             os.environ["S3_URL"] = s3_url
             nimbusEnv.setEc2_url(ec2_url)
             nimbusEnv.setS3_url(s3_url)
