@@ -474,7 +474,7 @@ class IMDeploy(object):
                 try:
                     bucket = s3conn.get_bucket(nimbusEnv.getBucket())
                     k = Key(bucket)
-                    k.key = nimbusEnv.getBase_key() + "/" + nimbusEnv.getCannonicalid() + "/" + os.path.basename(imagebackpath)       
+                    k.key = nimbusEnv.getBase_key() + "/" + nimbusEnv.getCannonicalId() + "/" + os.path.basename(imagebackpath)       
                     if self._verbose:
                         print "Uploading Image..."
                     k.set_contents_from_filename(imagebackpath)
