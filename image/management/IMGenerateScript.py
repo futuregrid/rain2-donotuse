@@ -421,8 +421,7 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
         if (version == "5"):
             runCmd('wget http://mirror.centos.org/centos/5/os/x86_64/CentOS/centos-release-5-7.el5.centos.x86_64.rpm -O /tmp/centos-release.rpm')            
         elif(version == "6"): #the 5.5 is not supported yet
-            runCmd('wget http://mirror.centos.org/centos/6.0/os/x86_64/Packages/centos-release-6-0.el6.centos.5.x86_64.rpm -O /tmp/centos-release.rpm')            
-
+            runCmd('wget http://mirror.centos.org/centos/6/os/x86_64/Packages/centos-release-6-2.el6.centos.7.x86_64.rpm -O /tmp/centos-release.rpm')            
         runCmd('rpm -ihv --nodeps --root ' + tempdir + '' + name + ' /tmp/centos-release.rpm')
         runCmd('rm -f /tmp/centos-release.rpm')
         
