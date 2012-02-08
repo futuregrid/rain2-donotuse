@@ -436,6 +436,13 @@ class IMDeploy(object):
             self._log.error(msg)                        
             return msg
         
+        print endpoint
+        print region
+        print connEnv.getS3id()
+        print connEnv.getS3key()
+        print connEnv.getEc2_port()
+        print connEnv.getPath()
+        
         return connection
         
     def cloudlist(self, iaas_address, iaas_type, varfile):
