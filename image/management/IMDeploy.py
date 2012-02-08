@@ -441,7 +441,7 @@ class IMDeploy(object):
         
         connection = self.ec2connection(iaas_address, iaas_type, varfile)
         
-        if not isinstance(connection, boto.EC2Connection):
+        if not isinstance(connection, boto.ec2.connection.EC2Connection):
             msg = "ERROR: Connecting Ec2. " + str(connEnv)
             self._log.error(msg)                        
             return msg
