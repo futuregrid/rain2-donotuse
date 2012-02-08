@@ -356,12 +356,12 @@ class IMDeploy(object):
                 if re.search("^vws.factory=", line):                        
                     parts = line.split("=")[1].split(":")               
                     ec2_address = parts[0].strip()
-                    nimbusEnv.setEc2_port(int(parts[1].strip()))
+                    #int(parts[1].strip())
+                    nimbusEnv.setEc2_port(8444)#hardcoded because it is not in the config file
                 elif re.search("^vws.repository=", line):     
                     parts = line.split("=")[1].split(":")               
-                    s3_address = parts[0].strip()
-                    #int(parts[1].strip())
-                    nimbusEnv.setS3_port(8444) #hardcoded because it is not in the config file
+                    s3_address = parts[0].strip()                    
+                    nimbusEnv.setS3_port(int(parts[1].strip())) 
                 elif re.search("^vws.repository.s3bucket=", line):
                     nimbusEnv.setBucket(line.split("=")[1])
                 elif re.search("^vws.repository.s3basekey=", line):
