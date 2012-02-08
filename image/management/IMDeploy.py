@@ -273,8 +273,13 @@ class IMDeploy(object):
         
         #openstackEnv.setEc2_port(8773)
         #openstackEnv.setS3_port(3333)
-        openstackEnv.setEc2_port(eucaEnv.getEc2_url().lstrip("http://").split(":")[1].split("/")[0])
-        openstackEnv.setS3_port(eucaEnv.getS3_url().lstrip("http://").split(":")[1].split("/")[0])
+        try:
+            openstackEnv.setEc2_port(int(eucaEnv.getEc2_url().lstrip("http://").split(":")[1].split("/")[0]))
+            openstackEnv.setS3_port(int(eucaEnv.getS3_url().lstrip("http://").split(":")[1].split("/")[0]))
+        except:
+            msg = "ERROR: Obtaining Ec2 or S3 port. " + str(sys.exc_info())
+            self._log.error(msg)            
+            return msg
         
         openstackEnv.setS3id(str(os.getenv("EC2_ACCESS_KEY")))
         openstackEnv.setS3key(str(os.getenv("EC2_SECRET_KEY")))
@@ -322,9 +327,13 @@ class IMDeploy(object):
         eucaEnv.setPath(path) 
         eucaEnv.setRegion(region)
         
-        eucaEnv.setEc2_port(eucaEnv.getEc2_url().lstrip("http://").split(":")[1].split("/")[0])
-        eucaEnv.setS3_port(eucaEnv.getS3_url().lstrip("http://").split(":")[1].split("/")[0])
-        
+        try:
+            eucaEnv.setEc2_port(int(eucaEnv.getEc2_url().lstrip("http://").split(":")[1].split("/")[0]))
+            eucaEnv.setS3_port(int(eucaEnv.getS3_url().lstrip("http://").split(":")[1].split("/")[0]))
+        except:
+            msg = "ERROR: Obtaining Ec2 or S3 port. " + str(sys.exc_info())
+            self._log.error(msg)            
+            return msg
         eucaEnv.setS3id(str(os.getenv("EC2_ACCESS_KEY")))
         eucaEnv.setS3key(str(os.getenv("EC2_SECRET_KEY")))
                          
@@ -398,7 +407,12 @@ class IMDeploy(object):
             connEnv = self.euca_environ(varfile, iaas_address)
         elif iaas_type == "nimbus":
             connEnv = self.nimbus_environ(varfile, iaas_address)
-            
+        
+        if not isinstance(connEnv, IMEc2Environ):
+            msg = "ERROR: Parsing Configuration File. " + str(connEnv)
+            self._log.error(msg)                        
+            return msg
+           
         endpoint = connEnv.getEc2_url().lstrip("http://").split(":")[0]
         
         region=connEnv.getRegion()
