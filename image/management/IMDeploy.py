@@ -106,6 +106,7 @@ class IMDeploy(object):
                 endloop = True
                 passed = False
         return passed
+    
 
     #This need to be redo
     def iaas_generic(self, iaas_address, image, image_source, iaas_type, varfile, getimg, ldap, wait):
@@ -230,7 +231,8 @@ class IMDeploy(object):
 
     
     def openstack_environ(self, varfile, iaas_address):
-        ##NEED TO BE CHANGED TO USE THE IMEc2Environ OBJECT
+        openstackEnv=IMEc2Environ()
+        
         nova_key_dir = os.path.dirname(varfile)            
         if nova_key_dir.strip() == "":
             nova_key_dir = "."
@@ -256,22 +258,33 @@ class IMDeploy(object):
                 os.environ[parts[0]] = value
         f.close()
         if iaas_address != "None":
-            ec2_url = "http://" + iaas_address + "/services/Cloud"
+            ec2_url = "http://" + iaas_address + ":8773/services/Cloud"
             s3_url = "http://" + iaas_address + ":3333"
-        else:
-            ec2_url = os.getenv("EC2_URL")
-            s3_url = os.getenv("S3_URL")
+            openstackEnv.setEc2_url(os.getenv("EC2_URL"))
+            openstackEnv.setS3_url(os.getenv("S3_URL"))
+        else:        
+            openstackEnv.setEc2_url(os.getenv("EC2_URL"))
+            openstackEnv.setS3_url(os.getenv("S3_URL"))
         
         path = "/services/Cloud"
-        region = "nova"
-          
-        ec2_port=8773
-        s3_port=3333
+        region = "nova"       
+        openstackEnv.setPath(path) 
+        openstackEnv.setRegion(region)
         
-        return ec2_url, s3_url, path, region, ec2_port, s3_port
+        #openstackEnv.setEc2_port(8773)
+        #openstackEnv.setS3_port(3333)
+        openstackEnv.setEc2_port(eucaEnv.getEc2_url().lstrip("http://").split(":")[1].split("/")[0])
+        openstackEnv.setS3_port(eucaEnv.getS3_url().lstrip("http://").split(":")[1].split("/")[0])
+        
+        openstackEnv.setS3id(str(os.getenv("EC2_ACCESS_KEY")))
+        openstackEnv.setS3key(str(os.getenv("EC2_SECRET_KEY")))
+                         
+        return openstackEnv
+        
         
     def euca_environ(self, varfile, iaas_address):
-        ##NEED TO BE CHANGED TO USE THE IMEc2Environ OBJECT
+        eucaEnv=IMEc2Environ()
+               
         euca_key_dir = os.path.dirname(varfile)            
         if euca_key_dir.strip() == "":
             euca_key_dir = "."
@@ -297,20 +310,25 @@ class IMDeploy(object):
                 os.environ[parts[0]] = value
         f.close()
             
-        if iaas_address != "None":
-            ec2_url = "http://" + iaas_address + "/services/Eucalyptus"
-            s3_url = "http://" + iaas_address + "/services/Walrus"
-        else:
-            ec2_url = os.getenv("EC2_URL")
-            s3_url = os.getenv("S3_URL")
+        if iaas_address != "None":            
+            eucaEnv.setEc2_url("http://" + iaas_address + ":8773/services/Eucalyptus")
+            eucaEnv.setS3_url("http://" + iaas_address + ":8773/services/Walrus")
+        else:            
+            eucaEnv.setEc2_url(os.getenv("EC2_URL"))
+            eucaEnv.setS3_url(os.getenv("S3_URL"))
         
         path = "/services/Eucalyptus"
-        region = "eucalyptus"
+        region = "eucalyptus"        
+        eucaEnv.setPath(path) 
+        eucaEnv.setRegion(region)
         
-        ec2_port=8773
-        s3_port=3333
+        eucaEnv.setEc2_port(eucaEnv.getEc2_url().lstrip("http://").split(":")[1].split("/")[0])
+        eucaEnv.setS3_port(eucaEnv.getS3_url().lstrip("http://").split(":")[1].split("/")[0])
         
-        return ec2_url, s3_url, path, region, ec2_port, s3_port
+        eucaEnv.setS3id(str(os.getenv("EC2_ACCESS_KEY")))
+        eucaEnv.setS3key(str(os.getenv("EC2_SECRET_KEY")))
+                         
+        return eucaEnv
     
     def nimbus_environ(self, varfile, iaas_address):
         
@@ -351,17 +369,17 @@ class IMDeploy(object):
             return msg
         
         if iaas_address != "None":
-            nimbusEnv.setEc2_url = "http://" + iaas_address + "/wsrf/services/WorkspaceFactoryService"
-            nimbusEnv.setS3_url = "http://" + iaas_address + ":3333"
+            nimbusEnv.setEc2_url("http://" + iaas_address + ":" + str(nimbusEnv.getEc2_port()))
+            nimbusEnv.setS3_url("http://" + iaas_address + ":" +str(nimbusEnv.getS3_port()))
         else:
-            ec2_url = "http://" + ec2_address + "/wsrf/services/WorkspaceFactoryService"            
+            ec2_url = "http://" + ec2_address + ":" + str(nimbusEnv.getEc2_port())
             os.environ["EC2_URL"] = ec2_url
             s3_url = "http://" + s3_address + ":" + str(nimbusEnv.getS3_port())
             os.environ["S3_URL"] = s3_url
             nimbusEnv.setEc2_url(ec2_url)
             nimbusEnv.setS3_url(s3_url)
             
-        nimbusEnv.setPath("/wsrf/services/WorkspaceFactoryService") #not sure if this works
+        nimbusEnv.setPath("") 
         nimbusEnv.setRegion("nimbus")
         
         os.environ["EC2_ACCESS_KEY"] = nimbusEnv.getS3id()
@@ -370,17 +388,20 @@ class IMDeploy(object):
         return nimbusEnv
   
     def ec2connection(self, iaas_address, iaas_type, varfile):
-        ec2_url = ""
-        s3_url = ""   
-        path = ""
-        region = ""     
-        ##NEED TO BE CHANGED TO USE THE IMEc2Environ OBJECT
+        connEnv=None     
+        region=""
+        
+        path=""
         if iaas_type == "openstack":
-            ec2_url, s3_url, path, region, ec2_port, s3_port = self.openstack_environ(varfile, iaas_address)                    
+            connEnv = self.openstack_environ(varfile, iaas_address)                    
         elif iaas_type == "euca":
-            ec2_url, s3_url, path, region, ec2_port, s3_port = self.euca_environ(varfile, iaas_address)
+            connEnv = self.euca_environ(varfile, iaas_address)
+        elif iaas_type == "nimbus":
+            connEnv = self.nimbus_environ(varfile, iaas_address)
             
-        endpoint = ec2_url.lstrip("http://").split(":")[0]
+        endpoint = connEnv.getEc2_url().lstrip("http://").split(":")[0]
+        
+        region=connEnv.getRegion()
         
         self._log.debug("Getting Region")
         region = None        
@@ -394,7 +415,7 @@ class IMDeploy(object):
         self._log.debug("Connecting EC2")
         connection = None        
         try:
-            connection = boto.connect_ec2(str(os.getenv("EC2_ACCESS_KEY")), str(os.getenv("EC2_SECRET_KEY")), is_secure=False, region=region, port=ec2_port, path=path)
+            connection = boto.connect_ec2(str(os.getenv("EC2_ACCESS_KEY")), str(os.getenv("EC2_SECRET_KEY")), is_secure=False, region=region, port=connEnv.getEc2_port(), path=connEnv.getPath())
         except:
             msg = "ERROR:connecting to EC2 interface. " + str(sys.exc_info())
             self._log.error(msg)                        

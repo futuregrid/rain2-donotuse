@@ -783,6 +783,7 @@ def main():
     parser.add_argument('-j', '--jobscript', dest='jobscript', required=True, help='Script to execute on the provisioned images. In the case of Cloud environments, '
                         ' the user home directory is mounted in /tmp/N/u/username. The /N/u/username is only used for ssh between VM and store the ips of the parallel '
                         ' job in a file called /N/u/username/machines')
+    #parser.add_argument('-I', '--interactive', dest='interactive', required=True, help='Interactive mode')
     
     
     args = parser.parse_args()

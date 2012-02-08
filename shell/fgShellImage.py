@@ -286,8 +286,21 @@ class fgShellImage(Cmd):
                 output = self.imgdeploy.iaas_generic(args.opennebula, image, image_source, "opennebula", varfile, args.getimg, ldap, args.wait)
             #NIMBUS
             elif ('-n' in used_args or '--nimbus' in used_args):
-                #TODO        
-                print "Nimbus deployment is not implemented yet"
+                if not args.getimg:
+                    if args.varfile == None:
+                        print "ERROR: You need to specify the path of the file with the Nimbus environment variables"
+                    elif not os.path.isfile(str(os.path.expanduser(varfile))):
+                        print "ERROR: Variable files not found. You need to specify the path of the file with the Nimbus environment variables"
+                    else:    
+                        output = self.imgdeploy.iaas_generic(args.nimbus, image, image_source, "nimbus", varfile, args.getimg, ldap, args.wait)
+                        if output != None:
+                            if re.search("^ERROR", output):
+                                print output 
+                else:    
+                    output = self.imgdeploy.iaas_generic(args.nimbus, image, image_source, "nimbus", varfile, args.getimg, ldap, args.wait)
+                    if output != None:
+                        if re.search("^ERROR", output):
+                            print output
             elif ('-s' in used_args or '--openstack' in used_args):
                 if not args.getimg:
                     if args.varfile == None:
