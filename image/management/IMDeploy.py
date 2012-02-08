@@ -274,8 +274,8 @@ class IMDeploy(object):
         #openstackEnv.setEc2_port(8773)
         #openstackEnv.setS3_port(3333)
         try:
-            openstackEnv.setEc2_port(int(eucaEnv.getEc2_url().lstrip("http://").split(":")[1].split("/")[0]))
-            openstackEnv.setS3_port(int(eucaEnv.getS3_url().lstrip("http://").split(":")[1].split("/")[0]))
+            openstackEnv.setEc2_port(int(openstackEnv.getEc2_url().lstrip("http://").split(":")[1].split("/")[0]))
+            openstackEnv.setS3_port(int(openstackEnv.getS3_url().lstrip("http://").split(":")[1].split("/")[0]))
         except:
             msg = "ERROR: Obtaining Ec2 or S3 port. " + str(sys.exc_info())
             self._log.error(msg)            
