@@ -440,7 +440,7 @@ class IMDeploy(object):
     def cloudlist(self, iaas_address, iaas_type, varfile):
         
         connection = self.ec2connection(iaas_address, iaas_type, varfile)
-            
+        print str(connection)
         self._log.debug("Getting Image List")
         images = None
         try:
