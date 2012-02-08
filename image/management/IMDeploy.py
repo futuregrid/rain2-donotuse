@@ -399,9 +399,8 @@ class IMDeploy(object):
   
     def ec2connection(self, iaas_address, iaas_type, varfile):
         connEnv=None     
-        region=""
+                
         
-        path=""
         if iaas_type == "openstack":
             connEnv = self.openstack_environ(varfile, iaas_address)                    
         elif iaas_type == "euca":
@@ -416,12 +415,10 @@ class IMDeploy(object):
            
         endpoint = connEnv.getEc2_url().lstrip("http://").split(":")[0]
         
-        region=connEnv.getRegion()
-        
         self._log.debug("Getting Region")
         region = None        
         try:  
-            region = boto.ec2.regioninfo.RegionInfo(name=region, endpoint=endpoint)
+            region = boto.ec2.regioninfo.RegionInfo(name=connEnv.getRegion(), endpoint=endpoint)
         except:
             msg = "ERROR: getting region information " + str(sys.exc_info())
             self._log.error(msg)                        
@@ -437,6 +434,7 @@ class IMDeploy(object):
             return msg
         
         print endpoint
+        print connEnv.getRegion()
         print region
         print connEnv.getS3id()
         print connEnv.getS3key()
