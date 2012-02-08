@@ -399,14 +399,17 @@ class IMDeploy(object):
   
     def ec2connection(self, iaas_address, iaas_type, varfile):
         connEnv=None     
-                
+        secure=False      
         
         if iaas_type == "openstack":
-            connEnv = self.openstack_environ(varfile, iaas_address)                    
+            connEnv = self.openstack_environ(varfile, iaas_address)
+            secure=False                    
         elif iaas_type == "euca":
             connEnv = self.euca_environ(varfile, iaas_address)
+            secure=False
         elif iaas_type == "nimbus":
             connEnv = self.nimbus_environ(varfile, iaas_address)
+            secure=True
         
         if not isinstance(connEnv, IMEc2Environ):
             msg = "ERROR: Parsing Configuration File. " + str(connEnv)
@@ -427,19 +430,11 @@ class IMDeploy(object):
         self._log.debug("Connecting EC2")
         connection = None        
         try:
-            connection = boto.connect_ec2(connEnv.getS3id(), connEnv.getS3key(), is_secure=False, region=region, port=connEnv.getEc2_port(), path=connEnv.getPath())
+            connection = boto.connect_ec2(connEnv.getS3id(), connEnv.getS3key(), is_secure=secure, region=region, port=connEnv.getEc2_port(), path=connEnv.getPath())
         except:
             msg = "ERROR:connecting to EC2 interface. " + str(sys.exc_info())
             self._log.error(msg)                        
             return msg
-        
-        print endpoint
-        print connEnv.getRegion()
-        print region
-        print connEnv.getS3id()
-        print connEnv.getS3key()
-        print connEnv.getEc2_port()
-        print connEnv.getPath()
         
         return connection
         
