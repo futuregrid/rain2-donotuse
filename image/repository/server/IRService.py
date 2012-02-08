@@ -2,9 +2,6 @@
 """
 Service interface in the server side.
 
-For the current implementation this is just a dummy one, and only serves to
-maintain the proposed deployed code structure. In the later phase this will
-be replaced by a WS implementation
 """
 __author__ = 'Fugang Wang, Javier Diaz'
 __version__ = '0.9'

@@ -70,7 +70,7 @@ class IMDeployServerIaaS(object):
         
         
         self.default_euca_kernel = '2.6.27.21-0.1-xen'
-        self.default_nimbus_kernel = '2.6.18-194.11.3.el5xen'
+        self.default_nimbus_kernel = '2.6.27.21-0.1-xen'
         self.default_openstack_kernel = '2.6.28-11-generic'
         self.default_kvm_ubuntu_kernel = '2.6.35-22-generic'
         
