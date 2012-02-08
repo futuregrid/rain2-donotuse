@@ -430,7 +430,7 @@ class IMDeploy(object):
         self._log.debug("Connecting EC2")
         connection = None        
         try:
-            connection = boto.connect_ec2(str(os.getenv("EC2_ACCESS_KEY")), str(os.getenv("EC2_SECRET_KEY")), is_secure=False, region=region, port=connEnv.getEc2_port(), path=connEnv.getPath())
+            connection = boto.connect_ec2(connEnv.getS3id(), connEnv.getS3key(), is_secure=False, region=region, port=connEnv.getEc2_port(), path=connEnv.getPath())
         except:
             msg = "ERROR:connecting to EC2 interface. " + str(sys.exc_info())
             self._log.error(msg)                        

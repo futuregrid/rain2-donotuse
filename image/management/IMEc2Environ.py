@@ -34,9 +34,9 @@ class IMEc2Environ(object):
         self.bucket=bucket
     def setBase_key(self, base_key):
         self.base_key=base_key
-    def setS3id(self, s3id):
+    def setS3id(self, s3id):#although it is called S3, it is the same for Ec2
         self.s3id=s3id
-    def setS3key(self, s3key):
+    def setS3key(self, s3key):#although it is called S3, it is the same for Ec2
         self.s3key=s3key
     def setCannonicalId(self, cannonicalid):
         self.cannonicalid=cannonicalid
@@ -57,9 +57,9 @@ class IMEc2Environ(object):
         return self.bucket
     def getBase_key(self):
         return self.base_key
-    def getS3id(self):
+    def getS3id(self): #although it is called S3, it is the same for Ec2
         return self.s3id
-    def getS3key(self):
+    def getS3key(self): #although it is called S3, it is the same for Ec2
         return self.s3key
     def getCannonicalId(self):
         return self.cannonicalid
