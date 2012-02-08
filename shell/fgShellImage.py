@@ -210,6 +210,7 @@ class fgShellImage(Cmd):
         group = parser.add_mutually_exclusive_group(required=True)    
         group.add_argument('-i', '--image', dest='image', metavar='ImgFile', help='tgz file that contains manifest and img')
         group.add_argument('-r', '--imgid', dest='imgid', metavar='ImgId', help='Id of the image stored in the repository')
+        group.add_argument('-l', '--list', dest='list', action="store_true", help='List of Id of the images deployed in xCAT/Moab or in the Cloud Frameworks')
         group1 = parser.add_mutually_exclusive_group()
         group1.add_argument('-x', '--xcat', dest='xcat', metavar='MachineName', help='Deploy image to xCAT. The argument is the machine name (minicluster, india ...)')
         group1.add_argument('-e', '--euca', dest='euca', nargs='?', metavar='Address:port', help='Deploy the image to Eucalyptus, which is in the specified addr')        
@@ -252,6 +253,14 @@ class fgShellImage(Cmd):
                 print "ERROR: You need to specify the id of the image that you want to deploy (-r/--imgid option)."
                 print "The parameter -i/--image cannot be used with this type of deployment"
                 sys.exit(1)
+            elif args.list:
+                hpcimagelist = self.imgdeploy.xcat_method(args.xcat, "list")
+                print "The list of available images on xCAT/Moab is:"
+                for i in hpcimagelist:
+                    print "  "+ i
+                print "You can get more details by querying the image repository using the list command and the query string: * where tag=imagename  \n" +\
+                    "NOTE: To query the repository you need to remove the OS from the image name (centos,ubuntu,debian,rhel...). " + \
+                      "The real name starts with the username."
             else:
                 imagename = self.imgdeploy.xcat_method(args.xcat, args.imgid)                
                 print 'Your image has been deployed in xCAT as ' + str(imagename) + '.\n Please allow a few minutes for xCAT to register the image before attempting to use it.'
@@ -271,11 +280,35 @@ class fgShellImage(Cmd):
                         print "ERROR: You need to specify the path of the file with the Eucalyptus environment variables"
                     elif not os.path.isfile(str(os.path.expanduser(varfile))):
                         print "ERROR: Variable files not found. You need to specify the path of the file with the Eucalyptus environment variables"
+                    elif args.list:
+                        output = self.imgdeploy.cloudlist(str(args.euca),"euca", varfile)                    
+                        if output != None:
+                            if not isinstance(output, list):
+                                print output
+                            else:
+                                print "The list of available images on Eucalyptus is:"                        
+                                for i in output:                       
+                                    print i
+                                print "You can get more details by querying the image repository using the list command and the query string: \"* where tag=imagename\". \n" +\
+                        "NOTE: To query the repository you need to remove the OS from the image name (centos,ubuntu,debian,rhel...). " + \
+                          "The real name starts with the username and ends before .img.manifest.xml" 
                     else:    
                         output = self.imgdeploy.iaas_generic(args.euca, image, image_source, "euca", varfile, args.getimg, ldap, args.wait)
                         if output != None:
                             if re.search("^ERROR", output):
-                                print output                
+                                print output             
+                elif args.list:
+                    output = self.imgdeploy.cloudlist(str(args.euca),"euca", varfile)                    
+                    if output != None:
+                        if not isinstance(output, list):
+                            print output
+                        else:
+                            print "The list of available images on Eucalyptus is:"                        
+                            for i in output:                       
+                                print i
+                            print "You can get more details by querying the image repository using the list command and the query string: \"* where tag=imagename\". \n" +\
+                    "NOTE: To query the repository you need to remove the OS from the image name (centos,ubuntu,debian,rhel...). " + \
+                      "The real name starts with the username and ends before .img.manifest.xml"    
                 else:    
                     self.imgdeploy.iaas_generic(args.euca, image, image_source, "euca", varfile, args.getimg, ldap, args.wait)
                     if output != None:
@@ -291,11 +324,35 @@ class fgShellImage(Cmd):
                         print "ERROR: You need to specify the path of the file with the Nimbus environment variables"
                     elif not os.path.isfile(str(os.path.expanduser(varfile))):
                         print "ERROR: Variable files not found. You need to specify the path of the file with the Nimbus environment variables"
+                    elif args.list:
+                        output = self.imgdeploy.cloudlist(str(args.nimbus),"nimbus", varfile)                    
+                        if output != None:
+                            if not isinstance(output, list):
+                                print output
+                            else:
+                                print "The list of available images on Nimbus is:"
+                                for i in output:                       
+                                    print i 
+                                print "You can get more details by querying the image repository using the list command and the query string: \"* where tag=imagename\". \n" +\
+                    "NOTE: To query the repository you need to remove the OS from the image name (centos,ubuntu,debian,rhel...). " + \
+                      "The real name starts with the username and ends before .img"
                     else:    
                         output = self.imgdeploy.iaas_generic(args.nimbus, image, image_source, "nimbus", varfile, args.getimg, ldap, args.wait)
                         if output != None:
                             if re.search("^ERROR", output):
                                 print output 
+                elif args.list:
+                    output = self.imgdeploy.cloudlist(str(args.nimbus),"nimbus", varfile)                    
+                    if output != None:
+                        if not isinstance(output, list):
+                            print output
+                        else:
+                            print "The list of available images on Nimbus is:"
+                            for i in output:                       
+                                print i 
+                            print "You can get more details by querying the image repository using the list command and the query string: \"* where tag=imagename\". \n" +\
+                "NOTE: To query the repository you need to remove the OS from the image name (centos,ubuntu,debian,rhel...). " + \
+                  "The real name starts with the username and ends before .img"
                 else:    
                     output = self.imgdeploy.iaas_generic(args.nimbus, image, image_source, "nimbus", varfile, args.getimg, ldap, args.wait)
                     if output != None:
@@ -307,11 +364,35 @@ class fgShellImage(Cmd):
                         print "ERROR: You need to specify the path of the file with the OpenStack environment variables"
                     elif not os.path.isfile(str(os.path.expanduser(varfile))):
                         print "ERROR: Variable files not found. You need to specify the path of the file with the OpenStack environment variables"
+                    elif args.list:
+                        output = self.imgdeploy.cloudlist(str(args.openstack),"openstack", varfile)                
+                        if output != None:
+                            if not isinstance(output, list):
+                                print output
+                            else:
+                                print "The list of available images on OpenStack is:"
+                                for i in output:                       
+                                    print i  
+                                print "You can get more details by querying the image repository using the list command and the query string: \"* where tag=imagename\". \n" +\
+                            "NOTE: To query the repository you need to remove the OS from the image name (centos,ubuntu,debian,rhel...). " + \
+                              "The real name starts with the username and ends before .img.manifest.xml"
                     else:    
                         output = self.imgdeploy.iaas_generic(args.openstack, image, image_source, "openstack", varfile, args.getimg, ldap, args.wait)
                         if output != None:
                             if re.search("^ERROR", output):
                                 print output 
+                elif args.list:
+                    output = self.imgdeploy.cloudlist(str(args.openstack),"openstack", varfile)                
+                    if output != None:
+                        if not isinstance(output, list):
+                            print output
+                        else:
+                            print "The list of available images on OpenStack is:"
+                            for i in output:                       
+                                print i  
+                            print "You can get more details by querying the image repository using the list command and the query string: \"* where tag=imagename\". \n" +\
+                        "NOTE: To query the repository you need to remove the OS from the image name (centos,ubuntu,debian,rhel...). " + \
+                          "The real name starts with the username and ends before .img.manifest.xml"
                 else:    
                     output = self.imgdeploy.iaas_generic(args.openstack, image, image_source, "openstack", varfile, args.getimg, ldap, args.wait)
                     if output != None:
