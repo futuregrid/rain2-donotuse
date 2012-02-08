@@ -440,7 +440,12 @@ class IMDeploy(object):
     def cloudlist(self, iaas_address, iaas_type, varfile):
         
         connection = self.ec2connection(iaas_address, iaas_type, varfile)
-        print str(connection)
+        
+        if not isinstance(connection, boto.EC2Connection):
+            msg = "ERROR: Connecting Ec2. " + str(connEnv)
+            self._log.error(msg)                        
+            return msg
+        
         self._log.debug("Getting Image List")
         images = None
         try:
