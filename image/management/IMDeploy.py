@@ -519,6 +519,9 @@ class IMDeploy(object):
                     if self._verbose:
                         print "Uploading Image..."
                     k.set_contents_from_filename(imagebackpath)
+                    
+                    cmd = "rm -f " + imagebackpath
+                    os.system(cmd)
                 except:
                     msg = "ERROR:uploading image. " + str(sys.exc_info())
                     self._log.error(msg)                        
