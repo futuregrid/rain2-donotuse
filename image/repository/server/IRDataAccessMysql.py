@@ -161,7 +161,7 @@ class ImgStoreMysql(AbstractImgStore):
         return list of imgEntry or None
         
         """
-        success = False
+        
         if (self.mysqlConnection()):
             try:
                 cursor = self._dbConnection.cursor()
@@ -180,7 +180,7 @@ class ImgStoreMysql(AbstractImgStore):
                     tmpEntry = ImgEntry(dic[0], "", "", 0, "", str(dic[1]).split(".")[0], str(dic[2]).split(".")[0], dic[3])
                     self._items[tmpEntry._imgId] = tmpEntry
 
-                success = True
+                
             except MySQLdb.Error, e:
                 self._log.error("Error %d: %s" % (e.args[0], e.args[1]))
             except IOError:
@@ -195,10 +195,11 @@ class ImgStoreMysql(AbstractImgStore):
         else:
             self._log.error("Could not get access to the database in ImgStoreMysql. Query failed")
 
-        if success:
+        if len(self._items) > 0:            
             return self._items
         else:
             return None
+            
 
     ############################################################
     # queryStore

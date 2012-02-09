@@ -244,7 +244,7 @@ class ImgStoreMongo(AbstractImgStore):
         return list of imgEntry or None
         
         """
-        success = False
+        
         if (self.mongoConnection()):
             try:
                 dbLink = self._dbConnection[self._dbName]
@@ -259,8 +259,8 @@ class ImgStoreMongo(AbstractImgStore):
                 for dic in results:
                     tmpEntry = ImgEntry(dic['_id'], "", "", 0, "", str(dic['createdDate']).split(".")[0], str(dic['lastAccess']).split(".")[0], dic['accessCount'])                    
                     self._items[tmpEntry._imgId] = tmpEntry
-
-                success = True
+                
+                    
             except pymongo.errors.AutoReconnect:
                 self._log.warning("Autoreconnected in ImgStoreMongo - histImg.")
             except pymongo.errors.ConnectionFailure:
@@ -276,7 +276,7 @@ class ImgStoreMongo(AbstractImgStore):
         else:
             self._log.error("Could not get access to the database.")
 
-        if success:
+        if len(self._items) > 0:            
             return self._items
         else:
             return None
@@ -874,7 +874,7 @@ class ImgMetaStoreMongo(AbstractImgMetaStore):
                                 
         return list of dictionaries with the Metadata
         """
-        success = False
+        
         if (self.mongoConnection()):
             try:
                 dbLink = self._dbConnection[self._dbName]
@@ -948,7 +948,7 @@ class ImgMetaStoreMongo(AbstractImgMetaStore):
                         tmpMeta = self.convertDicToObject(resultList, False)
                         self._items[tmpMeta._imgId] = tmpMeta
 
-                success = True
+                
 
             except pymongo.errors.AutoReconnect:
                 self._log.warning("Autoreconnected in ImgMetaStoreMongo - queryStore")
@@ -963,7 +963,10 @@ class ImgMetaStoreMongo(AbstractImgMetaStore):
         else:
             self._log.error("Could not get access to the database. Query failed")
 
-        return success
+        if len(self._items) > 0:
+            return True
+        else:
+            return False 
 
     def convertDicToObject(self, dic, fullMode):
         """

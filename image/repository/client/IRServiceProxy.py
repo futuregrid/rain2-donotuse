@@ -147,8 +147,7 @@ class IRServiceProxy(object):
         if self.check_auth(userId, checkauthstat):
             #wait for output
             output = self._connIrServer.read(32768)            
-            if output == "None":
-                output = None
+            
         else:
             self._log.error(str(checkauthstat[0]))
             if self.verbose:

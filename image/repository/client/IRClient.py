@@ -193,7 +193,7 @@ def main():
             imgsList = service.query(args.user, passwd, args.user, args.list)
         #dict wrapped into a list, convert it first        
         #print imgsList        
-        if(imgsList != None):
+        if(imgsList != "None"):
             try:                
                 imgs = eval(imgsList)
                 print str(len(imgs)) + " items found"
@@ -328,15 +328,21 @@ def main():
         if( args.histimg != None ):
             imgsList = service.histImg(args.user, passwd, args.user, args.histimg)
         else:
-            imgsList = service.histImg(args.user, passwd, args.user, "None")        
-        try:
-            imgs = eval(imgsList)            
-            for key in imgs.keys():                                
-                print imgs[key]
-        except:
-            print "Server replied: " + str(imgsList)
-            print "histimg: Error:" + str(sys.exc_info()) + "\n"
-            service._log.error("histimg: Error interpreting the list of images from Image Repository" + str(sys.exc_info()[0]))
+            imgsList = service.histImg(args.user, passwd, args.user, "None")
+        
+        if imgsList == "None":
+            print "ERROR: Not image record found"
+        else:
+            try:
+                imgs = eval(imgsList)            
+                for key in imgs.keys():                                
+                    print imgs[key]
+            except:
+                print "Server replied: " + str(imgsList)
+                print "histimg: Error:" + str(sys.exc_info()) + "\n"
+                service._log.error("histimg: Error interpreting the list of images from Image Repository" + str(sys.exc_info()[0]))
+        
+            
 
     elif('--histuser' in used_args):
         if( args.histuser != None):
@@ -344,7 +350,7 @@ def main():
         else:
             userList = service.histUser(args.user, passwd, args.user, "None")
         
-        if userList == None:
+        if userList == "None":
             print "ERROR: Not user found"
         else:            
             try:

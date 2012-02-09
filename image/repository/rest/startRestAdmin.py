@@ -189,14 +189,19 @@ class AdminRestService(object):
             else:
                 imgsList = self.service.query(userId.strip(), queryString.strip())
 
-            if(len(imgsList) > 0):
-                try:
-                        self.msg = str(imgsList)
-                except:
-                    self.msg = "list: Error:" + str(sys.exc_info()[0]) + "</br>"
-                    self._log.error("list: Error interpreting the list of images from Image Repository" + str(sys.exc_info()[0]))
-            else:
+            if( imgsList == None):
                 self.msg = "No list of images returned"
+            else:                                    
+                try:                    
+                    imgs = imgsList            
+                    for key in imgs.keys():                                
+                        self.msg = self.msg + str(imgs[key]) + "<br>"
+                except:
+                    self.msg = "Server replied: " + str(imgsList) + "<br>"
+                    self.msg = "list: Error:" + str(sys.exc_info()) + "</br>"
+                    self._log.error("list: Error interpreting the list of images from Image Repository" + str(sys.exc_info())+ "<br>")
+            
+                
         else:
             self.msg = "Please specify valid username/password"
         raise cherrypy.HTTPRedirect("results")
@@ -475,17 +480,17 @@ class AdminRestService(object):
                 imgsList = self.service.histImg(userId, imgId)
             else:
                 imgsList = self.service.histImg(userId, "None")
-
-            try:
-                imgs = self.service.printHistImg(imgsList)
-                self.msg = string.replace(imgs['head'], "\n", "<br>")
-                self.msg += "<br>"
-                for key in imgs.keys():
-                    if key != 'head':
+            if imgsList == None:
+                self.msg =  "ERROR: Not image record found <br>"
+            else:               
+                try:
+                    imgs = eval(imgsList)            
+                    for key in imgs.keys():                                
                         self.msg = self.msg + imgs[key] + "<br>"
-            except:
-                self.msg = "histimg: Error:" + str(sys.exc_info()) + "\n"
-                self._log.error("histimg: Error interpreting the list of images from Image Repository" + str(sys.exc_info()[0]))
+                except:
+                    self.msg = "Server replied: " + str(imgsList)
+                    self.msg = self.msg + "histimg: Error:" + str(sys.exc_info())+ "<br>" 
+                    self._log.error("histimg: Error interpreting the list of images from Image Repository" + str(sys.exc_info()) + "<br>")
         else:
             self.msg = "Please introduce your userId"
         raise cherrypy.HTTPRedirect("results")
@@ -517,17 +522,18 @@ class AdminRestService(object):
                 userList = self.service.histUser(adminId, userIdtoSearch)
             else:
                 userList = self.service.histUser(adminId, "None")
-
-            try:
-                users = userList
-                self.msg = string.replace(users['head'], "\n", "<br>")
-                self.msg += "<br>"
-                for key in users.keys():
-                    if key != 'head':
+           
+            if userList == None:
+                self.msg =  "ERROR: Not user found <br>"
+            else:            
+                try:
+                    users = eval(userList)            
+                    for key in users.keys():                
                         self.msg = self.msg + users[key] + "<br>"
-            except:
-                self.msg = "histuser: Error:" + str(sys.exc_info()) + "<br>"
-                self._log.error("histuser: Error interpreting the list of users from Image Repository" + str(sys.exc_info()[0]))
+                except:
+                    self.msg = "Server replied: " + str(userList) + "<br>"                    
+                    self.msg = self.msg + "histuser: Error:" + str(sys.exc_info())+ "<br>" 
+                    self._log.error("histuser: Error interpreting the list of users from Image Repository" + str(sys.exc_info())+ "<br>")               
         else:
             self.msg = "Please introduce your userId"
 
@@ -628,8 +634,9 @@ class AdminRestService(object):
                         self.msg = self.msg + "<br>" + str(user[1])[1:len(str(user[1])) - 1]
                         self.msg = self.msg + "</br>"
                 except:
-                    self.msg = "userlist: Error:" + str(sys.exc_info()) + "\n"
-                    self.msg = self.msg + "userlist: Error interpreting the list of users from Image Repository " + str(sys.exc_info())
+                    self.msg = "userlist: Error:" + str(sys.exc_info()) + "<br>"                    
+                    self.msg = self.msg +"list: Error:" + str(sys.exc_info()) + "</br>"
+                    self._log.error("userlist: Error interpreting the list of images from Image Repository" + str(sys.exc_info())+ "<br>")
             else:
                 self.msg = "No list of users returned. \n" + \
                         "Please verify that you are admin \n"

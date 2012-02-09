@@ -313,7 +313,8 @@ class IRService(object):
     def histImg(self, userId, imgId):
         self._log.info("user:" + userId + " command:histImg args={imgId:" + imgId + "}")
         output = self.imgStore.histImg(imgId)
-        output = re.sub(r"imgURI=,|size=0,|extension=","",str(output))
+        if output != None:
+            output = re.sub(r"imgURI=,|size=0,|extension=","",str(output))
         return output
 
     """

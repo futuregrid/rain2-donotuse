@@ -64,15 +64,17 @@ class fgShellRepo(Cmd):
             imgsList = self._service.histImg(self.user, self.passwd, self.user, args[0])
         else:
             imgsList = self._service.histImg(self.user, self.passwd, self.user, "None")
-
-        try:
-            imgs = eval(imgsList)            
-            for key in imgs.keys():                                
-                print imgs[key]
-        except:
-            print "Server replied: " + str(imgsList)
-            print "histimg: Error:" + str(sys.exc_info()) + "\n"
-            self._log.error("do_repohistimg: Error interpreting the list of images from Image Repository" + str(sys.exc_info()[0]))
+        if imgsList == "None":
+            print "ERROR: Not image record found"
+        else:
+            try:
+                imgs = eval(imgsList)            
+                for key in imgs.keys():                                
+                    print imgs[key]
+            except:
+                print "Server replied: " + str(imgsList)
+                print "histimg: Error:" + str(sys.exc_info()) + "\n"
+                self._log.error("do_repohistimg: Error interpreting the list of images from Image Repository" + str(sys.exc_info()[0]))
 
     def help_repohistimg(self):
         msg = "Image Repository histimg command: Return information about the " + \
@@ -92,7 +94,7 @@ class fgShellRepo(Cmd):
         else:
             userList = self._service.histUser(self.user, self.passwd, self.user, "None")
 
-        if userList == None:
+        if userList == "None":
             print "ERROR: Not user found"
         else:            
             try:
@@ -100,7 +102,7 @@ class fgShellRepo(Cmd):
                 for key in users.keys():                
                     print users[key]
             except:
-                print "Server replied: " + str(userList)
+                print "Server replied: " + str(userList) + "\n"
                 print "histuser: Error:" + str(sys.exc_info()) + "\n"
                 self._log.error("do_repohistuser: Error interpreting the list of users from Image Repository" + str(sys.exc_info()))
 
@@ -324,7 +326,7 @@ class fgShellRepo(Cmd):
             imgsList = self._service.query(self.user, self.passwd, self.user, args)
 
 
-        if(imgsList != None):
+        if(imgsList != "None"):
             try:                
                 imgs = eval(imgsList)
                 print str(len(imgs)) + " items found"
