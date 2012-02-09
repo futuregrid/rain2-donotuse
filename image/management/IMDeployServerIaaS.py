@@ -69,10 +69,10 @@ class IMDeployServerIaaS(object):
         self._keyfile = self._deployConf.getKeyFileIaas()
         
         
-        self.default_euca_kernel = '2.6.27.21-0.1-xen'
-        self.default_nimbus_kernel = '2.6.27.21-0.1-xen'
-        self.default_openstack_kernel = '2.6.28-11-generic'
-        self.default_kvm_ubuntu_kernel = '2.6.35-22-generic'
+        self.default_euca_kernel = self._deployConf.getDefaultEucaKernel()
+        self.default_nimbus_kernel = self._deployConf.getDefaultNimbusKernel()
+        self.default_openstack_kernel = self._deployConf.getDefaultOpenstackKernel()
+        self.default_opennebula_kernel = self._deployConf.getDefaultOpennebulaKernel()
         
         print "\nReading Configuration file from " + self._deployConf.getConfigFile() + "\n"
         
@@ -96,7 +96,7 @@ class IMDeployServerIaaS(object):
         
         return logger
 
-    def start(self): ##DO IT parallel
+    def start(self): 
         
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.bind(('', self.port))
@@ -493,7 +493,6 @@ class IMDeployServerIaaS(object):
         fstab = '''
 # Default fstab
  /dev/sda1       /             ext3     defaults,errors=remount-ro 0 0
- /dev/sda3    swap          swap     defaults              0 0
  proc            /proc         proc     defaults                   0 0
  devpts          /dev/pts      devpts   gid=5,mode=620             0 0
  '''
@@ -588,7 +587,7 @@ echo "************************"
             self.runCmd("sudo rm -f " + localtempdir + "/temp/etc/udev/rules.d/70-persistent-net.rules")
             
             if self.kernel == "None":
-                self.kernel = self.default_kvm_ubuntu_kernel 
+                self.kernel = self.default_opennebula_kernel 
             
         elif self.operatingsystem == "centos":
             #setup vmcontext.sh
@@ -604,7 +603,7 @@ echo "************************"
             os.system('sudo sed -i \'s/enforcing/disabled/g\' ' + localtempdir + '/temp/etc/selinux/config')
             
             if self.kernel == "None":
-                self.kernel = self.default_kvm_centos5_kernel
+                self.kernel = self.default_opennebula_kernel
             
         #Inject the kernel
         self.logger.info('Retrieving kernel ' + self.kernel)
@@ -642,8 +641,8 @@ echo "************************"
         fstab += "/dev/" + device + "       /             ext3     defaults,errors=remount-ro 0 0 \n"    
         fstab += "proc            /proc         proc     defaults                   0 0 \n"
         fstab += "devpts          /dev/pts      devpts   gid=5,mode=620             0 0 \n"
-        if ldap: #this is for india
-            fstab+="149.165.146.145:/users /N/u      nfs     rw,rsize=1048576,wsize=1048576,intr,nosuid"
+        #if ldap: #this is for india
+        #    fstab+="149.165.146.145:/users /N/u      nfs     rw,rsize=1048576,wsize=1048576,intr,nosuid"
  
         f = open(localtempdir + '/fstab', 'w')
         f.write(fstab)

@@ -103,7 +103,11 @@ class IMServerConf(object):
         self._ca_certs_iaas = ""
         self._certfile_iaas = ""
         self._keyfile_iaas = ""
-        
+        self._default_euca_kernel = ""
+        self._default_nimbus_kernel = ""
+        self._default_openstack_kernel = ""
+        self._default_opennebula_kernel = ""
+
         
         self._logLevel_default = "DEBUG"
         self._logType = ["DEBUG", "INFO", "WARNING", "ERROR"]
@@ -232,7 +236,14 @@ class IMServerConf(object):
         return self._certfile_iaas
     def getKeyFileIaas(self):
         return self._keyfile_iaas
-
+    def getDefaultEucaKernel(self):
+        return self._default_euca_kernel
+    def getDefaultNimbusKernel(self):
+        return self._default_nimbus_kernel
+    def getDefaultOpenstackKernel(self):
+        return self._default_openstack_kernel
+    def getDefaultOpennebulaKernel(self):
+        return self._default_opennebula_kernel
     
     ############################################################
     # load_generateServerConfig
@@ -559,6 +570,26 @@ class IMServerConf(object):
         except ConfigParser.NoOptionError:
             print "Error: No http_server option found in section " + section + " file " + self._configfile
             sys.exit(1)        
+        try:
+            self._default_euca_kernel = self._config.get(section, 'default_euca_kernel', 0)
+        except ConfigParser.NoOptionError:
+            print "Error: No default_euca_kernel option found in section " + section + " file " + self._configfile
+            sys.exit(1)        
+        try:
+            self._default_nimbus_kernel = self._config.get(section, 'default_nimbus_kernel', 0)
+        except ConfigParser.NoOptionError:
+            print "Error: No default_nimbus_kernel option found in section " + section + " file " + self._configfile
+            sys.exit(1)        
+        try:
+            self._default_openstack_kernel = self._config.get(section, 'default_openstack_kernel', 0)
+        except ConfigParser.NoOptionError:
+            print "Error: No default_openstack_kernel option found in section " + section + " file " + self._configfile
+            sys.exit(1)        
+        try:
+            self._default_opennebula_kernel = self._config.get(section, 'default_opennebula_kernel', 0)
+        except ConfigParser.NoOptionError:
+            print "Error: No default_opennebula_kernel option found in section " + section + " file " + self._configfile
+            sys.exit(1)                
         try:
             self._log_iaas = os.path.expanduser(self._config.get(section, 'log', 0))
         except ConfigParser.NoOptionError:
