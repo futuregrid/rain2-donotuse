@@ -150,6 +150,7 @@ class IRService(object):
         This method should be called by the auth method.
         return "Active", "NoActive" or "NoUser"
         """
+        self._log.info("user:" + userId + " command:getUserStatus args={userId:" + userId + "}")
         return self.userStore.getUserStatus(userId)
     
     ############################################################

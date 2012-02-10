@@ -149,7 +149,22 @@ class IMDeployServerIaaS(object):
      
     def auth(self, userCred):
         return FGAuth.auth(self.user, userCred)       
-                
+    
+    def checkUserStatus(self, userId, passwd):
+        """
+        return "Active", "NoActive", "NoUser"; also False in case the connection with the repo fails
+        """
+        if not self._reposervice.connection():
+            msg = "ERROR: Connection with the Image Repository failed"
+            self.errormsg(connstream, msg)
+            return False
+        else:
+            self.logger.debug("Checking User Status")
+            status= self._reposervice.getUserStatus(userId, passwd, userId)        
+            self._reposervice.disconnect()
+            
+            return status
+               
     def process_client(self, connstream):
         start_all = time.time()
         self.logger = self.setup_logger("." + str(os.getpid()))        
@@ -194,7 +209,17 @@ class IMDeployServerIaaS(object):
         while (not endloop):
             userCred = FGCredential(passwdtype, passwd)
             if (self.auth(userCred)):
-                connstream.write("OK")
+                #check the status of the user
+                userstatus=checkUserStatus(self.user, passwd, self.user)
+                
+                if userstatus == "Active":
+                    connstream.write("OK")                    
+                elif userstatus == "NoActive":
+                    connstream.write("NoActive")                    
+                elif userstatus == "NoUser":
+                    connstream.write("NoUser")
+                else:
+                    connstream.write("Could not connect with image repository server")
                 endloop = True
             else:
                 retry += 1

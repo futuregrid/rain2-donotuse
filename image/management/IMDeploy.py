@@ -98,6 +98,22 @@ class IMDeploy(object):
                 passwd = m.hexdigest()
                 socket_conn.write(passwd)
                 self.passwd = passwd
+            elif userstatus == "NoActive":
+                msg="The status of the user "+ userId + " is not active"
+                checkauthstat.append(str(msg))
+                self._log.error(msg)
+                if self._verbose:
+                    print msg            
+                endloop = True
+                passed = False          
+            elif userstatus == "NoUser":
+                msg="User "+ userId + " does not exist"
+                checkauthstat.append(str(msg))
+                self._log.error(msg)
+                if self._verbose:
+                    print msg  
+                endloop = True
+                passed = False
             else:                
                 self._log.error(str(ret))
                 if self._verbose:
