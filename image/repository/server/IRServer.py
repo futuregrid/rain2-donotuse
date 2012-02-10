@@ -126,7 +126,7 @@ class IRServer(object):
             self.errormsg(channel, msg)
             sys.exit(1)
         
-        self.user = params[0].strip() #ONLY for authentication. To call methods you need to use params[4]
+        self.user = params[0].strip() #ONLY for authentication. To specify the user that call methods you need to use params[4]
         passwd = params[1].strip()
         passwdtype = params[2].strip()
         command = params[3].strip()
@@ -152,11 +152,12 @@ class IRServer(object):
                 channel.write("OK")
                 endloop = True
             elif status == False:
+                #_authorizedUsers is not used currently. If we want to activate it, we need to make sure that the authizedUsers are in the Repository database
                 if self.user in self._authorizedUsers: #because these users are services that cannot retry.
                     msg = "ERROR: authentication failed"                    
                     self.errormsg(channel, msg)
                     sys.exit(1)
-                else:                    
+                else:
                     msg = "ERROR: authentication failed. Try again"
                     self._log.error(msg)
                     retry += 1

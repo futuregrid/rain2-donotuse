@@ -94,7 +94,30 @@ class IRServiceProxy(object):
             self._connIrServer.close()
         except:            
             self._log.debug("In disconnect:" + str(sys.exc_info()))
-          
+    
+    def getUserStatus(self, userId, passwd, userIdB): #this is used by other services to check the status of the user before checking passwd in ldap
+        start = time.time()
+        
+        checkauthstat = []
+        output = None
+        msg = userId + "|" + str(passwd) + "|" + self.passwdtype + "|getUserStatus|" + userIdB
+        self._connIrServer.write(msg)
+        authstatus=self.check_auth(userId, checkauthstat)
+        if authstatus == True:
+            #wait for output
+            output = self._connIrServer.read(32768)            
+            if output == "None":
+                output = None            
+        else:
+            output=authstatus
+            self._log.error(str(checkauthstat[0]))
+                    
+        end = time.time()
+        self._log.info('TIME query:' + str(end - start))
+        
+        return output
+        
+    
     def check_auth(self, userId, checkauthstat):
         endloop = False
         passed = False
