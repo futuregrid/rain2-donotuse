@@ -115,6 +115,16 @@ class IRServiceProxy(object):
                 m.update(getpass())
                 passwd = m.hexdigest()
                 self._connIrServer.write(passwd)
+            elif (ret == "NoActive"):                
+                checkauthstat.append("ERROR: The status of the user "+ userId + " is not active")
+                self._log.error("The status of the user "+ userId + " is not active")
+                endloop = True
+                passed = False
+            elif (ret == "NoUser"):
+                checkauthstat.append("ERROR: User "+ userId + " does not exist")
+                self._log.error("User "+ userId + " does not exist")
+                endloop = True
+                passed = False
             else:                
                 self._log.error(str(ret))
                 if self.verbose:
@@ -147,7 +157,8 @@ class IRServiceProxy(object):
         if self.check_auth(userId, checkauthstat):
             #wait for output
             output = self._connIrServer.read(32768)            
-            
+            if output == "None":
+                output = None
         else:
             self._log.error(str(checkauthstat[0]))
             if self.verbose:
@@ -189,6 +200,7 @@ class IRServiceProxy(object):
             else:
                 output = None
         else:
+            output = None
             self._log.error(str(checkauthstat[0]))
             if self.verbose:
                 print checkauthstat[0]
@@ -450,6 +462,8 @@ class IRServiceProxy(object):
         if self.check_auth(userId, checkauthstat):
             #wait for output
             output = self._connIrServer.read(32768)
+            if output == "None":
+                output = None
         else:
             self._log.error(str(checkauthstat[0]))
             if self.verbose:
@@ -581,6 +595,8 @@ class IRServiceProxy(object):
         if self.check_auth(userId, checkauthstat):
             #wait for output
             output = self._connIrServer.read(32768)
+            if output == "None":
+                output = None
         else:
             self._log.error(str(checkauthstat[0]))
             if self.verbose:
@@ -610,6 +626,8 @@ class IRServiceProxy(object):
         if self.check_auth(userId, checkauthstat):
             #wait for output
             output = self._connIrServer.read(32768)
+            if output == "None":
+                output = None
         else:
             self._log.error(str(checkauthstat[0]))
             if self.verbose:

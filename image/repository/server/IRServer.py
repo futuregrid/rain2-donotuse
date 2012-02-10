@@ -147,13 +147,13 @@ class IRServer(object):
         endloop = False
         while (not endloop):
             #userCred = FGCredential(passwd, passwdtype)
-            if self._service.auth(self.user, passwd, passwdtype):
+            status = self._service.auth(self.user, passwd, passwdtype)
+            if status == True:
                 channel.write("OK")
                 endloop = True
-            else:
+            elif status == False:
                 if self.user in self._authorizedUsers: #because these users are services that cannot retry.
-                    msg = "ERROR: authentication failed"
-                    endloop = True
+                    msg = "ERROR: authentication failed"                    
                     self.errormsg(channel, msg)
                     sys.exit(1)
                 else:                    
@@ -164,10 +164,13 @@ class IRServer(object):
                         channel.write("TryAuthAgain")
                         passwd = channel.read(2048)
                     else:
-                        msg = "ERROR: authentication failed"
-                        endloop = True
+                        msg = "ERROR: authentication failed"                        
                         self.errormsg(channel, msg)
                         sys.exit(1)
+            else:
+                msg = status #this is NoActive or NoUser                
+                self.errormsg(channel, msg)
+                sys.exit(1)
         
         #channel.write("OK")
         
@@ -354,6 +357,14 @@ class IRServer(object):
         elif (command == "setUserStatus"):
             if (len(params) == self.numparams + 3):
                 output = self._service.setUserStatus(params[4], params[5], params[6])
+                channel.write(str(output))
+            else:
+                msg = "Invalid Number of Parameters"
+                self.errormsg(channel, msg)
+        elif (command == "getUserStatus"):
+            #userId
+            if (len(params) == self.numparams + 1):
+                output = self._service.getUserStatus(params[4])
                 channel.write(str(output))
             else:
                 msg = "Invalid Number of Parameters"

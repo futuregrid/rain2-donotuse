@@ -161,7 +161,7 @@ class ImgStoreMysql(AbstractImgStore):
         return list of imgEntry or None
         
         """
-        
+        self._items={}
         if (self.mysqlConnection()):
             try:
                 cursor = self._dbConnection.cursor()
@@ -739,6 +739,7 @@ class ImgMetaStoreMysql(AbstractImgMetaStore):
         return list of dictionaries with the Metadata
         """
         #print criteria
+        self._items={}
         success = False
         where = False
         sql = ""
@@ -1248,7 +1249,7 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
         success = False
         if (self.mysqlConnection()):
             try:
-                if(self.isAdmin(userId)):
+                if(self.isAdmin(userId)and self._getUser(userIdtoModify) != None):
                     cursor = self._dbConnection.cursor()
 
                     update = "UPDATE %s SET role='%s'WHERE userId='%s'" \
@@ -1282,7 +1283,7 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
         success = False
         if (self.mysqlConnection()):
             try:
-                if(self.isAdmin(userId)):
+                if(self.isAdmin(userId)and self._getUser(userIdtoModify) != None):
                     cursor = self._dbConnection.cursor()
 
                     update = "UPDATE %s SET fsCap='%d'WHERE userId='%s'" \
@@ -1319,7 +1320,7 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
         success = False
         if (self.mysqlConnection()):
             try:
-                if(self.isAdmin(userId)):
+                if(self.isAdmin(userId) and self._getUser(userIdtoModify) != None):
                     cursor = self._dbConnection.cursor()
 
                     update = "UPDATE %s SET status='%s'WHERE userId='%s'" \
@@ -1357,7 +1358,7 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
 
         if (self.mysqlConnection()):
             try:
-                if(self.isAdmin(userId)):
+                if(self.isAdmin(userId)  and self._getUser(userIdtoModify) != None):
                     cursor = self._dbConnection.cursor()
 
                     sql = "DELETE FROM %s WHERE userId='%s'" % (self._tabledata, userIdtoDel)
@@ -1491,6 +1492,22 @@ class IRUserStoreMysql(AbstractIRUserStore):  # TODO
         else:
             self._log.error("Could not get access to the database. IsAdmin command failed")
         return admin
+
+    def getUserStatus(self, userId):
+        """
+        Get the status of a user
+        """
+        user = self._getUser(userId)
+        ret = ""
+        if (user != None):
+            if (user._status == "active"):                
+                ret = "Active"
+            else:
+                ret = "NoActive"
+        else:
+            ret = "NoUser"
+
+        return ret
 
     ############################################################
     # uploadValidator

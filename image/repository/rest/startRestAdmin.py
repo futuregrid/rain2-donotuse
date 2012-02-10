@@ -122,8 +122,8 @@ class AdminRestService(object):
     Notes:<br>
         <br>
         <b>attributeString</b> example (you do not need to provide all of them): <br>
-            vmtype=xen | imgtype=opennebula | os=linux | arch=x86_64 | <br>
-            description=my image | tag=tag1,tag2 | permission=public | <br>
+            vmtype=xen & imgtype=opennebula & os=linux & arch=x86_64 & <br>
+            description=my image & tag=tag1,tag2 & permission=public & <br>
             imgStatus=available.<br>
         <br>
         <b>queryString</b>: * or * where field=XX, field2=YY or <br>
@@ -181,29 +181,40 @@ class AdminRestService(object):
     # @param userCred user password in MD5 digested format
     # @param queryString (not required) string to help narrow down the query 
     def actionList (self, userId, userCred, queryString):
+        self.msg = ""
         userId = userId.strip()
         #userCred = IRCredential("ldappass", userCred)
-        if (len(userId) > 0 and self.service.auth(userId, userCred, self.provider)):
-            if (len(queryString) == 0):
-                imgsList = self.service.query(userId.strip(), "*")
-            else:
-                imgsList = self.service.query(userId.strip(), queryString.strip())
-
-            if( imgsList == None):
-                self.msg = "No list of images returned"
-            else:                                    
-                try:                    
-                    imgs = imgsList            
-                    for key in imgs.keys():                                
-                        self.msg = self.msg + str(imgs[key]) + "<br>"
-                except:
-                    self.msg = "Server replied: " + str(imgsList) + "<br>"
-                    self.msg = "list: Error:" + str(sys.exc_info()) + "</br>"
-                    self._log.error("list: Error interpreting the list of images from Image Repository" + str(sys.exc_info())+ "<br>")
-            
-                
+        if (len(userId) > 0):
+            authstatus=self.service.auth(userId, userCred, self.provider)
+            if authstatus == True:
+                if (len(queryString) == 0):
+                    imgsList = self.service.query(userId.strip(), "*")
+                else:
+                    imgsList = self.service.query(userId.strip(), queryString.strip())
+    
+                if( imgsList == None):
+                    self.msg = "No list of images returned"
+                else:                                    
+                    try:                    
+                        imgs = imgsList            
+                        for key in imgs.keys():                                
+                            self.msg = self.msg + str(imgs[key]) + "<br>"
+                    except:
+                        self.msg = "Server replied: " + str(imgsList) + "<br>"
+                        self.msg = "list: Error:" + str(sys.exc_info()) + "</br>"
+                        self._log.error("list: Error interpreting the list of images from Image Repository" + str(sys.exc_info())+ "<br>")
+            elif authstatus == False:
+                self.msg = "ERROR: Wrong password"
+            elif authstatus == "NoUser":
+                self.msg = "ERROR: User "+ userId + " does not exist"
+            elif authstatus == "NoActive":
+                self.msg = "ERROR: The status of the user "+ userId + " is not active"
+            else: #this should not be used
+                self.msg = authstatus
+                    
         else:
-            self.msg = "Please specify valid username/password"
+            self.msg = "Please specify valid userId"
+            
         raise cherrypy.HTTPRedirect("results")
     actionList.exposed = True
 
@@ -222,30 +233,45 @@ class AdminRestService(object):
     # @param imgId id of the uploaded Rest image for the specified user.
     # @param userCred user password in MD5 digested format
     # @permissionString permission string
-    def actionSetPermission (self, userId, userCred, imgId = None, permissionString = None) :
+    def actionSetPermission (self, userId, userCred, imgId, permissionString) :
         self.msg = ""
         userId = userId.strip()
         imgId = imgId.strip()
         permstring = permissionString.strip()
         #userCred = IRCredential("ldappass", userCred)
-        if (len(userId) > 0 and self.service.auth(userId, userCred, self.provider)):
-            if (len(permissionString) > 0 and len(imgId) > 0):
-                permstring = "permission=" + permissionString
-                status = self.service.updateItem(userId, imgId, permstring)
-                if(status == True):
-                    self.setMessage("Permission of img " + imgId + " updated")
-                else:
-                    self.setMessage("The permission has not been changed.")
-            else :
-                self.setMessage("Please verify the input information, you need to include userId, permission and imgId")
+        if (len(userId) > 0 and len(imgId) > 0):           
+            print permissionString
+            print  permissionString in ImgMeta.Permission
+            if(permissionString in ImgMeta.Permission):
+                authstatus=self.service.auth(userId, userCred, self.provider)
+                if authstatus == True:
+                    permstring = "permission=" + permissionString
+                    status = self.service.updateItem(userId, imgId, permstring)
+                    if(status == True):
+                        self.msg = "Permission of image " + imgId + " updated"
+                    else:
+                        self.msg = "The permission of image " + imgId + " has not been changed."
+                elif authstatus == False:
+                    self.msg = "ERROR: Wrong password"
+                elif authstatus == "NoUser":
+                    self.msg = "ERROR: User "+ userId + " does not exist"
+                elif authstatus == "NoActive":
+                    self.msg = "ERROR: The status of the user "+ userId + " is not active"
+                else: #this should not be used
+                    self.msg = authstatus
+            else:
+                self.msg = "Error: Not valid permission string. Available options: " + str(ImgMeta.Permission)
+        else:
+            self.msg = "Please verify the input information, you need to include userId/password, imageId and permission string"
     
-            raise cherrypy.HTTPRedirect("results")
+        raise cherrypy.HTTPRedirect("results")
     actionSetPermission.exposed = True;
 
     ## Set permission service
     def setPermission (self):
         message = """ <form method=get action=actionSetPermission>
         UserId: <input type=string name=userId> <br>
+        Password: <input type=password name=userCred> <br>
         Image Id: <input type=string name=imgId> <br>                                                                                 
         Permission string: <input type=string name=permissionString> <br>                                                              
         <input type=submit> </form> """
@@ -263,23 +289,33 @@ class AdminRestService(object):
         imgId = imgId.strip()
         userId = userId.strip()
         #userCred = IRCredential("ldappass", userCred)
-        if (len(userId) > 0 and self.service.auth(userId, userCred, self.provider)):
-            if(len(imgId) > 0 and len(option) > 0):    
+        if (len(userId) > 0 and len(imgId) > 0):              
+            authstatus=self.service.auth(userId, userCred, self.provider)
+            if authstatus == True:  
                 filepath = self.service.get(userId, option, imgId)
                 if (filepath != None):
-                    if (len(imgId) > 0) :
-                        self.setMessage("Downloading img to %s " % filepath.__str__())
-                    else :
-                        self.setMessage("URL:  %s " % filepath.__str__())
+                    #if (len(imgId) > 0) :
+                    self.msg = "Downloading img to %s " % filepath.__str__()
+                    return serve_file(filepath, "application/x-download", "attachment")
+                    #else :
+                    #    self.msg = "URL:  %s " % filepath.__str__()
                 else:
-                    self.setMessage("Cannot get access to the image with imgId = " + imgId)
-                    raise cherrypy.HTTPRedirect("results")
-            else :
-                self.setMessage("The image Id or option is empty! Please input both the image Id and option")
-                raise cherrypy.HTTPRedirect("results")
-    
-            return serve_file(filepath, "application/x-download", "attachment")
+                    self.msg = "Cannot get access to the image with imgId = " + imgId                    
+            elif authstatus == False:
+                self.msg = "ERROR: Wrong password"
+            elif authstatus == "NoUser":
+                self.msg = "ERROR: User "+ userId + " does not exist"
+            elif authstatus == "NoActive":
+                self.msg = "ERROR: The status of the user "+ userId + " is not active"
+            else: #this should not be used
+                self.msg = authstatus
+        else :
+            self.msg="Please verify the input information, you need to include userId/password and imageId"            
+        
         raise cherrypy.HTTPRedirect("results")
+
+        
+        #raise cherrypy.HTTPRedirect("results")
 
     actionGet.exposed = True
 
@@ -299,8 +335,7 @@ class AdminRestService(object):
     # @param userCred user password in MD5 digested format
     # @param imageFileName request based object file representing the user file name
     # @param attributeString attribute string
-    def actionPut (self, userId, userCred, imageFileName = None, attributeString = None):
-
+    def actionPut (self, userId, userCred, imageFileName, attributeString):
         # retrieve the data                                                                                                                       
         size = 0
         self.fromSite = "actionPut"
@@ -308,43 +343,59 @@ class AdminRestService(object):
         userId = userId.strip()
         attributeString = attributeString.strip()
         #userCred = IRCredential("ldappass", userCred)
-        if (len(userId) > 0 and self.service.auth(userId, userCred, self.provider)):
-            while 1:
-                data = imageFileName.file.read(1024 * 8) # Read blocks of 8KB at a time                                                               
-                size += len(data)
-                if not data: break
-    
-    
-            #check metadata
-            correct = self.checkMeta(attributeString)
-            if correct:
-                #check quota
-                isPermitted = self.service.uploadValidator(userId.strip(), size)
-    
-    
-                if (isPermitted == True):
-                    imgId = self.service.genImgId() #this is needed when we are not using mongodb as image storage backend
-                    if imgId != None:
-                        extension = os.path.splitext(imageFileName.filename)[1]
-                        imageId = self.service.put(userId, imgId, imageFileName, attributeString, size, extension)
-    
-                        self.msg = "Image %s successfully uploaded." % imageFileName.filename
-                        self.msg += " Image size %s " % size
-                        self.msg += " Image extension is %s " % extension
-                        self.msg += "<br> The image ID is %s " % imageId
+        if (len(userId) > 0 and imageFileName.file != None):
+            authstatus=self.service.auth(userId, userCred, self.provider)
+            if authstatus == True:                
+                #check metadata
+                
+                correct = self.checkMeta(attributeString)
+                if correct:
+                    while 1:
+                        data = imageFileName.file.read(1024 * 8) # Read blocks of 8KB at a time                                                               
+                        size += len(data)
+                        if not data: break
+                    #check quota
+                    isPermitted = self.service.uploadValidator(userId.strip(), size)
+                    
+                    if (isPermitted == True):
+                        imgId = self.service.genImgId() #this is needed when we are not using mongodb as image storage backend
+                        if imgId != None:
+                            extension = os.path.splitext(imageFileName.filename)[1]
+                            imageId = self.service.put(userId, imgId, imageFileName, attributeString, size, extension)
+        
+                            self.msg = "Image %s successfully uploaded." % imageFileName.filename
+                            self.msg += " Image size %s " % size
+                            self.msg += " Image extension is %s " % extension
+                            self.msg += "<br> The image ID is %s " % imageId
+                        else:
+                            self.msg += "Error generating the imgId"
+                    #This elif is not going to be used.Leave it for now. Just in case we change the new auth method (2/10/2012).
+                    elif (isPermitted.strip() == "NoUser"):  
+                        self.msg = "the image has NOT been uploaded<br>"
+                        self.msg = "The User does not exist"
+                    #This elif is not going to be used.Leave it for now. Just in case we change the new auth method (2/10/2012).
+                    elif (isPermitted.strip() == "NoActive"):
+                        self.msg = "The image has NOT been uploaded<br>"
+                        self.msg = "The User is not active"
                     else:
-                        self.msg += "Error generating the imgId"
-                elif (isPermitted.strip() == "NoUser"):
-                    self.msg = "the image has NOT been uploaded<br>"
-                    self.msg = "The User does not exist"
-                elif (isPermitted.strip() == "NoActive"):
-                    self.msg = "The image has NOT been uploaded<br>"
-                    self.msg = "The User is not active"
+                        self.msg = "The image has NOT been uploaded<br>"
+                        self.msg = "The file exceed the quota"
                 else:
-                    self.msg = "The image has NOT been uploaded"
-                    self.msg = "The file exceed the quota"
-            else:
-                self.msg += "The image has NOT been uploaded. Please, verify that the metadata string is valid"
+                    self.msg += "The image has NOT been uploaded. Please, verify that the metadata string is valid. You can also leave the "
+            elif authstatus == False:
+                self.msg = "The image has NOT been uploaded<br>"
+                self.msg += "ERROR: Wrong password"
+            elif authstatus == "NoUser":
+                self.msg = "The image has NOT been uploaded <br>"
+                self.msg += "ERROR: User "+ userId + " does not exist"
+            elif authstatus == "NoActive":
+                self.msg = "The image has NOT been uploaded<br>"
+                self.msg += "ERROR: The status of the user "+ userId + " is not active"
+            else: #this should not be used
+                self.msg = authstatus
+        else:
+            self.msg="Please verify the input information, you need to include userId/password and select and image"
+                
         raise cherrypy.HTTPRedirect("results")
     actionPut.exposed = True
 
@@ -364,7 +415,7 @@ class AdminRestService(object):
     # checkMeta
     ############################################################
     def checkMeta(self, attributeString):
-        attributes = attributeString.split("|")
+        attributes = attributeString.split("&")
         correct = True
         for item in attributes:
             attribute = item.strip()
@@ -406,22 +457,36 @@ class AdminRestService(object):
     # @param userCred user password in MD5 digested format
     # @param imgId id of the uploaded Rest image for the specified user.
     # @param attributeString
-    def actionModify (self, userId, userCred, imgId = None, attributeString = None):
+    def actionModify (self, userId, userCred, imgId, attributeString):
         self.msg = ""
         success = False
+        print imgId
         userId = userId.strip()
         imgId = imgId.strip()
         attributeString = attributeString.strip()
         #userCred = IRCredential("ldappass", userCred)
-        if (len(userId) > 0 and self.service.auth(userId, userCred, self.provider)):
-            if(len(imgId) > 0 and len(attributeString) > 0):
-                if self.checkMeta(attributeString):
-                    success = self.service.updateItem(userId, imgId, attributeString)
-    
-            if (success):
-                self.msg = "The image %s was successfully updated" % imgId
-            else:
-                self.msg += "Error in the update.<br>Please verify that you are the owner or that you introduced the correct arguments"
+        if (len(userId) > 0 and len(imgId) > 0 and len(attributeString) > 0 and self.checkMeta(attributeString)):
+            authstatus=self.service.auth(userId, userCred, self.provider)
+            if authstatus == True:
+                success = self.service.updateItem(userId, imgId, attributeString)            
+                if (success):
+                    self.msg = "The image %s was successfully updated" % imgId
+                else:
+                    self.msg += "Error in the update.<br> Please verify that you are the owner or that you introduced the correct arguments"
+            elif authstatus == False:
+                self.msg = "The image has NOT been modified<br>"
+                self.msg += "ERROR: Wrong password"
+            elif authstatus == "NoUser":
+                self.msg = "The image has NOT been modified <br>"
+                self.msg += "ERROR: User "+ userId + " does not exist"
+            elif authstatus == "NoActive":
+                self.msg = "The image has NOT been modified<br>"
+                self.msg += "ERROR: The status of the user "+ userId + " is not active"
+            else: #this should not be used
+                self.msg = authstatus
+        else:
+            self.msg += "Please verify the input information, you need to include userId/password, imageId and a valid attributeString"
+                
         raise cherrypy.HTTPRedirect("results")
     actionModify.exposed = writeMethodsExposed;
 
@@ -441,17 +506,32 @@ class AdminRestService(object):
     # @param userId login/account name of the Rest user to invoke this service
     # @param userCred user password in MD5 digested format
     # @param imgId id of the uploaded Rest image for the specified user.
-    def actionRemove (self, userId, userCred, imgId = None):
+    def actionRemove (self, userId, userCred, imgId):
         userId = userId.strip()
         imgId = imgId.strip()
         #userCred = IRCredential("ldappass", userCred)
-        if (len(userId) > 0 and self.service.auth(userId, userCred, self.provider)):
-            status = self.service.remove(userId, imgId)
-            self.msg = ""
-            if (status == True):
-                self.msg = "The image with imgId=" + imgId + " has been removed"
-            else:
-                self.msg = "The image with imgId=" + imgId + " has NOT been removed.</br>Please verify the imgId and if you are the image owner"
+        if (len(userId) > 0 and len(imgId) > 0):
+            authstatus=self.service.auth(userId, userCred, self.provider)
+            if authstatus == True:
+                status = self.service.remove(userId, imgId)
+                self.msg = ""
+                if (status == True):
+                    self.msg = "The image with imgId=" + imgId + " has been removed"
+                else:
+                    self.msg = "The image with imgId=" + imgId + " has NOT been removed.</br>Please verify the imgId and if you are the image owner"
+            elif authstatus == False:
+                self.msg = "The image has NOT been removed<br>"
+                self.msg += "ERROR: Wrong password"
+            elif authstatus == "NoUser":
+                self.msg = "The image has NOT been removed <br>"
+                self.msg += "ERROR: User "+ userId + " does not exist"
+            elif authstatus == "NoActive":
+                self.msg = "The image has NOT been removed<br>"
+                self.msg += "ERROR: The status of the user "+ userId + " is not active"
+            else: #this should not be used
+                self.msg = authstatus
+        else:
+            self.msg += "Please verify the input information, you need to include userId/password and imageId"
         raise cherrypy.HTTPRedirect("results")
     actionRemove.exposed = True;
 
@@ -475,24 +555,35 @@ class AdminRestService(object):
         userId = userId.strip()
         imgId = imgId.strip()
         #userCred = IRCredential("ldappass", userCred)
-        if (len(userId) > 0 and self.service.auth(userId, userCred, self.provider)):
-            if(len(imgId) > 0):
-                imgsList = self.service.histImg(userId, imgId)
-            else:
-                imgsList = self.service.histImg(userId, "None")
-            if imgsList == None:
-                self.msg =  "ERROR: Not image record found <br>"
-            else:               
-                try:
-                    imgs = eval(imgsList)            
-                    for key in imgs.keys():                                
-                        self.msg = self.msg + imgs[key] + "<br>"
-                except:
-                    self.msg = "Server replied: " + str(imgsList)
-                    self.msg = self.msg + "histimg: Error:" + str(sys.exc_info())+ "<br>" 
-                    self._log.error("histimg: Error interpreting the list of images from Image Repository" + str(sys.exc_info()) + "<br>")
+        imgsList=None
+        if (len(userId) > 0):
+            authstatus=self.service.auth(userId, userCred, self.provider)
+            if authstatus == True:
+                if(len(imgId) > 0):                    
+                    imgsList = self.service.histImg(userId, imgId)
+                else:
+                    imgsList = self.service.histImg(userId, "None")                
+                if imgsList == None:
+                    self.msg =  "ERROR: Not image record found <br>"
+                else:               
+                    try:
+                        imgs = eval(imgsList)            
+                        for key in imgs.keys():                                
+                            self.msg = self.msg + imgs[key] + "<br>"
+                    except:
+                        self.msg = "Server replied: " + str(imgsList)
+                        self.msg = self.msg + "histimg: Error:" + str(sys.exc_info())+ "<br>" 
+                        self._log.error("histimg: Error interpreting the list of images from Image Repository" + str(sys.exc_info()) + "<br>")
+            elif authstatus == False:                
+                self.msg = "ERROR: Wrong password"
+            elif authstatus == "NoUser":                
+                self.msg = "ERROR: User "+ userId + " does not exist"
+            elif authstatus == "NoActive":
+                self.msg = "ERROR: The status of the user "+ userId + " is not active"
+            else: #this should not be used
+                self.msg = authstatus        
         else:
-            self.msg = "Please introduce your userId"
+            self.msg = "Please introduce your userId and password"
         raise cherrypy.HTTPRedirect("results")
     actionHistImage.exposed = True;
 
@@ -517,25 +608,35 @@ class AdminRestService(object):
         adminId = adminId.strip()
         userIdtoSearch = userIdtoSearch.strip()
         #userCred = IRCredential("ldappass", userCred)
-        if (len(adminId) > 0 and self.service.auth(adminId, adminCred, self.provider)):
-            if (len(userIdtoSearch) > 0):
-                userList = self.service.histUser(adminId, userIdtoSearch)
-            else:
-                userList = self.service.histUser(adminId, "None")
-           
-            if userList == None:
-                self.msg =  "ERROR: Not user found <br>"
-            else:            
-                try:
-                    users = eval(userList)            
-                    for key in users.keys():                
-                        self.msg = self.msg + users[key] + "<br>"
-                except:
-                    self.msg = "Server replied: " + str(userList) + "<br>"                    
-                    self.msg = self.msg + "histuser: Error:" + str(sys.exc_info())+ "<br>" 
-                    self._log.error("histuser: Error interpreting the list of users from Image Repository" + str(sys.exc_info())+ "<br>")               
+        if (len(adminId) > 0 ):
+            authstatus=self.service.auth(adminId, adminCred, self.provider)
+            if authstatus == True:
+                if (len(userIdtoSearch) > 0):
+                    userList = self.service.histUser(adminId, userIdtoSearch)
+                else:
+                    userList = self.service.histUser(adminId, "None")
+               
+                if userList == None:
+                    self.msg =  "ERROR: Not user found <br>"
+                else:            
+                    try:
+                        users = eval(userList)            
+                        for key in users.keys():                
+                            self.msg = self.msg + users[key] + "<br>"
+                    except:
+                        self.msg = "Server replied: " + str(userList) + "<br>"                    
+                        self.msg = self.msg + "histuser: Error:" + str(sys.exc_info())+ "<br>" 
+                        self._log.error("histuser: Error interpreting the list of users from Image Repository" + str(sys.exc_info())+ "<br>")               
+            elif authstatus == False:                
+                self.msg = "ERROR: Wrong password"
+            elif authstatus == "NoUser":                
+                self.msg = "ERROR: User "+ adminId + " does not exist"
+            elif authstatus == "NoActive":                
+                self.msg = "ERROR: The status of the user "+ adminId + " is not active"
+            else: #this should not be used
+                self.msg = authstatus
         else:
-            self.msg = "Please introduce your userId"
+            self.msg = "Please introduce your userId and password"
 
         raise cherrypy.HTTPRedirect("results")
     actionHistUser.exposed = True;
@@ -561,8 +662,9 @@ class AdminRestService(object):
         adminId = adminId.strip()
         userIdtoAdd = userIdtoAdd.strip()
         #adminCred = IRCredential("ldappass", adminCred)
-        if (len(adminId) > 0 and self.service.auth(adminId, adminCred, self.provider)):
-            if (len(userIdtoAdd) > 0):
+        if (len(adminId) > 0 and len(userIdtoAdd) > 0):
+            authstatus=self.service.auth(adminId, adminCred, self.provider)
+            if authstatus == True:            
                 status = self.service.userAdd(adminId, userIdtoAdd)
                 if(status):
                     self.msg = "User created successfully.</br>"
@@ -570,8 +672,16 @@ class AdminRestService(object):
                 else:
                     self.msg = "The user has not been created.</br>"
                     self.msg = self.msg + "Please verify that you are admin and that the username does not exist </br>"
-            else:
-                self.msg = "Please introduce your userId and the userId to add"
+            elif authstatus == False:                
+                self.msg = "ERROR: Wrong password"
+            elif authstatus == "NoUser":                
+                self.msg = "ERROR: User "+ adminId + " does not exist"
+            elif authstatus == "NoActive":                
+                self.msg = "ERROR: The status of the user "+ adminId + " is not active"
+            else: #this should not be used
+                self.msg = authstatus
+        else:
+            self.msg = "Please introduce your userId/password and the userId to add"
         raise cherrypy.HTTPRedirect("results")
     actionUserAdd.exposed = True
 
@@ -593,17 +703,26 @@ class AdminRestService(object):
         adminId = adminId.strip()
         userIdtoDel = userIdtoDel.strip()
         #adminCred = IRCredential("ldappass", adminCred)
-        if (len(adminId) > 0 and self.service.auth(adminId, adminCred, self.provider)):
-            if (len(userIdtoDel) > 0):
+        if (len(adminId) > 0 and len(userIdtoDel) > 0):            
+            authstatus=self.service.auth(adminId, adminCred, self.provider)
+            if authstatus == True: 
                 status = self.service.userDel(adminId, userIdtoDel)
                 self.msg = ""
                 if(status == True):
                     self.msg = "User deleted successfully."
                 else:
                     self.msg = "The user has not been deleted.</br>"
-                    self.msg = self.msg + "Please verify that you are admin and that the username exists \n"
-            else:
-                self.msg = "Please introduce your userId and the userId to del"
+                    self.msg = self.msg + "Please verify that you are admin and that the username \"" + userIdtoDel + "\" exists \n"
+            elif authstatus == False:                
+                self.msg = "ERROR: Wrong password"
+            elif authstatus == "NoUser":                
+                self.msg = "ERROR: User "+ adminId + " does not exist"
+            elif authstatus == "NoActive":                
+                self.msg = "ERROR: The status of the user "+ adminId + " is not active"
+            else: #this should not be used
+                self.msg = authstatus
+        else:
+            self.msg = "Please introduce your userId/password and the userId to delete"
         raise cherrypy.HTTPRedirect("results")
     actionUserDel.exposed = True
 
@@ -624,24 +743,34 @@ class AdminRestService(object):
         self.msg = ""
         adminId = adminId.strip()
         #adminCred = IRCredential("ldappass", adminCred)
-        if (len(adminId) > 0 and self.service.auth(adminId, adminCred, self.provider)):
-            usersList = self.service.userList(adminId)
-            if (usersList != None):
-                try:
-                    self.msg = "<br>" + str(len(usersList)) + " users found </br>"
-                    self.msg = self.msg + "<br> UserId Cred fsCap fsUsed lastLogin status role ownedImgs </br>"
-                    for user in usersList.items():
-                        self.msg = self.msg + "<br>" + str(user[1])[1:len(str(user[1])) - 1]
-                        self.msg = self.msg + "</br>"
-                except:
-                    self.msg = "userlist: Error:" + str(sys.exc_info()) + "<br>"                    
-                    self.msg = self.msg +"list: Error:" + str(sys.exc_info()) + "</br>"
-                    self._log.error("userlist: Error interpreting the list of images from Image Repository" + str(sys.exc_info())+ "<br>")
-            else:
-                self.msg = "No list of users returned. \n" + \
-                        "Please verify that you are admin \n"
-        else :
-            self.msg = "<br> Please introduce your userId"
+        if (len(adminId) > 0):
+            authstatus=self.service.auth(adminId, adminCred, self.provider)
+            if authstatus == True:
+                usersList = self.service.userList(adminId)
+                if (usersList != None):
+                    try:
+                        self.msg = "<br>" + str(len(usersList)) + " users found </br>"
+                        self.msg = self.msg + "<br> UserId Cred fsCap fsUsed lastLogin status role ownedImgs </br>"
+                        for user in usersList.items():
+                            self.msg = self.msg + "<br>" + str(user[1])[1:len(str(user[1])) - 1]
+                            self.msg = self.msg + "</br>"
+                    except:
+                        self.msg = "userlist: Error:" + str(sys.exc_info()) + "<br>"                    
+                        self.msg = self.msg +"list: Error:" + str(sys.exc_info()) + "</br>"
+                        self._log.error("userlist: Error interpreting the list of images from Image Repository" + str(sys.exc_info())+ "<br>")
+                else:
+                    self.msg = "No list of users returned. \n" + \
+                            "Please verify that you are admin \n"
+            elif authstatus == False:                
+                self.msg = "ERROR: Wrong password"
+            elif authstatus == "NoUser":                
+                self.msg = "ERROR: User "+ adminId + " does not exist"
+            elif authstatus == "NoActive":                
+                self.msg = "ERROR: The status of the user "+ adminId + " is not active"
+            else: #this should not be used
+                self.msg = authstatus
+        else:
+            self.msg = "<br> Please introduce your userId and password"
 
         raise cherrypy.HTTPRedirect("results")
     actionUserList.exposed = True;
@@ -661,27 +790,38 @@ class AdminRestService(object):
     # @param userIdtoModify user id where the quota is modified
     # @param quota quota of the specified user
     def actionQuota (self, adminId, adminCred, userIdtoModify, quota) :
-
+        self.msg = ""
         adminId = adminId.strip()
         userIdtoModify = userIdtoModify.strip()
         #adminCred = IRCredential("ldappass", adminCred)
-        if (len(adminId) > 0 and self.service.auth(adminId, adminCred, self.provider)):
+        if (len(adminId) > 0 and len(userIdtoModify) > 0):
             try:
                 quota = eval(quota)
-                if (len(userIdtoModify) > 0):
-                    status = self.service.setUserQuota(adminId, userIdtoModify, quota)
-                    if(status == True):
-                        self.msg = "Quota changed successfully."
-                    else:
-                        self.msg = "The user quota has not been changed.</br>"
-                        self.msg = self.msg + "Please verify that you are admin and that the username exists"
-                else:
-                    self.msg = "<br> Please introduce your userId, the userId to modify and the quota in bytes (math operation allowed)"
             except:
                 self.msg = "<br> The quota must be a number or a valid math function"
-
+                raise cherrypy.HTTPRedirect("results")
+            
+            authstatus=self.service.auth(adminId, adminCred, self.provider)
+            if authstatus == True:
+                status = self.service.setUserQuota(adminId, userIdtoModify, quota)
+                if(status == True):
+                    self.msg = "Quota changed successfully."
+                else:
+                    self.msg = "The user quota has not been changed.</br>"
+                    self.msg = self.msg + "Please verify that you are admin and that the username \""+userIdtoModify+"\" exists"                
+            elif authstatus == False:                
+                self.msg = "ERROR: Wrong password"
+            elif authstatus == "NoUser":                
+                self.msg = "ERROR: User "+ adminId + " does not exist"
+            elif authstatus == "NoActive":                
+                self.msg = "ERROR: The status of the user "+ adminId + " is not active"
+            else: #this should not be used
+                self.msg = authstatus
+            
+        else:
+            self.msg = "<br> Please verify the input information, you need to include your userId/password, the userId to modify and the quota in bytes (math operation allowed)"           
         raise cherrypy.HTTPRedirect("results")
-        return self.msg
+        
     actionQuota.exposed = True
 
     # setquota Rest service
@@ -701,23 +841,33 @@ class AdminRestService(object):
     # @param userIdtoModify user id that is the subject of the set role in the datbase
     # @param role
     def actionUserRole (self, adminId, adminCred, userIdtoModify, role) :
+        self.msg = ""
         adminId = adminId.strip()
         userIdtoModify = userIdtoModify.strip()
         role = role.strip()
         #adminCred = IRCredential("ldappass", adminCred)
-        if (len(adminId) > 0 and self.service.auth(adminId, adminCred, self.provider)):
-            if (len(userIdtoModify) > 0 and len(role) > 0):
-                # User name based on admin file
-                status = self.service.setUserRole(adminId, userIdtoModify, role)
-    
-                self.msg = ""
-                if (status == True):
-                    self.msg = "Role changed successfully."
-                else:
-                    self.msg = "The user role has not been changed </br>"
-                    self.msg = self.msg + "Please verify that you are admin and that the username exists"
+        if (len(adminId) > 0 and len(userIdtoModify) > 0 and len(role) > 0):
+            if role in IRUser.Role:                
+                authstatus=self.service.auth(adminId, adminCred, self.provider)
+                if authstatus == True:
+                    status = self.service.setUserRole(adminId, userIdtoModify, role)                                
+                    if (status == True):
+                        self.msg = "Role changed successfully."
+                    else:
+                        self.msg = "The user role has not been changed </br>"
+                        self.msg = self.msg + "Please verify that you are admin and that the username \""+userIdtoModify+"\" exists"
+                elif authstatus == False:                
+                    self.msg = "ERROR: Wrong password"
+                elif authstatus == "NoUser":                
+                    self.msg = "ERROR: User "+ adminId + " does not exist"
+                elif authstatus == "NoActive":                
+                    self.msg = "ERROR: The status of the user "+ adminId + " is not active"
+                else: #this should not be used
+                    self.msg = authstatus
             else:
-                self.msg = "<br> Please introduce your userId, the userId to modify and the role"
+                self.msg = "ERROR: The user role is not valid. Available options: " + str(IRUser.Role)
+        else:
+            self.msg = "<br> Please introduce your userId, the userId to modify and the role"
         raise cherrypy.HTTPRedirect("results")
     actionUserRole.exposed = True
 
@@ -742,17 +892,29 @@ class AdminRestService(object):
         userIdtoModify = userIdtoModify.strip()
         status = status.strip()
         #adminCred = IRCredential("ldappass", adminCred)
-        if (len(adminId) > 0 and self.service.auth(adminId, adminCred, self.provider)):
-            if (len(userIdtoModify) > 0 and len(status) > 0):
-                status = self.service.setUserStatus(adminId, userIdtoModify, status)
-                self.msg = ""
-                if(status == True):
-                    self.msg = "Status changed successfully."
-                else:
-                    self.msg = "The user status has not been changed.</br>"
-                    self.msg = self.msg + "Please verify that you are admin and that the username exists \n"
+        if (len(adminId) > 0 and len(userIdtoModify) > 0 and len(status) > 0):            
+            if(status in IRUser.Status):
+                authstatus=self.service.auth(adminId, adminCred, self.provider)
+                if authstatus == True:
+                    status = self.service.setUserStatus(adminId, userIdtoModify, status)
+                    self.msg = ""
+                    if(status == True):
+                        self.msg = "Status changed successfully."
+                    else:
+                        self.msg = "The user status has not been changed.</br>"
+                        self.msg = self.msg + "Please verify that you are admin and that the username \"" +userIdtoModify+ "\" exists \n"
+                elif authstatus == False:                
+                    self.msg = "ERROR: Wrong password"
+                elif authstatus == "NoUser":                
+                    self.msg = "ERROR: User "+ adminId + " does not exist"
+                elif authstatus == "NoActive":                
+                    self.msg = "ERROR: The status of the user "+ adminId + " is not active"
+                else: #this should not be used
+                    self.msg = authstatus
             else:
-                self.msg = "<br> Please introduce your userId, the userId to modify and the status"
+               self.msg = "Error: Not valid status string. Available options: " + str(IRUser.Status)
+        else:
+            self.msg = "<br> Please introduce your userId, the userId to modify and the status"
         raise cherrypy.HTTPRedirect("results")
     actionUserStatus.exposed = True
 

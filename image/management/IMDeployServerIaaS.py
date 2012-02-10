@@ -148,7 +148,7 @@ class IMDeployServerIaaS(object):
                         
      
     def auth(self, userCred):
-        return FGAuth.auth(self.user, userCred)             
+        return FGAuth.auth(self.user, userCred)       
                 
     def process_client(self, connstream):
         start_all = time.time()

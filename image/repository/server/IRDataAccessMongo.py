@@ -244,7 +244,7 @@ class ImgStoreMongo(AbstractImgStore):
         return list of imgEntry or None
         
         """
-        
+        self._items={}
         if (self.mongoConnection()):
             try:
                 dbLink = self._dbConnection[self._dbName]
@@ -874,7 +874,7 @@ class ImgMetaStoreMongo(AbstractImgMetaStore):
                                 
         return list of dictionaries with the Metadata
         """
-        
+        self._items={}
         if (self.mongoConnection()):
             try:
                 dbLink = self._dbConnection[self._dbName]
@@ -1291,7 +1291,7 @@ class IRUserStoreMongo(AbstractIRUserStore):
 
         if (self.mongoConnection()):
             try:
-                if(self.isAdmin(userId)):
+                if(self.isAdmin(userId)  and self._getUser(userIdtoModify) != None):
                     dbLink = self._dbConnection[self._dbName]
                     collection = dbLink[self._usercollection]
 
@@ -1325,7 +1325,7 @@ class IRUserStoreMongo(AbstractIRUserStore):
 
         if (self.mongoConnection()):
             try:
-                if(self.isAdmin(userId)):
+                if(self.isAdmin(userId)  and self._getUser(userIdtoModify) != None):
                     dbLink = self._dbConnection[self._dbName]
                     collection = dbLink[self._usercollection]
 
@@ -1359,7 +1359,7 @@ class IRUserStoreMongo(AbstractIRUserStore):
 
         if (self.mongoConnection()):
             try:
-                if(self.isAdmin(userId)):
+                if(self.isAdmin(userId) and self._getUser(userIdtoModify) != None ):
                     dbLink = self._dbConnection[self._dbName]
                     collection = dbLink[self._usercollection]
 
@@ -1394,7 +1394,7 @@ class IRUserStoreMongo(AbstractIRUserStore):
 
         if (self.mongoConnection()):
             try:
-                if(self.isAdmin(userId)):
+                if(self.isAdmin(userId) and self._getUser(userIdtoModify) != None):
                     dbLink = self._dbConnection[self._dbName]
                     collection = dbLink[self._usercollection]
 
@@ -1535,6 +1535,24 @@ class IRUserStoreMongo(AbstractIRUserStore):
             self._log.error("Could not get access to the database. IsAdmin command failed")
 
         return admin
+
+   
+    def getUserStatus(self, userId):
+        """
+        Get the status of a user
+        """
+        user = self._getUser(userId)
+        ret = ""
+        if (user != None):
+            if (user._status == "active"):                
+                ret = "Active"
+            else:
+                ret = "NoActive"
+        else:
+            ret = "NoUser"
+
+        return ret
+
 
     ############################################################
     # uploadValidator

@@ -193,7 +193,7 @@ def main():
             imgsList = service.query(args.user, passwd, args.user, args.list)
         #dict wrapped into a list, convert it first        
         #print imgsList        
-        if(imgsList != "None"):
+        if(imgsList != None):
             try:                
                 imgs = eval(imgsList)
                 print str(len(imgs)) + " items found"
@@ -274,12 +274,12 @@ def main():
             print "User deleted successfully."
         else:
             print "The user has not been deleted. \n" + \
-                  "Please verify that you are admin and that the username exists \n"
+                  "Please verify that you are admin and that the username \"" + args.userdel + "\" exists \n"
         
     elif ('--userlist' in used_args):
         userList = service.userList(args.user, passwd, args.user)
         #print userList                
-        if(userList.strip() != "None"):
+        if(userList != None):
             try:
                 imgs = eval(userList)
                 print str(len(imgs)) + " users found"
@@ -301,7 +301,7 @@ def main():
             print "Quota changed successfully."
         else:
             print "The user quota has not been changed. \n" + \
-                  "Please verify that you are admin and that the username exists \n"
+                  "Please verify that you are admin and that the username \"" + args.setuserquota[0] + "\" exists \n"
         
 
     elif ('--setuserrole' in used_args):
@@ -310,8 +310,8 @@ def main():
         if(status == "True"):
             print "Role changed successfully."
         else:
-            print "The user role has not been changed. " + status + "\n"\
-          "Please verify that you are admin and that the username exists \n"
+            print "The user role has not been changed. " + status + "\n"+\
+          "Please verify that you are admin and that the username \"" + args.setuserrole[0] + "\" exists \n"
         
 
     elif ('--setuserstatus' in used_args):
@@ -320,8 +320,8 @@ def main():
         if(status == "True"):
             print "Status changed successfully."
         else:
-            print "The user status has not been changed. " + status + "\n"\
-          "Please verify that you are admin and that the username exists \n"
+            print "The user status has not been changed. " + status + "\n"+\
+                  "Please verify that you are admin and that the username \""+args.setuserstatus[0]+"\"exists \n"
                 
     #these are again for eveyone
     elif ('--histimg' in used_args):
@@ -330,7 +330,7 @@ def main():
         else:
             imgsList = service.histImg(args.user, passwd, args.user, "None")
         
-        if imgsList == "None":
+        if imgsList == None:
             print "ERROR: Not image record found"
         else:
             try:
@@ -350,7 +350,7 @@ def main():
         else:
             userList = service.histUser(args.user, passwd, args.user, "None")
         
-        if userList == "None":
+        if userList == None:
             print "ERROR: Not user found"
         else:            
             try:

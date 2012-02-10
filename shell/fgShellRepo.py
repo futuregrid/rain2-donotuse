@@ -64,7 +64,7 @@ class fgShellRepo(Cmd):
             imgsList = self._service.histImg(self.user, self.passwd, self.user, args[0])
         else:
             imgsList = self._service.histImg(self.user, self.passwd, self.user, "None")
-        if imgsList == "None":
+        if imgsList == None:
             print "ERROR: Not image record found"
         else:
             try:
@@ -94,7 +94,7 @@ class fgShellRepo(Cmd):
         else:
             userList = self._service.histUser(self.user, self.passwd, self.user, "None")
 
-        if userList == "None":
+        if userList == None:
             print "ERROR: Not user found"
         else:            
             try:
@@ -238,7 +238,7 @@ class fgShellRepo(Cmd):
 
         userList = self._service.userList(self.user, self.passwd, self.user)
 
-        if(userList.strip() != "None"):
+        if(userList.strip() != None):
             try:
                 imgs = eval(userList)
                 print str(len(imgs)) + " users found"
@@ -326,7 +326,7 @@ class fgShellRepo(Cmd):
             imgsList = self._service.query(self.user, self.passwd, self.user, args)
 
 
-        if(imgsList != "None"):
+        if(imgsList != None):
             try:                
                 imgs = eval(imgsList)
                 print str(len(imgs)) + " items found"

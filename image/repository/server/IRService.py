@@ -128,12 +128,30 @@ class IRService(object):
 
     
     def auth(self, userId, userCred, provider):
-        cred = FGCredential(provider, userCred)
-        status = FGAuth.auth(userId, cred)
-        if status:
-            self.userStore.updateLastLogin(userId)
-        return status
+        """
+        return True, False, "NoActive", "NoUser"
+        """
+        userstatus=self.userStore.getUserStatus(userId)
+        if userstatus=="Active":
+            cred = FGCredential(provider, userCred)
+            status = FGAuth.auth(userId, cred)
+            if status:
+                self.userStore.updateLastLogin(userId)
+            return status
+        else:
+            return userstatus
 
+    ############################################################
+    # getUserStatus
+    ############################################################
+    def getUserStatus(self,userId):
+        """
+        This is to verify the status of a user. 
+        This method should be called by the auth method.
+        return "Active", "NoActive" or "NoUser"
+        """
+        return self.userStore.getUserStatus(userId)
+    
     ############################################################
     # uploadValidator
     ############################################################
@@ -363,7 +381,8 @@ class IRService(object):
 
         users = self.userStore.queryStore(userId, userIdtoSearch)
         #.*? everything until
-        users = re.sub("cred=.*?, ","",str(users))
+        if users != None:
+            users = re.sub("cred=.*?, ","",str(users))
         """
         if(users != None):
             for key in users.keys():
