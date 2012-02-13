@@ -358,7 +358,7 @@ def buildUbuntu(name, version, arch, pkgs, tempdir, base_os, ldap):
     os.system('sed -i \'s/StrictHostKeyChecking ask/StrictHostKeyChecking no/g\' ' + tempdir + '' + name + '/etc/ssh/ssh_config')
     os.system('echo \"StrictHostKeyChecking no\" | tee -a ' + tempdir + '' + name + '/etc/ssh/ssh_config > /dev/null')
 
-    os.system('mkdir -f ' +tempdir + '' + name + "/root/.ssh")
+    os.system('mkdir -p ' +tempdir + '' + name + "/root/.ssh")
 
     output = name
 
@@ -575,7 +575,7 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
     #create /etc/shadow file
     #runCmd('chroot ' + tempdir + '' + name + ' pwconv')
 
-    os.system('mkdir -f ' +tempdir + '' + name + "/root/.ssh")
+    os.system('mkdir -p ' +tempdir + '' + name + "/root/.ssh")
 
     output = name
 

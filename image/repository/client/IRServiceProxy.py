@@ -127,7 +127,7 @@ class IRServiceProxy(object):
             ret = self._connIrServer.read(1024)
             if (ret == "OK"):
                 if self.verbose:
-                    print "Authentication OK"
+                    print "Authentication OK. Your request is being processed"
                 self._log.debug("Authentication OK")
                 endloop = True
                 passed = True

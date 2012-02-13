@@ -84,7 +84,7 @@ class IMDeploy(object):
             ret = socket_conn.read(1024)
             if (ret == "OK"):
                 if self._verbose:
-                    print "Authentication OK"
+                    print "Authentication OK. Your request is being processed"
                 self._log.debug("Authentication OK")
                 endloop = True
                 passed = True
@@ -143,6 +143,9 @@ class IMDeploy(object):
             #self._log.debug('Sending message: ' + msg)
             
             iaasServer.write(msg)
+            
+            if self._verbose:
+                print "Your request is in the queue to be processed after authentication"
             
             if self.check_auth(iaasServer, checkauthstat):
                 start = time.time()
@@ -949,6 +952,9 @@ class IMDeploy(object):
             #self._log.debug('Sending message: ' + msg)
             
             xcatServer.write(msg)
+
+            if self._verbose:
+                print "Your request is in the queue to be processed after authentication"
 
             if self.check_auth(xcatServer, checkauthstat):
 

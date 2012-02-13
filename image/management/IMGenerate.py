@@ -169,8 +169,6 @@ class IMGenerate(object):
         #check if the server received all parameters
         if self._verbose:
             print "Your image request is in the queue to be processed after authentication"
-        
-        
                 
         if self.check_auth(genServer, checkauthstat):
             if self._verbose:
