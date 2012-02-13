@@ -188,7 +188,7 @@ class IMDeployServerXcat(object):
                     self.logger.error(msg)
                     self.logger.info("Image Deploy Request DONE")
                     return
-                endloop = True                
+                endloop = True       
             else:
                 retry+=1
                 if retry < maxretry:

@@ -246,20 +246,20 @@ class IMGenerateServer(object):
                 #This contacts with image repository client to check its db. The user an password are OK because this was already checked.
                 userstatus=self.checkUserStatus(self.user, passwd, self.user)      
                 if userstatus == "Active":
-                    connstream.write("OK")                    
+                    channel.write("OK")                    
                 elif userstatus == "NoActive":
-                    connstream.write("NoActive")
+                    channel.write("NoActive")
                     msg = "ERROR: The user " + self.user + " is not active"
                     self.errormsg(connstream, msg)
                     return                    
                 elif userstatus == "NoUser":
-                    connstream.write("NoUser")
+                    channel.write("NoUser")
                     msg = "ERROR: The user " + self.user + " does not exist"
                     self.logger.error(msg)
                     self.logger.info("Image Generation Request DONE")
                     return
                 else:
-                    connstream.write("Could not connect with image repository server")
+                    channel.write("Could not connect with image repository server")
                     msg = "ERROR: Could not connect with image repository server to verify the user status"
                     self.logger.error(msg)
                     self.logger.info("Image Generation Request DONE")
