@@ -132,7 +132,7 @@ class IRServiceProxy(object):
                 endloop = True
                 passed = True
             elif (ret == "TryAuthAgain"):
-                msg = "Permission denied, please try again. User is " + userId                    
+                msg = "ERROR: Permission denied, please try again. User is " + userId                    
                 self._log.error(msg)
                 if self.verbose:
                     print msg                            

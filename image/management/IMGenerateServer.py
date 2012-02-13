@@ -248,7 +248,7 @@ class IMGenerateServer(object):
                 elif userstatus == "NoActive":
                     channel.write("NoActive")
                     msg = "ERROR: The user " + self.user + " is not active"
-                    self.errormsg(connstream, msg)
+                    self.errormsg(channel, msg)
                     return                    
                 elif userstatus == "NoUser":
                     channel.write("NoUser")

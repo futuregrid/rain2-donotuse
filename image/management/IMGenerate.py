@@ -89,7 +89,7 @@ class IMGenerate(object):
                 endloop = True
                 passed = True
             elif (ret == "TryAuthAgain"):
-                msg = "Permission denied, please try again. User is " + self.user                    
+                msg = "ERROR: Permission denied, please try again. User is " + self.user                    
                 self._log.error(msg)
                 if self._verbose:
                     print msg                            
@@ -99,7 +99,7 @@ class IMGenerate(object):
                 socket_conn.write(passwd)
                 self.passwd = passwd
             elif ret == "NoActive":
-                msg="The status of the user "+ self.user + " is not active"
+                msg="ERROR: The status of the user "+ self.user + " is not active"
                 checkauthstat.append(str(msg))
                 self._log.error(msg)
                 #if self._verbose:
@@ -107,7 +107,7 @@ class IMGenerate(object):
                 endloop = True
                 passed = False          
             elif ret == "NoUser":
-                msg="User "+ self.user + " does not exist"
+                msg="ERROR: User "+ self.user + " does not exist"
                 checkauthstat.append(str(msg))
                 self._log.error(msg)
                 #if self._verbose:
