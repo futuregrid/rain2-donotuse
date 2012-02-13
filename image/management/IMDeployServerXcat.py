@@ -118,7 +118,22 @@ class IMDeployServerXcat(object):
  
     def auth(self, userCred):
         return FGAuth.auth(self.user, userCred)                 
-                
+    
+    def checkUserStatus(self, userId, passwd, userIdB):
+        """
+        return "Active", "NoActive", "NoUser"; also False in case the connection with the repo fails
+        """
+        if not self._reposervice.connection():
+            msg = "ERROR: Connection with the Image Repository failed"
+            self.errormsg(connstream, msg)
+            return False
+        else:
+            self.logger.debug("Checking User Status")
+            status= self._reposervice.getUserStatus(userId, passwd, userIdB)
+            self._reposervice.disconnect()
+            
+            return status
+               
     def process_client(self, connstream):
         start_all = time.time()
         self.logger.info('Accepted new connection')        
@@ -151,8 +166,29 @@ class IMDeployServerXcat(object):
         while ( not endloop ):
             userCred = FGCredential(passwdtype,passwd)
             if (self.auth(userCred)):
-                connstream.write("OK")
-                endloop = True
+                #check the status of the user in the image repository. 
+                #This contacts with image repository client to check its db. The user an password are OK because this was already checked.
+                userstatus=self.checkUserStatus(self.user, passwd, self.user)      
+                if userstatus == "Active":
+                    connstream.write("OK")                    
+                elif userstatus == "NoActive":
+                    connstream.write("NoActive")
+                    msg = "ERROR: The user " + self.user + " is not active"
+                    self.errormsg(connstream, msg)
+                    return                    
+                elif userstatus == "NoUser":
+                    connstream.write("NoUser")
+                    msg = "ERROR: The user " + self.user + " does not exist"
+                    self.logger.error(msg)
+                    self.logger.info("Image Deploy Request DONE")
+                    return
+                else:
+                    connstream.write("Could not connect with image repository server")
+                    msg = "ERROR: Could not connect with image repository server to verify the user status"
+                    self.logger.error(msg)
+                    self.logger.info("Image Deploy Request DONE")
+                    return
+                endloop = True                
             else:
                 retry+=1
                 if retry < maxretry:

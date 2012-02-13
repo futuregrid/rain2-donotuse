@@ -262,12 +262,13 @@ class fgShellImage(Cmd):
                     "NOTE: To query the repository you need to remove the OS from the image name (centos,ubuntu,debian,rhel...). " + \
                       "The real name starts with the username."
             else:
-                imagename = self.imgdeploy.xcat_method(args.xcat, args.imgid)                
-                print 'Your image has been deployed in xCAT as ' + str(imagename) + '.\n Please allow a few minutes for xCAT to register the image before attempting to use it.'
-                print 'To run a job in a machine using your image you use the launch command of the rain context (use rain). For more info type: help launch'
-                print 'You can also do it by executing the next command: qsub -l os=<imagename> <scriptfile>' 
-                print 'In the second case you can check the status of the job with the checkjob and showq commands'
-                print 'qsub, checkjob and showq are Moab/torque commands. So you need to execute them from outside of this shell or type the ! character before the command'
+                imagename = self.imgdeploy.xcat_method(args.xcat, args.imgid)
+                if imagename != None:            
+                    print 'Your image has been deployed in xCAT as ' + str(imagename) + '.\n Please allow a few minutes for xCAT to register the image before attempting to use it.'
+                    print 'To run a job in a machine using your image you use the launch command of the rain context (use rain). For more info type: help launch'
+                    print 'You can also do it by executing the next command: qsub -l os=<imagename> <scriptfile>' 
+                    print 'In the second case you can check the status of the job with the checkjob and showq commands'
+                    print 'qsub, checkjob and showq are Moab/torque commands. So you need to execute them from outside of this shell or type the ! character before the command'
         else:    
             ldap = args.ldap #configure ldap in the VM
             varfile=""

@@ -89,9 +89,11 @@ class IMGenerateServer(object):
         
         print "\nReading Configuration file from " + self._genConf.getConfigFile() + "\n"
         
-        #Image repository Object
-        self._reposervice = IRServiceProxy(False, False)
-    
+        #Image repository Object        
+        verbose=False
+        printLogStdout=False
+        self._reposervice = IRServiceProxy(verbose,printLogStdout)
+        
     def setup_logger(self):
         #Setup logging
         logger = logging.getLogger("GenerateServer")
@@ -168,7 +170,22 @@ class IMGenerateServer(object):
                   
     def auth(self, userCred):
         return FGAuth.auth(self.user, userCred)        
-      
+    
+    def checkUserStatus(self, userId, passwd, userIdB):
+        """
+        return "Active", "NoActive", "NoUser"; also False in case the connection with the repo fails
+        """
+        if not self._reposervice.connection():
+            msg = "ERROR: Connection with the Image Repository failed"
+            self.errormsg(connstream, msg)
+            return False
+        else:
+            self.logger.debug("Checking User Status")
+            status= self._reposervice.getUserStatus(userId, passwd, userIdB)
+            self._reposervice.disconnect()
+            
+            return status  
+        
     def generate(self, channel):
         #this runs in a different proccess
         
@@ -201,7 +218,7 @@ class IMGenerateServer(object):
         #params[8] is the user password
         #params[9] is the type of password
         
-        self.user = params[0].strip()                
+        self.user = params[0].strip()           
         self.os = params[1].strip()
         self.version = params[2].strip()
         self.arch = params[3].strip()
@@ -216,7 +233,7 @@ class IMGenerateServer(object):
             msg = "ERROR: incorrect message"
             self.errormsg(channel, msg)
             #break
-            sys.exit(1)
+            return
         retry = 0
         maxretry = 3
         endloop = False
@@ -225,6 +242,29 @@ class IMGenerateServer(object):
             if self.auth(userCred):
                 channel.write("OK")
                 endloop = True
+                #check the status of the user in the image repository. 
+                #This contacts with image repository client to check its db. The user an password are OK because this was already checked.
+                userstatus=self.checkUserStatus(self.user, passwd, self.user)      
+                if userstatus == "Active":
+                    connstream.write("OK")                    
+                elif userstatus == "NoActive":
+                    connstream.write("NoActive")
+                    msg = "ERROR: The user " + self.user + " is not active"
+                    self.errormsg(connstream, msg)
+                    return                    
+                elif userstatus == "NoUser":
+                    connstream.write("NoUser")
+                    msg = "ERROR: The user " + self.user + " does not exist"
+                    self.logger.error(msg)
+                    self.logger.info("Image Generation Request DONE")
+                    return
+                else:
+                    connstream.write("Could not connect with image repository server")
+                    msg = "ERROR: Could not connect with image repository server to verify the user status"
+                    self.logger.error(msg)
+                    self.logger.info("Image Generation Request DONE")
+                    return
+                endloop = True                
             else:                
                 retry += 1
                 if retry < maxretry:
@@ -234,7 +274,7 @@ class IMGenerateServer(object):
                     msg = "ERROR: authentication failed"
                     endloop = True
                     self.errormsg(channel, msg)
-                    sys.exit(1)
+                    return
         #channel.write("OK")
         #print "---Auth works---"            
         vmfile = ""
@@ -252,8 +292,8 @@ class IMGenerateServer(object):
             server = xmlrpclib.ServerProxy(self.xmlrpcserver)
         except:
             self.logger.error("Error connection with OpenNebula " + str(sys.exc_info()))
-            print "Error connecting with OpenNebula " + str(sys.exc_info())
-            sys.exit(1)
+            #print "Error connecting with OpenNebula " + str(sys.exc_info())
+            return
 
         ###########
         #BOOT VM##
@@ -372,8 +412,7 @@ class IMGenerateServer(object):
                         else:
                             msg = "ERROR: generating compressed file with the image and manifest"
                             self.errormsg(channel, msg)
-                            #break
-                            sys.exit(1) 
+                            return 
                                            
                         if self.getimg:                            
                             #send back the url where the image is                            

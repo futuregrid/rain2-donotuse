@@ -111,7 +111,7 @@ class IRServiceProxy(object):
             output = self._connIrServer.read(32768)            
                  
         else:
-            output=authstatus
+            output=str(checkauthstat[1])
             self._log.error(str(checkauthstat[0]))
                     
         end = time.time()
@@ -142,11 +142,13 @@ class IRServiceProxy(object):
                 self._connIrServer.write(passwd)
             elif (ret == "NoActive"):                
                 checkauthstat.append("ERROR: The status of the user "+ userId + " is not active")
+                checkauthstat.append("NoActive")
                 self._log.error("The status of the user "+ userId + " is not active")
                 endloop = True
                 passed = False
             elif (ret == "NoUser"):
                 checkauthstat.append("ERROR: User "+ userId + " does not exist")
+                checkauthstat.append("NoUser")
                 self._log.error("User "+ userId + " does not exist")
                 endloop = True
                 passed = False

@@ -140,12 +140,27 @@ class IMGenerate(object):
                 passwd = m.hexdigest()
                 genServer.write(passwd)
                 self.passwd = passwd
+            elif ret == "NoActive":
+                msg="The status of the user "+ self.user + " is not active"                
+                self._log.error(msg)
+                if self._verbose:
+                    print msg            
+                endloop = True
+                passed = False          
+            elif ret == "NoUser":
+                msg="User "+ self.user + " does not exist"                
+                self._log.error(msg)
+                if self._verbose:
+                    print msg   
+                endloop = True
+                passed = False
             else:
                 self._log.error(str(ret))
                 if self.verbose:
                     print ret
                 endloop = True
                 fail = True
+                
         if not fail:
             if self.verbose:
                 print "Generating the image"
@@ -329,7 +344,7 @@ def main():
     #    version = default_rhel
     elif args.OS == "CentOS" or args.OS == "CentOS" or args.OS == "centos":
         OS = "centos"
-        supported_versions = ["5", "5.0", "5.1", "5.2", "5.3", "5.4", "5.5", "5.6", "5.7", "6", "6.0"]
+        supported_versions = ["5", "5.0", "5.1", "5.2", "5.3", "5.4", "5.5", "5.6", "5.7", "6", "6.0", "6.1", "6.2"]
         if type(args.version) is NoneType:
             version = default_centos            
         elif str(args.version) in supported_versions:

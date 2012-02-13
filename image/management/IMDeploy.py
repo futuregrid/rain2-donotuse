@@ -98,26 +98,26 @@ class IMDeploy(object):
                 passwd = m.hexdigest()
                 socket_conn.write(passwd)
                 self.passwd = passwd
-            elif userstatus == "NoActive":
-                msg="The status of the user "+ userId + " is not active"
+            elif ret == "NoActive":
+                msg="The status of the user "+ self.user + " is not active"
                 checkauthstat.append(str(msg))
                 self._log.error(msg)
-                if self._verbose:
-                    print msg            
+                #if self._verbose:
+                #    print msg            
                 endloop = True
                 passed = False          
-            elif userstatus == "NoUser":
-                msg="User "+ userId + " does not exist"
+            elif ret == "NoUser":
+                msg="User "+ self.user + " does not exist"
                 checkauthstat.append(str(msg))
                 self._log.error(msg)
-                if self._verbose:
-                    print msg  
+                #if self._verbose:
+                #    print msg + " WE"  
                 endloop = True
                 passed = False
             else:                
                 self._log.error(str(ret))
-                if self._verbose:
-                    print ret
+                #if self._verbose:
+                #    print ret
                 checkauthstat.append(str(ret))
                 endloop = True
                 passed = False
@@ -949,29 +949,7 @@ class IMDeploy(object):
             #self._log.debug('Sending message: ' + msg)
             
             xcatServer.write(msg)
-            """           
-            endloop = False
-            fail = False
-            while not endloop:
-                ret = xcatServer.read(1024)
-                if (ret == "OK"):
-                    if self._verbose:                        
-                        print "Your image request is being processed"
-                    endloop = True
-                elif (ret == "TryAuthAgain"):
-                    if self._verbose:
-                        print "Permission denied, please try again. User is "+self.user
-                    m = hashlib.md5()
-                    m.update(getpass())
-                    passwd = m.hexdigest()
-                    xcatServer.write(passwd)
-                else:
-                    self._log.error(str(ret))
-                    if self._verbose:
-                        print ret
-                    endloop = True
-                    fail = True
-            """
+
             if self.check_auth(xcatServer, checkauthstat):
 
                 if image == "list":                    
@@ -1168,11 +1146,12 @@ def main():
     #XCAT
     if args.xcat != None:
         if args.imgid != None:
-            imagename = imgdeploy.xcat_method(args.xcat, args.imgid)            
-            print 'Your image has been deployed in xCAT as ' + str(imagename) + '.\n Please allow a few minutes for xCAT to register the image before attempting to use it.'
-            print 'To run a job in a machine using your image you use the fg-rain command'
-            print 'You can also do it by executing the next command: qsub -l os=<imagename> <scriptfile>' 
-            print 'In the second case you can check the status of the job with the checkjob and showq commands'
+            imagename = imgdeploy.xcat_method(args.xcat, args.imgid)  
+            if imagename != None:          
+                print 'Your image has been deployed in xCAT as ' + str(imagename) + '.\n Please allow a few minutes for xCAT to register the image before attempting to use it.'
+                print 'To run a job in a machine using your image you use the fg-rain command'
+                print 'You can also do it by executing the next command: qsub -l os=<imagename> <scriptfile>' 
+                print 'In the second case you can check the status of the job with the checkjob and showq commands'
         elif args.list:
             hpcimagelist = imgdeploy.xcat_method(args.xcat, "list")
             print "The list of available images on xCAT/Moab is:"
