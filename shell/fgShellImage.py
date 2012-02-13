@@ -456,7 +456,7 @@ class fgShellImage(Cmd):
         group1 = parser.add_mutually_exclusive_group()        
         group1.add_argument('-e', '--euca', dest='euca', nargs='?', metavar='Address:port', help='Deploy the image to Eucalyptus, which is in the specified addr')        
         #group1.add_argument('-o', '--opennebula', dest='opennebula', nargs='?', metavar='Address', help='Deploy the image to OpenNebula, which is in the specified addr')
-        #group1.add_argument('-n', '--nimbus', dest='nimbus', nargs='?', metavar='Address', help='Deploy the image to Nimbus, which is in the specified addr')
+        group1.add_argument('-n', '--nimbus', dest='nimbus', nargs='?', metavar='Address', help='Deploy the image to Nimbus, which is in the specified addr')
         group1.add_argument('-s', '--openstack', dest='openstack', nargs='?', metavar='Address', help='Deploy the image to OpenStack, which is in the specified addr')
         parser.add_argument('-v', '--varfile', dest='varfile', help='Path of the environment variable files. Currently this is used by Eucalyptus and OpenStack')
         
@@ -485,7 +485,7 @@ class fgShellImage(Cmd):
                         print "The list of available images on OpenStack is:"                    
                         for i in output:                       
                             print i   
-                        print "You can get more details by querying the image repository using IRClient.py -q command and the query string: \"* where tag=imagename\". \n" +\
+                        print "You can get more details by querying the image repository using the list command and the query string: \"* where tag=imagename\". \n" +\
                     "NOTE: To query the repository you need to remove the OS from the image name (centos,ubuntu,debian,rhel...). " + \
                       "The real name starts with the username and ends before .img.manifest.xml"        
       
@@ -494,8 +494,22 @@ class fgShellImage(Cmd):
             output = self.imgdeploy.iaas_generic(args.opennebula, image, image_source, "opennebula", varfile, args.getimg, ldap)
         #NIMBUS
         elif ('-n' in used_args or '--nimbus' in used_args):
-            #TODO        
-            print "Nimbus deployment is not implemented yet"
+            if args.varfile == None:
+                print "ERROR: You need to specify the path of the file with the Nimbus environment variables"
+            elif not os.path.isfile(str(os.path.expanduser(varfile))):
+                print "ERROR: Variable files not found. You need to specify the path of the file with the Nimbus environment variables"
+            else:    
+                output = self.imgdeploy.cloudlist(str(args.nimbus),"nimbus", varfile)
+                if output != None:   
+                    if not isinstance(output, list):
+                        print output
+                    else:
+                        print "The list of available images on Nimbus is:"                  
+                        for i in output:                       
+                            print i
+                        print "You can get more details by querying the image repository using the list command and the query string: \"* where tag=imagename\". \n" +\
+                    "NOTE: To query the repository you need to remove the OS from the image name (centos,ubuntu,debian,rhel...). " + \
+                      "The real name starts with the username and ends before .img.manifest.xml"
         elif ('-s' in used_args or '--openstack' in used_args):            
             if args.varfile == None:
                 print "ERROR: You need to specify the path of the file with the OpenStack environment variables"
@@ -510,7 +524,7 @@ class fgShellImage(Cmd):
                         print "The list of available images on OpenStack is:"                  
                         for i in output:                       
                             print i
-                        print "You can get more details by querying the image repository using IRClient.py -q command and the query string: \"* where tag=imagename\". \n" +\
+                        print "You can get more details by querying the image repository using the list command and the query string: \"* where tag=imagename\". \n" +\
                     "NOTE: To query the repository you need to remove the OS from the image name (centos,ubuntu,debian,rhel...). " + \
                       "The real name starts with the username and ends before .img.manifest.xml"
         

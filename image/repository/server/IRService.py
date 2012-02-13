@@ -131,15 +131,16 @@ class IRService(object):
         """
         return True, False, "NoActive", "NoUser"
         """
-        userstatus=self.userStore.getUserStatus(userId)
-        if userstatus=="Active":
-            cred = FGCredential(provider, userCred)
-            status = FGAuth.auth(userId, cred)
-            if status:
+        cred = FGCredential(provider, userCred)
+        status = FGAuth.auth(userId, cred)
+        if status:
+            userstatus=self.userStore.getUserStatus(userId)
+            if userstatus=="Active":
                 self.userStore.updateLastLogin(userId)
-            return status
-        else:
-            return userstatus
+            else:
+                status=userstatus        
+                    
+        return status
 
     ############################################################
     # getUserStatus

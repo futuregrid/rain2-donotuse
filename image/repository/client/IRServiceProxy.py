@@ -154,8 +154,8 @@ class IRServiceProxy(object):
                 passed = False
             else:                
                 self._log.error(str(ret))
-                if self.verbose:
-                    print ret
+                #if self.verbose:
+                #    print ret
                 checkauthstat.append(str(ret))
                 endloop = True
                 passed = False
