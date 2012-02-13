@@ -45,7 +45,7 @@ class IMGenerate(object):
         self.givenname = givenname
         self.desc = desc
         self.getimg = getimg
-        self.verbose = verbose
+        self._verbose = verbose
         self.printLogStdout = printLogStdout
         
         #Load Configuration from file
@@ -77,11 +77,57 @@ class IMGenerate(object):
     def setDebug(self, printLogStdout):
         self.printLogStdout = printLogStdout
 
+    def check_auth(self, socket_conn, checkauthstat):
+        endloop = False
+        passed = False
+        while not endloop:
+            ret = socket_conn.read(1024)
+            if (ret == "OK"):
+                if self._verbose:
+                    print "Authentication OK. Your image request is being processed"
+                self._log.debug("Authentication OK")
+                endloop = True
+                passed = True
+            elif (ret == "TryAuthAgain"):
+                msg = "Permission denied, please try again. User is " + self.user                    
+                self._log.error(msg)
+                if self._verbose:
+                    print msg                            
+                m = hashlib.md5()
+                m.update(getpass())
+                passwd = m.hexdigest()
+                socket_conn.write(passwd)
+                self.passwd = passwd
+            elif ret == "NoActive":
+                msg="The status of the user "+ self.user + " is not active"
+                checkauthstat.append(str(msg))
+                self._log.error(msg)
+                #if self._verbose:
+                #    print msg            
+                endloop = True
+                passed = False          
+            elif ret == "NoUser":
+                msg="User "+ self.user + " does not exist"
+                checkauthstat.append(str(msg))
+                self._log.error(msg)
+                #if self._verbose:
+                #    print msg + " WE"  
+                endloop = True
+                passed = False
+            else:                
+                self._log.error(str(ret))
+                #if self._verbose:
+                #    print ret
+                checkauthstat.append(str(ret))
+                endloop = True
+                passed = False
+        return passed
+
     def generate(self):
         start_all = time.time()
         #generate string with options separated by | character
         output = None
-        
+        checkauthstat = []
         #params[0] is user
         #params[1] is operating system
         #params[2] is version
@@ -111,64 +157,29 @@ class IMGenerate(object):
                                         cert_reqs=ssl.CERT_REQUIRED,
                                         ssl_version=ssl.PROTOCOL_TLSv1)
             self._log.debug("Connecting server: " + self.serveraddr + ":" + str(self.gen_port))
-            if self.verbose:
+            if self._verbose:
                 print "Connecting server: " + self.serveraddr + ":" + str(self.gen_port)
             genServer.connect((self.serveraddr, self.gen_port))            
         except ssl.SSLError:
             self._log.error("CANNOT establish SSL connection. EXIT")
-            if self.verbose:
+            if self._verbose:
                 print "ERROR: CANNOT establish SSL connection. EXIT"
 
         genServer.write(options)
         #check if the server received all parameters
-        if self.verbose:
-            print "Your image request is in the queue to be processed"
+        if self._verbose:
+            print "Your image request is in the queue to be processed after authentication"
         
-        endloop = False
-        fail = False
-        while not endloop:
-            ret = genServer.read(1024)
-            if (ret == "OK"):
-                if self.verbose:                    
-                    print "Your image request is being processed"
-                endloop = True
-            elif (ret == "TryAuthAgain"):
-                if self.verbose:
-                    print "Permission denied, please try again. User is " + self.user
-                m = hashlib.md5()
-                m.update(getpass())
-                passwd = m.hexdigest()
-                genServer.write(passwd)
-                self.passwd = passwd
-            elif ret == "NoActive":
-                msg="The status of the user "+ self.user + " is not active"                
-                self._log.error(msg)
-                if self._verbose:
-                    print msg            
-                endloop = True
-                passed = False          
-            elif ret == "NoUser":
-                msg="User "+ self.user + " does not exist"                
-                self._log.error(msg)
-                if self._verbose:
-                    print msg   
-                endloop = True
-                passed = False
-            else:
-                self._log.error(str(ret))
-                if self.verbose:
-                    print ret
-                endloop = True
-                fail = True
+        
                 
-        if not fail:
-            if self.verbose:
+        if self.check_auth(genServer, checkauthstat):
+            if self._verbose:
                 print "Generating the image"
             ret = genServer.read(2048)
             
             if (re.search('^ERROR', ret)):
                 self._log.error('The image has not been generated properly. Exit error:' + ret)
-                if self.verbose:
+                if self._verbose:
                     print "ERROR: The image has not been generated properly. Exit error:" + ret    
             else:
                 self._log.debug("Returned string: " + str(ret))
@@ -180,12 +191,16 @@ class IMGenerate(object):
                     
                     if (re.search('^ERROR', ret)):
                         self._log.error('The image has not been generated properly. Exit error:' + ret)
-                        if self.verbose:
+                        if self._verbose:
                             print "ERROR: The image has not been generated properly. Exit error:" + ret
                     else:
                         self._log.debug("The image ID is: " + str(ret))
                         output = str(ret)
-        
+        else:       
+            self._log.error(str(checkauthstat[0]))
+            if self._verbose:
+                print checkauthstat[0]
+            return
         
         end_all = time.time()
         self._log.info('TIME walltime image generate client:' + str(end_all - start_all))
@@ -234,13 +249,13 @@ class IMGenerate(object):
         imgId = imgIds[len(imgIds) - 1]
     
         cmdscp = ""
-        if self.verbose:            
+        if self._verbose:            
             cmdscp = "scp " + self.user + "@" + imgURI + " " + dest
         else:#this is the case where another application call it. So no password or passphrase is allowed
             cmdscp = "scp -q -oBatchMode=yes " + self.user + "@" + imgURI + " " + dest
         output = ""
         try:
-            if self.verbose:
+            if self._verbose:
                 print 'Retrieving image. You may be asked for ssh/passphrase password'
             self._log.debug(cmdscp)
             stat = os.system(cmdscp)
@@ -249,13 +264,13 @@ class IMGenerate(object):
                 output = dest + "/" + imgId
             else:
                 self._log.error("Error retrieving the image. Exit status " + str(stat))
-                if self.verbose:
+                if self._verbose:
                     print "Error retrieving the image. Exit status " + str(stat)
                 output = None
                 #remove the temporal file
         except os.error:
             self._log.error("Error, The image cannot be retieved" + str(sys.exc_info()))
-            if self.verbose:
+            if self._verbose:
                 print "Error, The image cannot be retieved" + str(sys.exc_info())
             output = None
     

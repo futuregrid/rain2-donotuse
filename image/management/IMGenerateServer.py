@@ -239,9 +239,7 @@ class IMGenerateServer(object):
         endloop = False
         while (not endloop):
             userCred = FGCredential(passwdtype, passwd)
-            if self.auth(userCred):
-                channel.write("OK")
-                endloop = True
+            if self.auth(userCred):                
                 #check the status of the user in the image repository. 
                 #This contacts with image repository client to check its db. The user an password are OK because this was already checked.
                 userstatus=self.checkUserStatus(self.user, passwd, self.user)      
