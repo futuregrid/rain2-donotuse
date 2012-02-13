@@ -125,7 +125,7 @@ class IMDeployServerXcat(object):
         """
         if not self._reposervice.connection():
             msg = "ERROR: Connection with the Image Repository failed"
-            self.errormsg(connstream, msg)
+            self.logger.error(msg)
             return False
         else:
             self.logger.debug("Checking User Status")
