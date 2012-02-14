@@ -162,9 +162,13 @@ class fgShellUtils(Cmd):
                                 print "----------------------------------------------------------------------"
                                 self.stdout.write("%s\n" % str(doc))
                         except AttributeError:                            
-                            pass                        
+                            pass
+                        except:
+                            print "General exception: "+str(sys.exc_info())                        
                     except SystemExit:
                         pass
+                    except:
+                        print "General exception: "+str(sys.exc_info())
                     
 
     """
