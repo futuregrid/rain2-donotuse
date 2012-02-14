@@ -502,10 +502,12 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
     start = time.time()
     if (re.search("^5", version)):
         #runCmd('chroot ' + tempdir + '' + name + ' rpm -ivh http://download.fedora.redhat.com/pub/epel/5/' + arch + '/epel-release-5-4.noarch.rpm')        
-        runCmd('chroot ' + tempdir + '' + name + ' rpm -ivh ' + http_server + '/epel-release-5-4.noarch.rpm')
+        runCmd('wget ' + http_server + '/epel-release-5-4.noarch.rpm -O /tmp/epel-release-5-4.noarch.rpm')
+        runCmd('chroot ' + tempdir + '' + name + ' rpm -ivh /tmp/epel-release-5-4.noarch.rpm')
     elif (re.search("^6", version)):
         #runCmd('chroot ' + tempdir + '' + name + ' rpm -ivh http://download.fedora.redhat.com/pub/epel/6/' + arch + '/epel-release-6-5.noarch.rpm')
-        runCmd('chroot ' + tempdir + '' + name + ' rpm -ivh ' + http_server + '/epel-release-6-5.noarch.rpm')
+        runCmd('wget ' + http_server + '/epel-release-6-5.noarch.rpm -O /tmp/epel-release-6-5.noarch.rpm')
+        runCmd('chroot ' + tempdir + '' + name + ' rpm -ivh /tmp/epel-release-6-5.noarch.rpm')
         runCmd('chroot ' + tempdir + '' + name + ' yum -y install plymouth') 
 
     runCmd('chroot ' + tempdir + '' + name + ' yum -y install wget nfs-utils gcc make man curl time')
