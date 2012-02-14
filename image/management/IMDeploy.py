@@ -560,8 +560,6 @@ class IMDeploy(object):
     def euca_method(self, imagebackpath, kernel, operatingsystem, iaas_address, varfile, getimg, wait):
         #TODO: Pick kernel and ramdisk from available eki and eri
 
-        ##NEED TO BE CHANGED TO USE THE IMEc2Environ OBJECT
-
         #hardcoded for now
         eki = 'eki-78EF12D2'
         eri = 'eri-5BB61255'
@@ -569,7 +567,7 @@ class IMDeploy(object):
         region = ""
         imageId = None
         if not eval(getimg):            
-            ec2_url, s3_url, path, region, ec2_port, s3_port = self.euca_environ(varfile, iaas_address)
+            eucaEnv = self.euca_environ(varfile, iaas_address)
             
             filename = os.path.split(imagebackpath)[1].strip()    
             print filename
@@ -580,7 +578,7 @@ class IMDeploy(object):
             #Bundle Image
             #cmd = 'euca-bundle-image --image ' + imagebackpath + ' --kernel ' + eki + ' --ramdisk ' + eri
             cmd = "euca-bundle-image --cert " + str(os.getenv("EC2_CERT")) + " --privatekey " + str(os.getenv("EC2_PRIVATE_KEY")) + \
-                  " --user " + str(os.getenv("EC2_USER_ID")) + " --ec2cert " + str(os.getenv("EUCALYPTUS_CERT")) + " --url " + str(ec2_url) + \
+                  " --user " + str(os.getenv("EC2_USER_ID")) + " --ec2cert " + str(os.getenv("EUCALYPTUS_CERT")) + " --url " + str(eucaEnv.getEc2_url()) + \
                   " -a " + str(os.getenv("EC2_ACCESS_KEY")) + " -s " + str(os.getenv("EC2_SECRET_KEY")) + \
                   " --image " + str(imagebackpath) + " --kernel " + str(eki) + " --ramdisk " + str(eri) + " --destination " + tempdir
             print cmd
@@ -594,7 +592,7 @@ class IMDeploy(object):
             #Upload bundled image
             #cmd = 'euca-upload-bundle --bucket ' + self.user + ' --manifest ' + '/tmp/' + filename + '.manifest.xml'
             cmd = "euca-upload-bundle -a " + os.getenv("EC2_ACCESS_KEY") + " -s " + os.getenv("EC2_SECRET_KEY") + \
-                " --url " + s3_url + " --ec2cert " + os.getenv("EUCALYPTUS_CERT") + " --bucket " + self.user + " --manifest " + \
+                " --url " + eucaEnv.getS3_url() + " --ec2cert " + os.getenv("EUCALYPTUS_CERT") + " --bucket " + self.user + " --manifest " + \
                 tempdir + filename + ".manifest.xml"
             print cmd      
             self._log.debug(cmd)  
@@ -607,7 +605,7 @@ class IMDeploy(object):
             #Register image
             #cmd = 'euca-register ' + self.user + '/' + filename + '.manifest.xml'
             cmd = "euca-register -a " + os.getenv("EC2_ACCESS_KEY") + " -s " + os.getenv("EC2_SECRET_KEY") + \
-                " --url " + ec2_url + " " + self.user + '/' + filename + '.manifest.xml'        
+                " --url " + eucaEnv.getEc2_url() + " " + self.user + '/' + filename + '.manifest.xml'        
             print cmd
             self._log.debug(cmd)
             #stat = os.system(cmd) #execute this with Popen to get the output
@@ -664,7 +662,7 @@ class IMDeploy(object):
         path = ""
         region = ""
         if not eval(getimg):            
-            ec2_url, s3_url, path, region, ec2_port, s3_port = self.openstack_environ(varfile, iaas_address)
+            openstackEnv = self.openstack_environ(varfile, iaas_address)
                         
             filename = os.path.split(imagebackpath)[1].strip()
     
@@ -676,7 +674,7 @@ class IMDeploy(object):
             #Bundle Image
             #cmd = 'euca-bundle-image --image ' + imagebackpath + ' --kernel ' + eki + ' --ramdisk ' + eri
             cmd = "euca-bundle-image --cert " + os.path.expanduser(os.path.expandvars(os.getenv("EC2_CERT"))) + " --privatekey " + os.path.expanduser(os.path.expandvars(os.getenv("EC2_PRIVATE_KEY"))) + \
-                  " --user " + str(os.getenv("EC2_USER_ID")) + " --ec2cert " + str(os.getenv("EUCALYPTUS_CERT")) + " --url " + str(ec2_url) + \
+                  " --user " + str(os.getenv("EC2_USER_ID")) + " --ec2cert " + str(os.getenv("EUCALYPTUS_CERT")) + " --url " + str(openstackEnv.getEc2_url()) + \
                   " -a " + str(os.getenv("EC2_ACCESS_KEY")) + " -s " + str(os.getenv("EC2_SECRET_KEY")) + \
                   " --image " + str(imagebackpath) + " --kernel " + str(eki) + " --ramdisk " + str(eri) + " --destination " + tempdir
             print cmd
@@ -689,7 +687,7 @@ class IMDeploy(object):
             #Upload bundled image
             #cmd = 'euca-upload-bundle --bucket ' + self.user + ' --manifest ' + '/tmp/' + filename + '.manifest.xml'
             cmd = "euca-upload-bundle -a " + os.getenv("EC2_ACCESS_KEY") + " -s " + os.getenv("EC2_SECRET_KEY") + \
-                " --url " + s3_url + " --ec2cert " + os.getenv("EUCALYPTUS_CERT") + " --bucket " + self.user + " --manifest " + \
+                " --url " + openstackEnv.getS3_url() + " --ec2cert " + os.getenv("EUCALYPTUS_CERT") + " --bucket " + self.user + " --manifest " + \
                 tempdir + filename + ".manifest.xml"
             print cmd      
             self._log.debug(cmd)  
@@ -702,7 +700,7 @@ class IMDeploy(object):
             #Register image
             #cmd = 'euca-register ' + self.user + '/' + filename + '.manifest.xml'
             cmd = "euca-register -a " + os.getenv("EC2_ACCESS_KEY") + " -s " + os.getenv("EC2_SECRET_KEY") + \
-                " --url " + ec2_url + " " + self.user + '/' + filename + '.manifest.xml'    
+                " --url " + openstackEnv.getEc2_url() + " " + self.user + '/' + filename + '.manifest.xml'    
             print cmd
             self._log.debug(cmd)
             #stat = os.system(cmd) #execute this with Popen to get the output
