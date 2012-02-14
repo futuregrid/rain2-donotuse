@@ -506,7 +506,7 @@ def buildCentos(name, version, arch, pkgs, tempdir, base_os, ldap):
     elif (re.search("^6", version)):
         #runCmd('chroot ' + tempdir + '' + name + ' rpm -ivh http://download.fedora.redhat.com/pub/epel/6/' + arch + '/epel-release-6-5.noarch.rpm')
         runCmd('chroot ' + tempdir + '' + name + ' rpm -ivh ' + http_server + '/conf/centos/epel-release-6-5.noarch.rpm')
-        runCmd('chroot ' + tempdir + '' + name + ' yum -y install plymouth') 
+        runCmd('chroot ' + tempdir + '' + name + ' yum -y install plymouth openssh-clients') 
 
     runCmd('chroot ' + tempdir + '' + name + ' yum -y install wget nfs-utils gcc make man curl time')
    
