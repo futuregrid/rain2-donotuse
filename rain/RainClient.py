@@ -783,7 +783,7 @@ def main():
     parser.add_argument('-j', '--jobscript', dest='jobscript', required=True, help='Script to execute on the provisioned images. In the case of Cloud environments, '
                         ' the user home directory is mounted in /tmp/N/u/username. The /N/u/username is only used for ssh between VM and store the ips of the parallel '
                         ' job in a file called /N/u/username/machines')
-    #parser.add_argument('-I', '--interactive', dest='interactive', required=True, help='Interactive mode')
+    #parser.add_argument('-I', '--interactive', dest='interactive', required=True, help='Interactive mode. This just boot VMs or provision bare-metal machines')
     
     
     args = parser.parse_args()
@@ -889,6 +889,8 @@ def main():
                         print "ERROR: Variable files not found. You need to specify the path of the file with the Eucalyptus environment variables"
                     else:
                         output = rain.euca(args.euca, output, jobscript, args.machines, varfile)
+                        if output != None:
+                            print output
                 elif ('-o' in used_args or '--opennebula' in used_args):
                     output = rain.opennebula(args.opennebula, output, jobscript, args.machines)
                 elif ('-n' in used_args or '--nimbus' in used_args):
