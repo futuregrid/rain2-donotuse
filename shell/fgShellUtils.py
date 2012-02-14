@@ -139,32 +139,33 @@ class fgShellUtils(Cmd):
                         print ""
                 except AttributeError:
                     pass
-
-        for context in self.env:
-            if (context != ""):
+        
+        for cntxt in self.env:            
+            if (cntxt.strip() != ""):                
                 print "######################################################################"
-                print "\nSpecific Commands for the context: " + context
+                print "\nSpecific Commands for the context: " + cntxt
                 print "######################################################################"
 
-                self.getDocUndoc(context)
+                self.getDocUndoc(cntxt)
                 for i in self._specdocHelp:
-
-                    if (i.strip().startswith(context)):
+                    if (i.strip().startswith(cntxt)):
                         i = i[len(context):]
-                    try:
-                        func = getattr(self, 'help_' + context + i)
+                    try:                        
+                        func = getattr(self, 'help_' + cntxt + i)
                         func()
-                    except AttributeError:
+                    except AttributeError:                        
                         try:
-                            doc = getattr(self, 'do_' + context + i).__doc__
+                            doc = getattr(self, 'do_' + cntxt + i).__doc__
                             if doc:
                                 print "----------------------------------------------------------------------"
                                 print "%s" % (i)
                                 print "----------------------------------------------------------------------"
                                 self.stdout.write("%s\n" % str(doc))
-                        except AttributeError:
-                            pass
-                    print ""
+                        except AttributeError:                            
+                            pass                        
+                    except SystemExit:
+                        pass
+                    
 
     """
     def do_manual (self, args):
