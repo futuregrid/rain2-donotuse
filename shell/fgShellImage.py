@@ -413,12 +413,14 @@ class fgShellImage(Cmd):
 
         if(len(args) == 1):
             hpcimagelist = self.imgdeploy.xcat_method(args[0], "list")
-            print "The list of available images on xCAT/Moab is:"
-            for i in hpcimagelist:
-                print "  "+ i
-            print "You can get more details by querying the image repository using the list command and the query string: * where tag=imagename. \n" +\
-                  "NOTE: To query the repository you need to remove the OS from the image name (centos,ubuntu,debian,rhel...). " + \
-                  "The real name starts with the username."
+            if hpcimagelist != None:
+                print "The list of available images on xCAT/Moab is:"
+                for i in hpcimagelist:
+                    print "  "+ i
+                print "You can get more details by querying the image repository using the list command and the query string: * where tag=imagename. \n" +\
+                      "NOTE: To query the repository you need to remove the OS from the image name (centos,ubuntu,debian,rhel...). " + \
+                      "The real name starts with the username."
+                    
         else:
             self.help_imagehpclist()
         
