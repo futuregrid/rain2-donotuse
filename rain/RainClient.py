@@ -147,7 +147,7 @@ class RainClient(object):
                             print "Job id is: " + jobid
         except KeyboardInterrupt:
             self._log.error("ERROR: qsub command failed. Executed command: \"" + cmd + "\" --- Exception: " + str(sys.exc_info()))
-            os.system("kill -9 " + p_qsub.pid)
+            os.system("kill -9 " + str(p_qsub.pid))
             return "ERROR: qsub command failed. Executed command: \"" + cmd + "\" --- Exception: " + str(sys.exc_info())
         except:
             self._log.error("ERROR: qsub command failed. Executed command: \"" + cmd + "\" --- Exception: " + str(sys.exc_info()))
