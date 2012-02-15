@@ -118,7 +118,10 @@ class RainClient(object):
         maxretry = self.moab_max_wait / 5
         try:
             while tryagain:
-                p_qsub = Popen(cmd.split(), stdout=PIPE, stderr=PIPE, shell=True)
+                if jobscript != None:
+                    p_qsub = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
+                else:
+                    p_qsub = Popen(cmd.split(), stderr=PIPE)
                 std_qsub = p_qsub.communicate()
                 if p_qsub.returncode != 0:
                     if not re.search("cannot set req attribute \'OperatingSystem\'", std_qsub[1]) and not re.search('no service listening', std_qsub[1]):                    
