@@ -622,7 +622,9 @@ class RainClient(object):
                     self._log.debug(cmd) 
                     p = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
                 else:
-                    cmd = "ssh -oStrictHostKeyChecking=no " + str(reservation.instances[0].public_dns_name)  
+                    if self.verbose:
+                        print "You are going to be logged as root, but you can change to your user by executing su - <username>"
+                    cmd = "ssh -oStrictHostKeyChecking=no -i " + sshkeypair_path + " root@" +str(reservation.instances[0].public_dns_name)  
                     self._log.debug(cmd)
                     p = Popen(cmd.split(), stderr=PIPE)
                 std = p.communicate()
