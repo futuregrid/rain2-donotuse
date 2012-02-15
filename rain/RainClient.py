@@ -121,7 +121,7 @@ class RainClient(object):
                 if jobscript != None:
                     p_qsub = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
                 else:
-                    p_qsub = Popen(cmd.split())
+                    p_qsub = Popen(cmd.split(), shell=True)
                     
                 std_qsub = p_qsub.communicate()
                 if p_qsub.returncode != 0:
@@ -145,8 +145,9 @@ class RainClient(object):
                         jobid = std_qsub[0].strip().split(".")[0]
                         if self.verbose:
                             print "Job id is: " + jobid
-        except KeyboardInterrupt:
-            return
+        except KeyboardInterrupt:            
+            os.system("kill -9 " + str(p_qsub.pid))
+            return "ERROR: qsub command failed. Executed command: \"" + cmd + "\" --- Exception: " + str(sys.exc_info())
         except:
             self._log.error("ERROR: qsub command failed. Executed command: \"" + cmd + "\" --- Exception: " + str(sys.exc_info()))
             return "ERROR: qsub command failed. Executed command: \"" + cmd + "\" --- Exception: " + str(sys.exc_info())
