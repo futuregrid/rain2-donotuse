@@ -122,6 +122,7 @@ class RainClient(object):
                     p_qsub = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
                 else:
                     p_qsub = Popen(cmd.split())
+                    
                 std_qsub = p_qsub.communicate()
                 if p_qsub.returncode != 0:
                     if not re.search("cannot set req attribute \'OperatingSystem\'", std_qsub[1]) and not re.search('no service listening', std_qsub[1]):                    
@@ -144,6 +145,10 @@ class RainClient(object):
                         jobid = std_qsub[0].strip().split(".")[0]
                         if self.verbose:
                             print "Job id is: " + jobid
+        except KeyboardInterrupt:
+            self._log.error("ERROR: qsub command failed. Executed command: \"" + cmd + "\" --- Exception: " + str(sys.exc_info()))
+            os.system("kill -9 " + p_qsub.pid)
+            return "ERROR: qsub command failed. Executed command: \"" + cmd + "\" --- Exception: " + str(sys.exc_info())
         except:
             self._log.error("ERROR: qsub command failed. Executed command: \"" + cmd + "\" --- Exception: " + str(sys.exc_info()))
             return "ERROR: qsub command failed. Executed command: \"" + cmd + "\" --- Exception: " + str(sys.exc_info())
