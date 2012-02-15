@@ -138,7 +138,7 @@ class RainClient(object):
                     else:
                         retry += 1
                         sleep(5)
-                else:
+                elif jobscript != None:
                     tryagain = False
                     jobid = std_qsub[0].strip().split(".")[0]
                     if self.verbose:
