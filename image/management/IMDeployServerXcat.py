@@ -61,7 +61,7 @@ class IMDeployServerXcat(object):
         #Default Kernels to use for each deployment
         self.default_xcat_kernel_centos = self._deployConf.getDXKernelCentos()
         self.default_xcat_kernel_ubuntu = self._deployConf.getDXKernelUbuntu()
-        
+        self.max_diskusage=self._deployConf.getMaxDiskUsage()
         
         print "\nReading Configuration file from " + self._deployConf.getConfigFile() + "\n"
         
@@ -230,7 +230,7 @@ class IMDeployServerXcat(object):
             self.logger.debug('df stderr: ' + output[1])        
         try:    
             usage_percent = int(output[0].split("\n")[1].split()[4].split("%")[0])                    
-            if usage_percent > 85:
+            if usage_percent > self.max_diskusage:
                 msg="ERROR: Image cannot be deployed due to low disk space. Please contact with your system administrator"            
                 self.errormsg(connstream, msg)
                 return

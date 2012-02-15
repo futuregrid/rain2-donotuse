@@ -81,6 +81,7 @@ class IMServerConf(object):
         self._ca_certs_xcat = ""
         self._certfile_xcat = ""
         self._keyfile_xcat = ""
+        self._max_diskusage = 0
 
         #image server moab
         self._moab_port = 0
@@ -196,6 +197,8 @@ class IMServerConf(object):
         return self._certfile_xcat
     def getKeyFileXcat(self): 
         return self._keyfile_xcat 
+    def getMaxDiskUsage(self):
+        return self._max_diskusage
     
     #image server moab    
     def getMoabPort(self):
@@ -473,6 +476,12 @@ class IMServerConf(object):
         if not os.path.isfile(self._keyfile_xcat):
             print "Error: keyfile file not found in "  + self._keyfile_xcat 
             sys.exit(1)
+        try:
+            self._max_diskusage = int(self._config.get(section, 'max_diskusage', 0))
+        except ConfigParser.NoOptionError:
+            print "Error: No max_diskusage option found in section " + section + " file " + self._configfile
+            sys.exit(1)  
+
 
     ############################################################
     # load_deployServerMoab
