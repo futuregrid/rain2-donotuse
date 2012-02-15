@@ -548,7 +548,7 @@ class RainClient(object):
                         "\n cp -f /tmp/authorized_keys /N/u/" + self.user + "/.ssh/" + 
                         "\n chmod 600 /N/u/" + self.user + "/.ssh/authorized_keys" + 
                         "\n cp -f /tmp/" + sshkey_name + ".machines /N/u/" + self.user + "/machines" +
-                        "\n cp -f /tmp/" + sshkey_name + ".machines /root" + 
+                        "\n cp -f /tmp/" + sshkey_name + ".machines /root/machines" + 
                         "\n touch /N/u/" + self.user + "/your_home_is_in_tmp" + 
                         "\n echo \"Host *\" | tee -a /N/u/" + self.user + "/.ssh/config > /dev/null" + 
                         "\n echo \"    StrictHostKeyChecking no\" | tee -a /N/u/" + self.user + "/.ssh/config > /dev/null" + 
@@ -625,6 +625,7 @@ class RainClient(object):
                 else:
                     if self.verbose:
                         print "You are going to be logged as root, but you can change to your user by executing su - <username>"
+                        print "List of machines are in /root/machines and /N/u/<username>/machines. Your real home is in /tmp/N/u/<username>"
                     cmd = "ssh -oStrictHostKeyChecking=no -i " + sshkeypair_path + " root@" +str(reservation.instances[0].public_dns_name)  
                     self._log.debug(cmd)
                     p = Popen(cmd.split(), stderr=PIPE)
@@ -705,6 +706,16 @@ class RainClient(object):
             self.stopEC2instances(connection, reservation)
             self.removeTempsshkey(sshkeytemp, sshkey_name)
             return msg
+        
+        cmd = "scp -i " + sshkeypair_path + " " + sshkeypair_path + " root@" + str(i.public_dns_name) + ":/root/.ssh/id_rsa" 
+        self._log.debug(cmd)
+        p = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
+        std = p.communicate()
+        if p.returncode != 0:
+            msg = "ERROR: sending ssh-key to /root/.ssh " + str(i.id) + ". failed, status: " + str(p.returncode) + " --- " + std[1]
+            self._log.error(msg)
+            if self.verbose:
+                print msg
         
         msg = "Configuring ssh in VM and mounting home directory (assumes that sshfs and ldap is installed)"
         self._log.debug(msg)
