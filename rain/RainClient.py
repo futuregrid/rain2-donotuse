@@ -138,11 +138,12 @@ class RainClient(object):
                     else:
                         retry += 1
                         sleep(5)
-                elif jobscript != None:
+                else:
                     tryagain = False
-                    jobid = std_qsub[0].strip().split(".")[0]
-                    if self.verbose:
-                        print "Job id is: " + jobid
+                    if jobscript != None:
+                        jobid = std_qsub[0].strip().split(".")[0]
+                        if self.verbose:
+                            print "Job id is: " + jobid
         except:
             self._log.error("ERROR: qsub command failed. Executed command: \"" + cmd + "\" --- Exception: " + str(sys.exc_info()))
             return "ERROR: qsub command failed. Executed command: \"" + cmd + "\" --- Exception: " + str(sys.exc_info())
