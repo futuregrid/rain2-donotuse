@@ -407,7 +407,7 @@ class RainClient(object):
             for i in reservation.instances:
                 status = i.update()
                 if self.verbose:
-                    print status
+                    print str(str(i.id)) + ":" + status
                 if status == 'running':
                     running += 1                    
                 elif status == 'shutdown' or status == 'terminate' or status == 'terminated':
