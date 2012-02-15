@@ -616,6 +616,7 @@ class RainClient(object):
                 if self.verbose:
                      print msg
                 #runjob 
+                p=None
                 if jobscript != None:                
                     cmd = "ssh -oBatchMode=yes -oStrictHostKeyChecking=no " + str(reservation.instances[0].public_dns_name) + " " + jobscript 
                     self._log.debug(cmd) 
