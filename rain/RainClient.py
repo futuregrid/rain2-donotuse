@@ -318,9 +318,9 @@ class RainClient(object):
         private_ips_for_hostlist = ""
 
         #Home from login node will be in /tmp/N/u/username
-        
-        if re.search("^/N/u/", jobscript):
-            jobscript = "/tmp" + jobscript        
+        if jobscript != None:
+            if re.search("^/N/u/", jobscript):
+                jobscript = "/tmp" + jobscript        
         
         try:  
             region = boto.ec2.regioninfo.RegionInfo(name=region, endpoint=endpoint)
@@ -614,11 +614,16 @@ class RainClient(object):
                 msg = "Running Job"
                 self._log.debug(msg)
                 if self.verbose:
-                     print msg 
-                #runjob
-                cmd = "ssh -oBatchMode=yes -oStrictHostKeyChecking=no " + str(reservation.instances[0].public_dns_name) + " " + jobscript 
-                self._log.debug(cmd) 
-                p = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
+                     print msg
+                #runjob 
+                if jobscript != None:                
+                    cmd = "ssh -oBatchMode=yes -oStrictHostKeyChecking=no " + str(reservation.instances[0].public_dns_name) + " " + jobscript 
+                    self._log.debug(cmd) 
+                    p = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
+                else:
+                    cmd = "ssh -oStrictHostKeyChecking=no " + str(reservation.instances[0].public_dns_name)  
+                    self._log.debug(cmd)
+                    p = Popen(cmd.split(), stderr=PIPE)
                 std = p.communicate()
                 if p.returncode != 0:
                     msg = "ERROR: Running job. " + str(reservation.instances[0].id) + ". failed, status: " + str(p.returncode) + " --- " + std[1]
