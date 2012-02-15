@@ -116,42 +116,38 @@ class RainClient(object):
         tryagain = True
         retry = 0
         maxretry = self.moab_max_wait / 5
-        try:
-            while tryagain:
-                if jobscript != None:
+        if jobscript != None:
+            try:
+                while tryagain:                
                     p_qsub = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
-                else:
-                    p_qsub = Popen(cmd.split(), shell=True)
-                    
-                std_qsub = p_qsub.communicate()
-                if p_qsub.returncode != 0:
-                    if not re.search("cannot set req attribute \'OperatingSystem\'", std_qsub[1]) and not re.search('no service listening', std_qsub[1]):                    
-                        self._log.debug(std_qsub[1])
-                        if self.verbose:
-                            print std_qsub[1]
-                        return "ERROR in qsub: " + std_qsub[1]
-                    if retry >= maxretry:
-                        tryagain = False
-                        self._log.debug(std_qsub[1])
-                        if self.verbose:
-                            print std_qsub[1]
-                        return "ERROR in qsub: " + std_qsub[1] + " \n The image is not available on Moab (timeout). Try again later."
+                    std_qsub = p_qsub.communicate()
+                    if p_qsub.returncode != 0:
+                        if not re.search("cannot set req attribute \'OperatingSystem\'", std_qsub[1]) and not re.search('no service listening', std_qsub[1]):                    
+                            self._log.debug(std_qsub[1])
+                            if self.verbose:
+                                print std_qsub[1]
+                            return "ERROR in qsub: " + std_qsub[1]
+                        if retry >= maxretry:
+                            tryagain = False
+                            self._log.debug(std_qsub[1])
+                            if self.verbose:
+                                print std_qsub[1]
+                            return "ERROR in qsub: " + std_qsub[1] + " \n The image is not available on Moab (timeout). Try again later."
+                        else:
+                            retry += 1
+                            sleep(5)
                     else:
-                        retry += 1
-                        sleep(5)
-                else:
-                    tryagain = False
-                    if jobscript != None:
-                        jobid = std_qsub[0].strip().split(".")[0]
-                        if self.verbose:
-                            print "Job id is: " + jobid
-        except KeyboardInterrupt:            
-            os.system("kill -9 " + str(p_qsub.pid))
-            return "ERROR: qsub command failed. Executed command: \"" + cmd + "\" --- Exception: " + str(sys.exc_info())
-        except:
-            self._log.error("ERROR: qsub command failed. Executed command: \"" + cmd + "\" --- Exception: " + str(sys.exc_info()))
-            return "ERROR: qsub command failed. Executed command: \"" + cmd + "\" --- Exception: " + str(sys.exc_info())
-            
+                        tryagain = False
+                        if jobscript != None:
+                            jobid = std_qsub[0].strip().split(".")[0]
+                            if self.verbose:
+                                print "Job id is: " + jobid            
+            except:
+                self._log.error("ERROR: qsub command failed. Executed command: \"" + cmd + "\" --- Exception: " + str(sys.exc_info()))
+                return "ERROR: qsub command failed. Executed command: \"" + cmd + "\" --- Exception: " + str(sys.exc_info())
+        else:
+            os.system(cmd)
+        
         if retry >= maxretry:
             return "ERROR in qsub. " + std_qsub[1]
             
