@@ -74,39 +74,42 @@ class RainClient(object):
                 if not imagefoundinfile:
                     return "ERROR: The image is not deployed on xCAT/Moab"
         
-        
-        #read the output file and the error one to print it out to the user.
-        std = []
-        f = open(jobscript, 'r')
-        #PBS -e stderr.txt
-        #PBS -o stdout.txt
-        stdoutfound = False
-        stderrfound = False        
-        stdout = ""
-        stderr = ""
-        jobname = ""
-        for i in f:
-            if re.search('^#PBS -e', i):
-                stderrfound = True
-                stderr = os.path.expandvars(os.path.expanduser(i.split()[2]))                    
-            elif re.search('^#PBS -o', i):
-                stdoutfound = True
-                stdout = os.path.expandvars(os.path.expanduser(i.split()[2]))
-            elif re.search('^#PBS -N', i):                
-                jobname = os.path.expandvars(os.path.expanduser(i.split()[2]))            
-            elif not re.search('^#', i):
-                break                      
-            if stderrfound and stdoutfound:
-                break
-        f.close()
-        
+        if jobscript != None: # Non Interactive. So read jobscript file
+            #read the output file and the error one to print it out to the user.
+            std = []
+            f = open(jobscript, 'r')
+            #PBS -e stderr.txt
+            #PBS -o stdout.txt
+            stdoutfound = False
+            stderrfound = False        
+            stdout = ""
+            stderr = ""
+            jobname = ""
+            for i in f:
+                if re.search('^#PBS -e', i):
+                    stderrfound = True
+                    stderr = os.path.expandvars(os.path.expanduser(i.split()[2]))                    
+                elif re.search('^#PBS -o', i):
+                    stdoutfound = True
+                    stdout = os.path.expandvars(os.path.expanduser(i.split()[2]))
+                elif re.search('^#PBS -N', i):                
+                    jobname = os.path.expandvars(os.path.expanduser(i.split()[2]))            
+                elif not re.search('^#', i):
+                    break                      
+                if stderrfound and stdoutfound:
+                    break
+            f.close()
+            
         #execute qsub
         cmd = "qsub "
         if machines >= 1:
             cmd += "-l nodes=" + str(machines)
         if imageidonsystem != "default":
             cmd += " -l os=" + imageidonsystem
-        cmd += " " + jobscript
+        if jobscript != None:
+            cmd += " " + jobscript
+        else:
+            cmd += " -I"
         
         self._log.debug(cmd)
         
@@ -143,59 +146,63 @@ class RainClient(object):
             
         if retry >= maxretry:
             return "ERROR in qsub. " + std_qsub[1]
-        
-        if stdoutfound == False:
-            if jobname != "":
-                stdout = jobname + ".o" + jobid
-            else:
-                stdout = jobscript + ".o" + jobid
-        if stderrfound == False:
-            if jobname != "":
-                stderr = jobname + ".o" + jobid
-            else:
-                stderr = jobscript + ".e" + jobid
-        
-        time.sleep(2)          
-        #execute checkjob checking Status until complete or fail
-        cmd = "checkjob " + jobid
-        alive = True
-        status = 0
-        state = ""
-        lines = []
-        if self.verbose:
-            print "Wait until the job finishes"
-        while alive:            
-            p = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
-            std = p.communicate()
-            lines = std[0].split('\n')
-            if p.returncode != 0:
-                self._log.debug(std[1])
-                if self.verbose:
-                    print std[1]                
-                status = 1
-                alive = False
-            else:
-                for i in lines:
-                    if re.search("^State:", i.strip()):                        
-                        state = i.strip().split(":")[1].strip()
-                        if self.verbose:
-                            print "State: " + state
-                        break
-                if state == "Completed" or state == "Removed":
+            
+            
+        if jobscript != None: #Non Interactive    
+            if stdoutfound == False:
+                if jobname != "":
+                    stdout = jobname + ".o" + jobid
+                else:
+                    stdout = jobscript + ".o" + jobid
+            if stderrfound == False:
+                if jobname != "":
+                    stderr = jobname + ".o" + jobid
+                else:
+                    stderr = jobscript + ".e" + jobid
+            
+            time.sleep(2)          
+            #execute checkjob checking Status until complete or fail
+            cmd = "checkjob " + jobid
+            alive = True
+            status = 0
+            state = ""
+            lines = []
+            if self.verbose:
+                print "Wait until the job finishes"
+            while alive:            
+                p = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
+                std = p.communicate()
+                lines = std[0].split('\n')
+                if p.returncode != 0:
+                    self._log.debug(std[1])
+                    if self.verbose:
+                        print std[1]                
+                    status = 1
                     alive = False
                 else:
-                    time.sleep(self.refresh)
-        completion = ""
-        for i in lines:
-            if re.search("^Completion Code:", i.strip()):                        
-                completion = i.strip()                    
-                break
-        
-        if self.verbose:
-            print completion
-            print "The Standard output is in the file: " + stdout
-            print "The Error output is in the file: " + stderr                
-        
+                    for i in lines:
+                        if re.search("^State:", i.strip()):                        
+                            state = i.strip().split(":")[1].strip()
+                            if self.verbose:
+                                print "State: " + state
+                            break
+                    if state == "Completed" or state == "Removed":
+                        alive = False
+                    else:
+                        time.sleep(self.refresh)
+            completion = ""
+            for i in lines:
+                if re.search("^Completion Code:", i.strip()):                        
+                    completion = i.strip()                    
+                    break
+            
+            if self.verbose:
+                print completion
+                print "The Standard output is in the file: " + stdout
+                print "The Error output is in the file: " + stderr                
+                   
+            
+            
         end_all = time.time()
         self._log.info('TIME walltime rain client baremetal(xCAT):' + str(end_all - start_all))        
         self._log.info('Rain Client Baremetal DONE')
@@ -780,10 +787,11 @@ def main():
     group1.add_argument('-s', '--openstack', dest='openstack', nargs='?', metavar='Address', help='Deploy the image to OpenStack, which is in the specified addr')
     parser.add_argument('-v', '--varfile', dest='varfile', help='Path of the environment variable files. Currently this is used by Eucalyptus and OpenStack')
     parser.add_argument('-m', '--numberofmachines', dest='machines', metavar='#instances', default=1, help='Number of machines needed.')
-    parser.add_argument('-j', '--jobscript', dest='jobscript', required=True, help='Script to execute on the provisioned images. In the case of Cloud environments, '
+    group2 = parser.add_mutually_exclusive_group(required=True)
+    group2.add_argument('-j', '--jobscript', dest='jobscript', help='Script to execute on the provisioned images. In the case of Cloud environments, '
                         ' the user home directory is mounted in /tmp/N/u/username. The /N/u/username is only used for ssh between VM and store the ips of the parallel '
                         ' job in a file called /N/u/username/machines')
-    #parser.add_argument('-I', '--interactive', dest='interactive', required=True, help='Interactive mode. This just boot VMs or provision bare-metal machines')
+    group2.add_argument('-I', '--interactive', nargs='?', default=1, dest='interactive', help='Interactive mode. This just boot VMs or provision bare-metal machines')
     
     
     args = parser.parse_args()
@@ -812,12 +820,15 @@ def main():
     elif args.imgid == None:  #when non imgId is provided
         image_source = "default"
         image = "default"
-        
-    jobscript = os.path.expanduser(os.path.expandvars(args.jobscript))
-    if not os.path.isfile(jobscript):
-        if not os.path.isfile("/" + jobscript.lstrip("/tmp")): #just in case the user indicates the path inside the VM
-            print 'Not script file found. Please specify an script file using the paramiter -j/--jobscript'            
-            sys.exit(1)
+    
+    if ('-j' in used_args or '--jobscript' in used_args):
+        jobscript = os.path.expanduser(os.path.expandvars(args.jobscript))
+        if not os.path.isfile(jobscript):
+            if not os.path.isfile("/" + jobscript.lstrip("/tmp")): #just in case the user indicates the path inside the VM
+                print 'Not script file found. Please specify an script file using the paramiter -j/--jobscript'            
+                sys.exit(1)
+    else:#interactive mode
+        jobscript=None
     
     varfile = ""
     if args.varfile != None:
