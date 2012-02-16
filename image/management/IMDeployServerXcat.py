@@ -306,13 +306,13 @@ class IMDeployServerXcat(object):
             status = self.customize_ubuntu_img()
                     
             #getting initrd and kernel customized for xCAT
-            cmd = 'wget ' + self.http_server + '/kernel/specialubuntu/'+self.kernel+'initrd_xcat.gz -O ' + self.path + '/initrd-stateless.gz'
+            cmd = 'wget ' + self.http_server + '/kernel/specialubuntu/'+self.kernel+'-initrd_xcat.gz -O ' + self.path + '/initrd-stateless.gz'
             status = self.runCmd(cmd)    
             if status != 0:
                 msg = "ERROR: retrieving/copying initrd.gz"
                 self.errormsg(connstream, msg)
                 return    
-            cmd = 'wget ' + self.http_server + '/kernel/specialubuntu/'+self.kernel+'kernel_xcat -O ' + self.path + '/kernel'
+            cmd = 'wget ' + self.http_server + '/kernel/specialubuntu/'+self.kernel+'-kernel_xcat -O ' + self.path + '/kernel'
             status = self.runCmd(cmd)    
             if status != 0:
                 msg = "ERROR: retrieving/copying kernel"
@@ -344,13 +344,13 @@ class IMDeployServerXcat(object):
                 return    
             
             #getting initrd and kernel customized for xCAT
-            cmd = 'wget ' + self.http_server + '/kernel/'+self.kernel+'initrd_xcat.gz -O ' + self.path + '/initrd-stateless.gz'
+            cmd = 'wget ' + self.http_server + '/kernel/'+self.kernel+'-initrd_xcat.gz -O ' + self.path + '/initrd-stateless.gz'
             status = self.runCmd(cmd)    
             if status != 0:
                 msg = "ERROR: retrieving/copying initrd.gz"
                 self.errormsg(connstream, msg)
                 return    
-            cmd = 'wget ' + self.http_server + '/kernel/'+self.kernel+'kernel_xcat -O ' + self.path + '/kernel'
+            cmd = 'wget ' + self.http_server + '/kernel/'+self.kernel+'-kernel_xcat -O ' + self.path + '/kernel'
             status = self.runCmd(cmd)    
             if status != 0:
                 msg = "ERROR: retrieving/copying kernel"
@@ -663,7 +663,7 @@ sysfs   /sys     sysfs    defaults       0 0
             status = self.runCmd('wget ' + self.http_server + '/torque/torque-2.4.8_india/pbs_environment -O ' +\
                                   self.path + '/rootimg/var/spool/torque/pbs_environment')
             status = self.runCmd('wget ' + self.http_server + '/torque/torque-2.4.8_india/server_name -O ' +\
-                                  self.path + '/rootimg/var/spool/torque/server_name')
+                                  self.path + '/rootimg/var/spool/torque/server_name')#this gives an error because the destiny does not exists 
             status = self.runCmd('wget ' + self.http_server + '/torque/torque-2.4.8_india/prologue -O ' +\
                                   self.path + '/rootimg/var/spool/torque/mom_priv/prologue')
             status = self.runCmd('wget ' + self.http_server + '/torque/torque-2.4.8_india/epilogue -O ' +\
