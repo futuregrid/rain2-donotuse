@@ -928,10 +928,6 @@ sysfs   /sys     sysfs    defaults       0 0
         
         #Inject the kernel
         self.logger.info('Retrieving kernel ' + self.kernel)
-
-#HARDCODED FOR NOW UNTIL I SOLVE THE PROBLEMS WITH THIS VERSION        
-        if (self.version == "6"):
-            self.kernel="2.6.32-71.el6"
         
         status = self.runCmd('wget ' + self.http_server + '/kernel/' + self.kernel + '.modules.tar.gz -O ' + self.path + '' + self.kernel + '.modules.tar.gz')
         self.runCmd('tar xfz ' + self.path + '' + self.kernel + '.modules.tar.gz --directory ' + self.path + '/rootimg/lib/modules/')
