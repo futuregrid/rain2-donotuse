@@ -283,9 +283,9 @@ class IMDeployServerXcat(object):
         self.logger.debug("kernel: " + self.kernel)
         if self.kernel == "None":
             if (self.operatingsystem == "ubuntu"):
-                self.kernel = self.default_xcat_kernel_ubuntu                        
+                self.kernel = self.default_xcat_kernel_ubuntu[self.version]                      
             elif (self.operatingsystem == "centos"):
-                self.kernel = self.default_xcat_kernel_centos
+                self.kernel = self.default_xcat_kernel_centos[self.version]
         
         #create directory that contains initrd.img and vmlinuz
         tftpimgdir = '/tftpboot/xcat/' + self.prefix + self.operatingsystem + '' + self.name + '/' + self.arch
@@ -306,13 +306,13 @@ class IMDeployServerXcat(object):
             status = self.customize_ubuntu_img()
                     
             #getting initrd and kernel customized for xCAT
-            cmd = 'wget ' + self.http_server + '/kernel/specialubuntu/initrd.gz -O ' + self.path + '/initrd-stateless.gz'
+            cmd = 'wget ' + self.http_server + '/kernel/specialubuntu/'+self.kernel+'initrd_xcat.gz -O ' + self.path + '/initrd-stateless.gz'
             status = self.runCmd(cmd)    
             if status != 0:
                 msg = "ERROR: retrieving/copying initrd.gz"
                 self.errormsg(connstream, msg)
                 return    
-            cmd = 'wget ' + self.http_server + '/kernel/specialubuntu/kernel -O ' + self.path + '/kernel'
+            cmd = 'wget ' + self.http_server + '/kernel/specialubuntu/'+self.kernel+'kernel_xcat -O ' + self.path + '/kernel'
             status = self.runCmd(cmd)    
             if status != 0:
                 msg = "ERROR: retrieving/copying kernel"
@@ -344,13 +344,13 @@ class IMDeployServerXcat(object):
                 return    
             
             #getting initrd and kernel customized for xCAT
-            cmd = 'wget ' + self.http_server + '/kernel/initrd.gz -O ' + self.path + '/initrd-stateless.gz'
+            cmd = 'wget ' + self.http_server + '/kernel/'+self.kernel+'initrd_xcat.gz -O ' + self.path + '/initrd-stateless.gz'
             status = self.runCmd(cmd)    
             if status != 0:
                 msg = "ERROR: retrieving/copying initrd.gz"
                 self.errormsg(connstream, msg)
                 return    
-            cmd = 'wget ' + self.http_server + '/kernel/kernel -O ' + self.path + '/kernel'
+            cmd = 'wget ' + self.http_server + '/kernel/'+self.kernel+'kernel_xcat -O ' + self.path + '/kernel'
             status = self.runCmd(cmd)    
             if status != 0:
                 msg = "ERROR: retrieving/copying kernel"

@@ -280,8 +280,7 @@ class IMServerConf(object):
             centos_temp = os.path.expanduser(self._config.get(section, 'vmfile_centos', 0))
             centos_temp1 = centos_temp.split(",")
             for i in range(len(centos_temp1)):      
-                self._vmfile_centos[centos_temp1[i].split(":")[0].strip()]=centos_temp1[i].split(":")[1].strip()
-            
+                self._vmfile_centos[centos_temp1[i].split(":")[0].strip()]=centos_temp1[i].split(":")[1].strip()            
         except ConfigParser.NoOptionError:
             print "Error: No vmfile_centos option found in section " + section + " file " + self._configfile
             sys.exit(1)
@@ -438,12 +437,18 @@ class IMServerConf(object):
         except ConfigParser.NoOptionError:
             self._test_xcat=False
         try:
-            self._default_xcat_kernel_centos = self._config.get(section, 'default_xcat_kernel_centos', 0)
+            centos_temp = os.path.expanduser(self._config.get(section, 'default_xcat_kernel_centos', 0))
+            centos_temp1 = centos_temp.split(",")
+            for i in range(len(centos_temp1)):      
+                self._default_xcat_kernel_centos[centos_temp1[i].split(":")[0].strip()]=centos_temp1[i].split(":")[1].strip()            
         except ConfigParser.NoOptionError:
             print "Error: No default_xcat_kernel_centos option found in section " + section + " file " + self._configfile
             sys.exit(1)
-        try:
-            self._default_xcat_kernel_ubuntu = self._config.get(section, 'default_xcat_kernel_ubuntu', 0)
+        try:            
+            ubuntu_temp = os.path.expanduser(self._config.get(section, 'default_xcat_kernel_ubuntu', 0))
+            ubuntu_temp1 = ubuntu_temp.split(",")
+            for i in range(len(ubuntu_temp1)):      
+                self._default_xcat_kernel_ubuntu[ubuntu_temp1[i].split(":")[0].strip()]=ubuntu_temp1[i].split(":")[1].strip()            
         except ConfigParser.NoOptionError:
             print "Error: No default_xcat_kernel_ubuntu option found in section " + section + " file " + self._configfile
             sys.exit(1)    
