@@ -320,7 +320,7 @@ class IMDeployServerXcat(object):
                 return
             
             #getting generic initrd and kernel 
-            cmd = 'wget ' + self.http_server + '/kernel/tftp/xcat/ubuntu10/' + self.arch + '/initrd.img -O ' + tftpimgdir + '/initrd.img'
+            cmd = 'wget ' + self.http_server + '/kernel/tftp/xcat/ubuntu10/' + self.arch + '/'+self.kernel+'-initrd.img -O ' + tftpimgdir + '/initrd.img'
             status = self.runCmd(cmd)
 
             if status != 0:
@@ -328,7 +328,7 @@ class IMDeployServerXcat(object):
                 self.errormsg(connstream, msg)
                 return
 
-            cmd = 'wget ' + self.http_server + '/kernel/tftp/xcat/ubuntu10/' + self.arch + '/vmlinuz -O ' + tftpimgdir + '/vmlinuz'
+            cmd = 'wget ' + self.http_server + '/kernel/tftp/xcat/ubuntu10/' + self.arch + '/'+self.kernel+'-vmlinuz -O ' + tftpimgdir + '/vmlinuz'
             status = self.runCmd(cmd)
 
             if status != 0:
@@ -358,13 +358,13 @@ class IMDeployServerXcat(object):
                 return
             
             #getting generic initrd and kernel
-            cmd = 'wget ' + self.http_server + '/kernel/tftp/xcat/centos'+self.version+'/' + self.arch + '/initrd.img -O ' + tftpimgdir + '/initrd.img'
+            cmd = 'wget ' + self.http_server + '/kernel/tftp/xcat/centos'+self.version+'/' + self.arch + '/'+self.kernel+'-initrd.img -O ' + tftpimgdir + '/initrd.img'
             status = self.runCmd(cmd)    
             if status != 0:
                 msg = "ERROR: retrieving/copying initrd.img"
                 self.errormsg(connstream, msg)
                 return    
-            cmd = 'wget ' + self.http_server + '/kernel/tftp/xcat/centos'+self.version+'/' + self.arch + '/vmlinuz -O ' + tftpimgdir + '/vmlinuz'
+            cmd = 'wget ' + self.http_server + '/kernel/tftp/xcat/centos'+self.version+'/' + self.arch + '/'+self.kernel+'-vmlinuz -O ' + tftpimgdir + '/vmlinuz'
             status = self.runCmd(cmd)    
             if status != 0:
                 msg = "ERROR: retrieving/copying vmlinuz"
