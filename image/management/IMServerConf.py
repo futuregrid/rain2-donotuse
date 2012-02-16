@@ -75,8 +75,8 @@ class IMServerConf(object):
         self._log_xcat = ""
         self._logLevel_xcat = ""
         self._test_xcat = ""
-        self._default_xcat_kernel_centos = ""
-        self._default_xcat_kernel_ubuntu = ""
+        self._default_xcat_kernel_centos = {}
+        self._default_xcat_kernel_ubuntu = {}
         self._tempdir_xcat = ""
         self._ca_certs_xcat = ""
         self._certfile_xcat = ""
